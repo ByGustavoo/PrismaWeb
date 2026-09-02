@@ -1,0 +1,68 @@
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-2) var(--space-2) 0 var(--space-4);
+}
+
+.link {
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--accent);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-xs);
+}
+
+.link:hover {
+  background-color: var(--accent-soft);
+}
+
+.description {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-weight: 500;
+}
+
+.kindIcon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: var(--radius-xs);
+}
+
+.income {
+  background-color: var(--positive-soft);
+  color: var(--positive);
+}
+
+.expense {
+  background-color: var(--negative-soft);
+  color: var(--negative);
+}
+
+.transfer {
+  background-color: var(--neutral-soft);
+  color: var(--text-muted);
+}
+
+.category {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+
+.categoryDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.muted {
+  color: var(--text-muted);
+  white-space: nowrap;
+}

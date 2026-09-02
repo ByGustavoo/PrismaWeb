@@ -1,0 +1,336 @@
+.sidebar {
+  grid-area: sidebar;
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sidebar);
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  width: var(--sidebar-width);
+  padding: var(--space-4) var(--space-3);
+  background-color: var(--surface);
+  border-right: 1px solid var(--border);
+  transition: width var(--duration-base) var(--ease-out);
+}
+
+.collapsed {
+  width: var(--sidebar-width-collapsed);
+  align-items: stretch;
+}
+
+/* --- Marca ------------------------------------------------------------- */
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-2) var(--space-5);
+}
+
+.brandMark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-inverted);
+  color: var(--text-inverted);
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.brandName {
+  font-family: var(--font-figure);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.2;
+}
+
+.brandTagline {
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+  white-space: nowrap;
+}
+
+.collapsed .brandText {
+  display: none;
+}
+
+.collapsed .brand {
+  justify-content: center;
+  padding-inline: 0;
+}
+
+.closeMobile {
+  display: none;
+  margin-left: auto;
+  padding: var(--space-2);
+  border-radius: var(--radius-xs);
+  color: var(--text-muted);
+}
+
+/* --- Navegacao --------------------------------------------------------- */
+
+.nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  overflow-y: auto;
+  padding-bottom: var(--space-4);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sectionTitle {
+  padding: 0 var(--space-3) var(--space-2);
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: var(--fs-base);
+  font-weight: 500;
+  text-align: left;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.item:hover {
+  background-color: var(--surface-muted);
+  color: var(--text);
+}
+
+.itemActive {
+  background-color: var(--accent-soft);
+  color: var(--accent);
+}
+
+.itemIcon {
+  flex-shrink: 0;
+}
+
+.itemLabel {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collapsed .itemLabel {
+  display: none;
+}
+
+.collapsed .item {
+  justify-content: center;
+  padding-inline: 0;
+}
+
+.groupTrigger {
+  cursor: pointer;
+}
+
+.chevron {
+  flex-shrink: 0;
+  color: var(--text-subtle);
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.children {
+  display: flex;
+  flex-direction: column;
+  margin: var(--space-1) 0 var(--space-2) calc(var(--space-3) + 9px);
+  padding-left: var(--space-4);
+  border-left: 1px solid var(--border);
+}
+
+.child {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-xs);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.child:hover {
+  color: var(--text);
+}
+
+.childActive {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* --- Rodape ------------------------------------------------------------ */
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+  background-color: var(--neutral-soft);
+  color: var(--text-muted);
+  font-family: var(--font-figure);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+
+.userText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.userName {
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userEmail {
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.collapsed .userText {
+  display: none;
+}
+
+.collapsed .user {
+  justify-content: center;
+}
+
+.collapseButton {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-subtle);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.collapseButton:hover {
+  background-color: var(--surface-muted);
+  color: var(--text);
+}
+
+.collapsed .footer {
+  flex-direction: column;
+}
+
+/* --- Scrim (mobile) ---------------------------------------------------- */
+
+.scrim {
+  display: none;
+}
+
+/* --- Responsivo -------------------------------------------------------- */
+
+@media (max-width: 1099px) {
+  .sidebar {
+    position: fixed;
+    inset-block: 0;
+    left: 0;
+    width: var(--sidebar-width);
+    transform: translateX(-100%);
+    box-shadow: none;
+    transition: transform var(--duration-base) var(--ease-out);
+  }
+
+  .mobileOpen {
+    transform: translateX(0);
+    box-shadow: var(--shadow-overlay);
+  }
+
+  .collapsed {
+    width: var(--sidebar-width);
+  }
+
+  .collapsed .brandText,
+  .collapsed .itemLabel,
+  .collapsed .userText {
+    display: flex;
+  }
+
+  .collapsed .item {
+    justify-content: flex-start;
+    padding-inline: var(--space-3);
+  }
+
+  .closeMobile {
+    display: block;
+  }
+
+  .collapseButton {
+    display: none;
+  }
+
+  .scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--z-sidebar) - 1);
+    background-color: rgba(12, 16, 15, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--duration-base) var(--ease-out);
+  }
+
+  .scrimVisible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}

@@ -1,0 +1,153 @@
+/*
+ * Design tokens da aplicacao.
+ * Toda cor, espacamento e tipografia usada nos componentes vem daqui.
+ * Nenhum componente deve declarar hex diretamente.
+ */
+
+:root {
+  /* --- Tipografia ------------------------------------------------------ */
+  --font-ui: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-figure: 'Archivo', ui-sans-serif, system-ui, sans-serif;
+
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.8125rem;
+  --fs-base: 0.875rem;
+  --fs-md: 1rem;
+  --fs-lg: 1.25rem;
+  --fs-xl: 1.5625rem;
+  --fs-2xl: 2rem;
+  --fs-display: 2.75rem;
+
+  --lh-tight: 1.1;
+  --lh-snug: 1.35;
+  --lh-normal: 1.55;
+
+  --tracking-tight: -0.02em;
+  --tracking-figure: -0.03em;
+
+  /* --- Espacamento (base 4px) ------------------------------------------ */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* --- Raios (hierarquia proposital, nao um valor unico) --------------- */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* --- Layout ---------------------------------------------------------- */
+  --sidebar-width: 264px;
+  --sidebar-width-collapsed: 76px;
+  --header-height: 68px;
+  --content-max: 1440px;
+
+  /* --- Movimento ------------------------------------------------------- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+
+  /* --- Camadas --------------------------------------------------------- */
+  --z-header: 30;
+  --z-sidebar: 40;
+  --z-overlay: 50;
+  --z-modal: 60;
+  --z-toast: 70;
+}
+
+/* --- Tema claro -------------------------------------------------------- */
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+
+  --canvas: #edf0ea;
+  --surface: #ffffff;
+  --surface-muted: #f4f6f1;
+  --surface-raised: #ffffff;
+  --surface-inverted: #17201f;
+
+  --border: #dce0d6;
+  --border-strong: #c3cabb;
+
+  --text: #17201f;
+  --text-muted: #5b6764;
+  --text-subtle: #7d8985;
+  --text-inverted: #f4f6f1;
+
+  --accent: #2b4ee6;
+  --accent-hover: #1f3dc4;
+  --accent-soft: #e5eaff;
+  --accent-contrast: #ffffff;
+
+  --positive: #0e7a55;
+  --positive-soft: #dff0e7;
+  --negative: #b8402c;
+  --negative-soft: #fae3de;
+  --warning: #9a6c0c;
+  --warning-soft: #f8ecd2;
+  --neutral-soft: #e9ece5;
+
+  --shadow-overlay: 0 24px 48px -20px rgba(23, 32, 31, 0.28), 0 2px 8px rgba(23, 32, 31, 0.06);
+  --shadow-popover: 0 12px 28px -12px rgba(23, 32, 31, 0.24);
+  --focus-ring: 0 0 0 3px rgba(43, 78, 230, 0.28);
+
+  --chart-grid: #e2e6dc;
+  --chart-1: #2b4ee6;
+  --chart-2: #0e7a55;
+  --chart-3: #b8402c;
+  --chart-4: #9a6c0c;
+  --chart-5: #6b5bd2;
+  --chart-6: #3f8fa8;
+}
+
+/* --- Tema escuro ------------------------------------------------------- */
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --canvas: #0e1211;
+  --surface: #161b1a;
+  --surface-muted: #1c2321;
+  --surface-raised: #1b2220;
+  --surface-inverted: #eef1ec;
+
+  --border: #29312e;
+  --border-strong: #3a4340;
+
+  --text: #e9ede9;
+  --text-muted: #98a49f;
+  --text-subtle: #77837e;
+  --text-inverted: #0e1211;
+
+  --accent: #6e8fff;
+  --accent-hover: #8aa4ff;
+  --accent-soft: #1c2743;
+  --accent-contrast: #0b1020;
+
+  --positive: #35c88e;
+  --positive-soft: #102b22;
+  --negative: #f0705a;
+  --negative-soft: #2e1a17;
+  --warning: #e0a93b;
+  --warning-soft: #2b2213;
+  --neutral-soft: #222a27;
+
+  --shadow-overlay: 0 28px 56px -24px rgba(0, 0, 0, 0.7), 0 2px 10px rgba(0, 0, 0, 0.4);
+  --shadow-popover: 0 16px 32px -16px rgba(0, 0, 0, 0.65);
+  --focus-ring: 0 0 0 3px rgba(110, 143, 255, 0.35);
+
+  --chart-grid: #262e2b;
+  --chart-1: #6e8fff;
+  --chart-2: #35c88e;
+  --chart-3: #f0705a;
+  --chart-4: #e0a93b;
+  --chart-5: #a48bff;
+  --chart-6: #56b7d1;
+}

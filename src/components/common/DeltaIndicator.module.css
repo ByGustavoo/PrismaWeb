@@ -1,0 +1,23 @@
+.delta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+
+.good {
+  color: var(--positive);
+}
+.bad {
+  color: var(--negative);
+}
+.flat {
+  color: var(--text-muted);
+}
+
+.caption {
+  margin-left: var(--space-1);
+  color: var(--text-subtle);
+  font-weight: 400;
+}

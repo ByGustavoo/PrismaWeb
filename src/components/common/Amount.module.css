@@ -1,0 +1,39 @@
+.amount {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.default {
+  color: var(--text);
+}
+.positive {
+  color: var(--positive);
+}
+.negative {
+  color: var(--negative);
+}
+.muted {
+  color: var(--text-muted);
+}
+
+.sm {
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+.md {
+  font-size: var(--fs-md);
+}
+.lg {
+  font-size: var(--fs-xl);
+}
+.display {
+  font-size: var(--fs-display);
+  font-weight: 600;
+  line-height: 1;
+}
+
+@media (max-width: 767px) {
+  .display {
+    font-size: var(--fs-2xl);
+  }
+}

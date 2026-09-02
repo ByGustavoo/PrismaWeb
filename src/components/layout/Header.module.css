@@ -1,0 +1,165 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  height: var(--header-height);
+  padding-inline: var(--space-6);
+  background-color: color-mix(in srgb, var(--canvas) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+
+.menuButton {
+  display: none;
+  padding: var(--space-2);
+  margin-left: calc(var(--space-2) * -1);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+}
+
+.menuButton:hover {
+  background-color: var(--surface-muted);
+  color: var(--text);
+}
+
+.monthSwitcher {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 3px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.monthArrow {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-xs);
+  color: var(--text-muted);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.monthArrow:hover {
+  background-color: var(--surface-muted);
+  color: var(--text);
+}
+
+.monthLabel {
+  min-width: 140px;
+  text-align: center;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  max-width: 420px;
+  height: 36px;
+  padding-inline: var(--space-3);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.search:focus-within {
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  font-size: var(--fs-base);
+}
+
+.search input:focus {
+  outline: none;
+}
+
+.search input::placeholder {
+  color: var(--text-subtle);
+}
+
+.searchIcon {
+  color: var(--text-subtle);
+  flex-shrink: 0;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.iconButton {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.iconButton:hover {
+  background-color: var(--surface-muted);
+  color: var(--text);
+}
+
+.badgeDot {
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--negative);
+  border: 2px solid var(--canvas);
+}
+
+@media (max-width: 1099px) {
+  .menuButton {
+    display: block;
+  }
+}
+
+@media (max-width: 900px) {
+  .search {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .header {
+    padding-inline: var(--space-4);
+    gap: var(--space-2);
+  }
+
+  .monthLabel {
+    min-width: 96px;
+    font-size: var(--fs-xs);
+  }
+}
+
+@media (max-width: 560px) {
+  .actions > button:last-child {
+    display: none;
+  }
+}
