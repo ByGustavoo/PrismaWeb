@@ -6,7 +6,7 @@
   align-items: center;
   justify-content: center;
   padding: var(--space-4);
-  background-color: rgba(12, 16, 15, 0.45);
+  background-color: var(--scrim);
   backdrop-filter: blur(2px);
   animation: fade var(--duration-base) var(--ease-out);
 }
@@ -63,6 +63,11 @@
   overflow-y: auto;
 }
 
+/*
+ * Sem fundo proprio: o painel inteiro fica de uma cor so. O botao secundario se
+ * destaca por usar --surface, que e mais escuro que o --surface-raised do
+ * painel, e nao por uma faixa mais clara no rodape.
+ */
 .footer {
   display: flex;
   justify-content: flex-end;

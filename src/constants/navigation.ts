@@ -1,14 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import {
-  ArrowLeftRight,
-  ChartPie,
-  CreditCard,
-  LayoutDashboard,
-  Settings,
-  Target,
-  TrendingUp,
-  Wallet,
-} from 'lucide-react';
+import { ArrowLeftRight, ChartPie, CreditCard, LayoutDashboard, Settings, Target, TrendingUp } from 'lucide-react';
 import { paths } from '@/routes/paths';
 
 export interface NavChild {
@@ -35,33 +26,33 @@ export const navigation: NavSection[] = [
     items: [{ label: 'Dashboard', icon: LayoutDashboard, to: paths.dashboard }],
   },
   {
-    title: 'Movimentacao',
+    title: 'Movimentação',
     items: [
       {
-        label: 'Lancamentos',
+        label: 'Lançamentos',
         icon: ArrowLeftRight,
         to: paths.transactions,
         children: [
           { label: 'Todas', to: paths.transactions },
           { label: 'Receitas', to: paths.income },
           { label: 'Despesas', to: paths.expenses },
-          { label: 'Transferencias', to: paths.transfers },
+          { label: 'Transferências', to: paths.transfers },
         ],
       },
       {
-        label: 'Contas e cartoes',
+        label: 'Contas e cartões',
         icon: CreditCard,
         to: paths.accounts,
         children: [
           { label: 'Contas', to: paths.accounts },
-          { label: 'Cartoes', to: paths.cards },
+          { label: 'Cartões', to: paths.cards },
           { label: 'Faturas', to: paths.invoices },
         ],
       },
     ],
   },
   {
-    title: 'Patrimonio',
+    title: 'Patrimônio',
     items: [
       { label: 'Investimentos', icon: TrendingUp, to: paths.investments },
       {
@@ -69,21 +60,18 @@ export const navigation: NavSection[] = [
         icon: Target,
         to: paths.budget,
         children: [
-          { label: 'Orcamento', to: paths.budget },
+          { label: 'Orçamento', to: paths.budget },
           { label: 'Despesas recorrentes', to: paths.recurring },
-          { label: 'Previsao financeira', to: paths.forecast },
+          { label: 'Previsão financeira', to: paths.forecast },
         ],
       },
     ],
   },
   {
-    title: 'Analise',
+    title: 'Análise',
     items: [
-      { label: 'Relatorios', icon: ChartPie, to: paths.reports },
-      { label: 'Configuracoes', icon: Settings, to: paths.settings },
+      { label: 'Relatórios', icon: ChartPie, to: paths.reports },
+      { label: 'Configurações', icon: Settings, to: paths.settings },
     ],
   },
 ];
-
-/** Icone usado no logotipo da marca. */
-export const brandIcon: LucideIcon = Wallet;

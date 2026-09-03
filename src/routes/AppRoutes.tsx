@@ -26,30 +26,32 @@ export function AppRoutes() {
           path={paths.transactions}
           element={
             <TransactionsPage
-              title="Lancamentos"
-              description="Todas as movimentacoes registradas no periodo"
+              key="all"
+              title="Lançamentos"
+              description="Todas as movimentações registradas no período"
             />
           }
         />
         <Route
           path={paths.income}
           element={
-            <TransactionsPage kind="income" title="Receitas" description="Entradas registradas no periodo" />
+            <TransactionsPage key="income" kind="income" title="Receitas" description="Entradas registradas no período" />
           }
         />
         <Route
           path={paths.expenses}
           element={
-            <TransactionsPage kind="expense" title="Despesas" description="Saidas registradas no periodo" />
+            <TransactionsPage key="expense" kind="expense" title="Despesas" description="Saídas registradas no período" />
           }
         />
         <Route
           path={paths.transfers}
           element={
             <TransactionsPage
+              key="transfer"
               kind="transfer"
-              title="Transferencias"
-              description="Movimentacoes entre suas proprias contas"
+              title="Transferências"
+              description="Movimentações entre suas próprias contas"
             />
           }
         />

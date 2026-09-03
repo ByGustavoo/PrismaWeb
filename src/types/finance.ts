@@ -91,6 +91,24 @@ export interface BalancePoint {
   balance: number;
 }
 
+export type AlertKind = 'invoice-due' | 'bill-due' | 'scheduled' | 'card-limit';
+
+export type AlertSeverity = 'critical' | 'attention' | 'info';
+
+export interface Alert {
+  id: ID;
+  kind: AlertKind;
+  severity: AlertSeverity;
+  title: string;
+  description: string;
+  /** Data ISO (YYYY-MM-DD) a que o aviso se refere. */
+  date: string;
+  /** Valor envolvido, quando o aviso tiver um. */
+  amount?: number;
+  /** Rota que responde ao aviso. */
+  to?: string;
+}
+
 export interface DashboardSummary {
   month: string;
   currentBalance: number;

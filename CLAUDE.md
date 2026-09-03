@@ -71,7 +71,12 @@ Estas sao as invariantes do projeto. Quebra-las e o erro mais caro que se pode c
 6. **Contratos de dominio em `src/types/finance.ts`.** Sao o contrato esperado do backend futuro;
    mudar um tipo la e uma decisao de API, nao um detalhe de tela.
 
-7. **Excecao ao token de cor: Recharts.** A biblioteca escreve cor como atributo de SVG, onde
+7. **Nada de `<select>` nativo.** O navegador desenha a lista do elemento nativo com as cores do
+   sistema e ignora os tokens, o que deixa as opcoes ilegiveis no tema escuro. Campos de escolha
+   usam `components/ui/Select`, um combobox proprio com `role="listbox"`, navegacao por teclado e
+   estados de hover, selecao e foco vindos dos tokens.
+
+8. **Excecao ao token de cor: Recharts.** A biblioteca escreve cor como atributo de SVG, onde
    `var(--token)` nao resolve de forma confiavel. Use o hook `useChartPalette`, que le os tokens
    computados e recalcula quando o tema muda.
 
@@ -82,18 +87,18 @@ src/
 ├── api/           httpClient, ApiError, endpoints
 ├── components/
 │   ├── ui/        Button, Card, Input, Select, Modal, Badge, Table, Loading, EmptyState, Toast
-│   ├── common/    Amount, DeltaIndicator, UnderConstruction
-│   ├── layout/    Sidebar, Header, PageHeader
+│   ├── common/    Amount, BrandMark, DeltaIndicator, UnderConstruction
+│   ├── layout/    Sidebar, Header, PageHeader, NotificationsPanel
 │   ├── dashboard/ BalancePanel, StatTile, CashflowChart, CategoryBreakdown, RecentTransactions
 │   └── charts/    ChartTooltip
-├── constants/     env, app, navigation
+├── constants/     env, app, navigation, transactions
 ├── hooks/         useAsyncData, useMediaQuery, useLocalStorage, useLockBodyScroll, useChartPalette
 ├── layouts/       AppLayout (sidebar + header + conteudo)
 ├── pages/         Dashboard, Lancamentos, Configuracoes, placeholders, 404
 ├── providers/     ThemeProvider, ToastProvider, AppProviders
 ├── routes/        AppRoutes, paths
-├── services/      dashboard, transactions, accounts, investments
-│   └── mocks/     data, dashboard.mock, mockResponse
+├── services/      dashboard, transactions, accounts, investments, alerts
+│   └── mocks/     data, dashboard.mock, alerts.mock, mockResponse
 ├── styles/        tokens.css, global.css
 ├── types/         common, finance
 └── utils/         cn, date, format
@@ -106,15 +111,28 @@ Cada pasta de componentes tem um `index.ts` de barril — ao criar um componente
 - **Alias `@/` aponta para `src/`** (configurado em `vite.config.ts` e `tsconfig.app.json`).
   Use import absoluto entre pastas; relativo so dentro da mesma pasta.
 - **Um `.module.css` ao lado do componente**, mesmo nome do arquivo.
-- **Comentarios e strings de codigo sao escritos sem acentuacao** (ASCII puro): `Lancamentos`,
-  `Financas`, `Configuracoes`. Isso vale para comentarios, constantes e labels no `.ts`/`.tsx`.
-  O README e a documentacao em markdown usam acentuacao normal.
+- **Texto de interface e portugues brasileiro acentuado.** Titulo, label, descricao, placeholder,
+  `aria-label`, mensagem de erro, texto de toast e dado de mock que chega a tela usam acentuacao
+  correta: `Lancamentos` -> `Lançamentos`, `Configuracoes` -> `Configurações`. Titulos e labels
+  seguem capitalizacao de frase ("Últimos lançamentos", "Rentabilidade acumulada"), nunca tudo em
+  minusculo nem title case ao estilo ingles.
+- **O que nao aparece na tela continua em ASCII puro:** comentarios, JSDoc, nomes de variaveis,
+  chaves de objeto, ids de mock (`cat-saude`) e as rotas em `src/routes/paths.ts`
+  (`/lancamentos`, `/configuracoes`). Manter essa separacao evita quebrar referencias no codigo.
 - **Comentario existe para explicar o porque, nao o que.** O codigo atual segue isso — mantenha o
   padrao, nao encha de comentario obvio.
 - `tsconfig` roda com `noUnusedLocals`, `noUnusedParameters` e `noUncheckedIndexedAccess`.
   Acesso a indice de array devolve `T | undefined` — trate, nao use `!`.
 - Formatacao de moeda, numero e data passa por `src/utils/format.ts`, que usa `Intl` com
-  `LOCALE = 'pt-BR'` e `CURRENCY = 'BRL'` de `src/constants/app.ts`.
+  `LOCALE = 'pt-BR'` e `CURRENCY = 'BRL'` de `src/constants/app.ts`. Todo valor exibido sai como
+  `R$ 5.000,00`.
+- **Valor monetario na tela sempre pelo componente `Amount`.** Ele usa `formatCurrencyParts` para
+  separar o simbolo dos algarismos: "R$" fica em um span com a familia de interface e os digitos em
+  um span `.tabular` com a familia de numeros. Escrever `{formatCurrency(x)}` direto no JSX faz o
+  cifrao herdar o tracking negativo da familia de numeros e desalinhar em relacao ao resto do app.
+- **Cor de variacao segue a seta, sempre.** No `DeltaIndicator` subir e verde e cair e vermelho, em
+  qualquer tela. Nao reintroduza um modo que inverta so a cor: ele produz seta para baixo em verde,
+  e o simbolo passa a contradizer a cor.
 - Dados assincronos nas paginas vao por `useAsyncData`, que ja entrega estados de loading, erro e
   cancelamento.
 
@@ -125,6 +143,28 @@ Cada pasta de componentes tem um `index.ts` de barril — ao criar um componente
   tema errado. Se mexer na chave de storage (`THEME_STORAGE_KEY`), atualize esse script tambem.
 - O `ThemeProvider` grava `data-theme` no `documentElement` **durante o render**, nao em efeito,
   para que quem le tokens computados (Recharts) enxergue o tema certo no mesmo ciclo.
+- Os dois temas usam cinzas neutros, sem desvio de matiz: a cor fica reservada ao acento e aos
+  estados semanticos, que assim se destacam. Ao acrescentar um token de superficie, respeite a
+  escala de elevacao `canvas < surface < surface-raised < surface-muted`.
+- `--chart-2`/`--chart-3` sao parentes de `--positive`/`--negative`, mas nao os mesmos valores: texto
+  precisa de 4.5:1 e acaba escuro, enquanto barra e area sao objeto grafico (3:1) e podem ser mais
+  claras e saturadas. Nao unifique os dois pares.
+- Contraste e requisito, nao detalhe: texto em 4.5:1 e cor de grafico em 3:1 sobre a superficie em
+  que aparece, nos dois temas. Vale tambem para o par cor/fundo dos badges (`--positive` sobre
+  `--positive-soft`, e assim por diante), que e o ponto onde isso costuma escapar.
+- Os tokens `--brand-*` sao a excecao a regra de tema: um logotipo nao muda de cor com o tema,
+  entao eles ficam no bloco `:root` e valem para claro e escuro.
+
+## Avisos
+
+O sino do header abre o `NotificationsPanel`, alimentado por `alertsService`. Os avisos nao sao
+uma lista fixa: `buildAlerts()` os deriva dos mesmos mocks que abastecem as telas — faturas a
+vencer, lancamentos pendentes ou agendados dentro de 15 dias, e cartoes acima de 70% do limite.
+Quando o backend entrar, so o service muda.
+
+A urgencia aparece na cor do icone (`critical` / `attention` / `info`), nao no fundo da linha: uma
+lista com tres fundos coloridos vira ruido. O ponto no sino conta apenas os avisos que nao sao
+`info`, e e calculado no mount do painel — nao depende de o usuario abri-lo.
 
 ## Responsividade
 

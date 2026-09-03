@@ -6,15 +6,18 @@ import styles from './DeltaIndicator.module.css';
 
 export interface DeltaIndicatorProps {
   delta: Delta;
-  /** Em despesas, subir e ruim: inverte a cor sem inverter a seta. */
-  invertColors?: boolean;
   caption?: string;
 }
 
-export function DeltaIndicator({ delta, invertColors = false, caption }: DeltaIndicatorProps) {
+/**
+ * Cor e seta contam a mesma historia: subiu e verde, caiu e vermelho. Ja houve
+ * um modo que invertia so a cor (para ler queda de despesa como boa noticia),
+ * mas ele produzia seta para baixo em verde — o simbolo dizia uma coisa e a cor
+ * dizia outra.
+ */
+export function DeltaIndicator({ delta, caption }: DeltaIndicatorProps) {
   const Icon = delta.trend === 'up' ? ArrowUpRight : delta.trend === 'down' ? ArrowDownRight : Minus;
-  const good = invertColors ? delta.trend === 'down' : delta.trend === 'up';
-  const tone = delta.trend === 'flat' ? 'flat' : good ? 'good' : 'bad';
+  const tone = delta.trend === 'flat' ? 'flat' : delta.trend === 'up' ? 'good' : 'bad';
 
   return (
     <span className={cn(styles.delta, styles[tone])}>

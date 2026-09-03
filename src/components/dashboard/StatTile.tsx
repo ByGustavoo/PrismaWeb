@@ -9,12 +9,10 @@ interface StatTileProps {
   value: number;
   icon: LucideIcon;
   delta?: Delta;
-  /** Inverte a leitura de cor: em despesas, aumentar e ruim. */
-  invertDelta?: boolean;
   footnote?: ReactNode;
 }
 
-export function StatTile({ label, value, icon: Icon, delta, invertDelta = false, footnote }: StatTileProps) {
+export function StatTile({ label, value, icon: Icon, delta, footnote }: StatTileProps) {
   return (
     <article className={styles.tile}>
       <header className={styles.header}>
@@ -27,7 +25,7 @@ export function StatTile({ label, value, icon: Icon, delta, invertDelta = false,
       <Amount value={value} size="lg" />
 
       <footer className={styles.footer}>
-        {delta ? <DeltaIndicator delta={delta} invertColors={invertDelta} /> : null}
+        {delta ? <DeltaIndicator delta={delta} /> : null}
         {footnote ? <span className={styles.footnote}>{footnote}</span> : null}
       </footer>
     </article>

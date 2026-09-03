@@ -13,7 +13,7 @@ export function CategoryBreakdown({ data }: CategoryBreakdownProps) {
 
   return (
     <Card>
-      <CardHeader title="Gastos por categoria" description="Participacao no total de despesas do mes" />
+      <CardHeader title="Gastos por categoria" description="Participação no total de despesas do mês" />
       <CardBody>
         <ul className={styles.list}>
           {data.map((entry) => (

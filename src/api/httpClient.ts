@@ -35,7 +35,7 @@ function getAuthToken(): string | null {
 }
 
 async function parseError(response: Response): Promise<ApiError> {
-  let message = `Falha na requisicao (${response.status})`;
+  let message = `Falha na requisição (${response.status})`;
   let code = 'http_error';
   let details: unknown;
 
@@ -85,9 +85,9 @@ async function request<T>(method: string, path: string, body?: unknown, options:
   } catch (error) {
     if (error instanceof ApiError) throw error;
     if (error instanceof DOMException && error.name === 'AbortError') {
-      throw new ApiError('A requisicao demorou demais e foi cancelada.', 0, 'timeout');
+      throw new ApiError('A requisição demorou demais e foi cancelada.', 0, 'timeout');
     }
-    throw new ApiError('Nao foi possivel falar com o servidor.', 0, 'network_error', error);
+    throw new ApiError('Não foi possível falar com o servidor.', 0, 'network_error', error);
   } finally {
     clearTimeout(timeout);
   }

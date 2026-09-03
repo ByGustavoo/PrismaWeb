@@ -3,7 +3,6 @@ import { ChartTooltip } from '@/components/charts';
 import { useChartPalette } from '@/hooks/useChartPalette';
 import { Amount, DeltaIndicator } from '@/components/common';
 import type { BalancePoint, Delta } from '@/types';
-import { formatCurrency } from '@/utils/format';
 import styles from './BalancePanel.module.css';
 
 interface BalancePanelProps {
@@ -25,17 +24,17 @@ export function BalancePanel({ balance, delta, income, expense, history }: Balan
       <div className={styles.summary}>
         <p className={styles.label}>Saldo atual</p>
         <Amount value={balance} size="display" />
-        <DeltaIndicator delta={delta} caption="nos ultimos 30 dias" />
+        <DeltaIndicator delta={delta} caption="nos últimos 30 dias" />
 
         <dl className={styles.flows}>
           <div className={styles.flow}>
-            <dt>Entradas do mes</dt>
+            <dt>Entradas do mês</dt>
             <dd>
               <Amount value={income} tone="positive" size="md" sign="plus" />
             </dd>
           </div>
           <div className={styles.flow}>
-            <dt>Saidas do mes</dt>
+            <dt>Saídas do mês</dt>
             <dd>
               <Amount value={expense} tone="negative" size="md" sign="minus" />
             </dd>
@@ -68,7 +67,7 @@ export function BalancePanel({ balance, delta, income, expense, history }: Balan
             <YAxis hide domain={[domainMin, domainMax]} />
             <Tooltip
               cursor={{ stroke: palette.border, strokeDasharray: '4 4' }}
-              content={<ChartTooltip formatValue={formatCurrency} />}
+              content={<ChartTooltip />}
             />
             <Area
               type="monotone"

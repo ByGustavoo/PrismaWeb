@@ -82,7 +82,7 @@
 
 .danger {
   background-color: var(--negative);
-  color: #fff;
+  color: var(--negative-contrast);
 }
 
 .danger:hover:not(:disabled) {

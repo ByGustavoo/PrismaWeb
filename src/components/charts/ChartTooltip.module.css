@@ -40,7 +40,7 @@
   color: var(--text-muted);
 }
 
+/* So posiciona: peso e familia vem de quem renderiza o valor. */
 .value {
   margin-left: auto;
-  font-weight: 600;
 }

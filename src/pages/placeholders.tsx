@@ -9,8 +9,8 @@ export function AccountsPage() {
   return (
     <UnderConstruction
       title="Contas"
-      description="Saldos e movimentacao das suas contas"
-      plannedFor="Aqui voce vai cadastrar contas, acompanhar saldos e conciliar movimentacoes."
+      description="Saldos e movimentação das suas contas"
+      plannedFor="Aqui você vai cadastrar contas, acompanhar saldos e conciliar movimentações."
     />
   );
 }
@@ -18,9 +18,9 @@ export function AccountsPage() {
 export function CardsPage() {
   return (
     <UnderConstruction
-      title="Cartoes"
+      title="Cartões"
       description="Limites, fechamento e vencimento"
-      plannedFor="Cadastro de cartoes, limite disponivel e datas de fechamento e vencimento."
+      plannedFor="Cadastro de cartões, limite disponível e datas de fechamento e vencimento."
     />
   );
 }
@@ -30,7 +30,7 @@ export function InvoicesPage() {
     <UnderConstruction
       title="Faturas"
       description="Faturas abertas, fechadas e pagas"
-      plannedFor="Detalhe das faturas por cartao, com lancamentos, parcelamentos e pagamento."
+      plannedFor="Detalhe das faturas por cartão, com lançamentos, parcelamentos e pagamento."
     />
   );
 }
@@ -40,7 +40,7 @@ export function InvestmentsPage() {
     <UnderConstruction
       title="Investimentos"
       description="Carteira, aportes e rentabilidade"
-      plannedFor="Carteira por classe de ativo, aportes, rentabilidade e evolucao do patrimonio."
+      plannedFor="Carteira por classe de ativo, aportes, rentabilidade e evolução do patrimônio."
     />
   );
 }
@@ -48,9 +48,9 @@ export function InvestmentsPage() {
 export function BudgetPage() {
   return (
     <UnderConstruction
-      title="Orcamento"
+      title="Orçamento"
       description="Limites planejados por categoria"
-      plannedFor="Definicao de limites mensais por categoria e acompanhamento do consumo."
+      plannedFor="Definição de limites mensais por categoria e acompanhamento do consumo."
     />
   );
 }
@@ -60,7 +60,7 @@ export function RecurringPage() {
     <UnderConstruction
       title="Despesas recorrentes"
       description="Assinaturas e contas fixas"
-      plannedFor="Cadastro de despesas fixas, com recorrencia, proximos vencimentos e alertas."
+      plannedFor="Cadastro de despesas fixas, com recorrência, próximos vencimentos e alertas."
     />
   );
 }
@@ -68,9 +68,9 @@ export function RecurringPage() {
 export function ForecastPage() {
   return (
     <UnderConstruction
-      title="Previsao financeira"
-      description="Projecao de saldo dos proximos meses"
-      plannedFor="Projecao de saldo a partir de receitas, despesas recorrentes e parcelamentos."
+      title="Previsão financeira"
+      description="Projeção de saldo dos próximos meses"
+      plannedFor="Projeção de saldo a partir de receitas, despesas recorrentes e parcelamentos."
     />
   );
 }
@@ -78,9 +78,9 @@ export function ForecastPage() {
 export function ReportsPage() {
   return (
     <UnderConstruction
-      title="Relatorios"
-      description="Analises e graficos das suas financas"
-      plannedFor="Relatorios por periodo, categoria e conta, com exportacao dos resultados."
+      title="Relatórios"
+      description="Análises e gráficos das suas finanças"
+      plannedFor="Relatórios por período, categoria e conta, com exportação dos resultados."
     />
   );
 }

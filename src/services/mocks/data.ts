@@ -27,12 +27,12 @@ export const currentMonth = monthKeyFromOffset(0);
 
 export const category = {
   moradia: { id: 'cat-moradia', name: 'Moradia', colorToken: 1 },
-  alimentacao: { id: 'cat-alimentacao', name: 'Alimentacao', colorToken: 2 },
+  alimentacao: { id: 'cat-alimentacao', name: 'Alimentação', colorToken: 2 },
   transporte: { id: 'cat-transporte', name: 'Transporte', colorToken: 3 },
-  saude: { id: 'cat-saude', name: 'Saude', colorToken: 4 },
+  saude: { id: 'cat-saude', name: 'Saúde', colorToken: 4 },
   lazer: { id: 'cat-lazer', name: 'Lazer', colorToken: 5 },
-  educacao: { id: 'cat-educacao', name: 'Educacao', colorToken: 6 },
-  salario: { id: 'cat-salario', name: 'Salario', colorToken: 2 },
+  educacao: { id: 'cat-educacao', name: 'Educação', colorToken: 6 },
+  salario: { id: 'cat-salario', name: 'Salário', colorToken: 2 },
   freelance: { id: 'cat-freelance', name: 'Freelance', colorToken: 1 },
   aporte: { id: 'cat-aporte', name: 'Aporte', colorToken: 5 },
 } satisfies Record<string, Category>;
@@ -54,7 +54,7 @@ export const accounts: Account[] = [
   },
   {
     id: 'acc-2',
-    name: 'Reserva de emergencia',
+    name: 'Reserva de emergência',
     institution: 'Banco Nova',
     type: 'savings',
     balance: 18200,
@@ -63,7 +63,7 @@ export const accounts: Account[] = [
   {
     id: 'acc-3',
     name: 'Carteira',
-    institution: 'Dinheiro em especie',
+    institution: 'Dinheiro em espécie',
     type: 'wallet',
     balance: 340,
     includeInTotal: true,
@@ -134,10 +134,10 @@ export const invoices: Invoice[] = [
 /* -------------------------------------------------------------------------- */
 
 export const investments: Investment[] = [
-  { id: 'inv-cdb', name: 'CDB Liquidez Diaria', assetClass: 'fixed-income', invested: 24000, currentValue: 25890.4 },
+  { id: 'inv-cdb', name: 'CDB Liquidez Diária', assetClass: 'fixed-income', invested: 24000, currentValue: 25890.4 },
   { id: 'inv-tesouro', name: 'Tesouro IPCA+ 2029', assetClass: 'fixed-income', invested: 18000, currentValue: 19640.15 },
-  { id: 'inv-acoes', name: 'Carteira de acoes', assetClass: 'stocks', invested: 21000, currentValue: 23120.8 },
-  { id: 'inv-fii', name: 'Fundos imobiliarios', assetClass: 'reits', invested: 12000, currentValue: 12480.55 },
+  { id: 'inv-acoes', name: 'Carteira de ações', assetClass: 'stocks', invested: 21000, currentValue: 23120.8 },
+  { id: 'inv-fii', name: 'Fundos imobiliários', assetClass: 'reits', invested: 12000, currentValue: 12480.55 },
   { id: 'inv-cripto', name: 'Cripto', assetClass: 'crypto', invested: 4000, currentValue: 3410.2 },
 ];
 
@@ -148,7 +148,7 @@ export const investments: Investment[] = [
 export const transactions: Transaction[] = [
   {
     id: 'tx-01',
-    description: 'Salario',
+    description: 'Salário',
     amount: 9800,
     kind: 'income',
     status: 'paid',
@@ -188,7 +188,7 @@ export const transactions: Transaction[] = [
     method: 'account',
     date: daysAgo(4),
     category: category.aporte,
-    accountName: 'Conta corrente -> Corretora',
+    accountName: 'Conta corrente → Corretora',
   },
   {
     id: 'tx-05',
@@ -203,7 +203,7 @@ export const transactions: Transaction[] = [
   },
   {
     id: 'tx-06',
-    description: 'Combustivel',
+    description: 'Combustível',
     amount: 289.9,
     kind: 'expense',
     status: 'paid',
@@ -214,7 +214,7 @@ export const transactions: Transaction[] = [
   },
   {
     id: 'tx-07',
-    description: 'Plano de saude',
+    description: 'Plano de saúde',
     amount: 740.3,
     kind: 'expense',
     status: 'paid',
@@ -247,7 +247,7 @@ export const transactions: Transaction[] = [
   },
   {
     id: 'tx-10',
-    description: 'Energia eletrica',
+    description: 'Energia elétrica',
     amount: 318.72,
     kind: 'expense',
     status: 'pending',
@@ -269,14 +269,14 @@ export const transactions: Transaction[] = [
   },
   {
     id: 'tx-12',
-    description: 'Transferencia para reserva',
+    description: 'Transferência para reserva',
     amount: 1500,
     kind: 'transfer',
     status: 'paid',
     method: 'account',
     date: daysAgo(10),
     category: category.aporte,
-    accountName: 'Conta corrente -> Reserva de emergencia',
+    accountName: 'Conta corrente → Reserva de emergência',
   },
   {
     id: 'tx-13',
@@ -291,7 +291,7 @@ export const transactions: Transaction[] = [
   },
   {
     id: 'tx-14',
-    description: 'Farmacia',
+    description: 'Farmácia',
     amount: 142.85,
     kind: 'expense',
     status: 'paid',
@@ -335,7 +335,7 @@ export const transactions: Transaction[] = [
   },
   {
     id: 'tx-18',
-    description: 'Manutencao do carro',
+    description: 'Manutenção do carro',
     amount: 680,
     kind: 'expense',
     status: 'paid',
@@ -346,7 +346,7 @@ export const transactions: Transaction[] = [
   },
   {
     id: 'tx-19',
-    description: 'Condominio',
+    description: 'Condomínio',
     amount: 640,
     kind: 'expense',
     status: 'paid',
@@ -368,7 +368,7 @@ export const transactions: Transaction[] = [
   },
   {
     id: 'tx-21',
-    description: 'Restaurante japones',
+    description: 'Restaurante japonês',
     amount: 232.9,
     kind: 'expense',
     status: 'paid',

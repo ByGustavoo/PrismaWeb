@@ -4,6 +4,7 @@ import type { LucideIcon } from 'lucide-react';
 import { Amount } from '@/components/common';
 import { Badge, Card, CardBody, CardHeader, TBody, THead, Table, TableWrapper, Td, Th, Tr } from '@/components/ui';
 import type { BadgeTone } from '@/components/ui';
+import { transactionStatusLabel } from '@/constants/transactions';
 import { paths } from '@/routes/paths';
 import type { Transaction, TransactionKind, TransactionStatus } from '@/types';
 import { formatShortDate } from '@/utils/format';
@@ -15,14 +16,13 @@ const kindIcon: Record<TransactionKind, LucideIcon> = {
   transfer: Repeat,
 };
 
-const statusLabel: Record<TransactionStatus, string> = {
-  paid: 'Concluido',
-  pending: 'Pendente',
-  scheduled: 'Agendado',
-};
-
+/*
+ * Hierarquia visual das situacoes: verde para o que ja aconteceu, ambar para o
+ * que exige atencao e azul para o que esta apenas programado. Todas usam ponto
+ * para que a leitura nao dependa so da cor.
+ */
 const statusTone: Record<TransactionStatus, BadgeTone> = {
-  paid: 'neutral',
+  paid: 'positive',
   pending: 'warning',
   scheduled: 'accent',
 };
@@ -35,7 +35,7 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
   return (
     <Card padding="sm">
       <div className={styles.header}>
-        <CardHeader title="Ultimos lancamentos" description="Movimentacoes mais recentes das suas contas" />
+        <CardHeader title="Últimos lançamentos" description="Movimentações mais recentes das suas contas" />
         <Link className={styles.link} to={paths.transactions}>
           Ver todos
         </Link>
@@ -46,11 +46,11 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
           <Table>
             <THead>
               <Tr>
-                <Th>Descricao</Th>
+                <Th>Descrição</Th>
                 <Th>Categoria</Th>
                 <Th>Conta</Th>
                 <Th>Data</Th>
-                <Th>Situacao</Th>
+                <Th>Situação</Th>
                 <Th numeric>Valor</Th>
               </Tr>
             </THead>
@@ -94,7 +94,9 @@ export function TransactionRow({ transaction }: { transaction: Transaction }) {
       <Td className={styles.muted}>{transaction.accountName}</Td>
       <Td className={`${styles.muted} tabular`}>{formatShortDate(transaction.date)}</Td>
       <Td>
-        <Badge tone={statusTone[transaction.status]}>{statusLabel[transaction.status]}</Badge>
+        <Badge tone={statusTone[transaction.status]} dot>
+          {transactionStatusLabel[transaction.status]}
+        </Badge>
       </Td>
       <Td numeric>
         <Amount value={transaction.amount} tone={tone} size="sm" sign={sign} />

@@ -6,11 +6,27 @@
   background-color: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  transition: border-color var(--duration-fast) var(--ease-out);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out);
 }
 
+/*
+ * O azul do hover e o mesmo da linha do grafico de saldo (--accent, que tambem
+ * e --chart-1): passar o mouse num card usa a cor que o produto ja associa a
+ * "seu dinheiro ao longo do tempo".
+ */
 .tile:hover {
-  border-color: var(--border-strong);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-accent);
+  transform: translateY(-1px);
+}
+
+/* O icone acende junto com o card, dando um alvo claro ao ponteiro. */
+.tile:hover .iconBox {
+  background-color: var(--accent-soft);
+  color: var(--accent);
 }
 
 .header {
@@ -33,6 +49,9 @@
   border-radius: var(--radius-xs);
   background-color: var(--surface-muted);
   color: var(--text-subtle);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
 }
 
 .footer {
@@ -46,4 +65,11 @@
 .footnote {
   font-size: var(--fs-xs);
   color: var(--text-subtle);
+}
+
+/* O deslocamento e decorativo: sem ele o card ainda muda borda, sombra e icone. */
+@media (prefers-reduced-motion: reduce) {
+  .tile:hover {
+    transform: none;
+  }
 }

@@ -12,7 +12,7 @@ export function mockResponse<T>(data: T, signal?: AbortSignal): Promise<T> {
       'abort',
       () => {
         clearTimeout(timer);
-        reject(new DOMException('Requisicao cancelada', 'AbortError'));
+        reject(new DOMException('Requisição cancelada', 'AbortError'));
       },
       { once: true },
     );

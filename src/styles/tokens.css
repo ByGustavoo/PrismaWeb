@@ -55,99 +55,129 @@
   --duration-fast: 120ms;
   --duration-base: 200ms;
 
+  /* --- Marca (constante nos dois temas) --------------------------------- */
+  --brand-surface: #16181d;
+  --brand-ray: #ffffff;
+  --brand-facet: #6e9dff;
+  --brand-facet-shade: #3f63c9;
+
   /* --- Camadas --------------------------------------------------------- */
   --z-header: 30;
+  --z-popover: 35;
   --z-sidebar: 40;
   --z-overlay: 50;
   --z-modal: 60;
   --z-toast: 70;
 }
 
+/*
+ * --chart-2 e --chart-3 sao parentes de --positive e --negative, mas nao os
+ * mesmos valores: texto precisa de 4.5:1 e acaba escuro, enquanto barra e area
+ * sao objeto grafico (3:1) e podem ser mais claras e saturadas. Manter os dois
+ * pares separados e o que deixa o numero legivel e a barra viva.
+ */
+
 /* --- Tema claro -------------------------------------------------------- */
+/*
+ * Cinzas neutros, como no tema escuro: a base nao puxa para nenhuma matiz e a
+ * cor fica por conta do acento e dos estados semanticos.
+ */
 :root,
 [data-theme='light'] {
   color-scheme: light;
 
-  --canvas: #edf0ea;
+  --canvas: #f2f3f5;
   --surface: #ffffff;
-  --surface-muted: #f4f6f1;
-  --surface-raised: #ffffff;
-  --surface-inverted: #17201f;
+  --surface-muted: #f5f6f8;
+  --surface-raised: #fbfbfc;
+  --surface-inverted: #17181b;
 
-  --border: #dce0d6;
-  --border-strong: #c3cabb;
+  --border: #e3e5ea;
+  --border-strong: #c9ccd4;
 
-  --text: #17201f;
-  --text-muted: #5b6764;
-  --text-subtle: #7d8985;
-  --text-inverted: #f4f6f1;
+  --text: #16171a;
+  --text-muted: #5a5e68;
+  --text-subtle: #696d77;
+  --text-inverted: #f5f6f8;
 
   --accent: #2b4ee6;
   --accent-hover: #1f3dc4;
   --accent-soft: #e5eaff;
   --accent-contrast: #ffffff;
 
-  --positive: #0e7a55;
-  --positive-soft: #dff0e7;
-  --negative: #b8402c;
-  --negative-soft: #fae3de;
-  --warning: #9a6c0c;
-  --warning-soft: #f8ecd2;
-  --neutral-soft: #e9ece5;
+  --positive: #007a45;
+  --positive-soft: #dcf5e9;
+  --negative: #c92a12;
+  --negative-soft: #fde4e1;
+  --negative-contrast: #ffffff;
+  --warning: #8a6000;
+  --warning-soft: #fbeed4;
+  --neutral-soft: #eceef2;
 
-  --shadow-overlay: 0 24px 48px -20px rgba(23, 32, 31, 0.28), 0 2px 8px rgba(23, 32, 31, 0.06);
-  --shadow-popover: 0 12px 28px -12px rgba(23, 32, 31, 0.24);
+  --scrim: rgba(16, 17, 20, 0.45);
+  --shadow-overlay: 0 24px 48px -20px rgba(16, 17, 20, 0.24), 0 2px 8px rgba(16, 17, 20, 0.06);
+  --shadow-popover: 0 12px 28px -12px rgba(16, 17, 20, 0.2);
   --focus-ring: 0 0 0 3px rgba(43, 78, 230, 0.28);
+  --shadow-accent: 0 4px 14px -8px rgba(43, 78, 230, 0.3);
 
-  --chart-grid: #e2e6dc;
+  --chart-grid: #e6e8ec;
   --chart-1: #2b4ee6;
-  --chart-2: #0e7a55;
-  --chart-3: #b8402c;
-  --chart-4: #9a6c0c;
+  --chart-2: #009a58;
+  --chart-3: #e03421;
+  --chart-4: #8a6000;
   --chart-5: #6b5bd2;
   --chart-6: #3f8fa8;
 }
 
 /* --- Tema escuro ------------------------------------------------------- */
+/*
+ * Cinzas neutros, sem desvio de matiz, para fundo, superficies e bordas. A cor
+ * fica reservada ao acento e aos estados semanticos, que assim se destacam
+ * sobre uma base neutra. As superficies sobem junto com a elevacao:
+ * canvas < surface < surface-raised < surface-muted.
+ */
 [data-theme='dark'] {
   color-scheme: dark;
 
-  --canvas: #0e1211;
-  --surface: #161b1a;
-  --surface-muted: #1c2321;
-  --surface-raised: #1b2220;
-  --surface-inverted: #eef1ec;
+  --canvas: #0e0e10;
+  --surface: #17181b;
+  --surface-muted: #212226;
+  --surface-raised: #1d1e22;
+  --surface-inverted: #f1f2f3;
 
-  --border: #29312e;
-  --border-strong: #3a4340;
+  --border: #2b2c31;
+  --border-strong: #3d3f46;
 
-  --text: #e9ede9;
-  --text-muted: #98a49f;
-  --text-subtle: #77837e;
-  --text-inverted: #0e1211;
+  --text: #eceef0;
+  --text-muted: #a3a6ad;
+  --text-subtle: #888b93;
+  --text-inverted: #0e0e10;
 
-  --accent: #6e8fff;
-  --accent-hover: #8aa4ff;
-  --accent-soft: #1c2743;
+  --accent: #7c9aff;
+  --accent-hover: #97aeff;
+  --accent-soft: #1e2540;
   --accent-contrast: #0b1020;
 
-  --positive: #35c88e;
-  --positive-soft: #102b22;
-  --negative: #f0705a;
-  --negative-soft: #2e1a17;
-  --warning: #e0a93b;
-  --warning-soft: #2b2213;
-  --neutral-soft: #222a27;
+  --positive: #2fd99a;
+  --positive-soft: #0f2f24;
+  --negative: #fa5252;
+  --negative-soft: #351a1a;
+  --negative-contrast: #2a0e09;
+  --warning: #e8b44a;
+  --warning-soft: #322612;
+  --neutral-soft: #26272c;
 
-  --shadow-overlay: 0 28px 56px -24px rgba(0, 0, 0, 0.7), 0 2px 10px rgba(0, 0, 0, 0.4);
-  --shadow-popover: 0 16px 32px -16px rgba(0, 0, 0, 0.65);
-  --focus-ring: 0 0 0 3px rgba(110, 143, 255, 0.35);
+  --scrim: rgba(6, 6, 8, 0.6);
+  --shadow-overlay: 0 28px 56px -24px rgba(0, 0, 0, 0.72), 0 2px 10px rgba(0, 0, 0, 0.45);
+  --shadow-popover: 0 16px 32px -16px rgba(0, 0, 0, 0.68);
+  --focus-ring: 0 0 0 3px rgba(124, 154, 255, 0.35);
+  --shadow-accent: 0 4px 14px -8px rgba(124, 154, 255, 0.28);
 
-  --chart-grid: #262e2b;
-  --chart-1: #6e8fff;
-  --chart-2: #35c88e;
-  --chart-3: #f0705a;
-  --chart-4: #e0a93b;
-  --chart-5: #a48bff;
-  --chart-6: #56b7d1;
+  --chart-grid: #2b2c31;
+  --chart-1: #7c9aff;
+  --chart-2: #35de85;
+  --chart-3: #ff5252;
+  --chart-4: #e8b44a;
+  --chart-5: #b18cff;
+  --chart-6: #58c2e0;
 }

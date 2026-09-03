@@ -11,7 +11,7 @@ import styles from './SettingsPage.module.css';
 const themeOptions: Array<{ value: ThemeMode; label: string; description: string; icon: LucideIcon }> = [
   { value: 'light', label: 'Claro', description: 'Ideal para ambientes bem iluminados', icon: Sun },
   { value: 'dark', label: 'Escuro', description: 'Menos brilho para uso noturno', icon: Moon },
-  { value: 'system', label: 'Sistema', description: 'Acompanha a preferencia do dispositivo', icon: Monitor },
+  { value: 'system', label: 'Sistema', description: 'Acompanha a preferência do dispositivo', icon: Monitor },
 ];
 
 export function SettingsPage() {
@@ -19,11 +19,11 @@ export function SettingsPage() {
 
   return (
     <>
-      <PageHeader title="Configuracoes" description="Preferencias da aplicacao e informacoes do ambiente" />
+      <PageHeader title="Configurações" description="Preferências da aplicação e informações do ambiente" />
 
       <div className={styles.stack}>
         <Card>
-          <CardHeader title="Aparencia" description="Escolha como a interface deve ser exibida" />
+          <CardHeader title="Aparência" description="Escolha como a interface deve ser exibida" />
           <CardBody>
             <div className={styles.themeGrid} role="radiogroup" aria-label="Tema da interface">
               {themeOptions.map((option) => {
@@ -56,8 +56,8 @@ export function SettingsPage() {
 
         <Card>
           <CardHeader
-            title="Conexao com a API"
-            description="Configurada por variaveis de ambiente, sem URLs espalhadas pelo codigo"
+            title="Conexão com a API"
+            description="Configurada por variáveis de ambiente, sem URLs espalhadas pelo código"
           />
           <CardBody>
             <dl className={styles.details}>
@@ -80,7 +80,7 @@ export function SettingsPage() {
                 </dd>
               </div>
               <div className={styles.detailRow}>
-                <dt>Latencia simulada</dt>
+                <dt>Latência simulada</dt>
                 <dd className="tabular">{env.mockDelay} ms</dd>
               </div>
             </dl>

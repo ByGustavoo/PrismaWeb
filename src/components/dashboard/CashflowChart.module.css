@@ -1,3 +1,13 @@
 .chart {
   margin-inline: calc(var(--space-2) * -1);
 }
+
+/*
+ * A Legend do Recharts pinta o texto de cada item com a cor da serie, o que
+ * reduz o contraste nos dois temas. O rotulo volta a usar a cor de texto e a
+ * identificacao da serie fica so no marcador.
+ */
+.legendLabel {
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}

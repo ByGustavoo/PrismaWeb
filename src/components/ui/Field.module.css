@@ -56,22 +56,9 @@
   color: var(--text-subtle);
 }
 
-.select {
-  appearance: none;
-  padding-right: var(--space-5);
-  cursor: pointer;
-}
-
-.icon,
-.chevron {
+.icon {
   color: var(--text-subtle);
   flex-shrink: 0;
-}
-
-.chevron {
-  position: absolute;
-  right: var(--space-3);
-  pointer-events: none;
 }
 
 .hint {

@@ -10,8 +10,8 @@ export function NotFoundPage() {
     <Card padding="none">
       <EmptyState
         icon={Compass}
-        title="Pagina nao encontrada"
-        description="O endereco acessado nao existe ou foi movido."
+        title="Página não encontrada"
+        description="O endereço acessado não existe ou foi movido."
         action={
           <Button variant="secondary" onClick={() => navigate(paths.dashboard)}>
             Voltar ao dashboard

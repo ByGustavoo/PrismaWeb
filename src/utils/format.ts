@@ -1,4 +1,8 @@
 import { CURRENCY, LOCALE } from '@/constants/app';
+import { fromISODate } from './date';
+
+/** Simbolo usado quando o Intl nao devolve a parte de moeda. */
+const CURRENCY_SYMBOL = 'R$';
 
 const currencyFormatter = new Intl.NumberFormat(LOCALE, {
   style: 'currency',
@@ -28,19 +32,41 @@ const monthYearFormatter = new Intl.DateTimeFormat(LOCALE, {
   year: 'numeric',
 });
 
-/** Converte "2026-08-15" em Date local, sem deslocamento de fuso. */
-function parseISODate(value: string): Date {
-  const [year, month, day] = value.split('-').map(Number);
-  return new Date(year ?? 1970, (month ?? 1) - 1, day ?? 1);
+/** Espaco inquebravel entre o simbolo e os algarismos. */
+const NBSP = ' ';
+
+export interface CurrencyParts {
+  /** Simbolo da moeda isolado, para receber estilo proprio. */
+  symbol: string;
+  /** Algarismos ja agrupados e com duas casas: "5.000,00". */
+  digits: string;
+}
+
+/**
+ * Separa "R$" dos algarismos. Simbolo e numeros usam familia e tracking
+ * diferentes (ver .tabular no global.css); mante-los em spans distintos e o que
+ * faz o cifrao aparecer igual, e alinhado, em todos os componentes.
+ */
+export function formatCurrencyParts(value: number): CurrencyParts {
+  const parts = currencyFormatter.formatToParts(value);
+  const symbol = parts.find((part) => part.type === 'currency')?.value ?? CURRENCY_SYMBOL;
+  const digits = parts
+    .filter((part) => part.type !== 'currency')
+    .map((part) => part.value)
+    .join('')
+    .trim();
+
+  return { symbol, digits };
 }
 
 export function formatCurrency(value: number): string {
-  return currencyFormatter.format(value);
+  const { symbol, digits } = formatCurrencyParts(value);
+  return symbol + NBSP + digits;
 }
 
-/** Versao curta para eixos de grafico: R$ 12,4 mil. */
+/** Versao curta para eixos de grafico: "R$ 12,4 mil". */
 export function formatCompactCurrency(value: number): string {
-  return `R$ ${compactFormatter.format(value)}`;
+  return CURRENCY_SYMBOL + NBSP + compactFormatter.format(value);
 }
 
 export function formatPercent(value: number, fractionDigits = 1): string {
@@ -53,11 +79,11 @@ export function formatSignedPercent(value: number): string {
 }
 
 export function formatShortDate(isoDate: string): string {
-  return dayMonthFormatter.format(parseISODate(isoDate)).replace('.', '');
+  return dayMonthFormatter.format(fromISODate(isoDate)).replace('.', '');
 }
 
 export function formatFullDate(isoDate: string): string {
-  return fullDateFormatter.format(parseISODate(isoDate));
+  return fullDateFormatter.format(fromISODate(isoDate));
 }
 
 /** "2026-08" -> "agosto de 2026" */

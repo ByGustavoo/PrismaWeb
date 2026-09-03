@@ -1,6 +1,26 @@
 .amount {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3em;
   font-weight: 600;
   white-space: nowrap;
+}
+
+/*
+ * O simbolo acompanha o tamanho do valor (em), mas com peso e tracking da
+ * familia de interface: e o que evita o cifrao "esticado" que a familia de
+ * numeros produz, e o que o mantem identico entre componentes. A hierarquia vem
+ * do tamanho e do peso, nunca de opacidade — que reduziria o contraste do texto.
+ */
+.symbol {
+  font-family: var(--font-ui);
+  font-size: 0.68em;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.digits {
+  font-weight: inherit;
 }
 
 .default {
@@ -30,6 +50,12 @@
   font-size: var(--fs-display);
   font-weight: 600;
   line-height: 1;
+}
+
+/* Em tamanhos grandes o simbolo pode ser proporcionalmente menor sem sumir. */
+.lg .symbol,
+.display .symbol {
+  font-size: 0.5em;
 }
 
 @media (max-width: 767px) {

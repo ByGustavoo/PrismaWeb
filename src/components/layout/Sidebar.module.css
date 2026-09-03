@@ -34,8 +34,7 @@
   height: 34px;
   flex-shrink: 0;
   border-radius: var(--radius-sm);
-  background-color: var(--surface-inverted);
-  color: var(--text-inverted);
+  background-color: var(--brand-surface);
 }
 
 .brandText {
@@ -323,7 +322,7 @@
     position: fixed;
     inset: 0;
     z-index: calc(var(--z-sidebar) - 1);
-    background-color: rgba(12, 16, 15, 0.45);
+    background-color: var(--scrim);
     opacity: 0;
     pointer-events: none;
     transition: opacity var(--duration-base) var(--ease-out);

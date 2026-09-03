@@ -18,8 +18,8 @@ export function DashboardPage() {
         title="Dashboard"
         description={
           data
-            ? `Visao geral de ${capitalize(formatMonthLabel(data.month))}`
-            : 'Visao geral das suas financas'
+            ? `Visão geral de ${capitalize(formatMonthLabel(data.month))}`
+            : 'Visão geral das suas finanças'
         }
         actions={
           <Button variant="secondary" size="sm" icon={RefreshCw} onClick={reload} loading={loading}>
@@ -31,7 +31,7 @@ export function DashboardPage() {
       {error ? (
         <Card padding="none">
           <EmptyState
-            title="Nao foi possivel carregar o resumo"
+            title="Não foi possível carregar o resumo"
             description={error.message}
             action={
               <Button variant="secondary" icon={RefreshCw} onClick={reload}>
@@ -53,26 +53,25 @@ export function DashboardPage() {
           />
 
           <div className={styles.tiles}>
-            <StatTile label="Receitas do mes" value={data.monthIncome} icon={TrendingUp} delta={data.incomeDelta} />
+            <StatTile label="Receitas do mês" value={data.monthIncome} icon={TrendingUp} delta={data.incomeDelta} />
             <StatTile
-              label="Despesas do mes"
+              label="Despesas do mês"
               value={data.monthExpense}
               icon={TrendingDown}
               delta={data.expenseDelta}
-              invertDelta
             />
             <StatTile
               label="Investimentos"
               value={data.investmentsTotal}
               icon={PiggyBank}
               delta={data.investmentsDelta}
-              footnote="rentabilidade acumulada"
+              footnote="Rentabilidade acumulada"
             />
             <StatTile
               label="Fatura atual"
               value={data.currentInvoice.total}
               icon={CreditCard}
-              footnote={`${data.currentInvoice.cardName} | vence em ${formatFullDate(data.currentInvoice.dueDate)}`}
+              footnote={`${data.currentInvoice.cardName} · vence em ${formatFullDate(data.currentInvoice.dueDate)}`}
             />
           </div>
 

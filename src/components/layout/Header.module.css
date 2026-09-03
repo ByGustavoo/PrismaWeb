@@ -123,6 +123,11 @@
   color: var(--text);
 }
 
+/* Ancora do painel de avisos. */
+.notifications {
+  position: relative;
+}
+
 .badgeDot {
   position: absolute;
   top: 7px;

@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { ChevronDown, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react';
 import { APP_NAME, APP_TAGLINE } from '@/constants/app';
-import { brandIcon as BrandIcon, navigation } from '@/constants/navigation';
+import { navigation } from '@/constants/navigation';
+import { BrandMark } from '@/components/common';
 import type { NavItem } from '@/constants/navigation';
 import { cn } from '@/utils/cn';
 import { initials } from '@/utils/format';
@@ -28,11 +29,11 @@ export function Sidebar({ collapsed, mobileOpen, onToggleCollapse, onCloseMobile
 
       <aside
         className={cn(styles.sidebar, collapsed && styles.collapsed, mobileOpen && styles.mobileOpen)}
-        aria-label="Navegacao principal"
+        aria-label="Navegação principal"
       >
         <div className={styles.brand}>
-          <span className={styles.brandMark} aria-hidden="true">
-            <BrandIcon size={18} strokeWidth={2} />
+          <span className={styles.brandMark}>
+            <BrandMark size={26} />
           </span>
           <span className={styles.brandText}>
             <span className={styles.brandName}>{APP_NAME}</span>

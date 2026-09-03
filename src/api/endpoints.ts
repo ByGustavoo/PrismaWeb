@@ -21,4 +21,7 @@ export const endpoints = {
   investments: {
     list: '/investments',
   },
+  alerts: {
+    list: '/alerts',
+  },
 } as const;
