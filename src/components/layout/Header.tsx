@@ -1,12 +1,12 @@
 import { useCallback, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Bell, ChevronLeft, ChevronRight, Menu, Moon, Plus, Search, Sun } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Bell, Menu, Moon, Plus, Sun } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { useTheme } from '@/providers/ThemeProvider';
 import { NEW_TRANSACTION_PARAM, paths } from '@/routes/paths';
-import { capitalize, formatMonthLabel } from '@/utils/format';
-import { monthKeyFromOffset } from '@/utils/date';
+import { GlobalSearch } from './GlobalSearch';
 import { NotificationsPanel } from './NotificationsPanel';
+import { PeriodSwitcher } from './PeriodSwitcher';
 import styles from './Header.module.css';
 
 interface HeaderProps {
@@ -16,7 +16,7 @@ interface HeaderProps {
 export function Header({ onOpenMenu }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
-  const [monthOffset, setMonthOffset] = useState(0);
+  const location = useLocation();
   const [alertsOpen, setAlertsOpen] = useState(false);
   const [alertCount, setAlertCount] = useState(0);
 
@@ -24,7 +24,9 @@ export function Header({ onOpenMenu }: HeaderProps) {
   // ponto no sino nao dependa de o usuario abrir o painel antes.
   const closeAlerts = useCallback(() => setAlertsOpen(false), []);
 
-  const monthLabel = capitalize(formatMonthLabel(monthKeyFromOffset(monthOffset)));
+  // O seletor so aparece onde ele muda alguma coisa. As demais telas ou nao tem
+  // nocao de periodo ou tem o proprio filtro, como Lancamentos.
+  const showPeriodSwitcher = location.pathname === paths.dashboard;
 
   return (
     <header className={styles.header}>
@@ -32,30 +34,9 @@ export function Header({ onOpenMenu }: HeaderProps) {
         <Menu size={20} strokeWidth={2} />
       </button>
 
-      <div className={styles.monthSwitcher}>
-        <button
-          type="button"
-          className={styles.monthArrow}
-          onClick={() => setMonthOffset((value) => value - 1)}
-          aria-label="Mês anterior"
-        >
-          <ChevronLeft size={16} strokeWidth={2} />
-        </button>
-        <span className={styles.monthLabel}>{monthLabel}</span>
-        <button
-          type="button"
-          className={styles.monthArrow}
-          onClick={() => setMonthOffset((value) => value + 1)}
-          aria-label="Próximo mês"
-        >
-          <ChevronRight size={16} strokeWidth={2} />
-        </button>
-      </div>
+      {showPeriodSwitcher ? <PeriodSwitcher /> : null}
 
-      <div className={styles.search}>
-        <Search size={16} strokeWidth={2} className={styles.searchIcon} aria-hidden="true" />
-        <input type="search" placeholder="Buscar lançamento, conta ou categoria" aria-label="Buscar" />
-      </div>
+      <GlobalSearch />
 
       <div className={styles.actions}>
         <button

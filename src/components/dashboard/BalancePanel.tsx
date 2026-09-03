@@ -6,35 +6,57 @@ import type { BalancePoint, Delta } from '@/types';
 import styles from './BalancePanel.module.css';
 
 interface BalancePanelProps {
+  /** "Saldo atual" no periodo corrente; nos anteriores, o saldo no fim dele. */
+  label: string;
   balance: number;
   delta: Delta;
   income: number;
   expense: number;
+  /** "mês" ou "período", conforme o recorte escolhido no header. */
+  periodNoun: string;
   history: BalancePoint[];
 }
 
-export function BalancePanel({ balance, delta, income, expense, history }: BalancePanelProps) {
+export function BalancePanel({
+  label,
+  balance,
+  delta,
+  income,
+  expense,
+  periodNoun,
+  history,
+}: BalancePanelProps) {
   const palette = useChartPalette();
   const lineColor = palette.series[0];
-  const domainMin = Math.min(...history.map((point) => point.balance)) * 0.92;
-  const domainMax = Math.max(...history.map((point) => point.balance)) * 1.04;
+
+  /*
+   * A folga da escala sai da amplitude da serie, nao de um percentual do valor:
+   * com saldo negativo, `min * 0.92` levanta o piso acima do proprio minimo e
+   * corta a linha no rodape do grafico.
+   */
+  const values = history.map((point) => point.balance);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const padding = (max - min || Math.abs(max) || 1) * 0.08;
+  const domainMin = min - padding;
+  const domainMax = max + padding;
 
   return (
-    <section className={styles.panel} aria-label="Saldo atual">
+    <section className={styles.panel} aria-label={label}>
       <div className={styles.summary}>
-        <p className={styles.label}>Saldo atual</p>
+        <p className={styles.label}>{label}</p>
         <Amount value={balance} size="display" />
-        <DeltaIndicator delta={delta} caption="nos últimos 30 dias" />
+        <DeltaIndicator delta={delta} caption={`em relação ao ${periodNoun} anterior`} />
 
         <dl className={styles.flows}>
           <div className={styles.flow}>
-            <dt>Entradas do mês</dt>
+            <dt>Entradas do {periodNoun}</dt>
             <dd>
               <Amount value={income} tone="positive" size="md" sign="plus" />
             </dd>
           </div>
           <div className={styles.flow}>
-            <dt>Saídas do mês</dt>
+            <dt>Saídas do {periodNoun}</dt>
             <dd>
               <Amount value={expense} tone="negative" size="md" sign="minus" />
             </dd>
@@ -73,6 +95,9 @@ export function BalancePanel({ balance, delta, income, expense, history }: Balan
               type="monotone"
               dataKey="balance"
               name="Saldo"
+              // Sem base explicita a area se apoia no zero: um mes com saldo negativo
+              // aparece com o preenchimento acima da linha, invertido.
+              baseValue={domainMin}
               stroke={lineColor}
               strokeWidth={2}
               fill="url(#balanceFill)"

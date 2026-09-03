@@ -1,6 +1,6 @@
 /** Todas as rotas da aplicacao em um lugar so. */
 export const paths = {
-  dashboard: '/',
+  dashboard: '/dashboard',
 
   transactions: '/lancamentos',
   income: '/lancamentos/receitas',
@@ -36,3 +36,12 @@ export const newTransactionValues = {
   despesa: 'expense',
   transferencia: 'transfer',
 } as const;
+
+/**
+ * Filtros que a tela de lancamentos aceita ja aplicados pela URL. Sao a ponte
+ * entre a busca do header e a listagem: o resultado escolhido vira um link.
+ */
+export const SEARCH_PARAM = 'busca';
+export const CATEGORY_PARAM = 'categoria';
+export const ACCOUNT_PARAM = 'conta';
+export const EDIT_TRANSACTION_PARAM = 'editar';

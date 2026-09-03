@@ -68,7 +68,11 @@ Estas sao as invariantes do projeto. Quebra-las e o erro mais caro que se pode c
 4. **Nenhum hex em componente.** Toda cor, espacamento, raio e tipografia sai dos tokens em
    `src/styles/tokens.css`, sob `[data-theme='light']` e `[data-theme='dark']`.
 
-5. **Rotas so em `src/routes/paths.ts`.** Links usam `paths.x`, nunca string literal.
+5. **Rotas so em `src/routes/paths.ts`.** Links usam `paths.x`, nunca string literal. A raiz `/`
+   nao tem tela propria: ela redireciona para `paths.dashboard` (`/dashboard`), para que toda tela
+   do app tenha um endereco com nome. O mesmo arquivo guarda os nomes dos query params (`busca`,
+   `categoria`, `conta`, `novo`, `editar`) — eles sao contrato entre telas e nao devem ser escritos
+   a mao em outro lugar.
 
 6. **Contratos de dominio em `src/types/finance.ts`.** Sao o contrato esperado do backend futuro;
    mudar um tipo la e uma decisao de API, nao um detalhe de tela.
@@ -93,7 +97,8 @@ src/
 │   ├── ui/        Button, Card, Input, Textarea, Select, Modal, ConfirmDialog, Badge, Table,
 │   │              Loading, EmptyState, Toast
 │   ├── common/    Amount, BrandMark, DeltaIndicator, UnderConstruction
-│   ├── layout/    Sidebar, Header, PageHeader, NotificationsPanel
+│   ├── layout/    Sidebar, Header, PageHeader, NotificationsPanel, GlobalSearch,
+│   │              PeriodSwitcher
 │   ├── dashboard/ BalancePanel, StatTile, CashflowChart, CategoryBreakdown, RecentTransactions
 │   ├── transactions/ TransactionFilters, TransactionsTable, formularios de lancamento,
 │   │              meta (icone/cor por tipo e situacao) e query (filtro, periodo e ordenacao)
@@ -102,7 +107,7 @@ src/
 ├── hooks/         useAsyncData, useMediaQuery, useLocalStorage, useLockBodyScroll, useChartPalette
 ├── layouts/       AppLayout (sidebar + header + conteudo)
 ├── pages/         Dashboard, Lancamentos, Configuracoes, placeholders, 404
-├── providers/     ThemeProvider, ToastProvider, AppProviders
+├── providers/     ThemeProvider, ToastProvider, PeriodProvider, AppProviders
 ├── routes/        AppRoutes, paths
 ├── services/      dashboard, transactions, categories, accounts, investments, alerts
 │   └── mocks/     data, transactions.store, dashboard.mock, alerts.mock, mockResponse
@@ -170,6 +175,21 @@ delega a `services/mocks/transactions.store.ts`. O store muta o array `transacti
 em todas as telas. O estado vive so ate o reload da pagina, de proposito: nao ha persistencia
 enquanto nao houver backend.
 
+Os lancamentos escritos a mao cobrem as ultimas semanas. Os meses anteriores saem de
+`monthlyTemplate`, um modelo de mes tipico que `buildHistory()` expande para tras com variacao
+fixa por mes — o grafico precisa oscilar, mas nao pode mudar a cada recarregamento. O tamanho de
+`monthlyVariation` define ate onde o historico vai, e precisa cobrir com folga o mes mais antigo
+que o seletor de periodo oferece (`CUSTOM_RANGE_MONTHS`), ja que um mes unico ainda desenha os
+cinco meses anteriores. O mes corrente para no dia de hoje: um lancamento com data futura marcado
+como pago seria incoerente, e os itens pendentes e agendados ja vem da lista escrita a mao.
+
+`buildDashboardSummary(period)` recorta tudo pelo intervalo pedido e calcula as variacoes contra a
+janela de mesmo tamanho imediatamente anterior, no lugar dos percentuais fixos que existiam antes.
+O saldo de um mes passado e reconstruido a partir dos saldos de hoje, desfazendo o que entrou e
+saiu depois daquela data. Nessa conta a transferencia so pesa quando cruza a fronteira do total:
+o aporte na corretora, que fica fora de `includeInTotal`, reduz o saldo visivel, enquanto uma
+transferencia entre duas contas do total nao muda nada.
+
 O contrato de escrita e `TransactionPayload`: o cliente manda ids (`accountId`, `categoryId`,
 `toAccountId`) e quem resolve nome de conta e de categoria e o servidor. O store tambem devolve
 `ApiError` nos casos invalidos, com o mesmo formato do `httpClient`, para que a tela ja trate erro
@@ -184,6 +204,39 @@ A tela de lancamentos busca do service so pelo `kind` da rota; busca, periodo, c
 situacao e ordenacao sao aplicados em memoria por `components/transactions/query.ts`, para responder
 a cada tecla sem uma nova ida ao servidor. Os mesmos filtros existem em `TransactionFilters` do
 service porque sao os parametros que a API vai receber como query string.
+
+## Periodo do dashboard e busca
+
+O `PeriodSwitcher` e a busca global sao os dois pontos em que o header conversa com as telas.
+
+- **Periodo.** O caso comum — um mes de cada vez — fica nas setas; o painel do seletor guarda os
+  atalhos ("Ultimos 3 meses", "Este ano") e o intervalo proprio, montado com dois `Select` de mes.
+  As setas deslocam a janela inteira: de "maio a agosto" chega-se a "janeiro a abril". O seletor
+  so aparece no dashboard — as outras telas ou nao tem nocao de periodo ou tem o proprio filtro,
+  como Lancamentos.
+- **O periodo nao vai para a URL.** Ele vive no `PeriodProvider` (`usePeriod`), em memoria. O
+  endereco de uma tela diz que tela e, nao qual filtro esta aberto nela, e um `?de=&ate=` colado
+  no fim de `/dashboard` era ruido em todo print e em todo link compartilhado. O preco assumido e
+  que recarregar a pagina volta ao mes corrente — que e o ponto de partida esperado de quem abre
+  o app. Se um dia o recorte precisar sobreviver ao reload, o caminho e `localStorage` com a
+  chave `prisma:*`, como a sidebar recolhida, e nao a query string.
+- **A janela dos graficos nao e sempre o periodo.** Um mes sozinho nao conta historia nenhuma numa
+  linha, entao o recorte de mes unico desenha os cinco meses anteriores como contexto. Um periodo
+  de varios meses ja e a propria janela — mostrar meses de fora dele confundiria.
+- **Rotulo segue o recorte.** Fora do mes corrente, "Saldo atual" vira "Saldo no fim de agosto de
+  2026"; num intervalo, "Receitas do mes" vira "Receitas do periodo" e a variacao passa a ser "em
+  relacao ao periodo anterior", comparada com a janela de mesmo tamanho imediatamente anterior.
+  Rotulo que diz "atual" num mes passado e uma mentira barata de evitar: os componentes recebem o
+  substantivo (`periodNoun`) e o texto pronto por prop.
+- **Busca global.** `GlobalSearch` procura em lancamentos, categorias e contas ao mesmo tempo e
+  entrega cada resultado como destino: lancamento abre `?editar=<id>`, categoria abre
+  `?categoria=<id>` e conta abre `?conta=<id>`, todos em `/lancamentos`. A ultima linha leva a
+  `?busca=<termo>`. A comparacao ignora acento (`fold`), porque quem digita "saude" espera achar
+  "Saude". Chegar pela busca **reseta** os filtros da tela antes de aplicar o que veio na URL: um
+  filtro esquecido da navegacao anterior zeraria o resultado que o usuario acabou de escolher.
+- **Os parametros da busca saem da URL assim que sao lidos**
+  (`setSearchParams({}, { replace: true })`), para que voltar no historico nao reabra um
+  formulario nem refiltre a lista. Sao os unicos query params do app, e todos transitorios.
 
 ## Avisos
 

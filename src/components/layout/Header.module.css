@@ -25,79 +25,6 @@
   color: var(--text);
 }
 
-.monthSwitcher {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: 3px;
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-}
-
-.monthArrow {
-  display: grid;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  border-radius: var(--radius-xs);
-  color: var(--text-muted);
-  transition: background-color var(--duration-fast) var(--ease-out);
-}
-
-.monthArrow:hover {
-  background-color: var(--surface-muted);
-  color: var(--text);
-}
-
-.monthLabel {
-  min-width: 140px;
-  text-align: center;
-  font-size: var(--fs-sm);
-  font-weight: 500;
-}
-
-.search {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex: 1;
-  max-width: 420px;
-  height: 36px;
-  padding-inline: var(--space-3);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  transition: border-color var(--duration-fast) var(--ease-out);
-}
-
-.search:focus-within {
-  border-color: var(--accent);
-  box-shadow: var(--focus-ring);
-}
-
-.search input {
-  flex: 1;
-  min-width: 0;
-  background: none;
-  border: none;
-  font-size: var(--fs-base);
-}
-
-.search input:focus {
-  outline: none;
-}
-
-.search input::placeholder {
-  color: var(--text-subtle);
-}
-
-.searchIcon {
-  color: var(--text-subtle);
-  flex-shrink: 0;
-}
-
 .actions {
   display: flex;
   align-items: center;
@@ -145,21 +72,10 @@
   }
 }
 
-@media (max-width: 900px) {
-  .search {
-    display: none;
-  }
-}
-
 @media (max-width: 767px) {
   .header {
     padding-inline: var(--space-4);
     gap: var(--space-2);
-  }
-
-  .monthLabel {
-    min-width: 96px;
-    font-size: var(--fs-xs);
   }
 }
 

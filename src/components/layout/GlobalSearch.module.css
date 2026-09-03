@@ -1,0 +1,161 @@
+/* Ancora do painel de resultados. */
+.root {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  max-width: 420px;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 36px;
+  padding-inline: var(--space-3);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.field:focus-within,
+.fieldOpen {
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+}
+
+.field input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  font-size: var(--fs-base);
+  color: var(--text);
+}
+
+.field input:focus {
+  outline: none;
+}
+
+.field input::placeholder {
+  color: var(--text-subtle);
+}
+
+/* O X nativo do type="search" e desenhado pelo navegador e ignora os tokens. */
+.field input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.fieldIcon {
+  flex-shrink: 0;
+  color: var(--text-subtle);
+}
+
+.panel {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  left: 0;
+  right: 0;
+  z-index: var(--z-popover);
+  max-height: 420px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin: 0;
+  padding: var(--space-1);
+  list-style: none;
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-popover);
+  animation: panelIn var(--duration-fast) var(--ease-out);
+}
+
+.item {
+  display: block;
+}
+
+.groupLabel {
+  display: block;
+  padding: var(--space-3) var(--space-3) var(--space-1);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+}
+
+.optionActive {
+  background-color: var(--surface-muted);
+}
+
+.optionIcon {
+  flex-shrink: 0;
+  color: var(--text-subtle);
+}
+
+.optionText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.optionLabel {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--fs-base);
+  color: var(--text);
+}
+
+.optionHint {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+
+/* Ultima linha: separada do resto porque leva para a tela cheia, nao para um item. */
+.optionAll {
+  margin-top: var(--space-1);
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 var(--radius-xs) var(--radius-xs);
+  padding-top: var(--space-3);
+}
+
+.optionAll .optionLabel {
+  color: var(--text-muted);
+}
+
+.empty {
+  padding: var(--space-4) var(--space-3);
+  font-size: var(--fs-sm);
+  color: var(--text-subtle);
+}
+
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+/* Abaixo desta largura o header nao comporta o campo sem espremer as acoes. */
+@media (max-width: 900px) {
+  .root {
+    display: none;
+  }
+}

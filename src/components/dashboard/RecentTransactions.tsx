@@ -10,13 +10,14 @@ import styles from './RecentTransactions.module.css';
 
 interface RecentTransactionsProps {
   transactions: Transaction[];
+  description: string;
 }
 
-export function RecentTransactions({ transactions }: RecentTransactionsProps) {
+export function RecentTransactions({ transactions, description }: RecentTransactionsProps) {
   return (
     <Card padding="sm">
       <div className={styles.header}>
-        <CardHeader title="Últimos lançamentos" description="Movimentações mais recentes das suas contas" />
+        <CardHeader title="Últimos lançamentos" description={description} />
         <Link className={styles.link} to={paths.transactions}>
           Ver todos
         </Link>

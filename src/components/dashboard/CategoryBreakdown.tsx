@@ -6,14 +6,16 @@ import styles from './CategoryBreakdown.module.css';
 
 interface CategoryBreakdownProps {
   data: CategorySpending[];
+  /** "mês" ou "período", conforme o recorte escolhido no header. */
+  periodNoun: string;
 }
 
-export function CategoryBreakdown({ data }: CategoryBreakdownProps) {
+export function CategoryBreakdown({ data, periodNoun }: CategoryBreakdownProps) {
   const largest = data[0]?.share ?? 1;
 
   return (
     <Card>
-      <CardHeader title="Gastos por categoria" description="Participação no total de despesas do mês" />
+      <CardHeader title="Gastos por categoria" description={`Participação no total de despesas do ${periodNoun}`} />
       <CardBody>
         <ul className={styles.list}>
           {data.map((entry) => (

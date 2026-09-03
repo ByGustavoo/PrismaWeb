@@ -144,7 +144,10 @@ export interface Alert {
 }
 
 export interface DashboardSummary {
-  month: string;
+  /** Primeiro mes do periodo, YYYY-MM. */
+  from: string;
+  /** Ultimo mes do periodo, YYYY-MM. Igual a `from` quando o recorte e um mes so. */
+  to: string;
   currentBalance: number;
   balanceDelta: Delta;
   monthIncome: number;

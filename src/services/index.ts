@@ -1,4 +1,5 @@
 export { dashboardService } from './dashboard.service';
+export type { DashboardPeriod } from './mocks';
 export { transactionsService } from './transactions.service';
 export type { TransactionFilters } from './transactions.service';
 export { accountsService } from './accounts.service';

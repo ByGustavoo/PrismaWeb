@@ -19,7 +19,14 @@ import { Button, Card, ConfirmDialog, EmptyState, LoadingBlock } from '@/compone
 import { transactionKindLabel } from '@/constants/transactions';
 import { useAsyncData } from '@/hooks/useAsyncData';
 import { useToast } from '@/providers/ToastProvider';
-import { NEW_TRANSACTION_PARAM, newTransactionValues } from '@/routes/paths';
+import {
+  ACCOUNT_PARAM,
+  CATEGORY_PARAM,
+  EDIT_TRANSACTION_PARAM,
+  NEW_TRANSACTION_PARAM,
+  SEARCH_PARAM,
+  newTransactionValues,
+} from '@/routes/paths';
 import { accountsService, categoriesService, transactionsService } from '@/services';
 import type { Transaction, TransactionKind, TransactionPayload } from '@/types';
 import { formatFullDate } from '@/utils/format';
@@ -40,21 +47,48 @@ export function TransactionsPage({ kind, title, description }: TransactionsPageP
   const [formMode, setFormMode] = useState<FormMode | null>(null);
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [removing, setRemoving] = useState<Transaction | null>(null);
+  const [pendingEditId, setPendingEditId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const toast = useToast();
 
-  // `/lancamentos?novo=despesa` abre o cadastro direto. O parametro sai da URL
-  // assim que e lido, para que voltar no historico nao reabra o formulario.
+  // A URL e o canal de entrada da tela: `?novo=despesa` abre o cadastro,
+  // `?editar=<id>` abre a edicao e `?busca`, `?categoria` e `?conta` chegam da
+  // busca do header ja como filtro. Os parametros saem da URL assim que sao
+  // lidos, para que voltar no historico nao reabra nem refiltre nada.
   useEffect(() => {
-    const requested = searchParams.get(NEW_TRANSACTION_PARAM);
-    if (!requested) return;
+    const requestedForm = searchParams.get(NEW_TRANSACTION_PARAM);
+    const requestedEdit = searchParams.get(EDIT_TRANSACTION_PARAM);
+    const search = searchParams.get(SEARCH_PARAM);
+    const categoryId = searchParams.get(CATEGORY_PARAM);
+    const accountId = searchParams.get(ACCOUNT_PARAM);
 
-    const mode = newTransactionValues[requested as keyof typeof newTransactionValues];
+    if (!requestedForm && !requestedEdit && !search && !categoryId && !accountId) return;
+
+    const mode = requestedForm
+      ? newTransactionValues[requestedForm as keyof typeof newTransactionValues]
+      : undefined;
+
     if (mode) {
       setEditing(null);
       setFormMode(mode);
     }
+
+    if (requestedEdit) setPendingEditId(requestedEdit);
+
+    // Cada chegada da busca e uma consulta nova: um filtro que sobrou da
+    // navegacao anterior estreitaria o resultado que o usuario acabou de pedir.
+    if (search || categoryId || accountId) {
+      setQuery((current) => ({
+        ...emptyQuery,
+        sortField: current.sortField,
+        sortDirection: current.sortDirection,
+        ...(search ? { search } : {}),
+        ...(categoryId ? { categoryId } : {}),
+        ...(accountId ? { accountId } : {}),
+      }));
+    }
+
     setSearchParams({}, { replace: true });
   }, [searchParams, setSearchParams]);
 
@@ -71,6 +105,19 @@ export function TransactionsPage({ kind, title, description }: TransactionsPageP
 
   const { data, loading, error, reload } = useAsyncData(fetchTransactions, [kind]);
   const { data: catalog } = useAsyncData(fetchCatalog);
+
+  // A edicao pedida pela URL so pode abrir depois que a lista chega do service.
+  useEffect(() => {
+    if (!pendingEditId || !data) return;
+
+    const found = data.find((item) => item.id === pendingEditId);
+    setPendingEditId(null);
+
+    if (found) {
+      setEditing(found);
+      setFormMode(found.kind);
+    }
+  }, [pendingEditId, data]);
 
   const categories = catalog?.[0] ?? [];
   const sources = catalog?.[1] ?? [];

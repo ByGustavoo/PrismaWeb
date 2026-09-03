@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { PeriodProvider } from './PeriodProvider';
 import { ThemeProvider } from './ThemeProvider';
 import { ToastProvider } from './ToastProvider';
 
@@ -6,7 +7,9 @@ import { ToastProvider } from './ToastProvider';
 export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider>
-      <ToastProvider>{children}</ToastProvider>
+      <ToastProvider>
+        <PeriodProvider>{children}</PeriodProvider>
+      </ToastProvider>
     </ThemeProvider>
   );
 }

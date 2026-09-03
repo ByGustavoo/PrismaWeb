@@ -42,9 +42,7 @@ export function monthKeyFromOffset(offset: number, base: Date = new Date()): str
 
 /** Primeiro e ultimo dia do mes deslocado a partir de `base`, em datas ISO. */
 export function monthRange(offset: number, base: Date = new Date()): { from: string; to: string } {
-  const start = addMonths(base, offset);
-  const end = new Date(start.getFullYear(), start.getMonth() + 1, 0);
-  return { from: toISODate(start), to: toISODate(end) };
+  return monthKeyRange(monthKeyFromOffset(offset, base));
 }
 
 /** Janela dos ultimos N dias, incluindo hoje. */
@@ -56,4 +54,34 @@ export function lastDaysRange(days: number, base: Date = new Date()): { from: st
 export function yearRange(base: Date = new Date()): { from: string; to: string } {
   const year = base.getFullYear();
   return { from: `${year}-01-01`, to: `${year}-12-31` };
+}
+
+/** "2026-09" -> Date no primeiro dia do mes. */
+export function fromMonthKey(monthKey: string): Date {
+  const [year, month] = monthKey.split('-').map(Number);
+  return new Date(year ?? 1970, (month ?? 1) - 1, 1);
+}
+
+/** Formato de chave de mes valido? Guarda o que chega pela URL. */
+export function isMonthKey(value: string | null | undefined): value is string {
+  return typeof value === 'string' && /^\d{4}-(0[1-9]|1[0-2])$/.test(value);
+}
+
+/** Desloca uma chave de mes: ("2026-09", -1) -> "2026-08". */
+export function shiftMonthKey(monthKey: string, amount: number): string {
+  return toMonthKey(addMonths(fromMonthKey(monthKey), amount));
+}
+
+/** Meses de `from` ate `to`, contando os dois: ("2026-05", "2026-08") -> 4. */
+export function monthsBetween(from: string, to: string): number {
+  const start = fromMonthKey(from);
+  const end = fromMonthKey(to);
+  return (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()) + 1;
+}
+
+/** Primeiro e ultimo dia da chave de mes, em datas ISO inclusivas. */
+export function monthKeyRange(monthKey: string): { from: string; to: string } {
+  const start = fromMonthKey(monthKey);
+  const end = new Date(start.getFullYear(), start.getMonth() + 1, 0);
+  return { from: toISODate(start), to: toISODate(end) };
 }

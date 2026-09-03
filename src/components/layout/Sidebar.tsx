@@ -101,7 +101,6 @@ function SidebarItem({ item, collapsed }: SidebarItemProps) {
     return (
       <NavLink
         to={item.to}
-        end={item.to === '/'}
         title={collapsed ? item.label : undefined}
         className={({ isActive }) => cn(styles.item, (isActive || isChildActive) && styles.itemActive)}
       >

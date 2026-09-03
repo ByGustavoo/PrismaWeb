@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppLayout } from '@/layouts';
 import {
   AccountsPage,
@@ -20,6 +20,8 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route element={<AppLayout />}>
+        {/* A raiz nao tem tela propria: quem abre o app cai no dashboard. */}
+        <Route path="/" element={<Navigate to={paths.dashboard} replace />} />
         <Route path={paths.dashboard} element={<DashboardPage />} />
 
         <Route

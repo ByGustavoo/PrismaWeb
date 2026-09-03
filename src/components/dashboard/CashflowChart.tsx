@@ -8,14 +8,16 @@ import styles from './CashflowChart.module.css';
 
 interface CashflowChartProps {
   data: CashflowPoint[];
+  /** A janela termina no mes de referencia, que nem sempre e o mes corrente. */
+  description: string;
 }
 
-export function CashflowChart({ data }: CashflowChartProps) {
+export function CashflowChart({ data, description }: CashflowChartProps) {
   const palette = useChartPalette();
 
   return (
     <Card>
-      <CardHeader title="Entradas e saídas" description="Comparativo dos últimos seis meses" />
+      <CardHeader title="Entradas e saídas" description={description} />
       <CardBody className={styles.chart}>
         <ResponsiveContainer width="100%" height={260}>
           <BarChart data={data} barGap={6} margin={{ top: 8, right: 4, bottom: 0, left: -12 }}>

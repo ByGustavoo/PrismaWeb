@@ -4,23 +4,35 @@ import { PageHeader } from '@/components/layout';
 import { BalancePanel, CashflowChart, CategoryBreakdown, RecentTransactions, StatTile } from '@/components/dashboard';
 import { Button, Card, EmptyState, LoadingBlock, Skeleton } from '@/components/ui';
 import { useAsyncData } from '@/hooks/useAsyncData';
+import { usePeriod } from '@/providers/PeriodProvider';
 import { dashboardService } from '@/services';
-import { capitalize, formatFullDate, formatMonthLabel } from '@/utils/format';
+import { monthKeyFromOffset } from '@/utils/date';
+import { capitalize, formatFullDate, formatMonthLabel, formatPeriodLabel } from '@/utils/format';
 import styles from './DashboardPage.module.css';
 
 export function DashboardPage() {
-  const fetchSummary = useCallback((signal: AbortSignal) => dashboardService.getSummary(signal), []);
-  const { data, loading, error, reload } = useAsyncData(fetchSummary);
+  // O periodo vem do seletor no header, pelo PeriodProvider.
+  const { period } = usePeriod();
+  const { from, to } = period;
+  const thisMonth = monthKeyFromOffset(0);
+
+  const fetchSummary = useCallback(
+    (signal: AbortSignal) => dashboardService.getSummary({ from, to }, signal),
+    [from, to],
+  );
+  const { data, loading, error, reload } = useAsyncData(fetchSummary, [from, to]);
+
+  // Fora do mes corrente, "atual" e "recente" deixam de ser verdade nos rotulos,
+  // e num recorte de varios meses "do mes" tambem deixa.
+  const isCurrentMonth = from === thisMonth && to === thisMonth;
+  const periodLabel = formatPeriodLabel(from, to);
+  const periodNoun = from === to ? 'mês' : 'período';
 
   return (
     <>
       <PageHeader
         title="Dashboard"
-        description={
-          data
-            ? `Visão geral de ${capitalize(formatMonthLabel(data.month))}`
-            : 'Visão geral das suas finanças'
-        }
+        description={`Visão geral de ${periodLabel}`}
         actions={
           <Button variant="secondary" size="sm" icon={RefreshCw} onClick={reload} loading={loading}>
             Atualizar
@@ -45,17 +57,24 @@ export function DashboardPage() {
       ) : (
         <div className={styles.grid}>
           <BalancePanel
+            label={isCurrentMonth ? 'Saldo atual' : `Saldo no fim de ${capitalize(formatMonthLabel(to))}`}
             balance={data.currentBalance}
             delta={data.balanceDelta}
             income={data.monthIncome}
             expense={data.monthExpense}
+            periodNoun={periodNoun}
             history={data.balanceHistory}
           />
 
           <div className={styles.tiles}>
-            <StatTile label="Receitas do mês" value={data.monthIncome} icon={TrendingUp} delta={data.incomeDelta} />
             <StatTile
-              label="Despesas do mês"
+              label={`Receitas do ${periodNoun}`}
+              value={data.monthIncome}
+              icon={TrendingUp}
+              delta={data.incomeDelta}
+            />
+            <StatTile
+              label={`Despesas do ${periodNoun}`}
               value={data.monthExpense}
               icon={TrendingDown}
               delta={data.expenseDelta}
@@ -68,7 +87,7 @@ export function DashboardPage() {
               footnote="Rentabilidade acumulada"
             />
             <StatTile
-              label="Fatura atual"
+              label={from === to ? 'Fatura do mês' : `Fatura de ${capitalize(formatMonthLabel(to))}`}
               value={data.currentInvoice.total}
               icon={CreditCard}
               footnote={`${data.currentInvoice.cardName} · vence em ${formatFullDate(data.currentInvoice.dueDate)}`}
@@ -76,11 +95,25 @@ export function DashboardPage() {
           </div>
 
           <div className={styles.charts}>
-            <CashflowChart data={data.cashflow} />
-            <CategoryBreakdown data={data.spendingByCategory} />
+            <CashflowChart
+              data={data.cashflow}
+              description={
+                from === to
+                  ? isCurrentMonth
+                    ? 'Comparativo dos últimos seis meses'
+                    : `Seis meses até ${capitalize(formatMonthLabel(to))}`
+                  : `Comparativo mês a mês de ${periodLabel}`
+              }
+            />
+            <CategoryBreakdown data={data.spendingByCategory} periodNoun={periodNoun} />
           </div>
 
-          <RecentTransactions transactions={data.recentTransactions} />
+          <RecentTransactions
+            transactions={data.recentTransactions}
+            description={
+              isCurrentMonth ? 'Movimentações mais recentes das suas contas' : `Movimentações de ${periodLabel}`
+            }
+          />
         </div>
       )}
     </>

@@ -97,6 +97,23 @@ export function formatMonthLabel(month: string): string {
   return monthYearFormatter.format(new Date(year ?? 1970, (monthNumber ?? 1) - 1, 1));
 }
 
+/**
+ * Rotulo de um periodo de meses: "Agosto de 2026" quando e um mes so, "Maio a
+ * Agosto de 2026" dentro do mesmo ano e "Novembro de 2025 a Marco de 2026"
+ * quando atravessa a virada — repetir o ano nos dois lados so polui.
+ *
+ * Os dois meses saem com inicial maiuscula: no rotulo eles nomeiam o recorte, e
+ * capitalizar so o primeiro fazia a segunda metade parecer descuido.
+ */
+export function formatPeriodLabel(from: string, to: string): string {
+  const end = capitalize(formatMonthLabel(to));
+  if (from === to) return end;
+
+  const sameYear = from.slice(0, 4) === to.slice(0, 4);
+  const start = sameYear ? formatMonthLabel(from).replace(/ de \d{4}$/, '') : formatMonthLabel(from);
+  return `${capitalize(start)} a ${end}`;
+}
+
 export function capitalize(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }

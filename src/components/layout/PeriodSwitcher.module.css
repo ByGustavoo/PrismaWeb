@@ -1,0 +1,144 @@
+/* Ancora do painel de periodos. */
+.root {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.switcher {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 3px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.arrow {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-xs);
+  color: var(--text-muted);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.arrow:hover {
+  background-color: var(--surface-muted);
+  color: var(--text);
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-width: 190px;
+  height: 26px;
+  padding-inline: var(--space-2);
+  border-radius: var(--radius-xs);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.label:hover {
+  background-color: var(--surface-muted);
+}
+
+.labelOpen {
+  background-color: var(--accent-soft);
+  color: var(--accent);
+}
+
+.labelText {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.chevron {
+  flex-shrink: 0;
+  color: var(--text-subtle);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+  color: var(--accent);
+}
+
+.panel {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  left: 0;
+  z-index: var(--z-popover);
+  width: 280px;
+  padding: var(--space-1);
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-popover);
+  animation: panelIn var(--duration-fast) var(--ease-out);
+}
+
+.presets {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.preset {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-xs);
+  font-size: var(--fs-base);
+  color: var(--text);
+  text-align: left;
+}
+
+.preset:hover {
+  background-color: var(--surface-muted);
+}
+
+.presetSelected {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/*
+ * Separado da lista: aqui o periodo e montado, nao escolhido pronto. Os dois
+ * campos ficam empilhados porque "Setembro de 2026" nao cabe em meia largura do
+ * painel — lado a lado, o mes escolhido apareceria cortado.
+ */
+.custom {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-1);
+  padding: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@media (max-width: 767px) {
+  .label {
+    min-width: 120px;
+    font-size: var(--fs-xs);
+  }
+
+  .panel {
+    width: 260px;
+  }
+}
