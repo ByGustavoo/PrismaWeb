@@ -18,11 +18,11 @@
 
 * 📊 Recharts 2
 
-* 🎨 CSS Modules
- 
-* 🖼️ Lucide React
-
 * 🔷 TypeScript 5
+
+* 🖼️ Lucide React
+    
+* 🎨 CSS Modules
 
 * 🧭 React Router 6
 
