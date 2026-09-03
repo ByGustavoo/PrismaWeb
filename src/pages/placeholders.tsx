@@ -5,36 +5,6 @@ import { UnderConstruction } from '@/components/common';
  * cada uma vira um arquivo proprio quando ganhar conteudo real.
  */
 
-export function AccountsPage() {
-  return (
-    <UnderConstruction
-      title="Contas"
-      description="Saldos e movimentação das suas contas"
-      plannedFor="Aqui você vai cadastrar contas, acompanhar saldos e conciliar movimentações."
-    />
-  );
-}
-
-export function CardsPage() {
-  return (
-    <UnderConstruction
-      title="Cartões"
-      description="Limites, fechamento e vencimento"
-      plannedFor="Cadastro de cartões, limite disponível e datas de fechamento e vencimento."
-    />
-  );
-}
-
-export function InvoicesPage() {
-  return (
-    <UnderConstruction
-      title="Faturas"
-      description="Faturas abertas, fechadas e pagas"
-      plannedFor="Detalhe das faturas por cartão, com lançamentos, parcelamentos e pagamento."
-    />
-  );
-}
-
 export function InvestmentsPage() {
   return (
     <UnderConstruction

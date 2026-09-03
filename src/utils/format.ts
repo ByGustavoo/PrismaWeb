@@ -1,5 +1,5 @@
 import { CURRENCY, LOCALE } from '@/constants/app';
-import { fromISODate } from './date';
+import { daysBetween, fromISODate, todayISO } from './date';
 
 /** Simbolo usado quando o Intl nao devolve a parte de moeda. */
 const CURRENCY_SYMBOL = 'R$';
@@ -35,6 +35,10 @@ const fullDateFormatter = new Intl.DateTimeFormat(LOCALE, {
 const monthYearFormatter = new Intl.DateTimeFormat(LOCALE, {
   month: 'long',
   year: 'numeric',
+});
+
+const shortMonthFormatter = new Intl.DateTimeFormat(LOCALE, {
+  month: 'short',
 });
 
 /** Espaco inquebravel entre o simbolo e os algarismos. */
@@ -98,6 +102,17 @@ export function formatMonthLabel(month: string): string {
 }
 
 /**
+ * "2026-08" -> "Ago/2026". Forma curta para listas com muitos meses seguidos,
+ * como o cronograma de um parcelamento de doze vezes, em que o nome inteiro
+ * repetido doze vezes vira ruido.
+ */
+export function formatShortMonth(month: string): string {
+  const [year, monthNumber] = month.split('-').map(Number);
+  const name = shortMonthFormatter.format(new Date(year ?? 1970, (monthNumber ?? 1) - 1, 1)).replace('.', '');
+  return `${capitalize(name)}/${year}`;
+}
+
+/**
  * Rotulo de um periodo de meses: "Agosto de 2026" quando e um mes so, "Maio a
  * Agosto de 2026" dentro do mesmo ano e "Novembro de 2025 a Marco de 2026"
  * quando atravessa a virada — repetir o ano nos dois lados so polui.
@@ -112,6 +127,21 @@ export function formatPeriodLabel(from: string, to: string): string {
   const sameYear = from.slice(0, 4) === to.slice(0, 4);
   const start = sameYear ? formatMonthLabel(from).replace(/ de \d{4}$/, '') : formatMonthLabel(from);
   return `${capitalize(start)} a ${end}`;
+}
+
+/**
+ * Distancia ate um vencimento em linguagem corrente: "vence em 5 dias", "vence
+ * hoje", "venceu há 3 dias". Uma data sozinha obriga quem le a fazer a conta.
+ */
+export function formatDueLabel(isoDate: string, reference: string = todayISO()): string {
+  const days = daysBetween(reference, isoDate);
+  if (days < 0) {
+    const past = Math.abs(days);
+    return `venceu há ${past} ${past === 1 ? 'dia' : 'dias'}`;
+  }
+  if (days === 0) return 'vence hoje';
+  if (days === 1) return 'vence amanhã';
+  return `vence em ${days} dias`;
 }
 
 export function capitalize(value: string): string {

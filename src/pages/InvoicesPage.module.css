@@ -1,0 +1,116 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* Largura suficiente para "Cartão: Nova Platinum" sem esticar a linha de acoes. */
+.filter {
+  width: 220px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  /* Um bloco sem filtro fica com a mesma altura de cabecalho dos que tem. */
+  min-height: var(--control-height);
+}
+
+.sectionText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sectionTitle {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.sectionMeta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: var(--fs-sm);
+  color: var(--text-subtle);
+}
+
+/* Espacamento proprio: um espaco de texto encolhe junto do tracking da fonte. */
+.separator {
+  margin-inline: 1px;
+}
+
+.rangeFilter {
+  flex-shrink: 0;
+  width: 220px;
+}
+
+/*
+ * Recorte sem resultado. E uma linha de texto, e nao um EmptyState: o bloco
+ * continua existindo e a saida — trocar a janela de meses — esta logo acima.
+ */
+.sectionEmpty {
+  margin: 0;
+  padding: var(--space-4) var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--text-subtle);
+}
+
+/*
+ * As faturas em curso sao poucas — uma por cartao — e cada uma pede uma decisao,
+ * entao ficam lado a lado em destaque em vez de virarem mais duas linhas.
+ */
+/*
+ * `auto-fill`, e nao `auto-fit`: com um cartao so, o `auto-fit` colapsa as
+ * faixas vazias e a fatura se estica pela largura inteira da tela, o que a faz
+ * parecer uma faixa e nao um cartao.
+ */
+.highlights {
+  display: grid;
+  /* 360px e a largura em que "08 de setembro de 2026" para de quebrar em duas
+     linhas dentro do par fechamento/vencimento. */
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: var(--space-4);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: var(--space-2);
+  list-style: none;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+@media (max-width: 599px) {
+  .highlights {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .filter,
+  .rangeFilter {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+/* O seletor de cartao ocupa a faixa de acoes inteira quando ela vira uma linha. */
+@media (max-width: 767px) {
+  .filter {
+    width: 100%;
+  }
+}

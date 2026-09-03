@@ -16,13 +16,24 @@ export const endpoints = {
   },
   accounts: {
     list: '/accounts',
+    create: '/accounts',
     /** Contas e cartoes juntos, para os seletores de lancamento. */
     sources: '/accounts/sources',
     byId: (id: string) => `/accounts/${id}`,
   },
   cards: {
     list: '/cards',
-    invoices: '/cards/invoices',
+    create: '/cards',
+    byId: (id: string) => `/cards/${id}`,
+  },
+  invoices: {
+    list: '/invoices',
+    byId: (id: string) => `/invoices/${id}`,
+  },
+  installments: {
+    list: '/installments',
+    create: '/installments',
+    byId: (id: string) => `/installments/${id}`,
   },
   investments: {
     list: '/investments',

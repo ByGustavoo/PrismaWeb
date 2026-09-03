@@ -1,0 +1,179 @@
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.tile:hover,
+.tile:focus-within {
+  border-color: var(--border-strong);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.iconBox {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-muted);
+  color: var(--text-muted);
+}
+
+.identity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  flex: 1;
+  min-width: 0;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.name {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.actions {
+  display: inline-flex;
+  gap: var(--space-1);
+  flex-shrink: 0;
+  margin-top: calc(var(--space-1) * -1);
+}
+
+/*
+ * Excluir so fica vermelho no hover: em repouso, um icone vermelho em cada
+ * cartao transformaria a acao rara na mais visivel da tela.
+ */
+.delete:hover {
+  color: var(--negative);
+}
+
+/* --- Bloco de limite (so credito) -------------------------------------- */
+
+.limit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.limitTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.limitLabel {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.limitTotal {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.bar {
+  margin-top: var(--space-1);
+}
+
+.limitFoot {
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+
+/* --- Datas e fatura ----------------------------------------------------- */
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.fact dt {
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+
+.fact dd {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+
+.due {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+/* --- Debito e vales ----------------------------------------------------- */
+
+.simple {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-top: auto;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+.simpleLabel {
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+
+.linked {
+  font-size: var(--fs-md);
+  font-weight: 500;
+}
+
+@media (max-width: 479px) {
+  .facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

@@ -6,6 +6,7 @@ import {
   CardsPage,
   DashboardPage,
   ForecastPage,
+  InstallmentsPage,
   InvestmentsPage,
   InvoicesPage,
   NotFoundPage,
@@ -61,6 +62,7 @@ export function AppRoutes() {
         <Route path={paths.accounts} element={<AccountsPage />} />
         <Route path={paths.cards} element={<CardsPage />} />
         <Route path={paths.invoices} element={<InvoicesPage />} />
+        <Route path={paths.installments} element={<InstallmentsPage />} />
 
         <Route path={paths.investments} element={<InvestmentsPage />} />
 

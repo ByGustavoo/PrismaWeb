@@ -1,0 +1,165 @@
+/* --- Fatura em destaque ------------------------------------------------- */
+
+.highlight {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+}
+
+.highlightHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.cardName {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.month {
+  font-size: var(--fs-md);
+  font-weight: 600;
+}
+
+.items {
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+
+.dates {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: var(--space-2) 0 0;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+.date {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.date dt {
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+
+.date dd {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+
+.highlightFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-top: var(--space-4);
+}
+
+.due {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+/* --- Linha compacta ----------------------------------------------------- */
+
+/*
+ * A linha inteira e o alvo. As colunas sao `auto` a partir das datas para que o
+ * valor e a situacao fiquem alinhados entre linhas — com `1fr` em todas, um mes
+ * de nome longo deslocaria a coluna de valores da linha inteira.
+ */
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto 16px;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: inherit;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.row:hover {
+  background-color: var(--surface-muted);
+  border-color: var(--border);
+}
+
+.rowIdentity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rowMonth {
+  font-weight: 500;
+}
+
+.rowCard {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.separator {
+  margin-inline: 5px;
+  color: var(--text-subtle);
+}
+
+.rowDates {
+  display: flex;
+  gap: var(--space-4);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.rowValue {
+  justify-self: end;
+}
+
+.chevron {
+  color: var(--text-subtle);
+}
+
+/*
+ * Abaixo de 900px as cinco colunas nao cabem: a linha vira duas, com identidade
+ * e valor em cima e datas e situacao embaixo. A alternativa seria rolar de lado
+ * ate o valor, que e justamente o dado que se procura.
+ */
+@media (max-width: 899px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .rowDates {
+    grid-column: 1;
+    flex-wrap: wrap;
+  }
+
+  .rowStatus {
+    grid-column: 2;
+    justify-self: end;
+  }
+
+  .chevron {
+    display: none;
+  }
+}

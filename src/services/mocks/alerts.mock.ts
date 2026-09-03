@@ -1,11 +1,11 @@
+import { CARD_LIMIT_CRITICAL_RATIO } from '@/constants/cards';
 import { transactionKindLabel } from '@/constants/transactions';
 import { paths } from '@/routes/paths';
 import type { Alert } from '@/types';
 import { daysBetween, todayISO } from '@/utils/date';
-import { creditCards, invoices, transactions } from './data';
-
-/** Acima disso o cartao entra na faixa de alerta de limite. */
-const LIMIT_WARNING_RATIO = 0.7;
+import { formatDueLabel } from '@/utils/format';
+import { buildInvoices, cardsNearLimit } from './cards.mock';
+import { transactions } from './data';
 
 /** Janela de antecedencia dos avisos de vencimento. */
 const HORIZON_DAYS = 15;
@@ -16,12 +16,6 @@ function severityByDays(days: number): Alert['severity'] {
   return 'info';
 }
 
-function whenLabel(days: number): string {
-  if (days < 0) return `venceu há ${Math.abs(days)} ${Math.abs(days) === 1 ? 'dia' : 'dias'}`;
-  if (days === 0) return 'vence hoje';
-  if (days === 1) return 'vence amanhã';
-  return `vence em ${days} dias`;
-}
 
 /**
  * Os avisos nao sao uma lista fixa: saem dos mesmos mocks que alimentam as
@@ -33,8 +27,8 @@ export function buildAlerts(): Alert[] {
   const alerts: Alert[] = [];
 
   // Faturas em aberto ou fechadas dentro do horizonte.
-  for (const invoice of invoices) {
-    if (invoice.status === 'paid') continue;
+  for (const invoice of buildInvoices()) {
+    if (invoice.status === 'paid' || invoice.status === 'future') continue;
     const days = daysBetween(today, invoice.dueDate);
     if (days > HORIZON_DAYS) continue;
 
@@ -43,7 +37,7 @@ export function buildAlerts(): Alert[] {
       kind: 'invoice-due',
       severity: days < 0 ? 'critical' : severityByDays(days),
       title: `Fatura ${invoice.cardName}`,
-      description: `Fatura ${whenLabel(days)}`,
+      description: `Fatura ${formatDueLabel(invoice.dueDate, today)}`,
       date: invoice.dueDate,
       amount: invoice.total,
       to: paths.invoices,
@@ -63,8 +57,8 @@ export function buildAlerts(): Alert[] {
       severity: pending ? severityByDays(days) : 'info',
       title: transaction.description,
       description: pending
-        ? `${transaction.category?.name ?? transactionKindLabel[transaction.kind]} · ${whenLabel(days)}`
-        : `Agendado · ${whenLabel(days)}`,
+        ? `${transaction.category?.name ?? transactionKindLabel[transaction.kind]} · ${formatDueLabel(transaction.date, today)}`
+        : `Agendado · ${formatDueLabel(transaction.date, today)}`,
       date: transaction.date,
       amount: transaction.amount,
       to: paths.transactions,
@@ -72,18 +66,15 @@ export function buildAlerts(): Alert[] {
   }
 
   // Cartoes perto do limite.
-  for (const card of creditCards) {
-    const ratio = card.used / card.limit;
-    if (ratio < LIMIT_WARNING_RATIO) continue;
-
+  for (const { card, used, ratio } of cardsNearLimit()) {
     alerts.push({
       id: `alert-card-${card.id}`,
       kind: 'card-limit',
-      severity: ratio >= 0.9 ? 'critical' : 'attention',
+      severity: ratio >= CARD_LIMIT_CRITICAL_RATIO ? 'critical' : 'attention',
       title: `${card.name} perto do limite`,
       description: `${Math.round(ratio * 100)}% do limite utilizado`,
       date: today,
-      amount: card.limit - card.used,
+      amount: card.limit - used,
       to: paths.cards,
     });
   }

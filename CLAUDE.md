@@ -9,10 +9,12 @@ planejamento). O nome do produto e **Prisma**, usado de forma consistente no rep
 `package.json`, em `APP_NAME` (`src/constants/app.ts`), no `<title>` do `index.html` e nos
 prefixos de `localStorage` (`prisma:*`). Ao renomear um deles, renomeie todos.
 
-O estado atual vai ate a **Etapa 3**: fundacao do frontend, dashboard e as telas de lancamentos
-(listagem com filtros, cadastro, edicao e exclusao de receitas, despesas e transferencias). Nao
-existe backend ainda; toda a camada de dados responde com mocks, e a escrita vive em memoria pelo
-tempo da sessao. O backend em Java / Spring Boot / PostgreSQL vira nas proximas etapas.
+O estado atual vai ate a **Etapa 4**: fundacao do frontend, dashboard, as telas de lancamentos
+(listagem com filtros, cadastro, edicao e exclusao de receitas, despesas e transferencias) e o
+bloco de contas e cartoes — cadastro de contas, cadastro dos quatro tipos de cartao, faturas com
+detalhe de compras e compras parceladas. Nao existe backend ainda; toda a camada de dados responde
+com mocks, e a escrita vive em memoria pelo tempo da sessao. O backend em Java / Spring Boot /
+PostgreSQL vira nas proximas etapas.
 
 ## Comandos
 
@@ -71,8 +73,8 @@ Estas sao as invariantes do projeto. Quebra-las e o erro mais caro que se pode c
 5. **Rotas so em `src/routes/paths.ts`.** Links usam `paths.x`, nunca string literal. A raiz `/`
    nao tem tela propria: ela redireciona para `paths.dashboard` (`/dashboard`), para que toda tela
    do app tenha um endereco com nome. O mesmo arquivo guarda os nomes dos query params (`busca`,
-   `categoria`, `conta`, `novo`, `editar`) — eles sao contrato entre telas e nao devem ser escritos
-   a mao em outro lugar.
+   `categoria`, `conta`, `cartao`, `novo`, `editar`) — eles sao contrato entre telas e nao devem
+   ser escritos a mao em outro lugar. Todos sao transitorios: a tela os le e limpa a URL.
 
 6. **Contratos de dominio em `src/types/finance.ts`.** Sao o contrato esperado do backend futuro;
    mudar um tipo la e uma decisao de API, nao um detalhe de tela.
@@ -94,24 +96,30 @@ Estas sao as invariantes do projeto. Quebra-las e o erro mais caro que se pode c
 src/
 ├── api/           httpClient, ApiError, endpoints
 ├── components/
-│   ├── ui/        Button, Card, Input, Textarea, Select, Modal, ConfirmDialog, Badge, Table,
-│   │              Loading, EmptyState, Toast
-│   ├── common/    Amount, BrandMark, DeltaIndicator, UnderConstruction
+│   ├── ui/        Button, Card, Input, Textarea, Select, Switch, Modal, ConfirmDialog, Badge,
+│   │              Table, ProgressBar, Loading, EmptyState, Toast
+│   ├── common/    Amount, BrandMark, DeltaIndicator, SummaryBar, UnderConstruction
 │   ├── layout/    Sidebar, Header, HeaderSlot, PageHeader, NotificationsPanel,
 │   │              GlobalSearch, PeriodSwitcher
 │   ├── dashboard/ BalancePanel, StatTile, CashflowChart, CategoryBreakdown, RecentTransactions
 │   ├── transactions/ TransactionFilters, TransactionsTable, TransactionsList (cartoes),
 │   │              formularios de lancamento, meta (icone/cor por tipo e situacao) e
 │   │              query (filtro, periodo e ordenacao)
+│   ├── accounts/  AccountCard, AccountFormModal, meta (icone por tipo, tom por situacao)
+│   ├── cards/     CardTile, CardFormModal, meta (icone, tom de limite, tom de fatura)
+│   ├── invoices/  InvoiceEntry (destaque e linha), InvoiceDetailModal
+│   ├── installments/ InstallmentCard (com cronograma), InstallmentFormModal
 │   └── charts/    ChartTooltip
-├── constants/     env, app, navigation, transactions
+├── constants/     env, app, navigation, transactions, accounts, cards
 ├── hooks/         useAsyncData, useMediaQuery, useLocalStorage, useLockBodyScroll, useChartPalette
 ├── layouts/       AppLayout (sidebar + header + conteudo)
-├── pages/         Dashboard, Lancamentos, Configuracoes, placeholders, 404
+├── pages/         Dashboard, Lancamentos, Contas, Cartoes, Faturas, Parcelamentos,
+│                  Configuracoes, placeholders, 404
 ├── providers/     ThemeProvider, ToastProvider, PeriodProvider, AppProviders
 ├── routes/        AppRoutes, paths
-├── services/      dashboard, transactions, categories, accounts, investments, alerts
-│   └── mocks/     data, transactions.store, dashboard.mock, alerts.mock, mockResponse
+├── services/      dashboard, transactions, categories, accounts, cards, investments, alerts
+│   └── mocks/     data, transactions.store, accounts.store, cards.store, dashboard.mock,
+│                  cards.mock, alerts.mock, mockResponse
 ├── styles/        tokens.css, global.css
 ├── types/         common, finance
 └── utils/         cn, date, format
@@ -206,9 +214,65 @@ situacao e ordenacao sao aplicados em memoria por `components/transactions/query
 a cada tecla sem uma nova ida ao servidor. Os mesmos filtros existem em `TransactionFilters` do
 service porque sao os parametros que a API vai receber como query string.
 
+## Contas, cartoes, faturas e parcelamentos
+
+Quatro telas em `/contas`, `/cartoes`, `/faturas` e `/parcelamentos`, todas sob o grupo "Contas e
+cartoes" da sidebar. Contas e cartoes sao cadastro (criar, editar, excluir); faturas e
+parcelamentos sao leitura calculada, exceto o cadastro da compra parcelada.
+
+- **Um cadastro so para os quatro tipos de cartao.** `Card` tem os campos especificos opcionais
+  porque nenhum tipo usa todos: credito tem limite e datas de fatura, debito aponta para a conta
+  que acessa e os vales carregam saldo proprio. Quem precisa dos campos de credito passa por
+  `isCreditCard` (`constants/cards.ts`), que estreita o tipo — nunca por `card.limit!`. O
+  formulario tambem so envia os campos do tipo escolhido, senao trocar um cartao de credito para
+  vale-refeicao deixaria limite e datas para tras.
+- **Fatura nao e cadastro: ela e derivada.** `services/mocks/cards.mock.ts` monta as faturas a
+  partir das despesas lancadas no cartao e das parcelas das compras parceladas, do mesmo jeito que
+  os avisos saem dos lancamentos. O ciclo de um mes vai do fechamento anterior (exclusivo) ate o
+  deste mes (inclusivo); o vencimento cai no mes seguinte quando o dia de vencimento e anterior ou
+  igual ao de fechamento. Uma compra cadastrada agora aparece na fatura, no limite comprometido e
+  no cronograma sem nenhum ajuste manual — e o formato calculado aqui e o que o backend vai ter de
+  devolver.
+- **`used` do cartao nao fica em `data.ts`.** Ele e a soma das faturas ainda nao pagas, incluindo
+  as futuras: e o unico numero que responde "quanto ainda posso gastar" sem esconder doze parcelas
+  ja assumidas. Guardar o valor a mao faria a barra de limite mentir na primeira compra parcelada.
+- **As parcelas nao sao lancamentos.** Elas vivem em `installmentPurchases` e entram nas faturas
+  pelo calculo. Gravar doze copias de cada compra em `transactions` deixaria a listagem de
+  lancamentos ilegivel e o resultado do periodo errado, ja que quem sai da conta e a fatura, nao a
+  parcela. As primeiras parcelas levam o valor arredondado para baixo e a ultima absorve a sobra,
+  para a soma fechar exatamente com o total da compra.
+- **Excluir nao apaga historico.** Conta ou cartao com lancamentos (ou com compra parcelada) devolve
+  `409` do store, e a mensagem sugere marcar como inativo. Inativo sai do saldo total e dos
+  seletores de lancamento, mas o passado continua legivel. Por isso `Account` e `Card` tem `status`
+  e `listPaymentSources()` filtra por ele — enquanto `findPaymentSource(id)` busca em tudo, para
+  que editar um lancamento antigo nao falhe por causa de uma conta encerrada.
+- **`listPaymentSources()` e funcao, nao array.** Uma conta cadastrada agora precisa aparecer no
+  proximo lancamento sem recarregar a pagina. O cartao de debito fica de fora da lista: ele e so o
+  meio de acessar a conta, que ja esta la.
+- **Faturas em quatro blocos.** "A pagar" (ciclo fechado), "Fatura atual" (ciclo em andamento),
+  "Proximas faturas" e "Faturas anteriores". A fechada e a aberta sao coisas diferentes — uma exige
+  pagamento numa data, a outra ainda acumula compras — e junta-las colocava duas faturas do mesmo
+  cartao lado a lado sem explicar por que eram duas.
+- **A barra de limite usa as faixas de `constants/cards.ts`**, as mesmas que decidem o aviso do
+  sino. Separadas, um dia a barra ficaria ambar sem nenhum aviso correspondente no painel.
+- **Filtro de tela vai na linha de acoes do `PageHeader`; filtro de bloco, no cabecalho do bloco.**
+  O seletor de cartao de Faturas e de Compras parceladas vale para a tela inteira e divide a linha
+  com a acao principal — para isso o `Select` tem `size="sm"`, que iguala a altura ao
+  `Button size="sm"`. Sozinho numa faixa entre o resumo e a lista, um campo estreito virava uma
+  terceira listra vazia entre dois blocos largos. Ja as janelas de meses de "Proximas faturas" e
+  "Faturas anteriores" ficam no cabecalho de cada bloco, porque so recortam aquele bloco — e o
+  total ao lado do titulo soma o que esta a vista, nao o grupo inteiro.
+
 ## Periodo do dashboard e busca
 
 O `PeriodSwitcher` e a busca global sao os dois pontos em que o header conversa com as telas.
+
+- **O header tem um miolo com a caixa do conteudo.** A faixa vai de ponta a ponta — fundo e borda
+  inferior precisam atravessar a tela —, mas os controles ficam num `.inner` com a mesma
+  `max-width: var(--content-max)`, o mesmo `margin-inline: auto` e o mesmo `padding-inline` do
+  `.container` do `AppLayout`. Sem isso, em telas mais largas que `--content-max` a pagina
+  centraliza e o header nao, e a busca (ou o seletor de periodo) fica recuada a esquerda do titulo
+  da tela logo abaixo dela. Barra fixa nova repete esse arranjo.
 
 - **Periodo.** O caso comum — um mes de cada vez — fica nas setas; o painel do seletor guarda os
   atalhos ("Ultimos 3 meses", "Este ano") e o intervalo proprio, montado com dois `Select` de mes.
@@ -270,6 +334,9 @@ lista com tres fundos coloridos vira ruido. O ponto no sino conta apenas os avis
   escolhido por `useIsCompact`). A tabela tem `min-width: 1000px`: rolar de lado ate o valor, que
   e o dado mais importante da linha, nao e leitura. O cartao traz um controle proprio de
   ordenacao, para que o celular nao perca o que o cabecalho da tabela oferece.
+- **Contas, cartoes e parcelamentos usam `auto-fill` com largura minima**, nao um numero fixo de
+  colunas: o conteudo de cada cartao e que define quando vale quebrar. As faturas futuras e antigas
+  sao linhas que viram duas abaixo de 900px, em vez de uma tabela que rola de lado ate o valor.
 - **Nada de esconder acao sem substituto.** Na mesma faixa o campo de busca do header vira um
   botao que abre a busca sobre o header, e "Novo lancamento" perde o rotulo mas continua la como
   botao de icone. Antes os dois sumiam com `display: none`.
@@ -304,5 +371,7 @@ e um ponto unico (`getAuthToken`) para plugar o token quando entrar o Spring Sec
 ## Fora de escopo hoje
 
 Backend, autenticacao, persistencia real, ESLint/Prettier, testes e code-splitting por rota ainda
-nao existem. Cartoes, faturas, parcelas e investimentos continuam como telas em construcao. Nao
+nao existem. Investimentos, orcamento, recorrentes, previsao e relatorios continuam como telas em
+construcao, e nao ha pagamento de fatura nem registro de quitacao — a fatura vencida e tratada como
+paga. Nao
 invente configuracao dessas sem o usuario pedir.

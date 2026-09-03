@@ -22,12 +22,10 @@
   align-items: center;
   gap: var(--space-2);
   width: 100%;
-  height: var(--control-height);
   padding-inline: var(--space-3);
   background-color: var(--surface);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
-  font-size: var(--control-font);
   color: var(--text);
   text-align: left;
   cursor: pointer;
@@ -35,6 +33,21 @@
     border-color var(--duration-fast) var(--ease-out),
     background-color var(--duration-fast) var(--ease-out),
     box-shadow var(--duration-fast) var(--ease-out);
+}
+
+/*
+ * Duas alturas, as mesmas do Button: `md` para formulario e `sm` para a linha de
+ * acoes de um cabecalho, onde um campo mais alto que o botao vizinho denuncia
+ * que os dois vieram de lugares diferentes.
+ */
+.md {
+  height: var(--control-height);
+  font-size: var(--control-font);
+}
+
+.sm {
+  height: var(--control-height-sm);
+  font-size: var(--fs-sm);
 }
 
 .trigger:hover:not(:disabled) {

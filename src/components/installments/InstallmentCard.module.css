@@ -1,0 +1,276 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.card:hover,
+.card:focus-within {
+  border-color: var(--border-strong);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.identity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.title {
+  font-family: var(--font-figure);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.category {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.categoryDot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+}
+
+/* Espacamento proprio: um espaco de texto encolhe junto do tracking da fonte. */
+.separator {
+  margin-inline: 5px;
+  color: var(--text-subtle);
+}
+
+.actions {
+  display: inline-flex;
+  gap: var(--space-1);
+  flex-shrink: 0;
+  margin-top: calc(var(--space-1) * -1);
+}
+
+.delete:hover {
+  color: var(--negative);
+}
+
+/* --- Resumo do parcelamento -------------------------------------------- */
+
+.headline {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-top: var(--space-1);
+}
+
+.plan {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--font-figure);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+}
+
+.total {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.progressText {
+  margin: 0;
+  max-width: none;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.progressText strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.fact dt {
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+
+.fact dd {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+
+/* --- Cronograma --------------------------------------------------------- */
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  align-self: flex-start;
+  min-height: var(--tap-size);
+  padding: 0;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--accent);
+  border-radius: var(--radius-xs);
+}
+
+.toggle:hover {
+  text-decoration: underline;
+}
+
+.chevron {
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.schedule {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  list-style: none;
+  background-color: var(--surface-muted);
+  border-radius: var(--radius-sm);
+}
+
+/* `display: flex` vence o `[hidden]` da folha do navegador; sem isto o
+   cronograma nasceria aberto em toda compra. */
+.schedule[hidden] {
+  display: none;
+}
+
+/*
+ * Numero, quando cai, valor e situacao. O mes vem logo depois do numero porque a
+ * pergunta que a lista responde e "em que mes essa parcela cai".
+ */
+.installment {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto 72px;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0 var(--space-2) var(--space-2);
+  border-bottom: 1px solid var(--border);
+  border-left: 2px solid transparent;
+  font-size: var(--fs-sm);
+}
+
+.installment:last-child {
+  border-bottom: none;
+}
+
+/* A parcela em curso ganha um traco na lateral, alem do selo. */
+.installmentCurrent {
+  border-left-color: var(--accent);
+}
+
+.installmentPaid .number,
+.installmentPaid .month,
+.installmentPaid .dueDate {
+  color: var(--text-subtle);
+}
+
+.number {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.when {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.month {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.dueDate {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.installmentStatus {
+  justify-self: end;
+}
+
+/* Visto + palavra: a parcela paga nao depende so da cor para ser reconhecida. */
+.paidMark {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--fs-xs);
+  color: var(--positive);
+}
+
+@media (max-width: 767px) {
+  .facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /*
+   * Em tela estreita o vencimento por extenso e a palavra "Paga" saem: o mes ja
+   * diz em que fatura a parcela cai, e o visto sozinho continua legivel.
+   */
+  .installment {
+    grid-template-columns: 52px minmax(0, 1fr) auto auto;
+    gap: var(--space-2);
+  }
+
+  .dueDate,
+  .paidLabel {
+    display: none;
+  }
+}

@@ -1,9 +1,9 @@
 import type {
   Account,
+  Card,
   Category,
-  CreditCard,
+  InstallmentPurchase,
   Investment,
-  Invoice,
   PaymentSource,
   Transaction,
 } from '@/types';
@@ -18,6 +18,11 @@ const today = new Date();
 /** Data ISO (YYYY-MM-DD) a N dias atras. */
 function daysAgo(amount: number): string {
   return toISODate(addDays(today, -amount));
+}
+
+/** Dia fixo de um mes deslocado a partir de hoje: ("-2", 12) -> "2026-07-12". */
+function dayOfMonth(offset: number, day: number): string {
+  return `${monthKeyFromOffset(offset)}-${String(day).padStart(2, '0')}`;
 }
 
 export const currentMonth = monthKeyFromOffset(0);
@@ -46,6 +51,11 @@ export const categories: Category[] = Object.values(category);
 /* Contas, cartoes e faturas                                                  */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Cadastro de contas. Os arrays desta secao sao mutaveis de proposito: enquanto
+ * nao houver backend, as stores de escrita criam, editam e removem itens aqui, e
+ * todas as telas leem da mesma fonte.
+ */
 export const accounts: Account[] = [
   {
     id: 'acc-1',
@@ -53,92 +63,217 @@ export const accounts: Account[] = [
     institution: 'Banco Nova',
     type: 'checking',
     balance: 12480.35,
+    status: 'active',
     includeInTotal: true,
   },
   {
     id: 'acc-2',
     name: 'Reserva de emergência',
     institution: 'Banco Nova',
-    type: 'savings',
+    type: 'emergency',
     balance: 18200,
+    status: 'active',
     includeInTotal: true,
   },
   {
     id: 'acc-3',
     name: 'Carteira',
     institution: 'Dinheiro em espécie',
-    type: 'wallet',
+    type: 'other',
     balance: 340,
+    status: 'active',
     includeInTotal: true,
   },
   {
     id: 'acc-4',
     name: 'Corretora',
     institution: 'Meridiano Investimentos',
-    type: 'brokerage',
+    type: 'other',
     balance: 2150.9,
+    status: 'active',
+    includeInTotal: false,
+  },
+  {
+    id: 'acc-5',
+    name: 'Conta salário',
+    institution: 'Banco Horizonte',
+    type: 'salary',
+    balance: 1840.6,
+    status: 'active',
+    includeInTotal: true,
+  },
+  {
+    id: 'acc-6',
+    name: 'Conta antiga',
+    institution: 'Banco Atlas',
+    type: 'checking',
+    balance: 0,
+    status: 'inactive',
     includeInTotal: false,
   },
 ];
 
-export const creditCards: CreditCard[] = [
+/**
+ * Cadastro unico dos quatro tipos de cartao. O limite comprometido (`used`) nao
+ * fica aqui: ele sai da soma das faturas em aberto e das parcelas ainda por
+ * vencer, calculada em `cards.mock.ts` — guardar o numero a mao deixaria a barra
+ * de limite mentindo assim que uma compra parcelada fosse cadastrada.
+ */
+export const cards: Card[] = [
   {
     id: 'card-1',
     name: 'Nova Platinum',
+    institution: 'Banco Nova',
+    type: 'credit',
+    status: 'active',
     brand: 'Mastercard',
-    limit: 12000,
-    used: 4380.72,
+    lastDigits: '4417',
+    limit: 20000,
     closingDay: 28,
     dueDay: 8,
   },
   {
     id: 'card-2',
     name: 'Viagem Gold',
+    institution: 'Banco Meridiano',
+    type: 'credit',
+    status: 'active',
     brand: 'Visa',
+    lastDigits: '8290',
     limit: 6000,
-    used: 1120.4,
     closingDay: 20,
     dueDay: 1,
+  },
+  {
+    id: 'card-3',
+    name: 'Nova Débito',
+    institution: 'Banco Nova',
+    type: 'debit',
+    status: 'active',
+    brand: 'Mastercard',
+    lastDigits: '2071',
+    accountId: 'acc-1',
+    accountName: 'Conta corrente',
+  },
+  {
+    id: 'card-4',
+    name: 'Alelo Alimentação',
+    institution: 'Alelo',
+    type: 'food-voucher',
+    status: 'active',
+    lastDigits: '1188',
+    balance: 642.35,
+  },
+  {
+    id: 'card-5',
+    name: 'Ticket Refeição',
+    institution: 'Ticket',
+    type: 'meal-voucher',
+    status: 'active',
+    lastDigits: '5530',
+    balance: 318.9,
   },
 ];
 
 /**
  * Tudo que pode pagar ou receber um lancamento. Contas e cartoes vivem em
  * cadastros separados, mas o formulario de despesa escolhe entre os dois, entao
- * a lista unificada mora aqui e nao dentro da tela.
+ * a lista unificada nasce aqui e nao dentro da tela.
+ *
+ * E funcao, e nao array: uma conta cadastrada agora precisa aparecer no proximo
+ * lancamento sem recarregar a pagina. O cartao de debito fica de fora porque ele
+ * e apenas o meio de acessar a conta — a conta ja esta na lista, e oferecer os
+ * dois faria a mesma despesa ter dois lugares possiveis.
  */
-export const paymentSources: PaymentSource[] = [
-  ...accounts.map((account) => ({ id: account.id, name: account.name, group: 'account' as const })),
-  ...creditCards.map((card) => ({ id: card.id, name: card.name, group: 'card' as const })),
-];
+export function listPaymentSources(): PaymentSource[] {
+  return [
+    ...accounts
+      .filter((account) => account.status === 'active')
+      .map((account) => ({ id: account.id, name: account.name, group: 'account' as const })),
+    ...cards
+      .filter((card) => card.status === 'active' && card.type !== 'debit')
+      .map((card) => ({ id: card.id, name: card.name, group: 'card' as const })),
+  ];
+}
 
-export const invoices: Invoice[] = [
+/**
+ * Busca por id sem filtrar por situacao: um lancamento antigo pode apontar para
+ * uma conta ja inativa, e edita-lo nao pode falhar por causa disso.
+ */
+export function findPaymentSource(id: string): PaymentSource | undefined {
+  const account = accounts.find((item) => item.id === id);
+  if (account) return { id: account.id, name: account.name, group: 'account' };
+
+  const card = cards.find((item) => item.id === id);
+  return card ? { id: card.id, name: card.name, group: 'card' } : undefined;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Compras parceladas                                                         */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * As parcelas nao sao lancamentos: elas vivem so aqui e entram nas faturas pelo
+ * calculo de `cards.mock.ts`. Guardar doze copias de cada compra em
+ * `transactions` deixaria a listagem de lancamentos ilegivel e o total do
+ * periodo errado, ja que quem sai da conta e a fatura, nao a parcela.
+ */
+export const installmentPurchases: InstallmentPurchase[] = [
   {
-    id: 'inv-1',
+    id: 'ip-1',
+    description: 'Notebook',
+    totalAmount: 3000,
+    count: 10,
+    purchaseDate: dayOfMonth(-2, 12),
+    firstMonth: monthKeyFromOffset(-2),
     cardId: 'card-1',
     cardName: 'Nova Platinum',
-    month: currentMonth,
-    total: 4380.72,
-    status: 'open',
-    dueDate: daysAgo(-9),
+    category: category.outrasDespesas,
+    notes: 'Troca do notebook de trabalho.',
   },
   {
-    id: 'inv-2',
+    id: 'ip-2',
+    description: 'Geladeira',
+    totalAmount: 4200,
+    count: 12,
+    purchaseDate: dayOfMonth(-5, 7),
+    firstMonth: monthKeyFromOffset(-5),
+    cardId: 'card-1',
+    cardName: 'Nova Platinum',
+    category: category.moradia,
+  },
+  {
+    id: 'ip-3',
+    description: 'Cadeira ergonômica',
+    totalAmount: 1440,
+    count: 4,
+    purchaseDate: dayOfMonth(-5, 22),
+    firstMonth: monthKeyFromOffset(-5),
+    cardId: 'card-1',
+    cardName: 'Nova Platinum',
+    category: category.moradia,
+  },
+  {
+    id: 'ip-4',
+    description: 'Passagens aéreas',
+    totalAmount: 2760,
+    count: 6,
+    purchaseDate: dayOfMonth(-1, 9),
+    firstMonth: monthKeyFromOffset(-1),
     cardId: 'card-2',
     cardName: 'Viagem Gold',
-    month: currentMonth,
-    total: 1120.4,
-    status: 'closed',
-    dueDate: daysAgo(-2),
+    category: category.lazer,
   },
   {
-    id: 'inv-3',
-    cardId: 'card-1',
-    cardName: 'Nova Platinum',
-    month: monthKeyFromOffset(-1),
-    total: 3915.18,
-    status: 'paid',
-    dueDate: daysAgo(23),
+    id: 'ip-5',
+    description: 'Curso de inglês',
+    totalAmount: 1800,
+    count: 3,
+    purchaseDate: dayOfMonth(0, 2),
+    firstMonth: currentMonth,
+    cardId: 'card-2',
+    cardName: 'Viagem Gold',
+    category: category.educacao,
   },
 ];
 

@@ -20,6 +20,11 @@ export interface SelectProps {
   placeholder?: string;
   /** Rotulo fixo antes do valor no gatilho: "Conta: Todas as contas". */
   prefix?: string;
+  /**
+   * `sm` acompanha o `Button size="sm"`, para o campo poder dividir a linha de
+   * acoes de um cabecalho de tela sem ficar mais alto que o botao ao lado.
+   */
+  size?: 'sm' | 'md';
   icon?: LucideIcon;
   disabled?: boolean;
   /** Marca o rotulo e anuncia o campo como obrigatorio. */
@@ -57,6 +62,7 @@ export function Select({
   error,
   placeholder = 'Selecione',
   prefix,
+  size = 'md',
   icon: Icon,
   disabled = false,
   required = false,
@@ -269,7 +275,12 @@ export function Select({
         aria-invalid={error ? true : undefined}
         aria-required={required || undefined}
         disabled={disabled}
-        className={cn(styles.trigger, open && styles.triggerOpen, error && styles.triggerError)}
+        className={cn(
+          styles.trigger,
+          styles[size],
+          open && styles.triggerOpen,
+          error && styles.triggerError,
+        )}
         onClick={() => (open ? setOpen(false) : openMenu())}
         onKeyDown={handleKeyDown}
       >

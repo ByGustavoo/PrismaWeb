@@ -10,6 +10,7 @@ export const paths = {
   accounts: '/contas',
   cards: '/cartoes',
   invoices: '/faturas',
+  installments: '/parcelamentos',
 
   investments: '/investimentos',
 
@@ -45,3 +46,10 @@ export const SEARCH_PARAM = 'busca';
 export const CATEGORY_PARAM = 'categoria';
 export const ACCOUNT_PARAM = 'conta';
 export const EDIT_TRANSACTION_PARAM = 'editar';
+
+/**
+ * Cartao escolhido ao chegar em Faturas ou em Compras parceladas vindo da tela
+ * de Cartoes: `/faturas?cartao=card-1`. Como os demais, e transitorio — sai da
+ * URL assim que a tela o le, para que voltar no historico nao refiltre nada.
+ */
+export const CARD_PARAM = 'cartao';

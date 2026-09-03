@@ -1,6 +1,6 @@
 import { ApiError } from '@/api';
 import type { Transaction, TransactionPayload } from '@/types';
-import { categories, paymentSources, transactions } from './data';
+import { categories, findPaymentSource, transactions } from './data';
 
 /**
  * Escrita da camada de mock. Guarda os lancamentos em memoria enquanto nao
@@ -32,14 +32,12 @@ function findIndexOrThrow(id: string): number {
  * nome de conta e categoria ja resolvidos.
  */
 function resolve(payload: TransactionPayload): Omit<Transaction, 'id'> {
-  const source = paymentSources.find((item) => item.id === payload.accountId);
+  const source = findPaymentSource(payload.accountId);
   if (!source) {
     throw new ApiError('A conta informada não existe.', 422, 'validation_error');
   }
 
-  const destination = payload.toAccountId
-    ? paymentSources.find((item) => item.id === payload.toAccountId)
-    : undefined;
+  const destination = payload.toAccountId ? findPaymentSource(payload.toAccountId) : undefined;
 
   if (payload.kind === 'transfer') {
     if (!destination) {

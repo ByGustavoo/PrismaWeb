@@ -47,79 +47,87 @@ export function Header({ onOpenMenu }: HeaderProps) {
 
   return (
     <header className={styles.header}>
-      <button type="button" className={styles.menuButton} onClick={onOpenMenu} aria-label="Abrir menu">
-        <Menu size={20} strokeWidth={2} />
-      </button>
-
-      {showPeriodSwitcher ? <PeriodSwitcher /> : null}
-
-      {pageOwnsControls ? (
-        // Espaco a disposicao da tela, preenchido por HeaderSlot. Ver o
-        // comentario la.
-        <div id={HEADER_SLOT_ID} className={styles.slot} />
-      ) : (
-        <GlobalSearch expanded={searchOpen} onCollapse={closeSearch} />
-      )}
-
-      <div className={styles.actions}>
-        {/*
-         * Em tela estreita o campo nao cabe ao lado das acoes, entao ele vira
-         * este botao, que abre a busca sobre o header. Esconder a busca sem
-         * substituto tirava do celular o caminho mais curto para um lancamento.
-         */}
-        {pageOwnsControls ? null : (
-          <button
-            type="button"
-            className={`${styles.iconButton} ${styles.searchButton}`}
-            onClick={() => setSearchOpen(true)}
-            aria-label="Buscar"
-          >
-            <Search size={18} strokeWidth={2} />
-          </button>
-        )}
-
-        <button
-          type="button"
-          className={styles.iconButton}
-          onClick={toggleTheme}
-          aria-label={theme === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'}
-          title={theme === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'}
-        >
-          {theme === 'dark' ? <Sun size={18} strokeWidth={2} /> : <Moon size={18} strokeWidth={2} />}
+      {/*
+       * O miolo repete a caixa do conteudo (mesma largura maxima, mesmo
+       * centramento). Sem isso, em telas mais largas que --content-max a pagina
+       * centraliza e o header nao: a busca e o seletor de periodo ficavam
+       * recuados a esquerda do titulo da tela logo abaixo deles.
+       */}
+      <div className={styles.inner}>
+        <button type="button" className={styles.menuButton} onClick={onOpenMenu} aria-label="Abrir menu">
+          <Menu size={20} strokeWidth={2} />
         </button>
 
-        <div className={styles.notifications}>
+        {showPeriodSwitcher ? <PeriodSwitcher /> : null}
+
+        {pageOwnsControls ? (
+          // Espaco a disposicao da tela, preenchido por HeaderSlot. Ver o
+          // comentario la.
+          <div id={HEADER_SLOT_ID} className={styles.slot} />
+        ) : (
+          <GlobalSearch expanded={searchOpen} onCollapse={closeSearch} />
+        )}
+
+        <div className={styles.actions}>
+          {/*
+           * Em tela estreita o campo nao cabe ao lado das acoes, entao ele vira
+           * este botao, que abre a busca sobre o header. Esconder a busca sem
+           * substituto tirava do celular o caminho mais curto para um lancamento.
+           */}
+          {pageOwnsControls ? null : (
+            <button
+              type="button"
+              className={`${styles.iconButton} ${styles.searchButton}`}
+              onClick={() => setSearchOpen(true)}
+              aria-label="Buscar"
+            >
+              <Search size={18} strokeWidth={2} />
+            </button>
+          )}
+
           <button
             type="button"
-            data-notifications-trigger
             className={styles.iconButton}
-            onClick={() => setAlertsOpen((value) => !value)}
-            aria-label={alertCount > 0 ? `Avisos (${alertCount} exigem atenção)` : 'Avisos'}
-            aria-expanded={alertsOpen}
-            aria-haspopup="dialog"
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'}
+            title={theme === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'}
           >
-            <Bell size={18} strokeWidth={2} />
-            {alertCount > 0 ? <span className={styles.badgeDot} aria-hidden="true" /> : null}
+            {theme === 'dark' ? <Sun size={18} strokeWidth={2} /> : <Moon size={18} strokeWidth={2} />}
           </button>
 
-          <NotificationsPanel open={alertsOpen} onClose={closeAlerts} onCountChange={setAlertCount} />
-        </div>
+          <div className={styles.notifications}>
+            <button
+              type="button"
+              data-notifications-trigger
+              className={styles.iconButton}
+              onClick={() => setAlertsOpen((value) => !value)}
+              aria-label={alertCount > 0 ? `Avisos (${alertCount} exigem atenção)` : 'Avisos'}
+              aria-expanded={alertsOpen}
+              aria-haspopup="dialog"
+            >
+              <Bell size={18} strokeWidth={2} />
+              {alertCount > 0 ? <span className={styles.badgeDot} aria-hidden="true" /> : null}
+            </button>
 
-        {/*
-         * No celular o rotulo sai e sobra o "+", mas a acao continua a mesma e o
-         * nome acessivel nao depende do texto visivel.
-         */}
-        {pageOwnsControls ? null : (
-          <Button
-            className={styles.newButton}
-            size="sm"
-            icon={Plus}
-            aria-label="Novo lançamento"
-            onClick={() => navigate(`${paths.transactions}?${NEW_TRANSACTION_PARAM}=despesa`)}
-          >
-            <span className={styles.newLabel}>Novo lançamento</span>
-          </Button>
-        )}
+            <NotificationsPanel open={alertsOpen} onClose={closeAlerts} onCountChange={setAlertCount} />
+          </div>
+
+          {/*
+           * No celular o rotulo sai e sobra o "+", mas a acao continua a mesma e o
+           * nome acessivel nao depende do texto visivel.
+           */}
+          {pageOwnsControls ? null : (
+            <Button
+              className={styles.newButton}
+              size="sm"
+              icon={Plus}
+              aria-label="Novo lançamento"
+              onClick={() => navigate(`${paths.transactions}?${NEW_TRANSACTION_PARAM}=despesa`)}
+            >
+              <span className={styles.newLabel}>Novo lançamento</span>
+            </Button>
+          )}
+        </div>
       </div>
     </header>
   );

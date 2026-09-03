@@ -47,6 +47,7 @@ export const navigation: NavSection[] = [
           { label: 'Contas', to: paths.accounts },
           { label: 'Cartões', to: paths.cards },
           { label: 'Faturas', to: paths.invoices },
+          { label: 'Compras parceladas', to: paths.installments },
         ],
       },
     ],

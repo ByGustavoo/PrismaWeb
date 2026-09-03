@@ -1,0 +1,42 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/*
+ * `auto-fill` com largura minima em vez de um numero fixo de colunas: uma conta
+ * tem pouco conteudo, e travar tres por linha deixaria cartoes largos e vazios
+ * em telas grandes.
+ */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(288px, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.count {
+  font-family: var(--font-figure);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+}
+
+.confirmTitle {
+  font-size: var(--fs-md);
+  font-weight: 600;
+}
+
+.confirmMeta {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+@media (max-width: 599px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

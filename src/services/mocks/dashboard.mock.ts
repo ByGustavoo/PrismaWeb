@@ -9,7 +9,8 @@ import type {
   TransactionKind,
 } from '@/types';
 import { fromMonthKey, monthKeyRange, monthsBetween, shiftMonthKey, todayISO } from '@/utils/date';
-import { accounts, creditCards, currentMonth, investments, invoices, transactions } from './data';
+import { buildInvoices } from './cards.mock';
+import { accounts, currentMonth, investments, transactions } from './data';
 
 /** Recorte pedido pelo header: um mes so quando `from` e `to` sao iguais. */
 export interface DashboardPeriod {
@@ -68,13 +69,24 @@ function percentDelta(current: number, previous: number): Delta {
   return { percentage, trend: percentage > 0.05 ? 'up' : percentage < -0.05 ? 'down' : 'flat' };
 }
 
-const includedAccounts = new Set(
-  accounts.filter((account) => account.includeInTotal).map((account) => account.id),
-);
+/**
+ * Contas que compoem o patrimonio visivel. Sao funcoes, e nao constantes de
+ * modulo, porque o cadastro de contas muda em tempo de execucao: uma conta
+ * criada agora precisa entrar no saldo do dashboard sem recarregar a pagina.
+ */
+function includedAccountIds(): Set<string> {
+  return new Set(
+    accounts
+      .filter((account) => account.status === 'active' && account.includeInTotal)
+      .map((account) => account.id),
+  );
+}
 
-const totalBalance = accounts
-  .filter((account) => account.includeInTotal)
-  .reduce((total, account) => total + account.balance, 0);
+function totalBalance(): number {
+  return accounts
+    .filter((account) => account.status === 'active' && account.includeInTotal)
+    .reduce((total, account) => total + account.balance, 0);
+}
 
 /**
  * Efeito de um lancamento no saldo somado das contas que entram no total.
@@ -84,12 +96,12 @@ const totalBalance = accounts
  * corretora, que fica de fora, reduz o saldo visivel, enquanto uma transferencia
  * entre duas contas do total nao muda nada.
  */
-function balanceEffect(item: Transaction): number {
+function balanceEffect(item: Transaction, included: Set<string>): number {
   if (item.kind === 'income') return item.amount;
   if (item.kind === 'expense') return -item.amount;
 
-  const leaves = includedAccounts.has(item.accountId);
-  const enters = item.toAccountId ? includedAccounts.has(item.toAccountId) : false;
+  const leaves = included.has(item.accountId);
+  const enters = item.toAccountId ? included.has(item.toAccountId) : false;
   if (leaves === enters) return 0;
   return leaves ? -item.amount : item.amount;
 }
@@ -104,13 +116,14 @@ function balanceAt(dateISO: string): number {
   const ahead = dateISO >= reference;
   const from = ahead ? reference : dateISO;
   const to = ahead ? dateISO : reference;
+  const included = includedAccountIds();
 
   const net = transactions.reduce(
-    (sum, item) => (item.date > from && item.date <= to ? sum + balanceEffect(item) : sum),
+    (sum, item) => (item.date > from && item.date <= to ? sum + balanceEffect(item, included) : sum),
     0,
   );
 
-  return Math.round((totalBalance + (ahead ? net : -net)) * 100) / 100;
+  return Math.round((totalBalance() + (ahead ? net : -net)) * 100) / 100;
 }
 
 /**
@@ -155,39 +168,29 @@ function buildBalanceHistory(window: string[]): BalancePoint[] {
 }
 
 /**
- * Fatura do ultimo mes do periodo. Quando nao existe uma cadastrada — o mock so
- * guarda as recentes — ela e deduzida das despesas de cartao daquele mes, para
- * que o card nao fique vazio ao navegar para tras.
+ * Fatura em destaque no mes: a aberta, e na falta dela a de maior valor. O
+ * cartao aparece nomeado no rodape do bloco, entao somar as faturas de todos os
+ * cartoes daria um numero que nao corresponde a nenhum vencimento.
  */
 function buildInvoice(monthKey: string): DashboardSummary['currentInvoice'] {
-  const registered =
-    invoices.find((invoice) => invoice.month === monthKey && invoice.status === 'open') ??
-    invoices.find((invoice) => invoice.month === monthKey);
+  const monthly = buildInvoices().filter((invoice) => invoice.month === monthKey);
+  const open = monthly.filter((invoice) => invoice.status === 'open');
+  const chosen = [...(open.length > 0 ? open : monthly)].sort((a, b) => b.total - a.total)[0];
 
-  if (registered) {
+  if (chosen) {
     return {
-      total: registered.total,
-      cardName: registered.cardName,
-      dueDate: registered.dueDate,
-      status: registered.status,
+      total: chosen.total,
+      cardName: chosen.cardName,
+      dueDate: chosen.dueDate,
+      status: chosen.status,
     };
   }
 
-  const byCard = new Map<string, number>();
-  for (const item of ofMonth(monthKey)) {
-    if (item.kind !== 'expense' || item.method !== 'credit-card') continue;
-    byCard.set(item.accountId, (byCard.get(item.accountId) ?? 0) + item.amount);
-  }
-
-  const [cardId, total] = [...byCard.entries()].sort((a, b) => b[1] - a[1])[0] ?? [];
-  const card = creditCards.find((item) => item.id === cardId);
-  const nextMonth = shiftMonthKey(monthKey, 1);
-  const dueDay = card ? String(card.dueDay).padStart(2, '0') : monthKeyRange(nextMonth).to.slice(-2);
-
+  // Mes sem nenhum cartao movimentado: o bloco mostra zero em vez de sumir.
   return {
-    total: Math.round((total ?? 0) * 100) / 100,
-    cardName: card?.name ?? '-',
-    dueDate: `${nextMonth}-${dueDay}`,
+    total: 0,
+    cardName: 'Nenhum cartão',
+    dueDate: monthKeyRange(shiftMonthKey(monthKey, 1)).to,
     status: monthKey < currentMonth ? 'paid' : 'open',
   };
 }

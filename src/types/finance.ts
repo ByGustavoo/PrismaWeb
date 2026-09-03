@@ -62,7 +62,18 @@ export interface PaymentSource {
   group: 'account' | 'card';
 }
 
-export type AccountType = 'checking' | 'savings' | 'wallet' | 'brokerage';
+/* -------------------------------------------------------------------------- */
+/* Contas                                                                     */
+/* -------------------------------------------------------------------------- */
+
+export type AccountType = 'checking' | 'salary' | 'emergency' | 'other';
+
+/**
+ * Conta inativa continua no cadastro e no historico, mas sai do saldo total e
+ * deixa de ser oferecida em lancamentos novos. E a alternativa a exclusao para
+ * quem encerrou uma conta que ainda tem passado.
+ */
+export type AccountStatus = 'active' | 'inactive';
 
 export interface Account {
   id: ID;
@@ -70,20 +81,84 @@ export interface Account {
   institution: string;
   type: AccountType;
   balance: number;
+  status: AccountStatus;
+  /** Fora do total ficam contas que nao sao dinheiro disponivel, como a corretora. */
   includeInTotal: boolean;
 }
 
-export interface CreditCard {
-  id: ID;
+export interface AccountPayload {
   name: string;
-  brand: string;
-  limit: number;
-  used: number;
-  closingDay: number;
-  dueDay: number;
+  institution: string;
+  type: AccountType;
+  balance: number;
+  status: AccountStatus;
+  includeInTotal: boolean;
 }
 
-export type InvoiceStatus = 'open' | 'closed' | 'paid' | 'overdue';
+/* -------------------------------------------------------------------------- */
+/* Cartoes                                                                    */
+/* -------------------------------------------------------------------------- */
+
+export type CardType = 'credit' | 'debit' | 'food-voucher' | 'meal-voucher';
+
+export type CardStatus = 'active' | 'inactive';
+
+/**
+ * Um cadastro para os quatro tipos de cartao. Os campos especificos sao
+ * opcionais porque nenhum tipo usa todos: credito tem limite e datas de fatura,
+ * debito aponta para a conta que ele acessa e os vales carregam saldo proprio.
+ * O guarda `isCreditCard` (constants/cards.ts) estreita o tipo onde a tela
+ * precisa dos campos de credito.
+ */
+export interface Card {
+  id: ID;
+  name: string;
+  institution: string;
+  type: CardType;
+  status: CardStatus;
+  /** Bandeira impressa no cartao; vales de rede propria nao tem uma. */
+  brand?: string;
+  /** Quatro ultimos digitos, quando informados. */
+  lastDigits?: string;
+  /** Credito: limite total contratado. */
+  limit?: number;
+  /** Credito: limite ja comprometido. Vem calculado do servidor; o cliente nao envia. */
+  used?: number;
+  /** Credito: dia do mes em que a fatura fecha. */
+  closingDay?: number;
+  /** Credito: dia do mes em que a fatura vence. */
+  dueDay?: number;
+  /** Debito: conta de onde o dinheiro sai. */
+  accountId?: ID;
+  accountName?: string;
+  /** Vale-alimentacao e vale-refeicao: saldo disponivel no cartao. */
+  balance?: number;
+}
+
+export interface CardPayload {
+  name: string;
+  institution: string;
+  type: CardType;
+  status: CardStatus;
+  brand?: string;
+  lastDigits?: string;
+  limit?: number;
+  closingDay?: number;
+  dueDay?: number;
+  accountId?: ID;
+  balance?: number;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Faturas                                                                    */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * `future` e a fatura de um ciclo que ainda nem comecou: ela existe porque as
+ * parcelas ja estao comprometidas. `open` e o ciclo em andamento, que continua
+ * aceitando compras.
+ */
+export type InvoiceStatus = 'future' | 'open' | 'closed' | 'paid' | 'overdue';
 
 export interface Invoice {
   id: ID;
@@ -93,8 +168,92 @@ export interface Invoice {
   month: string;
   total: number;
   status: InvoiceStatus;
+  /** Data ISO em que o ciclo fecha. */
+  closingDate: string;
+  /** Data ISO de vencimento. */
   dueDate: string;
+  itemCount: number;
 }
+
+export interface InvoiceItem {
+  id: ID;
+  description: string;
+  date: string;
+  amount: number;
+  category: Category | null;
+  /** Presente quando o item e uma parcela de uma compra parcelada. */
+  installment?: {
+    number: number;
+    total: number;
+    purchaseId: ID;
+  };
+}
+
+export interface InvoiceDetail extends Invoice {
+  items: InvoiceItem[];
+}
+
+/* -------------------------------------------------------------------------- */
+/* Compras parceladas                                                         */
+/* -------------------------------------------------------------------------- */
+
+export type InstallmentStatus = 'paid' | 'current' | 'upcoming';
+
+export interface Installment {
+  /** Comeca em 1. */
+  number: number;
+  /** Mes da fatura em que a parcela cai, YYYY-MM. */
+  month: string;
+  /** Vencimento da fatura correspondente, data ISO. */
+  dueDate: string;
+  amount: number;
+  status: InstallmentStatus;
+}
+
+export interface InstallmentPurchase {
+  id: ID;
+  description: string;
+  /** Valor total da compra, nao o da parcela. */
+  totalAmount: number;
+  /** Quantidade de parcelas. */
+  count: number;
+  purchaseDate: string;
+  /** Mes da primeira parcela, YYYY-MM. */
+  firstMonth: string;
+  cardId: ID;
+  cardName: string;
+  category: Category | null;
+  notes?: string;
+}
+
+/** Visao calculada de uma compra parcelada: e o que a tela precisa mostrar. */
+export interface InstallmentPlan {
+  purchase: InstallmentPurchase;
+  /** Valor de cada parcela; a ultima absorve o arredondamento e pode diferir. */
+  installmentAmount: number;
+  paidCount: number;
+  remainingCount: number;
+  paidAmount: number;
+  remainingAmount: number;
+  /** Parcela em curso; ausente quando a compra ja foi quitada. */
+  current: Installment | null;
+  schedule: Installment[];
+}
+
+export interface InstallmentPayload {
+  description: string;
+  totalAmount: number;
+  count: number;
+  purchaseDate: string;
+  firstMonth: string;
+  cardId: ID;
+  categoryId?: ID;
+  notes?: string;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Investimentos                                                              */
+/* -------------------------------------------------------------------------- */
 
 export type InvestmentClass = 'fixed-income' | 'stocks' | 'funds' | 'crypto' | 'reits';
 

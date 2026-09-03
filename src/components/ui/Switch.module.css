@@ -1,0 +1,82 @@
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.control {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--tap-size);
+  padding: 0;
+  text-align: left;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+}
+
+.control:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.control:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.track {
+  position: relative;
+  flex-shrink: 0;
+  width: 38px;
+  height: 22px;
+  border-radius: var(--radius-pill);
+  background-color: var(--neutral-soft);
+  border: 1px solid var(--border-strong);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.control:hover:not(:disabled) .track {
+  border-color: var(--text-subtle);
+}
+
+.trackOn,
+.control:hover:not(:disabled) .trackOn {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+/*
+ * So o `transform` anima: mexer em `left` recalcularia layout a cada quadro para
+ * um deslocamento de 16px.
+ */
+.thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-pill);
+  background-color: var(--surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.trackOn .thumb {
+  transform: translateX(16px);
+  background-color: var(--accent-contrast);
+}
+
+.label {
+  font-size: var(--fs-base);
+  font-weight: 500;
+}
+
+.hint {
+  margin: 0;
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
