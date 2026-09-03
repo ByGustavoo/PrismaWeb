@@ -32,6 +32,20 @@
   opacity: 1;
 }
 
+/*
+ * Ocupa a celula toda para que o alvo do teclado coincida com o que o ponteiro
+ * ja acerta na linha. Sem moldura propria: quem desenha o estado de hover e a
+ * linha, e um segundo retangulo aqui competiria com ela.
+ */
+.descriptionButton {
+  display: block;
+  width: 100%;
+  padding: 0;
+  text-align: left;
+  color: inherit;
+  border-radius: var(--radius-xs);
+}
+
 .description {
   display: block;
   font-weight: 500;

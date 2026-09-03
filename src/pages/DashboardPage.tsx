@@ -1,9 +1,10 @@
 import { useCallback } from 'react';
 import { CreditCard, PiggyBank, RefreshCw, TrendingDown, TrendingUp } from 'lucide-react';
-import { PageHeader } from '@/components/layout';
+import { PageHeader, PeriodSwitcher } from '@/components/layout';
 import { BalancePanel, CashflowChart, CategoryBreakdown, RecentTransactions, StatTile } from '@/components/dashboard';
 import { Button, Card, EmptyState, LoadingBlock, Skeleton } from '@/components/ui';
 import { useAsyncData } from '@/hooks/useAsyncData';
+import { useIsMobile } from '@/hooks/useMediaQuery';
 import { usePeriod } from '@/providers/PeriodProvider';
 import { dashboardService } from '@/services';
 import { monthKeyFromOffset } from '@/utils/date';
@@ -15,6 +16,8 @@ export function DashboardPage() {
   const { period } = usePeriod();
   const { from, to } = period;
   const thisMonth = monthKeyFromOffset(0);
+  // Onde o header nao comporta o seletor, ele desce para os controles da tela.
+  const isMobile = useIsMobile();
 
   const fetchSummary = useCallback(
     (signal: AbortSignal) => dashboardService.getSummary({ from, to }, signal),
@@ -34,9 +37,12 @@ export function DashboardPage() {
         title="Dashboard"
         description={`Visão geral de ${periodLabel}`}
         actions={
-          <Button variant="secondary" size="sm" icon={RefreshCw} onClick={reload} loading={loading}>
-            Atualizar
-          </Button>
+          <>
+            {isMobile ? <PeriodSwitcher /> : null}
+            <Button variant="secondary" size="sm" icon={RefreshCw} onClick={reload} loading={loading}>
+              Atualizar
+            </Button>
+          </>
         }
       />
 

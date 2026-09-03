@@ -1,3 +1,13 @@
+/* Ver o comentario no componente: o cartao acompanha o conteudo, nao o vizinho. */
+.card {
+  align-self: start;
+}
+
+.empty {
+  font-size: var(--fs-base);
+  color: var(--text-subtle);
+}
+
 .list {
   display: flex;
   flex-direction: column;

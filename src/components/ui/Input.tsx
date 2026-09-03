@@ -14,7 +14,7 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { label, hint, error, icon: Icon, prefix, className, id, ...rest },
+  { label, hint, error, icon: Icon, prefix, className, id, required, ...rest },
   ref,
 ) {
   const generatedId = useId();
@@ -26,6 +26,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       {label ? (
         <label className={styles.label} htmlFor={inputId}>
           {label}
+          {required ? (
+            <span className={styles.required} aria-hidden="true">
+              *
+            </span>
+          ) : null}
         </label>
       ) : null}
 
@@ -40,6 +45,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           ref={ref}
           id={inputId}
           className={styles.input}
+          required={required}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
           {...rest}

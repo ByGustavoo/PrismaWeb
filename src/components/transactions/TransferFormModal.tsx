@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowDown } from 'lucide-react';
 import { Button, Input, Modal, Select, Textarea } from '@/components/ui';
 import { transactionStatusLabel, transactionStatuses } from '@/constants/transactions';
@@ -89,6 +89,7 @@ export function TransferFormModal({
 }: TransferFormModalProps) {
   const [form, setForm] = useState<FormState>(() => initialState(transaction));
   const [errors, setErrors] = useState<FormErrors>({});
+  const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -124,7 +125,15 @@ export function TransferFormModal({
   const handleSubmit = () => {
     const found = validate(form);
     setErrors(found);
-    if (Object.values(found).some(Boolean)) return;
+
+    if (Object.values(found).some(Boolean)) {
+      // O foco vai para o primeiro campo com erro em vez de deixar o usuario
+      // caçar qual deles reprovou.
+      requestAnimationFrame(() => {
+        formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+      });
+      return;
+    }
 
     onSubmit({
       description: form.description,
@@ -158,6 +167,7 @@ export function TransferFormModal({
       }
     >
       <form
+        ref={formRef}
         className={styles.form}
         noValidate
         onSubmit={(event) => {
@@ -168,6 +178,7 @@ export function TransferFormModal({
         {/* Origem e destino empilhados com a seta entre eles: o sentido fica explicito. */}
         <div className={cn(styles.full, styles.route)}>
           <Select
+            required
             label="Conta de origem"
             placeholder="De onde sai o dinheiro"
             options={accountOptions}
@@ -179,6 +190,7 @@ export function TransferFormModal({
             <ArrowDown size={16} strokeWidth={2} />
           </span>
           <Select
+            required
             label="Conta de destino"
             placeholder="Para onde vai o dinheiro"
             options={destinationOptions}
@@ -189,6 +201,7 @@ export function TransferFormModal({
         </div>
 
         <Input
+          required
           label="Valor"
           prefix="R$"
           inputMode="decimal"
@@ -199,6 +212,7 @@ export function TransferFormModal({
         />
 
         <Input
+          required
           label="Data"
           type="date"
           value={form.date}
@@ -207,6 +221,7 @@ export function TransferFormModal({
         />
 
         <Input
+          required
           label="Descrição"
           placeholder="Aporte na reserva, sobra da carteira..."
           value={form.description}
@@ -229,6 +244,8 @@ export function TransferFormModal({
           value={form.notes}
           onChange={(event) => set('notes', event.target.value)}
         />
+
+        <p className={styles.legend}>* Campos obrigatórios.</p>
 
         <button type="submit" className="visually-hidden" tabIndex={-1} aria-hidden="true" />
       </form>

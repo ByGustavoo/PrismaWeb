@@ -28,3 +28,19 @@
   align-items: center;
   gap: var(--space-3);
 }
+
+/*
+ * No celular as acoes viram uma faixa propria abaixo do titulo: e onde cabe o
+ * seletor de periodo do dashboard, que nesta largura sai do header.
+ */
+@media (max-width: 767px) {
+  .pageHeader {
+    align-items: stretch;
+  }
+
+  .actions {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+}

@@ -50,6 +50,18 @@
   --header-height: 68px;
   --content-max: 1440px;
 
+  /* --- Controles ------------------------------------------------------- */
+  /*
+   * Altura e corpo de um campo, e lado minimo de um alvo de toque. No ponteiro
+   * fino o app e denso de proposito; no ponteiro grosso os tres crescem no
+   * bloco logo abaixo dos temas. O corpo do campo importa alem da leitura: com
+   * menos de 16px o Safari no iOS aplica zoom na pagina ao focar um input.
+   */
+  --control-height: 38px;
+  --control-height-sm: 32px;
+  --control-font: var(--fs-base);
+  --tap-size: 34px;
+
   /* --- Movimento ------------------------------------------------------- */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --duration-fast: 120ms;
@@ -73,6 +85,20 @@
   --z-modal: 60;
   --z-popover: 65;
   --z-toast: 70;
+}
+
+/*
+ * Ponteiro grosso: campo e alvo de toque crescem. 44px e a referencia do iOS e
+ * o piso confortavel para qualquer acao relevante no celular; 16px no campo
+ * evita o zoom automatico do Safari ao focar.
+ */
+@media (pointer: coarse) {
+  :root {
+    --control-height: 44px;
+    --control-height-sm: 40px;
+    --control-font: var(--fs-md);
+    --tap-size: 44px;
+  }
 }
 
 /*

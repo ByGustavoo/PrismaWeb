@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button, Input, Modal, Select, Textarea } from '@/components/ui';
 import {
   paymentMethodLabel,
@@ -97,6 +97,7 @@ export function TransactionFormModal({
 }: TransactionFormModalProps) {
   const [form, setForm] = useState<FormState>(() => initialState(transaction));
   const [errors, setErrors] = useState<FormErrors>({});
+  const formRef = useRef<HTMLFormElement>(null);
 
   // Cada abertura comeca do zero (ou do registro em edicao), sem resto da anterior.
   useEffect(() => {
@@ -133,7 +134,15 @@ export function TransactionFormModal({
   const handleSubmit = () => {
     const found = validate(form);
     setErrors(found);
-    if (Object.values(found).some(Boolean)) return;
+
+    if (Object.values(found).some(Boolean)) {
+      // Sem isso o formulario so pinta os erros e deixa o usuario procurar qual
+      // campo falhou — pior ainda quando o primeiro esta fora da area visivel.
+      requestAnimationFrame(() => {
+        formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+      });
+      return;
+    }
 
     onSubmit({
       description: form.description,
@@ -173,6 +182,7 @@ export function TransactionFormModal({
       }
     >
       <form
+        ref={formRef}
         className={styles.form}
         noValidate
         onSubmit={(event) => {
@@ -182,6 +192,7 @@ export function TransactionFormModal({
       >
         <Input
           className={styles.full}
+          required
           label="Descrição"
           placeholder={isExpense ? 'Conta de luz, mercado, aluguel...' : 'Salário, freelance, reembolso...'}
           value={form.description}
@@ -191,6 +202,7 @@ export function TransactionFormModal({
         />
 
         <Input
+          required
           label="Valor"
           prefix="R$"
           inputMode="decimal"
@@ -201,6 +213,7 @@ export function TransactionFormModal({
         />
 
         <Input
+          required
           label="Data"
           type="date"
           value={form.date}
@@ -209,6 +222,7 @@ export function TransactionFormModal({
         />
 
         <Select
+          required
           label="Categoria"
           placeholder="Selecione a categoria"
           options={categoryOptions}
@@ -218,6 +232,7 @@ export function TransactionFormModal({
         />
 
         <Select
+          required
           label={isExpense ? 'Conta ou cartão' : 'Conta'}
           placeholder={isExpense ? 'Selecione a conta ou o cartão' : 'Selecione a conta'}
           options={sourceOptions}
@@ -250,6 +265,8 @@ export function TransactionFormModal({
           value={form.notes}
           onChange={(event) => set('notes', event.target.value)}
         />
+
+        <p className={styles.legend}>* Campos obrigatórios.</p>
 
         {/* Envio pelo Enter dentro do formulario; o botao visivel fica no rodape do modal. */}
         <button type="submit" className="visually-hidden" tabIndex={-1} aria-hidden="true" />

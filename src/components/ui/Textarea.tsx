@@ -10,7 +10,7 @@ export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElemen
 }
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function Textarea(
-  { label, hint, error, className, id, rows = 3, ...rest },
+  { label, hint, error, className, id, rows = 3, required, ...rest },
   ref,
 ) {
   const generatedId = useId();
@@ -22,6 +22,11 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
       {label ? (
         <label className={styles.label} htmlFor={fieldId}>
           {label}
+          {required ? (
+            <span className={styles.required} aria-hidden="true">
+              *
+            </span>
+          ) : null}
         </label>
       ) : null}
 
@@ -30,6 +35,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
           ref={ref}
           id={fieldId}
           rows={rows}
+          required={required}
           className={cn(styles.input, styles.textarea)}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}

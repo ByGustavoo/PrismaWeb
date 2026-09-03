@@ -97,11 +97,12 @@ src/
 │   ├── ui/        Button, Card, Input, Textarea, Select, Modal, ConfirmDialog, Badge, Table,
 │   │              Loading, EmptyState, Toast
 │   ├── common/    Amount, BrandMark, DeltaIndicator, UnderConstruction
-│   ├── layout/    Sidebar, Header, PageHeader, NotificationsPanel, GlobalSearch,
-│   │              PeriodSwitcher
+│   ├── layout/    Sidebar, Header, HeaderSlot, PageHeader, NotificationsPanel,
+│   │              GlobalSearch, PeriodSwitcher
 │   ├── dashboard/ BalancePanel, StatTile, CashflowChart, CategoryBreakdown, RecentTransactions
-│   ├── transactions/ TransactionFilters, TransactionsTable, formularios de lancamento,
-│   │              meta (icone/cor por tipo e situacao) e query (filtro, periodo e ordenacao)
+│   ├── transactions/ TransactionFilters, TransactionsTable, TransactionsList (cartoes),
+│   │              formularios de lancamento, meta (icone/cor por tipo e situacao) e
+│   │              query (filtro, periodo e ordenacao)
 │   └── charts/    ChartTooltip
 ├── constants/     env, app, navigation, transactions
 ├── hooks/         useAsyncData, useMediaQuery, useLocalStorage, useLockBodyScroll, useChartPalette
@@ -228,6 +229,15 @@ O `PeriodSwitcher` e a busca global sao os dois pontos em que o header conversa 
   relacao ao periodo anterior", comparada com a janela de mesmo tamanho imediatamente anterior.
   Rotulo que diz "atual" num mes passado e uma mentira barata de evitar: os componentes recebem o
   substantivo (`periodNoun`) e o texto pronto por prop.
+- **O header cede o que a tela ja tem.** Em Lancamentos (`pageOwnsControls` no `Header`) somem a
+  busca global e o "Novo lancamento": as duas caixas de busca ficavam lado a lado, quase
+  identicas, uma navegando e a outra filtrando, e o botao era um quarto caminho para o mesmo
+  formulario que os tres da tela ja abrem por tipo. No lugar da busca o header expoe um
+  `HeaderSlot`, e a tela renderiza ali o proprio campo por portal: o estado continua sendo da tela
+  (o que viaja e o no, nao o valor) e a busca aparece onde o usuario ja procura por busca em todas
+  as outras telas. Abaixo de 900px o header nao tem folga para o campo, entao ele volta para a
+  tela, ao lado do botao que abre os filtros. **Ceder so vale quando a tela realmente substitui o
+  controle** — esconder sem substituto e o erro que isso evita.
 - **Busca global.** `GlobalSearch` procura em lancamentos, categorias e contas ao mesmo tempo e
   entrega cada resultado como destino: lancamento abre `?editar=<id>`, categoria abre
   `?categoria=<id>` e conta abre `?conta=<id>`, todos em `/lancamentos`. A ultima linha leva a
@@ -252,9 +262,38 @@ lista com tres fundos coloridos vira ruido. O ponto no sino conta apenas os avis
 ## Responsividade
 
 - Desktop: sidebar fixa, com modo recolhido (76px) persistido em `localStorage`.
-- Abaixo de 1100px: sidebar vira drawer com scrim, fecha ao navegar e trava o scroll do fundo.
-- Grid do dashboard: 4 → 2 → 1 coluna. Tabelas ganham scroll horizontal.
+- Abaixo de 1100px: sidebar vira drawer com scrim, fecha ao navegar (e no Esc) e trava o scroll
+  do fundo. Fechado, o drawer fica `visibility: hidden` — fora da tela **e** fora do fluxo de
+  foco, para o Tab nao entrar num menu invisivel.
+- Grid do dashboard: 4 → 2 → 1 coluna.
+- **Abaixo de 900px a listagem de lancamentos troca a tabela por cartoes** (`TransactionsList`,
+  escolhido por `useIsCompact`). A tabela tem `min-width: 1000px`: rolar de lado ate o valor, que
+  e o dado mais importante da linha, nao e leitura. O cartao traz um controle proprio de
+  ordenacao, para que o celular nao perca o que o cabecalho da tabela oferece.
+- **Nada de esconder acao sem substituto.** Na mesma faixa o campo de busca do header vira um
+  botao que abre a busca sobre o header, e "Novo lancamento" perde o rotulo mas continua la como
+  botao de icone. Antes os dois sumiam com `display: none`.
 - `prefers-reduced-motion` e respeitado globalmente — nao adicione animacao sem cobrir esse caso.
+
+## Alvos de toque e campos
+
+Os tokens `--control-height`, `--control-height-sm`, `--control-font` e `--tap-size` mudam de
+valor em `@media (pointer: coarse)`, no fim de `tokens.css`. Campo e botao usam esses tokens em
+vez de altura fixa, entao no desktop a interface segue densa e no celular tudo cresce junto: alvo
+de 44px (referencia do iOS) e corpo de campo de 16px. **O corpo de 16px nao e preferencia**: com
+menos que isso o Safari no iOS aplica zoom na pagina inteira ao focar um input, e o usuario cai
+num layout deslocado que precisa desfazer a mao.
+
+## Acessibilidade
+
+- `AppLayout` abre com um link "Pular para o conteudo" (`.skip-link` no `global.css`), que salta
+  a sidebar inteira e leva ao `<main id="conteudo">`.
+- `Modal` prende o Tab dentro do painel e devolve o foco a quem o abriu. O elemento que abriu e
+  lido **no render**, nao num efeito: quando `open` vira true o React ainda nao aplicou o
+  `autoFocus` do primeiro campo, e depois disso `document.activeElement` ja seria o campo.
+- Formulario de lancamento marca campo obrigatorio no rotulo e, ao reprovar, leva o foco ao
+  primeiro `[aria-invalid="true"]` em vez de so pintar as mensagens.
+- Contraste, foco visivel e navegacao por teclado sao requisito, nao acabamento.
 
 ## Ao trocar mocks pela API real
 

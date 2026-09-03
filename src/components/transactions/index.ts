@@ -1,5 +1,6 @@
 export { TransactionFilters } from './TransactionFilters';
 export { TransactionsTable } from './TransactionsTable';
+export { TransactionsList } from './TransactionsList';
 export { TransactionFormModal } from './TransactionFormModal';
 export { TransferFormModal } from './TransferFormModal';
 export { kindIcon, kindSign, kindTone, statusTone } from './meta';

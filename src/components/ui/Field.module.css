@@ -11,12 +11,21 @@
   color: var(--text-muted);
 }
 
+/*
+ * Marca de campo obrigatorio. E reforco visual: quem usa leitor de tela recebe
+ * a informacao pelo `required` do proprio controle, nao por este asterisco.
+ */
+.required {
+  margin-left: 2px;
+  color: var(--negative);
+}
+
 .control {
   position: relative;
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  height: 38px;
+  height: var(--control-height);
   padding-inline: var(--space-3);
   background-color: var(--surface);
   border: 1px solid var(--border-strong);
@@ -52,7 +61,7 @@
   height: 100%;
   background: none;
   border: none;
-  font-size: var(--fs-base);
+  font-size: var(--control-font);
 }
 
 .input:focus {
@@ -80,7 +89,7 @@
 .prefix {
   flex-shrink: 0;
   color: var(--text-subtle);
-  font-size: var(--fs-base);
+  font-size: var(--control-font);
 }
 
 /*

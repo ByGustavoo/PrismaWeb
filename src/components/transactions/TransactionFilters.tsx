@@ -1,9 +1,12 @@
-import { useMemo } from 'react';
-import { ArrowLeftRight, CalendarRange, CircleDot, Search, Tag, Wallet, X } from 'lucide-react';
+import { useId, useMemo, useState } from 'react';
+import { ArrowLeftRight, CalendarRange, CircleDot, Search, SlidersHorizontal, Tag, Wallet, X } from 'lucide-react';
+import { HeaderSlot } from '@/components/layout';
 import { Button, Input, Select } from '@/components/ui';
 import { LOCALE } from '@/constants/app';
 import { transactionKindPluralLabel, transactionStatusLabel } from '@/constants/transactions';
+import { useIsCompact } from '@/hooks/useMediaQuery';
 import type { Option, Transaction } from '@/types';
+import { cn } from '@/utils/cn';
 import { ALL, hasActiveFilters, periodOptions } from './query';
 import type { TransactionQuery } from './query';
 import styles from './TransactionFilters.module.css';
@@ -33,6 +36,13 @@ const statusOptions: Option[] = [
   { value: 'pending', label: transactionStatusLabel.pending },
   { value: 'scheduled', label: transactionStatusLabel.scheduled },
 ];
+
+/** Quantos filtros (fora a busca) estao restringindo a lista agora. */
+function countActiveFilters(query: TransactionQuery): number {
+  return [query.period, query.kind, query.categoryId, query.accountId, query.status].filter(
+    (value) => value !== ALL,
+  ).length;
+}
 
 /** Ordena e deduplica pares id/nome vindos dos proprios dados. */
 function toOptions(entries: Array<[string, string]>, allLabel: string): Option[] {
@@ -74,18 +84,73 @@ export function TransactionFilters({
     [source],
   );
 
+  const isCompact = useIsCompact();
+  const [expanded, setExpanded] = useState(false);
+  const panelId = useId();
+
+  const activeCount = countActiveFilters(query);
+  // No desktop os filtros cabem na mesma linha da busca. No celular, cinco
+  // campos empilhados empurravam o primeiro lancamento para fora da tela, entao
+  // eles ficam atras de um botao que diz quantos estao ativos.
+  const showControls = !isCompact || expanded;
+
+  const search = (
+    <Input
+      className={styles.search}
+      icon={Search}
+      placeholder="Buscar nos lançamentos"
+      value={query.search}
+      onChange={(event) => onChange({ search: event.target.value })}
+      aria-label="Buscar lançamentos"
+    />
+  );
+
+  const clear = hasActiveFilters(query) ? (
+    <Button className={styles.clear} variant="ghost" icon={X} onClick={onClear}>
+      Limpar
+    </Button>
+  ) : null;
+
+  /*
+   * A busca e o "Limpar" andam juntos — o botao zera tambem o que foi digitado
+   * — e mudam de lugar conforme a largura. No desktop sobem para o espaco que o
+   * header reserva a tela, o mesmo em que as outras telas mostram a busca
+   * global; no celular ficam na tela, ao lado do botao que abre os filtros,
+   * porque la o header nao tem folga para mais um campo.
+   */
   return (
     <div className={styles.filters}>
-      <div className={styles.controls}>
-        <Input
-          className={styles.search}
-          icon={Search}
-          placeholder="Buscar por descrição, categoria ou conta"
-          value={query.search}
-          onChange={(event) => onChange({ search: event.target.value })}
-          aria-label="Buscar lançamentos"
-        />
+      {isCompact ? (
+        <div className={styles.searchRow}>
+          {search}
 
+          {/*
+            "Filtros" vem antes de "Limpar" para que a quebra caia no lugar
+            certo: busca e filtros juntos na primeira linha, e o limpar —
+            secundario — desce sozinho quando existe.
+          */}
+          <Button
+            className={styles.toggle}
+            variant="secondary"
+            icon={SlidersHorizontal}
+            aria-expanded={expanded}
+            aria-controls={panelId}
+            onClick={() => setExpanded((value) => !value)}
+          >
+            Filtros
+            {activeCount > 0 ? <span className={styles.count}>{activeCount}</span> : null}
+          </Button>
+
+          {clear}
+        </div>
+      ) : (
+        <HeaderSlot>
+          {search}
+          {clear}
+        </HeaderSlot>
+      )}
+
+      <div className={cn(styles.controls, !showControls && styles.controlsHidden)} id={panelId} hidden={!showControls}>
         <Select
           className={styles.filter}
           icon={CalendarRange}
@@ -134,16 +199,10 @@ export function TransactionFilters({
           onChange={(status) => onChange({ status })}
           aria-label="Filtrar por situação"
         />
-
-        {hasActiveFilters(query) ? (
-          <Button className={styles.clear} variant="ghost" size="sm" icon={X} onClick={onClear}>
-            Limpar
-          </Button>
-        ) : null}
       </div>
 
       {/* As datas so aparecem quando o usuario pede um periodo proprio. */}
-      {query.period === 'custom' ? (
+      {showControls && query.period === 'custom' ? (
         <div className={styles.range}>
           <Input
             className={styles.date}

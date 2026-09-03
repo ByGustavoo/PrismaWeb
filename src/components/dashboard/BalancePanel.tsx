@@ -72,7 +72,12 @@ export function BalancePanel({
 
       <div className={styles.chart}>
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={history} margin={{ top: 16, right: 8, bottom: 0, left: 8 }}>
+          {/*
+            A folga lateral e do eixo, nao da area: com margem de 8px o rotulo
+            do primeiro mes ficava meio fora do grafico e o Recharts o descartava,
+            deixando seis pontos com cinco nomes.
+          */}
+          <AreaChart data={history} margin={{ top: 16, right: 20, bottom: 0, left: 20 }}>
             <defs>
               <linearGradient id="balanceFill" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor={lineColor} stopOpacity={0.28} />
@@ -84,6 +89,7 @@ export function BalancePanel({
               axisLine={false}
               tickLine={false}
               tick={{ fill: palette.axisText, fontSize: 12 }}
+              interval={0}
               dy={6}
             />
             <YAxis hide domain={[domainMin, domainMax]} />

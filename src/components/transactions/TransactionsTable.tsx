@@ -101,9 +101,21 @@ export function TransactionsTable({
               <Tr key={transaction.id} interactive onClick={() => onEdit(transaction)}>
                 <Td className={`${styles.muted} tabular`}>{formatShortDate(transaction.date)}</Td>
 
-                <Td>
-                  <span className={styles.description}>{transaction.description}</span>
-                  {transaction.notes ? <span className={styles.notes}>{transaction.notes}</span> : null}
+                {/*
+                  A descricao e um botao de verdade. A linha inteira continua
+                  clicavel para o ponteiro, mas esse atalho e so do mouse: sem um
+                  alvo focavel, chegar a edicao pelo teclado dependia de achar o
+                  lapis no fim da linha.
+                */}
+                <Td onClick={(event) => event.stopPropagation()}>
+                  <button
+                    type="button"
+                    className={styles.descriptionButton}
+                    onClick={() => onEdit(transaction)}
+                  >
+                    <span className={styles.description}>{transaction.description}</span>
+                    {transaction.notes ? <span className={styles.notes}>{transaction.notes}</span> : null}
+                  </button>
                 </Td>
 
                 {showCategory ? (

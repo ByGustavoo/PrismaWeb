@@ -10,7 +10,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  height: 36px;
+  height: var(--control-height);
   padding-inline: var(--space-3);
   background-color: var(--surface);
   border: 1px solid var(--border);
@@ -31,7 +31,7 @@
   min-width: 0;
   background: none;
   border: none;
-  font-size: var(--fs-base);
+  font-size: var(--control-font);
   color: var(--text);
 }
 
@@ -72,10 +72,6 @@
   animation: panelIn var(--duration-fast) var(--ease-out);
 }
 
-.item {
-  display: block;
-}
-
 .groupLabel {
   display: block;
   padding: var(--space-3) var(--space-3) var(--space-1);
@@ -90,6 +86,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  min-height: var(--tap-size);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-xs);
   cursor: pointer;
@@ -153,9 +150,47 @@
   }
 }
 
-/* Abaixo desta largura o header nao comporta o campo sem espremer as acoes. */
+.collapse {
+  display: none;
+  flex-shrink: 0;
+  color: var(--text-subtle);
+  border-radius: var(--radius-xs);
+}
+
+.collapse:hover {
+  color: var(--text);
+}
+
+/*
+ * Abaixo desta largura o campo nao cabe ao lado das acoes, entao ele sai da
+ * linha e volta como camada sobre o header quando o botao de busca e acionado.
+ * A lista de resultados continua ancorada nele, agora na largura inteira.
+ */
 @media (max-width: 900px) {
   .root {
     display: none;
+  }
+
+  .rootExpanded {
+    display: block;
+    position: absolute;
+    inset-inline: var(--space-4);
+    top: 50%;
+    transform: translateY(-50%);
+    max-width: none;
+    z-index: 1;
+  }
+
+  .rootExpanded .field {
+    background-color: var(--surface-raised);
+    box-shadow: var(--shadow-popover);
+  }
+
+  .rootExpanded .collapse {
+    display: grid;
+    place-items: center;
+    width: var(--tap-size);
+    height: var(--tap-size);
+    margin-right: calc(var(--space-2) * -1);
   }
 }

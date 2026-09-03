@@ -5,7 +5,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  height: var(--header-height);
+  min-height: var(--header-height);
   padding-inline: var(--space-6);
   background-color: color-mix(in srgb, var(--canvas) 88%, transparent);
   backdrop-filter: blur(8px);
@@ -14,7 +14,9 @@
 
 .menuButton {
   display: none;
-  padding: var(--space-2);
+  place-items: center;
+  width: var(--tap-size);
+  height: var(--tap-size);
   margin-left: calc(var(--space-2) * -1);
   border-radius: var(--radius-sm);
   color: var(--text-muted);
@@ -36,8 +38,8 @@
   position: relative;
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: var(--tap-size);
+  height: var(--tap-size);
   border-radius: var(--radius-sm);
   color: var(--text-muted);
   transition:
@@ -48,6 +50,24 @@
 .iconButton:hover {
   background-color: var(--surface-muted);
   color: var(--text);
+}
+
+/* Substituto do campo de busca nas larguras em que ele nao cabe. */
+.searchButton {
+  display: none;
+}
+
+/*
+ * Mesma faixa que a busca global ocupa, para que o header nao mude de forma de
+ * uma tela para outra. Fica vazia ate a tela preencher via HeaderSlot.
+ */
+.slot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  min-width: 0;
+  max-width: 520px;
 }
 
 /* Ancora do painel de avisos. */
@@ -68,7 +88,13 @@
 
 @media (max-width: 1099px) {
   .menuButton {
-    display: block;
+    display: grid;
+  }
+}
+
+@media (max-width: 900px) {
+  .searchButton {
+    display: grid;
   }
 }
 
@@ -77,10 +103,25 @@
     padding-inline: var(--space-4);
     gap: var(--space-2);
   }
+
+  /* Nenhum bloco do header pode empurrar o vizinho para fora da tela. */
+  .menuButton,
+  .actions {
+    flex-shrink: 0;
+  }
 }
 
+/*
+ * O rotulo sai, o botao vira quadrado e a acao principal continua ao alcance do
+ * polegar. Antes o botao inteiro era escondido nesta largura.
+ */
 @media (max-width: 560px) {
-  .actions > button:last-child {
+  .newLabel {
     display: none;
+  }
+
+  .newButton {
+    width: var(--control-height-sm);
+    padding-inline: 0;
   }
 }

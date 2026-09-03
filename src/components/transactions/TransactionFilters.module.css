@@ -4,29 +4,57 @@
   gap: var(--space-3);
 }
 
-/*
- * Busca e filtros na mesma linha. Todos os campos crescem e encolhem juntos
- * (flex-basis 0), entao a linha se ajusta a largura disponivel em vez de
- * quebrar; o texto do gatilho corta com reticencias quando aperta.
- */
-.controls {
+/* Linha da busca no celular, onde ela nao cabe no header. */
+.searchRow {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
+/*
+ * Base de 180px: com "Filtros" e "Limpar" ao lado, sem ela o campo encolhia ate
+ * caber tres letras. Assim ele desce inteiro para a propria linha antes disso.
+ */
 .search {
-  flex: 1.6 1 0;
+  flex: 1 1 180px;
   min-width: 0;
 }
 
-.filter {
-  flex: 1 1 0;
-  min-width: 0;
-}
-
-.clear {
+.clear,
+.toggle {
   flex-shrink: 0;
+}
+
+/* Quantos filtros estao restringindo a lista, para nao precisar abrir e conferir. */
+.count {
+  display: grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding-inline: 5px;
+  border-radius: var(--radius-pill);
+  background-color: var(--accent);
+  color: var(--accent-contrast);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+
+/*
+ * Grade em vez de linha flexivel. Com `flex: 1 1 0` os cinco filtros dividiam a
+ * largura em partes iguais e as duas maiores opcoes — "Todas as categorias" e
+ * "Todas as situacoes" — chegavam cortadas. Aqui a coluna nunca fica abaixo de
+ * 200px: quando nao cabem cinco, sobram quatro e o resto desce, em vez de todas
+ * encolherem ate o texto sumir.
+ */
+.controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-2);
+}
+
+.controlsHidden {
+  display: none;
 }
 
 .range {
@@ -42,26 +70,7 @@
   flex: 0 1 200px;
 }
 
-/* Abaixo desta largura a linha unica ficaria ilegivel: ai sim ela quebra. */
-@media (max-width: 1199px) {
-  .controls {
-    flex-wrap: wrap;
-  }
-
-  .search {
-    flex: 1 1 100%;
-  }
-
-  .filter {
-    flex: 1 1 180px;
-  }
-}
-
 @media (max-width: 599px) {
-  .filter {
-    flex: 1 1 100%;
-  }
-
   .range {
     flex-direction: column;
   }

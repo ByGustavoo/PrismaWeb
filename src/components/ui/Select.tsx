@@ -22,6 +22,8 @@ export interface SelectProps {
   prefix?: string;
   icon?: LucideIcon;
   disabled?: boolean;
+  /** Marca o rotulo e anuncia o campo como obrigatorio. */
+  required?: boolean;
   id?: string;
   className?: string;
   'aria-label'?: string;
@@ -57,6 +59,7 @@ export function Select({
   prefix,
   icon: Icon,
   disabled = false,
+  required = false,
   id,
   className,
   'aria-label': ariaLabel,
@@ -243,6 +246,11 @@ export function Select({
       {label ? (
         <span className={styles.label} id={labelId}>
           {label}
+          {required ? (
+            <span className={styles.required} aria-hidden="true">
+              *
+            </span>
+          ) : null}
         </span>
       ) : null}
 
@@ -259,6 +267,7 @@ export function Select({
         aria-label={ariaLabel}
         aria-describedby={describedById}
         aria-invalid={error ? true : undefined}
+        aria-required={required || undefined}
         disabled={disabled}
         className={cn(styles.trigger, open && styles.triggerOpen, error && styles.triggerError)}
         onClick={() => (open ? setOpen(false) : openMenu())}

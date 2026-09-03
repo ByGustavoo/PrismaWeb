@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/layout';
 import {
   TransactionFilters,
   TransactionFormModal,
+  TransactionsList,
   TransactionsTable,
   TransferFormModal,
   applyQuery,
@@ -18,6 +19,7 @@ import type { SortField, TransactionQuery } from '@/components/transactions';
 import { Button, Card, ConfirmDialog, EmptyState, LoadingBlock } from '@/components/ui';
 import { transactionKindLabel } from '@/constants/transactions';
 import { useAsyncData } from '@/hooks/useAsyncData';
+import { useIsCompact } from '@/hooks/useMediaQuery';
 import { useToast } from '@/providers/ToastProvider';
 import {
   ACCOUNT_PARAM,
@@ -51,6 +53,8 @@ export function TransactionsPage({ kind, title, description }: TransactionsPageP
   const [saving, setSaving] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const toast = useToast();
+  // A tabela de oito colunas so cabe no desktop; abaixo disso a lista vira cartoes.
+  const isCompact = useIsCompact();
 
   // A URL e o canal de entrada da tela: `?novo=despesa` abre o cadastro,
   // `?editar=<id>` abre a edicao e `?busca`, `?categoria` e `?conta` chegam da
@@ -287,6 +291,16 @@ export function TransactionsPage({ kind, title, description }: TransactionsPageP
                 </Button>
               )
             }
+          />
+        ) : isCompact ? (
+          <TransactionsList
+            transactions={transactions}
+            sortField={query.sortField}
+            sortDirection={query.sortDirection}
+            onSort={handleSort}
+            showCategory={kind !== 'transfer'}
+            onEdit={openEdit}
+            onDelete={setRemoving}
           />
         ) : (
           <TransactionsTable

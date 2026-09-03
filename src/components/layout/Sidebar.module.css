@@ -69,8 +69,10 @@
 
 .closeMobile {
   display: none;
+  place-items: center;
+  width: var(--tap-size);
+  height: var(--tap-size);
   margin-left: auto;
-  padding: var(--space-2);
   border-radius: var(--radius-xs);
   color: var(--text-muted);
 }
@@ -103,6 +105,7 @@
   align-items: center;
   gap: var(--space-3);
   width: 100%;
+  min-height: var(--tap-size);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-sm);
   color: var(--text-muted);
@@ -168,6 +171,9 @@
 }
 
 .child {
+  display: flex;
+  align-items: center;
+  min-height: var(--tap-size);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-xs);
   color: var(--text-muted);
@@ -251,8 +257,8 @@
 .collapseButton {
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: var(--tap-size);
+  height: var(--tap-size);
   flex-shrink: 0;
   border-radius: var(--radius-sm);
   color: var(--text-subtle);
@@ -279,19 +285,31 @@
 /* --- Responsivo -------------------------------------------------------- */
 
 @media (max-width: 1099px) {
+  /*
+   * Fechado, o drawer fica fora da tela — e precisa ficar tambem fora do fluxo
+   * de foco, senao o Tab a partir do header entra num menu invisivel. A
+   * visibilidade so muda ao fim do deslize, para nao cortar a animacao.
+   */
   .sidebar {
     position: fixed;
     inset-block: 0;
     left: 0;
     width: var(--sidebar-width);
     transform: translateX(-100%);
+    visibility: hidden;
     box-shadow: none;
-    transition: transform var(--duration-base) var(--ease-out);
+    transition:
+      transform var(--duration-base) var(--ease-out),
+      visibility 0s linear var(--duration-base);
   }
 
   .mobileOpen {
     transform: translateX(0);
+    visibility: visible;
     box-shadow: var(--shadow-overlay);
+    transition:
+      transform var(--duration-base) var(--ease-out),
+      visibility 0s;
   }
 
   .collapsed {
@@ -310,7 +328,7 @@
   }
 
   .closeMobile {
-    display: block;
+    display: grid;
   }
 
   .collapseButton {

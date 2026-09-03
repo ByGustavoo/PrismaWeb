@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { KeyboardEvent } from 'react';
-import { CornerDownLeft, CreditCard, Search, Tag, Wallet } from 'lucide-react';
+import { CornerDownLeft, CreditCard, Search, Tag, Wallet, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Amount } from '@/components/common';
 import { kindIcon, kindSign, kindTone } from '@/components/transactions';
@@ -99,6 +99,15 @@ function buildResults(catalog: Catalog, term: string): SearchResult[] {
   return [...transactionResults, ...categoryResults, ...accountResults];
 }
 
+interface GlobalSearchProps {
+  /**
+   * Em tela estreita o campo fica escondido e so aparece quando o header pede.
+   * No desktop a prop e ignorada: o campo ja esta sempre visivel.
+   */
+  expanded?: boolean;
+  onCollapse?: () => void;
+}
+
 /**
  * Busca do header. Procura em lancamentos, categorias e contas ao mesmo tempo e
  * entrega cada resultado como um destino: o lancamento abre a propria edicao, e
@@ -108,7 +117,7 @@ function buildResults(catalog: Catalog, term: string): SearchResult[] {
  * cadastrado ha pouco precisa aparecer na busca seguinte — e a filtragem roda em
  * memoria, para responder a cada tecla sem uma nova ida ao servidor.
  */
-export function GlobalSearch() {
+export function GlobalSearch({ expanded = false, onCollapse }: GlobalSearchProps) {
   const navigate = useNavigate();
   const baseId = useId();
   const listId = `${baseId}-list`;
@@ -144,6 +153,12 @@ export function GlobalSearch() {
     return () => controller.abort();
   }, [focused]);
 
+  // Abrir a busca no celular precisa levar o cursor junto, senao o teclado do
+  // aparelho nao sobe e o campo aparece pedindo mais um toque.
+  useEffect(() => {
+    if (expanded) inputRef.current?.focus();
+  }, [expanded]);
+
   const trimmed = term.trim();
   const results = useMemo(() => (trimmed ? buildResults(catalog, trimmed) : []), [catalog, trimmed]);
 
@@ -165,29 +180,37 @@ export function GlobalSearch() {
 
   useEffect(() => setActiveIndex(0), [trimmed]);
 
+  const collapse = useCallback(() => {
+    setTerm('');
+    setFocused(false);
+    onCollapse?.();
+  }, [onCollapse]);
+
   const go = useCallback(
     (result: SearchResult | undefined) => {
       if (!result) return;
       setTerm('');
       setFocused(false);
       inputRef.current?.blur();
+      onCollapse?.();
       navigate(result.to);
     },
-    [navigate],
+    [navigate, onCollapse],
   );
 
   // Fecha ao clicar fora sem roubar o clique do alvo.
   useEffect(() => {
-    if (!open) return;
+    if (!open && !expanded) return;
 
     const handlePointerDown = (event: PointerEvent) => {
       if (rootRef.current?.contains(event.target as Node)) return;
       setFocused(false);
+      if (expanded) onCollapse?.();
     };
 
     document.addEventListener('pointerdown', handlePointerDown);
     return () => document.removeEventListener('pointerdown', handlePointerDown);
-  }, [open]);
+  }, [open, expanded, onCollapse]);
 
   // Mantem o item ativo visivel durante a navegacao pelo teclado.
   useEffect(() => {
@@ -213,10 +236,11 @@ export function GlobalSearch() {
         go(items[activeIndex]);
         return;
       case 'Escape':
-        // Primeiro Escape fecha a lista; o segundo limpa o campo.
+        // Primeiro Escape fecha a lista; o segundo limpa o campo (e, no celular,
+        // fecha a propria busca).
         event.preventDefault();
         if (open) setFocused(false);
-        else setTerm('');
+        else collapse();
         return;
       case 'Tab':
         setFocused(false);
@@ -228,7 +252,7 @@ export function GlobalSearch() {
   let lastGroup: ResultGroup | null = null;
 
   return (
-    <div className={styles.root} ref={rootRef}>
+    <div className={cn(styles.root, expanded && styles.rootExpanded)} ref={rootRef}>
       <div className={cn(styles.field, open && styles.fieldOpen)}>
         <Search size={16} strokeWidth={2} className={styles.fieldIcon} aria-hidden="true" />
 
@@ -249,12 +273,20 @@ export function GlobalSearch() {
         />
 
         {open && loading ? <Spinner size={14} /> : null}
+
+        {expanded ? (
+          <button type="button" className={styles.collapse} onClick={collapse} aria-label="Fechar busca">
+            <X size={16} strokeWidth={2} />
+          </button>
+        ) : null}
       </div>
 
       {open ? (
         <ul className={styles.panel} id={listId} role="listbox" aria-label="Resultados da busca">
           {results.length === 0 && !loading ? (
-            <li className={styles.empty}>Nenhum resultado para "{trimmed}".</li>
+            <li className={styles.empty} role="presentation">
+              Nenhum resultado para "{trimmed}".
+            </li>
           ) : null}
 
           {items.map((result, index) => {
@@ -265,14 +297,14 @@ export function GlobalSearch() {
             const isActive = index === activeIndex;
 
             return (
-              <li key={result.key} className={styles.item}>
+              <Fragment key={result.key}>
                 {header ? (
-                  <span className={styles.groupLabel} aria-hidden="true">
+                  <li className={styles.groupLabel} role="presentation">
                     {groupLabel[header]}
-                  </span>
+                  </li>
                 ) : null}
 
-                <div
+                <li
                   id={`${baseId}-option-${index}`}
                   role="option"
                   aria-selected={isActive}
@@ -308,8 +340,8 @@ export function GlobalSearch() {
                   {result.group === 'all' ? (
                     <CornerDownLeft className={styles.optionIcon} size={14} strokeWidth={2} aria-hidden="true" />
                   ) : null}
-                </div>
-              </li>
+                </li>
+              </Fragment>
             );
           })}
         </ul>

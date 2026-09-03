@@ -24,24 +24,24 @@
 }
 
 .md {
-  height: 38px;
+  height: var(--control-height);
   padding-inline: var(--space-4);
   font-size: var(--fs-base);
 }
 
 .sm {
-  height: 32px;
+  height: var(--control-height-sm);
   padding-inline: var(--space-3);
   font-size: var(--fs-sm);
 }
 
 .iconOnly.md {
-  width: 38px;
+  width: var(--control-height);
   padding-inline: 0;
 }
 
 .iconOnly.sm {
-  width: 32px;
+  width: var(--control-height-sm);
   padding-inline: 0;
 }
 

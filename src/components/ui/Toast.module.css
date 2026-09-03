@@ -74,8 +74,13 @@
 }
 
 .close {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: var(--tap-size);
+  height: var(--tap-size);
+  margin: calc(var(--space-2) * -1) calc(var(--space-2) * -1) 0 0;
   color: var(--text-subtle);
-  padding: var(--space-1);
   border-radius: var(--radius-xs);
   transition: color var(--duration-fast) var(--ease-out);
 }

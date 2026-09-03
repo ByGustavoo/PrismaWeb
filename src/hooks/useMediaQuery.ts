@@ -21,3 +21,9 @@ export function useMediaQuery(query: string): boolean {
 /** Breakpoints usados no layout. Mantidos em sincronia com o CSS. */
 export const useIsMobile = () => useMediaQuery('(max-width: 767px)');
 export const useIsTablet = () => useMediaQuery('(max-width: 1099px)');
+
+/**
+ * Largura em que uma tabela larga deixa de caber: abaixo dela a listagem de
+ * lancamentos troca a tabela por cartoes, em vez de rolar de lado.
+ */
+export const useIsCompact = () => useMediaQuery('(max-width: 899px)');

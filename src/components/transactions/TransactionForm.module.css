@@ -47,6 +47,14 @@
   color: var(--accent);
 }
 
+/* Explica o asterisco dos rotulos: sozinho ele e convencao, nao instrucao. */
+.legend {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+
 @media (max-width: 599px) {
   .form {
     grid-template-columns: minmax(0, 1fr);

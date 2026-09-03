@@ -122,6 +122,31 @@ table {
   border-radius: var(--radius-pill);
 }
 
+/*
+ * Link de salto: com uma sidebar de dez itens antes do conteudo, chegar ao
+ * miolo da tela pelo teclado custava uma dezena de Tabs. Fica escondido ate
+ * receber foco.
+ */
+.skip-link {
+  position: fixed;
+  top: var(--space-3);
+  left: var(--space-3);
+  z-index: var(--z-toast);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--surface-raised);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-overlay);
+  font-size: var(--fs-base);
+  font-weight: 500;
+  transform: translateY(calc(-100% - var(--space-4)));
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

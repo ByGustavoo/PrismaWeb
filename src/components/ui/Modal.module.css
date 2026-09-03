@@ -76,6 +76,33 @@
   border-top: 1px solid var(--border);
 }
 
+/*
+ * No celular o painel encosta na base: o rodape com as acoes fica ao alcance do
+ * polegar, e os botoes dividem a largura em vez de ficarem espremidos no canto.
+ */
+@media (max-width: 599px) {
+  .overlay {
+    align-items: flex-end;
+    padding: var(--space-3);
+  }
+
+  .header {
+    padding: var(--space-4);
+  }
+
+  .content {
+    padding: var(--space-4);
+  }
+
+  .footer {
+    padding: var(--space-4);
+  }
+
+  .footer > * {
+    flex: 1;
+  }
+}
+
 @keyframes fade {
   from {
     opacity: 0;
