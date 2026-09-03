@@ -4,6 +4,7 @@ import type {
   CreditCard,
   Investment,
   Invoice,
+  PaymentSource,
   Transaction,
 } from '@/types';
 import { addDays, monthKeyFromOffset, toISODate } from '@/utils/date';
@@ -26,15 +27,17 @@ export const currentMonth = monthKeyFromOffset(0);
 /* -------------------------------------------------------------------------- */
 
 export const category = {
-  moradia: { id: 'cat-moradia', name: 'Moradia', colorToken: 1 },
-  alimentacao: { id: 'cat-alimentacao', name: 'Alimentação', colorToken: 2 },
-  transporte: { id: 'cat-transporte', name: 'Transporte', colorToken: 3 },
-  saude: { id: 'cat-saude', name: 'Saúde', colorToken: 4 },
-  lazer: { id: 'cat-lazer', name: 'Lazer', colorToken: 5 },
-  educacao: { id: 'cat-educacao', name: 'Educação', colorToken: 6 },
-  salario: { id: 'cat-salario', name: 'Salário', colorToken: 2 },
-  freelance: { id: 'cat-freelance', name: 'Freelance', colorToken: 1 },
-  aporte: { id: 'cat-aporte', name: 'Aporte', colorToken: 5 },
+  moradia: { id: 'cat-moradia', name: 'Moradia', kind: 'expense', colorToken: 1 },
+  alimentacao: { id: 'cat-alimentacao', name: 'Alimentação', kind: 'expense', colorToken: 2 },
+  transporte: { id: 'cat-transporte', name: 'Transporte', kind: 'expense', colorToken: 3 },
+  saude: { id: 'cat-saude', name: 'Saúde', kind: 'expense', colorToken: 4 },
+  lazer: { id: 'cat-lazer', name: 'Lazer', kind: 'expense', colorToken: 5 },
+  educacao: { id: 'cat-educacao', name: 'Educação', kind: 'expense', colorToken: 6 },
+  outrasDespesas: { id: 'cat-outras-despesas', name: 'Outras despesas', kind: 'expense', colorToken: 6 },
+  salario: { id: 'cat-salario', name: 'Salário', kind: 'income', colorToken: 2 },
+  freelance: { id: 'cat-freelance', name: 'Freelance', kind: 'income', colorToken: 1 },
+  rendimentos: { id: 'cat-rendimentos', name: 'Rendimentos', kind: 'income', colorToken: 5 },
+  outrasReceitas: { id: 'cat-outras-receitas', name: 'Outras receitas', kind: 'income', colorToken: 4 },
 } satisfies Record<string, Category>;
 
 export const categories: Category[] = Object.values(category);
@@ -99,6 +102,16 @@ export const creditCards: CreditCard[] = [
   },
 ];
 
+/**
+ * Tudo que pode pagar ou receber um lancamento. Contas e cartoes vivem em
+ * cadastros separados, mas o formulario de despesa escolhe entre os dois, entao
+ * a lista unificada mora aqui e nao dentro da tela.
+ */
+export const paymentSources: PaymentSource[] = [
+  ...accounts.map((account) => ({ id: account.id, name: account.name, group: 'account' as const })),
+  ...creditCards.map((card) => ({ id: card.id, name: card.name, group: 'card' as const })),
+];
+
 export const invoices: Invoice[] = [
   {
     id: 'inv-1',
@@ -145,6 +158,11 @@ export const investments: Investment[] = [
 /* Lancamentos                                                                */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Semente da lista de lancamentos. O array e mutavel de proposito: enquanto nao
+ * houver backend, `transactions.store.ts` cria, edita e remove itens aqui, e as
+ * demais telas (dashboard e avisos) leem da mesma fonte.
+ */
 export const transactions: Transaction[] = [
   {
     id: 'tx-01',
@@ -155,7 +173,9 @@ export const transactions: Transaction[] = [
     method: 'account',
     date: daysAgo(1),
     category: category.salario,
+    accountId: 'acc-1',
     accountName: 'Conta corrente',
+    notes: 'Crédito mensal da folha.',
   },
   {
     id: 'tx-02',
@@ -166,6 +186,7 @@ export const transactions: Transaction[] = [
     method: 'account',
     date: daysAgo(2),
     category: category.moradia,
+    accountId: 'acc-1',
     accountName: 'Conta corrente',
   },
   {
@@ -177,6 +198,7 @@ export const transactions: Transaction[] = [
     method: 'credit-card',
     date: daysAgo(3),
     category: category.alimentacao,
+    accountId: 'card-1',
     accountName: 'Nova Platinum',
   },
   {
@@ -187,8 +209,11 @@ export const transactions: Transaction[] = [
     status: 'paid',
     method: 'account',
     date: daysAgo(4),
-    category: category.aporte,
-    accountName: 'Conta corrente → Corretora',
+    category: null,
+    accountId: 'acc-1',
+    accountName: 'Conta corrente',
+    toAccountId: 'acc-4',
+    toAccountName: 'Corretora',
   },
   {
     id: 'tx-05',
@@ -199,6 +224,7 @@ export const transactions: Transaction[] = [
     method: 'pix',
     date: daysAgo(5),
     category: category.freelance,
+    accountId: 'acc-1',
     accountName: 'Conta corrente',
   },
   {
@@ -210,6 +236,7 @@ export const transactions: Transaction[] = [
     method: 'credit-card',
     date: daysAgo(6),
     category: category.transporte,
+    accountId: 'card-1',
     accountName: 'Nova Platinum',
   },
   {
@@ -221,6 +248,7 @@ export const transactions: Transaction[] = [
     method: 'account',
     date: daysAgo(7),
     category: category.saude,
+    accountId: 'acc-1',
     accountName: 'Conta corrente',
   },
   {
@@ -232,6 +260,7 @@ export const transactions: Transaction[] = [
     method: 'credit-card',
     date: daysAgo(8),
     category: category.lazer,
+    accountId: 'card-2',
     accountName: 'Viagem Gold',
   },
   {
@@ -243,6 +272,7 @@ export const transactions: Transaction[] = [
     method: 'credit-card',
     date: daysAgo(9),
     category: category.educacao,
+    accountId: 'card-1',
     accountName: 'Nova Platinum',
   },
   {
@@ -254,6 +284,7 @@ export const transactions: Transaction[] = [
     method: 'account',
     date: daysAgo(-3),
     category: category.moradia,
+    accountId: 'acc-1',
     accountName: 'Conta corrente',
   },
   {
@@ -265,6 +296,7 @@ export const transactions: Transaction[] = [
     method: 'account',
     date: daysAgo(-6),
     category: category.moradia,
+    accountId: 'acc-1',
     accountName: 'Conta corrente',
   },
   {
@@ -275,8 +307,11 @@ export const transactions: Transaction[] = [
     status: 'paid',
     method: 'account',
     date: daysAgo(10),
-    category: category.aporte,
-    accountName: 'Conta corrente → Reserva de emergência',
+    category: null,
+    accountId: 'acc-1',
+    accountName: 'Conta corrente',
+    toAccountId: 'acc-2',
+    toAccountName: 'Reserva de emergência',
   },
   {
     id: 'tx-13',
@@ -287,6 +322,7 @@ export const transactions: Transaction[] = [
     method: 'credit-card',
     date: daysAgo(11),
     category: category.transporte,
+    accountId: 'card-1',
     accountName: 'Nova Platinum',
   },
   {
@@ -298,6 +334,7 @@ export const transactions: Transaction[] = [
     method: 'pix',
     date: daysAgo(12),
     category: category.saude,
+    accountId: 'acc-1',
     accountName: 'Conta corrente',
   },
   {
@@ -309,6 +346,7 @@ export const transactions: Transaction[] = [
     method: 'credit-card',
     date: daysAgo(13),
     category: category.lazer,
+    accountId: 'card-2',
     accountName: 'Viagem Gold',
   },
   {
@@ -320,6 +358,7 @@ export const transactions: Transaction[] = [
     method: 'cash',
     date: daysAgo(14),
     category: category.alimentacao,
+    accountId: 'acc-3',
     accountName: 'Carteira',
   },
   {
@@ -330,7 +369,8 @@ export const transactions: Transaction[] = [
     status: 'paid',
     method: 'account',
     date: daysAgo(15),
-    category: category.freelance,
+    category: category.rendimentos,
+    accountId: 'acc-4',
     accountName: 'Corretora',
   },
   {
@@ -342,6 +382,7 @@ export const transactions: Transaction[] = [
     method: 'credit-card',
     date: daysAgo(16),
     category: category.transporte,
+    accountId: 'card-1',
     accountName: 'Nova Platinum',
   },
   {
@@ -353,6 +394,7 @@ export const transactions: Transaction[] = [
     method: 'account',
     date: daysAgo(17),
     category: category.moradia,
+    accountId: 'acc-1',
     accountName: 'Conta corrente',
   },
   {
@@ -364,6 +406,7 @@ export const transactions: Transaction[] = [
     method: 'credit-card',
     date: daysAgo(18),
     category: category.educacao,
+    accountId: 'card-1',
     accountName: 'Nova Platinum',
   },
   {
@@ -375,6 +418,7 @@ export const transactions: Transaction[] = [
     method: 'credit-card',
     date: daysAgo(19),
     category: category.alimentacao,
+    accountId: 'card-2',
     accountName: 'Viagem Gold',
   },
   {
@@ -386,6 +430,7 @@ export const transactions: Transaction[] = [
     method: 'pix',
     date: daysAgo(20),
     category: category.lazer,
+    accountId: 'acc-1',
     accountName: 'Conta corrente',
   },
   {
@@ -397,6 +442,7 @@ export const transactions: Transaction[] = [
     method: 'pix',
     date: daysAgo(22),
     category: category.freelance,
+    accountId: 'acc-1',
     accountName: 'Conta corrente',
   },
   {
@@ -408,6 +454,48 @@ export const transactions: Transaction[] = [
     method: 'account',
     date: daysAgo(24),
     category: category.saude,
+    accountId: 'acc-1',
+    accountName: 'Conta corrente',
+  },
+  {
+    id: 'tx-25',
+    description: 'Sobra da carteira para a conta',
+    amount: 260,
+    kind: 'transfer',
+    status: 'paid',
+    method: 'cash',
+    date: daysAgo(21),
+    category: null,
+    accountId: 'acc-3',
+    accountName: 'Carteira',
+    toAccountId: 'acc-1',
+    toAccountName: 'Conta corrente',
+  },
+  {
+    id: 'tx-26',
+    description: 'Aporte programado na reserva',
+    amount: 900,
+    kind: 'transfer',
+    status: 'scheduled',
+    method: 'account',
+    date: daysAgo(-8),
+    category: null,
+    accountId: 'acc-1',
+    accountName: 'Conta corrente',
+    toAccountId: 'acc-2',
+    toAccountName: 'Reserva de emergência',
+    notes: 'Débito automático no quinto dia útil.',
+  },
+  {
+    id: 'tx-27',
+    description: 'Reembolso de despesa de viagem',
+    amount: 745.5,
+    kind: 'income',
+    status: 'pending',
+    method: 'pix',
+    date: daysAgo(-4),
+    category: category.outrasReceitas,
+    accountId: 'acc-1',
     accountName: 'Conta corrente',
   },
 ];

@@ -11,6 +11,11 @@ const currencyFormatter = new Intl.NumberFormat(LOCALE, {
   maximumFractionDigits: 2,
 });
 
+const amountInputFormatter = new Intl.NumberFormat(LOCALE, {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
 const compactFormatter = new Intl.NumberFormat(LOCALE, {
   notation: 'compact',
   maximumFractionDigits: 1,
@@ -104,4 +109,25 @@ export function initials(name: string): string {
     .slice(0, 2)
     .map((part) => part.charAt(0).toUpperCase())
     .join('');
+}
+
+/**
+ * Le o valor digitado num campo de moeda. Aceita tanto "1.200,50" quanto
+ * "1200.50": o usuario digita do jeito brasileiro, mas colar um numero cru
+ * tambem precisa funcionar.
+ */
+export function parseAmountInput(raw: string): number | undefined {
+  const trimmed = raw.trim();
+  if (!trimmed) return undefined;
+
+  // Com virgula, o ponto e separador de milhar; sem virgula, o ponto e decimal.
+  const normalized = trimmed.includes(',') ? trimmed.replace(/\./g, '').replace(',', '.') : trimmed;
+  const parsed = Number(normalized);
+
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+/** Numero -> texto do campo de moeda, sem simbolo: 1200.5 -> "1.200,50". */
+export function toAmountInput(value: number): string {
+  return amountInputFormatter.format(value);
 }

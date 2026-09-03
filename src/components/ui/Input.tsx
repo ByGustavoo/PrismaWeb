@@ -9,10 +9,12 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   hint?: string;
   error?: string;
   icon?: LucideIcon;
+  /** Texto fixo antes do campo, como o "R$" de um valor. */
+  prefix?: string;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { label, hint, error, icon: Icon, className, id, ...rest },
+  { label, hint, error, icon: Icon, prefix, className, id, ...rest },
   ref,
 ) {
   const generatedId = useId();
@@ -29,6 +31,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 
       <div className={cn(styles.control, error && styles.controlError)}>
         {Icon ? <Icon className={styles.icon} size={16} strokeWidth={2} /> : null}
+        {prefix ? (
+          <span className={styles.prefix} aria-hidden="true">
+            {prefix}
+          </span>
+        ) : null}
         <input
           ref={ref}
           id={inputId}

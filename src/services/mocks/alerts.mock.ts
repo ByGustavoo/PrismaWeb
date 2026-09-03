@@ -1,3 +1,4 @@
+import { transactionKindLabel } from '@/constants/transactions';
 import { paths } from '@/routes/paths';
 import type { Alert } from '@/types';
 import { daysBetween, todayISO } from '@/utils/date';
@@ -62,7 +63,7 @@ export function buildAlerts(): Alert[] {
       severity: pending ? severityByDays(days) : 'info',
       title: transaction.description,
       description: pending
-        ? `${transaction.category.name} · ${whenLabel(days)}`
+        ? `${transaction.category?.name ?? transactionKindLabel[transaction.kind]} · ${whenLabel(days)}`
         : `Agendado · ${whenLabel(days)}`,
       date: transaction.date,
       amount: transaction.amount,

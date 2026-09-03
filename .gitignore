@@ -34,6 +34,7 @@ pnpm-debug.log*
 *.sw?
 
 # Cache
+*.tsbuildinfo
 .eslintcache
 .cache/
 coverage/

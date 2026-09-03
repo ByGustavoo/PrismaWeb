@@ -1,0 +1,54 @@
+/*
+ * Duas colunas: os campos curtos (valor, data, categoria, conta) formam pares e
+ * os longos (descricao, observacao) atravessam a largura toda.
+ */
+.form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-4);
+  align-items: start;
+}
+
+.full {
+  grid-column: 1 / -1;
+}
+
+/*
+ * Origem e destino empilhados, com a seta na coluna estreita ao lado. O sentido
+ * do dinheiro fica visivel antes de ler os rotulos.
+ */
+.route {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-3) var(--space-3);
+  align-items: end;
+  padding: var(--space-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.route > :first-child,
+.route > :last-child {
+  grid-column: 1;
+}
+
+.routeArrow {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-pill);
+  background-color: var(--accent-soft);
+  color: var(--accent);
+}
+
+@media (max-width: 599px) {
+  .form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

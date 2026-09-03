@@ -8,10 +8,16 @@ export const endpoints = {
   },
   transactions: {
     list: '/transactions',
+    create: '/transactions',
     byId: (id: string) => `/transactions/${id}`,
+  },
+  categories: {
+    list: '/categories',
   },
   accounts: {
     list: '/accounts',
+    /** Contas e cartoes juntos, para os seletores de lancamento. */
+    sources: '/accounts/sources',
     byId: (id: string) => `/accounts/${id}`,
   },
   cards: {

@@ -28,7 +28,10 @@ export function Modal({ open, onClose, title, description, size = 'md', footer, 
       if (event.key === 'Escape') onClose();
     };
     document.addEventListener('keydown', handleKeyDown);
-    panelRef.current?.focus();
+    // So assume o foco se nada dentro do painel ja o tiver: um campo com
+    // autoFocus deve continuar sendo o ponto de partida do formulario.
+    const panel = panelRef.current;
+    if (panel && !panel.contains(document.activeElement)) panel.focus();
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [open, onClose]);
 

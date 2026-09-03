@@ -1,8 +1,9 @@
 import { useCallback, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell, ChevronLeft, ChevronRight, Menu, Moon, Plus, Search, Sun } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { useTheme } from '@/providers/ThemeProvider';
-import { useToast } from '@/providers/ToastProvider';
+import { NEW_TRANSACTION_PARAM, paths } from '@/routes/paths';
 import { capitalize, formatMonthLabel } from '@/utils/format';
 import { monthKeyFromOffset } from '@/utils/date';
 import { NotificationsPanel } from './NotificationsPanel';
@@ -14,7 +15,7 @@ interface HeaderProps {
 
 export function Header({ onOpenMenu }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
-  const toast = useToast();
+  const navigate = useNavigate();
   const [monthOffset, setMonthOffset] = useState(0);
   const [alertsOpen, setAlertsOpen] = useState(false);
   const [alertCount, setAlertCount] = useState(0);
@@ -87,7 +88,7 @@ export function Header({ onOpenMenu }: HeaderProps) {
         <Button
           size="sm"
           icon={Plus}
-          onClick={() => toast.notify({ title: 'Novo lançamento chega na próxima etapa', variant: 'info' })}
+          onClick={() => navigate(`${paths.transactions}?${NEW_TRANSACTION_PARAM}=despesa`)}
         >
           Novo lançamento
         </Button>

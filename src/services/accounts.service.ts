@@ -1,12 +1,18 @@
 import { endpoints, httpClient } from '@/api';
 import { env } from '@/constants/env';
-import type { Account, CreditCard, Invoice } from '@/types';
-import { accounts, creditCards, invoices, mockResponse } from './mocks';
+import type { Account, CreditCard, Invoice, PaymentSource } from '@/types';
+import { accounts, creditCards, invoices, mockResponse, paymentSources } from './mocks';
 
 export const accountsService = {
   list(signal?: AbortSignal): Promise<Account[]> {
     if (env.useMocks) return mockResponse(accounts, signal);
     return httpClient.get<Account[]>(endpoints.accounts.list, { ...(signal ? { signal } : {}) });
+  },
+
+  /** Contas e cartoes na mesma lista, do jeito que os seletores de lancamento precisam. */
+  listSources(signal?: AbortSignal): Promise<PaymentSource[]> {
+    if (env.useMocks) return mockResponse(paymentSources, signal);
+    return httpClient.get<PaymentSource[]>(endpoints.accounts.sources, { ...(signal ? { signal } : {}) });
   },
 
   listCards(signal?: AbortSignal): Promise<CreditCard[]> {

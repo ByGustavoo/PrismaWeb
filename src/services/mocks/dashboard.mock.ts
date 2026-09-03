@@ -34,6 +34,7 @@ function buildSpendingByCategory(): CategorySpending[] {
   const grouped = new Map<string, CategorySpending>();
 
   for (const item of expenses) {
+    if (!item.category) continue;
     const existing = grouped.get(item.category.id);
     if (existing) {
       existing.amount += item.amount;

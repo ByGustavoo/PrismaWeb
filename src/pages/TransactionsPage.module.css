@@ -5,46 +5,6 @@
   padding: var(--space-2) var(--space-2) var(--space-4);
 }
 
-/*
- * Busca e filtros em uma linha so. Todos os campos crescem e encolhem juntos
- * (flex-basis 0), entao a linha se ajusta a largura disponivel em vez de
- * quebrar; o texto do gatilho corta com reticencias quando aperta.
- */
-.controls {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.search {
-  flex: 1.4 1 0;
-  min-width: 0;
-}
-
-.filter {
-  flex: 1 1 0;
-  min-width: 0;
-}
-
-.clear {
-  flex-shrink: 0;
-}
-
-/* Abaixo desta largura a linha unica ficaria ilegivel: ai sim ela quebra. */
-@media (max-width: 1023px) {
-  .controls {
-    flex-wrap: wrap;
-  }
-
-  .search {
-    flex: 1 1 100%;
-  }
-
-  .filter {
-    flex: 1 1 180px;
-  }
-}
-
 .summary {
   display: flex;
   align-items: center;
@@ -66,19 +26,12 @@
   gap: var(--space-3);
 }
 
-.amountRange {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-4);
+.confirmTitle {
+  font-size: var(--fs-md);
+  font-weight: 600;
 }
 
-@media (max-width: 599px) {
-  .filter {
-    flex: 1 1 100%;
-    min-width: 0;
-  }
-
-  .amountRange {
-    grid-template-columns: minmax(0, 1fr);
-  }
+.confirmMeta {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
 }

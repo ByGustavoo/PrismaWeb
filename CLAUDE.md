@@ -9,8 +9,10 @@ planejamento). O nome do produto e **Prisma**, usado de forma consistente no rep
 `package.json`, em `APP_NAME` (`src/constants/app.ts`), no `<title>` do `index.html` e nos
 prefixos de `localStorage` (`prisma:*`). Ao renomear um deles, renomeie todos.
 
-O estado atual e a **Etapa 1**: fundacao do frontend. Nao existe backend ainda; toda a camada de
-dados responde com mocks. O backend em Java / Spring Boot / PostgreSQL vira nas proximas etapas.
+O estado atual vai ate a **Etapa 3**: fundacao do frontend, dashboard e as telas de lancamentos
+(listagem com filtros, cadastro, edicao e exclusao de receitas, despesas e transferencias). Nao
+existe backend ainda; toda a camada de dados responde com mocks, e a escrita vive em memoria pelo
+tempo da sessao. O backend em Java / Spring Boot / PostgreSQL vira nas proximas etapas.
 
 ## Comandos
 
@@ -74,7 +76,9 @@ Estas sao as invariantes do projeto. Quebra-las e o erro mais caro que se pode c
 7. **Nada de `<select>` nativo.** O navegador desenha a lista do elemento nativo com as cores do
    sistema e ignora os tokens, o que deixa as opcoes ilegiveis no tema escuro. Campos de escolha
    usam `components/ui/Select`, um combobox proprio com `role="listbox"`, navegacao por teclado e
-   estados de hover, selecao e foco vindos dos tokens.
+   estados de hover, selecao e foco vindos dos tokens. A lista sai num portal no `body` com posicao
+   fixa: dentro de um formulario em modal, que rola, uma lista absoluta seria cortada pela borda do
+   painel. Por isso `--z-popover` fica acima de `--z-modal` — nao inverta essa ordem.
 
 8. **Excecao ao token de cor: Recharts.** A biblioteca escreve cor como atributo de SVG, onde
    `var(--token)` nao resolve de forma confiavel. Use o hook `useChartPalette`, que le os tokens
@@ -86,10 +90,13 @@ Estas sao as invariantes do projeto. Quebra-las e o erro mais caro que se pode c
 src/
 ├── api/           httpClient, ApiError, endpoints
 ├── components/
-│   ├── ui/        Button, Card, Input, Select, Modal, Badge, Table, Loading, EmptyState, Toast
+│   ├── ui/        Button, Card, Input, Textarea, Select, Modal, ConfirmDialog, Badge, Table,
+│   │              Loading, EmptyState, Toast
 │   ├── common/    Amount, BrandMark, DeltaIndicator, UnderConstruction
 │   ├── layout/    Sidebar, Header, PageHeader, NotificationsPanel
 │   ├── dashboard/ BalancePanel, StatTile, CashflowChart, CategoryBreakdown, RecentTransactions
+│   ├── transactions/ TransactionFilters, TransactionsTable, formularios de lancamento,
+│   │              meta (icone/cor por tipo e situacao) e query (filtro, periodo e ordenacao)
 │   └── charts/    ChartTooltip
 ├── constants/     env, app, navigation, transactions
 ├── hooks/         useAsyncData, useMediaQuery, useLocalStorage, useLockBodyScroll, useChartPalette
@@ -97,8 +104,8 @@ src/
 ├── pages/         Dashboard, Lancamentos, Configuracoes, placeholders, 404
 ├── providers/     ThemeProvider, ToastProvider, AppProviders
 ├── routes/        AppRoutes, paths
-├── services/      dashboard, transactions, accounts, investments, alerts
-│   └── mocks/     data, dashboard.mock, alerts.mock, mockResponse
+├── services/      dashboard, transactions, categories, accounts, investments, alerts
+│   └── mocks/     data, transactions.store, dashboard.mock, alerts.mock, mockResponse
 ├── styles/        tokens.css, global.css
 ├── types/         common, finance
 └── utils/         cn, date, format
@@ -155,6 +162,29 @@ Cada pasta de componentes tem um `index.ts` de barril — ao criar um componente
 - Os tokens `--brand-*` sao a excecao a regra de tema: um logotipo nao muda de cor com o tema,
   entao eles ficam no bloco `:root` e valem para claro e escuro.
 
+## Escrita nos mocks
+
+Cadastro, edicao e exclusao de lancamentos passam por `transactionsService`, que no modo mock
+delega a `services/mocks/transactions.store.ts`. O store muta o array `transactions` de
+`mocks/data.ts` — a mesma fonte que abastece dashboard e avisos, entao um lancamento novo aparece
+em todas as telas. O estado vive so ate o reload da pagina, de proposito: nao ha persistencia
+enquanto nao houver backend.
+
+O contrato de escrita e `TransactionPayload`: o cliente manda ids (`accountId`, `categoryId`,
+`toAccountId`) e quem resolve nome de conta e de categoria e o servidor. O store tambem devolve
+`ApiError` nos casos invalidos, com o mesmo formato do `httpClient`, para que a tela ja trate erro
+como tratara contra a API real.
+
+**Transferencia nao e receita nem despesa.** Ela tem `category: null`, carrega `toAccountId` e fica
+fora do total do periodo (`netTotal`) e de `spendingByCategory`: o dinheiro so troca de conta e nao
+altera o patrimonio. Por isso a tela de Transferencias esconde a coluna e o filtro de categoria —
+seriam um traco em toda linha.
+
+A tela de lancamentos busca do service so pelo `kind` da rota; busca, periodo, categoria, conta,
+situacao e ordenacao sao aplicados em memoria por `components/transactions/query.ts`, para responder
+a cada tecla sem uma nova ida ao servidor. Os mesmos filtros existem em `TransactionFilters` do
+service porque sao os parametros que a API vai receber como query string.
+
 ## Avisos
 
 O sino do header abre o `NotificationsPanel`, alimentado por `alertsService`. Os avisos nao sao
@@ -181,5 +211,6 @@ e um ponto unico (`getAuthToken`) para plugar o token quando entrar o Spring Sec
 
 ## Fora de escopo hoje
 
-Backend, autenticacao, CRUD real, ESLint/Prettier, testes e code-splitting por rota ainda nao
-existem. Nao invente configuracao dessas sem o usuario pedir.
+Backend, autenticacao, persistencia real, ESLint/Prettier, testes e code-splitting por rota ainda
+nao existem. Cartoes, faturas, parcelas e investimentos continuam como telas em construcao. Nao
+invente configuracao dessas sem o usuario pedir.

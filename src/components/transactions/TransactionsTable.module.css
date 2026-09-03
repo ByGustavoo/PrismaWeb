@@ -1,0 +1,125 @@
+/* Oito colunas nao cabem em telas estreitas: abaixo disso o container rola. */
+.table {
+  min-width: 1000px;
+}
+
+.sortButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+  border-radius: var(--radius-xs);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.sortButton:hover {
+  color: var(--text);
+}
+
+.sortButton svg {
+  opacity: 0.45;
+}
+
+.sortActive,
+.sortActive:hover {
+  color: var(--accent);
+}
+
+.sortActive svg {
+  opacity: 1;
+}
+
+.description {
+  display: block;
+  font-weight: 500;
+}
+
+/* Observacao como segunda linha discreta: contexto sem roubar a descricao. */
+.notes {
+  display: block;
+  margin-top: 2px;
+  max-width: 34ch;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.empty {
+  color: var(--text-subtle);
+}
+
+.category {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+
+.categoryDot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  flex-shrink: 0;
+}
+
+/* Origem -> destino de uma transferencia, sempre na mesma linha. */
+.route {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+
+.route svg {
+  color: var(--text-subtle);
+  flex-shrink: 0;
+}
+
+.kind {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 2px var(--space-2) 2px var(--space-1);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-sm);
+  white-space: nowrap;
+  color: var(--text-muted);
+}
+
+.kind svg {
+  flex-shrink: 0;
+}
+
+.income svg {
+  color: var(--positive);
+}
+
+.expense svg {
+  color: var(--negative);
+}
+
+.transfer svg {
+  color: var(--text-subtle);
+}
+
+.actions {
+  display: inline-flex;
+  gap: var(--space-1);
+}
+
+/*
+ * Excluir so fica vermelho no hover: em repouso, uma coluna inteira de icones
+ * vermelhos dominaria a tabela.
+ */
+.delete:hover {
+  color: var(--negative);
+}

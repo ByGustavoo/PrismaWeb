@@ -1,143 +1,159 @@
-import { useCallback, useMemo, useState } from 'react';
-import { ArrowLeftRight, CircleDot, Filter, Plus, Search, SlidersHorizontal, Tag, Wallet, X } from 'lucide-react';
-import { PageHeader } from '@/components/layout';
-import { TransactionRow } from '@/components/dashboard';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Filter, Plus } from 'lucide-react';
 import { Amount } from '@/components/common';
+import { PageHeader } from '@/components/layout';
 import {
-  Button,
-  Card,
-  EmptyState,
-  Input,
-  LoadingBlock,
-  Modal,
-  Select,
-  TBody,
-  THead,
-  Table,
-  TableWrapper,
-  Th,
-  Tr,
-} from '@/components/ui';
+  TransactionFilters,
+  TransactionFormModal,
+  TransactionsTable,
+  TransferFormModal,
+  applyQuery,
+  emptyQuery,
+  hasActiveFilters,
+  initialSortDirection,
+  netTotal,
+} from '@/components/transactions';
+import type { SortField, TransactionQuery } from '@/components/transactions';
+import { Button, Card, ConfirmDialog, EmptyState, LoadingBlock } from '@/components/ui';
+import { transactionKindLabel } from '@/constants/transactions';
 import { useAsyncData } from '@/hooks/useAsyncData';
 import { useToast } from '@/providers/ToastProvider';
-import { transactionsService } from '@/services';
-import { transactionKindPluralLabel, transactionStatusLabel } from '@/constants/transactions';
-import { LOCALE } from '@/constants/app';
-import type { Option, Transaction, TransactionKind } from '@/types';
+import { NEW_TRANSACTION_PARAM, newTransactionValues } from '@/routes/paths';
+import { accountsService, categoriesService, transactionsService } from '@/services';
+import type { Transaction, TransactionKind, TransactionPayload } from '@/types';
+import { formatFullDate } from '@/utils/format';
 import styles from './TransactionsPage.module.css';
 
 interface TransactionsPageProps {
+  /** Ausente na tela "Lançamentos", que mostra todos os tipos. */
   kind?: TransactionKind;
   title: string;
   description: string;
 }
 
-/** Valor usado por todo select de filtro para "sem restricao". */
-const ALL = 'all';
-
-const kindOptions: Option[] = [
-  { value: ALL, label: 'Todos' },
-  { value: 'income', label: transactionKindPluralLabel.income },
-  { value: 'expense', label: transactionKindPluralLabel.expense },
-  { value: 'transfer', label: transactionKindPluralLabel.transfer },
-];
-
-const statusOptions: Option[] = [
-  { value: ALL, label: 'Todas' },
-  { value: 'paid', label: transactionStatusLabel.paid },
-  { value: 'pending', label: transactionStatusLabel.pending },
-  { value: 'scheduled', label: transactionStatusLabel.scheduled },
-];
-
-/** Opcoes derivadas dos proprios dados: a lista nunca oferece o que nao existe. */
-function buildOptions(values: string[], allLabel: string): Option[] {
-  const unique = [...new Set(values)].sort((a, b) => a.localeCompare(b, LOCALE));
-  return [{ value: ALL, label: allLabel }, ...unique.map((item) => ({ value: item, label: item }))];
-}
-
-/** Aceita "1.200,50" e "1200.50" — o usuario digita do jeito brasileiro. */
-function parseAmountInput(raw: string): number | undefined {
-  const normalized = raw.trim().replace(/\./g, '').replace(',', '.');
-  if (!normalized) return undefined;
-  const parsed = Number(normalized);
-  return Number.isFinite(parsed) ? parsed : undefined;
-}
+/** Qual formulario abrir quando a tela mostra todos os tipos. */
+type FormMode = 'income' | 'expense' | 'transfer';
 
 export function TransactionsPage({ kind, title, description }: TransactionsPageProps) {
-  const [search, setSearch] = useState('');
-  const [kindFilter, setKindFilter] = useState<string>(ALL);
-  const [accountFilter, setAccountFilter] = useState<string>(ALL);
-  const [categoryFilter, setCategoryFilter] = useState<string>(ALL);
-  const [statusFilter, setStatusFilter] = useState<string>(ALL);
-  const [minAmount, setMinAmount] = useState('');
-  const [maxAmount, setMaxAmount] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
+  const [query, setQuery] = useState<TransactionQuery>(emptyQuery);
+  const [formMode, setFormMode] = useState<FormMode | null>(null);
+  const [editing, setEditing] = useState<Transaction | null>(null);
+  const [removing, setRemoving] = useState<Transaction | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
   const toast = useToast();
+
+  // `/lancamentos?novo=despesa` abre o cadastro direto. O parametro sai da URL
+  // assim que e lido, para que voltar no historico nao reabra o formulario.
+  useEffect(() => {
+    const requested = searchParams.get(NEW_TRANSACTION_PARAM);
+    if (!requested) return;
+
+    const mode = newTransactionValues[requested as keyof typeof newTransactionValues];
+    if (mode) {
+      setEditing(null);
+      setFormMode(mode);
+    }
+    setSearchParams({}, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   const fetchTransactions = useCallback(
     (signal: AbortSignal) => transactionsService.list(kind ? { kind } : {}, signal),
     [kind],
   );
 
-  const { data, loading, error } = useAsyncData(fetchTransactions, [kind]);
-
-  const accountOptions = useMemo(
-    () => buildOptions((data ?? []).map((item) => item.accountName), 'Todas'),
-    [data],
+  const fetchCatalog = useCallback(
+    (signal: AbortSignal) =>
+      Promise.all([categoriesService.list(undefined, signal), accountsService.listSources(signal)]),
+    [],
   );
 
-  const categoryOptions = useMemo(
-    () => buildOptions((data ?? []).map((item) => item.category.name), 'Todas'),
-    [data],
-  );
+  const { data, loading, error, reload } = useAsyncData(fetchTransactions, [kind]);
+  const { data: catalog } = useAsyncData(fetchCatalog);
 
-  const transactions = useMemo(() => {
-    if (!data) return [];
+  const categories = catalog?.[0] ?? [];
+  const sources = catalog?.[1] ?? [];
 
-    const term = search.trim().toLowerCase();
-    const min = parseAmountInput(minAmount);
-    const max = parseAmountInput(maxAmount);
+  const source = useMemo(() => data ?? [], [data]);
+  const transactions = useMemo(() => applyQuery(source, query), [source, query]);
+  const total = netTotal(transactions);
+  const filtered = hasActiveFilters(query);
 
-    return data.filter((item: Transaction) => {
-      if (kindFilter !== ALL && item.kind !== kindFilter) return false;
-      if (accountFilter !== ALL && item.accountName !== accountFilter) return false;
-      if (categoryFilter !== ALL && item.category.name !== categoryFilter) return false;
-      if (statusFilter !== ALL && item.status !== statusFilter) return false;
-      if (min !== undefined && item.amount < min) return false;
-      if (max !== undefined && item.amount > max) return false;
+  const patchQuery = (patch: Partial<TransactionQuery>) => setQuery((current) => ({ ...current, ...patch }));
 
-      if (!term) return true;
-      return (
-        item.description.toLowerCase().includes(term) ||
-        item.category.name.toLowerCase().includes(term) ||
-        item.accountName.toLowerCase().includes(term) ||
-        transactionStatusLabel[item.status].toLowerCase().includes(term)
+  const clearFilters = () =>
+    setQuery((current) => ({
+      ...emptyQuery,
+      // Ordenacao e preferencia de leitura, nao filtro: sobrevive ao "Limpar".
+      sortField: current.sortField,
+      sortDirection: current.sortDirection,
+    }));
+
+  /** Reclicar a mesma coluna inverte; trocar de coluna assume a direcao natural dela. */
+  const handleSort = (field: SortField) =>
+    setQuery((current) =>
+      current.sortField === field
+        ? { ...current, sortDirection: current.sortDirection === 'asc' ? 'desc' : 'asc' }
+        : { ...current, sortField: field, sortDirection: initialSortDirection[field] },
+    );
+
+  const closeForm = () => {
+    setFormMode(null);
+    setEditing(null);
+  };
+
+  const openCreate = (mode: FormMode) => {
+    setEditing(null);
+    setFormMode(mode);
+  };
+
+  const openEdit = (transaction: Transaction) => {
+    setEditing(transaction);
+    setFormMode(transaction.kind);
+  };
+
+  const handleSubmit = async (payload: TransactionPayload) => {
+    setSaving(true);
+    const noun = transactionKindLabel[payload.kind];
+
+    try {
+      if (editing) {
+        await transactionsService.update(editing.id, payload);
+        toast.success(`${noun} atualizada`, payload.description);
+      } else {
+        await transactionsService.create(payload);
+        toast.success(`${noun} cadastrada`, payload.description);
+      }
+      closeForm();
+      reload();
+    } catch (submitError) {
+      toast.error(
+        'Não foi possível salvar o lançamento',
+        submitError instanceof Error ? submitError.message : undefined,
       );
-    });
-  }, [data, search, kindFilter, accountFilter, categoryFilter, statusFilter, minAmount, maxAmount]);
+    } finally {
+      setSaving(false);
+    }
+  };
 
-  const total = transactions.reduce(
-    (sum, item) => sum + (item.kind === 'expense' ? -item.amount : item.amount),
-    0,
-  );
+  const handleDelete = async () => {
+    if (!removing) return;
+    setSaving(true);
 
-  const hasActiveFilters =
-    search.trim() !== '' ||
-    kindFilter !== ALL ||
-    accountFilter !== ALL ||
-    categoryFilter !== ALL ||
-    statusFilter !== ALL ||
-    minAmount !== '' ||
-    maxAmount !== '';
-
-  const clearFilters = () => {
-    setSearch('');
-    setKindFilter(ALL);
-    setAccountFilter(ALL);
-    setCategoryFilter(ALL);
-    setStatusFilter(ALL);
-    setMinAmount('');
-    setMaxAmount('');
+    try {
+      await transactionsService.remove(removing.id);
+      toast.success('Lançamento excluído', removing.description);
+      setRemoving(null);
+      reload();
+    } catch (deleteError) {
+      toast.error(
+        'Não foi possível excluir o lançamento',
+        deleteError instanceof Error ? deleteError.message : undefined,
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -146,174 +162,137 @@ export function TransactionsPage({ kind, title, description }: TransactionsPageP
         title={title}
         description={description}
         actions={
-          <>
-            <Button variant="secondary" size="sm" icon={SlidersHorizontal} onClick={() => setShowFilters(true)}>
-              Filtro por valor
+          kind ? (
+            <Button size="sm" icon={Plus} onClick={() => openCreate(kind)}>
+              Nova {transactionKindLabel[kind].toLowerCase()}
             </Button>
-            <Button
-              size="sm"
-              icon={Plus}
-              onClick={() =>
-                toast.notify({ title: 'O cadastro de lançamentos entra na próxima etapa', variant: 'info' })
-              }
-            >
-              Novo lançamento
-            </Button>
-          </>
+          ) : (
+            <>
+              <Button variant="secondary" size="sm" icon={Plus} onClick={() => openCreate('income')}>
+                Receita
+              </Button>
+              <Button variant="secondary" size="sm" icon={Plus} onClick={() => openCreate('expense')}>
+                Despesa
+              </Button>
+              <Button size="sm" icon={Plus} onClick={() => openCreate('transfer')}>
+                Transferência
+              </Button>
+            </>
+          )
         }
       />
 
       <Card padding="sm">
         <div className={styles.toolbar}>
-          <div className={styles.controls}>
-            <Input
-              className={styles.search}
-              icon={Search}
-              placeholder="Buscar lançamento"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              aria-label="Buscar lançamentos"
-            />
-
-            {kind ? null : (
-              <Select
-                className={styles.filter}
-                icon={ArrowLeftRight}
-                prefix="Tipo:"
-                options={kindOptions}
-                value={kindFilter}
-                onChange={setKindFilter}
-                aria-label="Filtrar por tipo"
-              />
-            )}
-            <Select
-              className={styles.filter}
-              icon={Wallet}
-              prefix="Conta:"
-              options={accountOptions}
-              value={accountFilter}
-              onChange={setAccountFilter}
-              aria-label="Filtrar por conta"
-            />
-            <Select
-              className={styles.filter}
-              icon={Tag}
-              prefix="Categoria:"
-              options={categoryOptions}
-              value={categoryFilter}
-              onChange={setCategoryFilter}
-              aria-label="Filtrar por categoria"
-            />
-            <Select
-              className={styles.filter}
-              icon={CircleDot}
-              prefix="Situação:"
-              options={statusOptions}
-              value={statusFilter}
-              onChange={setStatusFilter}
-              aria-label="Filtrar por situação"
-            />
-
-            {hasActiveFilters ? (
-              <Button className={styles.clear} variant="ghost" size="sm" icon={X} onClick={clearFilters}>
-                Limpar
-              </Button>
-            ) : null}
-          </div>
+          <TransactionFilters
+            query={query}
+            onChange={patchQuery}
+            onClear={clearFilters}
+            source={source}
+            showKindFilter={!kind}
+            showCategoryFilter={kind !== 'transfer'}
+          />
 
           <div className={styles.summary}>
             <span className={styles.summaryLabel}>
               {transactions.length} {transactions.length === 1 ? 'lançamento' : 'lançamentos'}
             </span>
-            <span className={styles.summaryTotal}>
-              <span className={styles.summaryLabel}>Resultado do período</span>
-              <Amount value={total} tone={total >= 0 ? 'positive' : 'negative'} sign="auto" />
-            </span>
+            {kind === 'transfer' ? (
+              <span className={styles.summaryLabel}>Transferências não entram no resultado do período</span>
+            ) : (
+              <span className={styles.summaryTotal}>
+                <span className={styles.summaryLabel}>Resultado do período</span>
+                <Amount value={total} tone={total >= 0 ? 'positive' : 'negative'} sign="auto" />
+              </span>
+            )}
           </div>
         </div>
 
         {loading ? (
           <LoadingBlock lines={6} height={320} />
         ) : error ? (
-          <EmptyState title="Não foi possível carregar os lançamentos" description={error.message} />
+          <EmptyState
+            title="Não foi possível carregar os lançamentos"
+            description={error.message}
+            action={
+              <Button variant="secondary" onClick={reload}>
+                Tentar de novo
+              </Button>
+            }
+          />
         ) : transactions.length === 0 ? (
           <EmptyState
             icon={Filter}
-            title="Nenhum lançamento encontrado"
+            title={filtered ? 'Nenhum lançamento encontrado' : 'Nada registrado por aqui ainda'}
             description={
-              hasActiveFilters
+              filtered
                 ? 'Nenhum lançamento atende aos filtros selecionados.'
-                : 'Registre um novo lançamento para ver os dados aqui.'
+                : 'Cadastre o primeiro lançamento para acompanhar suas movimentações.'
             }
             action={
-              hasActiveFilters ? (
-                <Button variant="secondary" icon={X} onClick={clearFilters}>
+              filtered ? (
+                <Button variant="secondary" onClick={clearFilters}>
                   Limpar filtros
                 </Button>
-              ) : null
+              ) : (
+                <Button icon={Plus} onClick={() => openCreate(kind ?? 'expense')}>
+                  Novo lançamento
+                </Button>
+              )
             }
           />
         ) : (
-          <TableWrapper>
-            <Table>
-              <THead>
-                <Tr>
-                  <Th>Descrição</Th>
-                  <Th>Categoria</Th>
-                  <Th>Conta</Th>
-                  <Th>Data</Th>
-                  <Th>Situação</Th>
-                  <Th numeric>Valor</Th>
-                </Tr>
-              </THead>
-              <TBody>
-                {transactions.map((transaction) => (
-                  <TransactionRow key={transaction.id} transaction={transaction} />
-                ))}
-              </TBody>
-            </Table>
-          </TableWrapper>
+          <TransactionsTable
+            transactions={transactions}
+            sortField={query.sortField}
+            sortDirection={query.sortDirection}
+            onSort={handleSort}
+            showCategory={kind !== 'transfer'}
+            onEdit={openEdit}
+            onDelete={setRemoving}
+          />
         )}
       </Card>
 
-      <Modal
-        open={showFilters}
-        onClose={() => setShowFilters(false)}
-        title="Filtrar por valor"
-        description="Restringe o resultado a uma faixa de valores. Deixe em branco para não limitar."
-        size="sm"
-        footer={
-          <>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setMinAmount('');
-                setMaxAmount('');
-              }}
-            >
-              Limpar faixa
-            </Button>
-            <Button onClick={() => setShowFilters(false)}>Aplicar</Button>
-          </>
-        }
+      <TransactionFormModal
+        open={formMode === 'income' || formMode === 'expense'}
+        kind={formMode === 'income' ? 'income' : 'expense'}
+        transaction={editing}
+        categories={categories}
+        sources={sources}
+        saving={saving}
+        onSubmit={handleSubmit}
+        onClose={closeForm}
+      />
+
+      <TransferFormModal
+        open={formMode === 'transfer'}
+        transaction={editing}
+        sources={sources}
+        saving={saving}
+        onSubmit={handleSubmit}
+        onClose={closeForm}
+      />
+
+      <ConfirmDialog
+        open={removing !== null}
+        title="Excluir lançamento"
+        description="Esta ação não pode ser desfeita."
+        confirmLabel="Excluir"
+        loading={saving}
+        onConfirm={handleDelete}
+        onCancel={() => setRemoving(null)}
       >
-        <div className={styles.amountRange}>
-          <Input
-            label="Valor mínimo"
-            inputMode="decimal"
-            placeholder="0,00"
-            value={minAmount}
-            onChange={(event) => setMinAmount(event.target.value)}
-          />
-          <Input
-            label="Valor máximo"
-            inputMode="decimal"
-            placeholder="0,00"
-            value={maxAmount}
-            onChange={(event) => setMaxAmount(event.target.value)}
-          />
-        </div>
-      </Modal>
+        {removing ? (
+          <>
+            <strong className={styles.confirmTitle}>{removing.description}</strong>
+            <span className={styles.confirmMeta}>
+              {transactionKindLabel[removing.kind]} · {formatFullDate(removing.date)} · {removing.accountName}
+            </span>
+            <Amount value={removing.amount} tone={removing.kind === 'expense' ? 'negative' : 'default'} />
+          </>
+        ) : null}
+      </ConfirmDialog>
     </>
   );
 }

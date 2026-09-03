@@ -39,3 +39,21 @@ export function daysBetween(from: string, to: string): number {
 export function monthKeyFromOffset(offset: number, base: Date = new Date()): string {
   return toMonthKey(addMonths(base, offset));
 }
+
+/** Primeiro e ultimo dia do mes deslocado a partir de `base`, em datas ISO. */
+export function monthRange(offset: number, base: Date = new Date()): { from: string; to: string } {
+  const start = addMonths(base, offset);
+  const end = new Date(start.getFullYear(), start.getMonth() + 1, 0);
+  return { from: toISODate(start), to: toISODate(end) };
+}
+
+/** Janela dos ultimos N dias, incluindo hoje. */
+export function lastDaysRange(days: number, base: Date = new Date()): { from: string; to: string } {
+  return { from: toISODate(addDays(base, -(days - 1))), to: toISODate(base) };
+}
+
+/** Do primeiro dia de janeiro ate 31 de dezembro do ano de `base`. */
+export function yearRange(base: Date = new Date()): { from: string; to: string } {
+  const year = base.getFullYear();
+  return { from: `${year}-01-01`, to: `${year}-12-31` };
+}

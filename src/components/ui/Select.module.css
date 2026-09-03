@@ -11,11 +11,6 @@
   color: var(--text-muted);
 }
 
-/* Ancora do menu: precisa ser o contexto de posicionamento da lista. */
-.anchor {
-  position: relative;
-}
-
 .trigger {
   display: flex;
   align-items: center;
@@ -104,13 +99,14 @@
   color: var(--accent);
 }
 
+/*
+ * A lista mora num portal no body, entao posiciona por coordenadas fixas
+ * calculadas a partir do gatilho (ver Select.tsx). Nao ha ancora relativa aqui.
+ */
 .menu {
-  position: absolute;
-  top: calc(100% + var(--space-2));
-  left: 0;
+  position: fixed;
   z-index: var(--z-popover);
-  min-width: 100%;
-  max-width: min(320px, 90vw);
+  min-width: 180px;
   max-height: 288px;
   overflow-y: auto;
   overscroll-behavior: contain;

@@ -6,9 +6,13 @@ export type TransactionStatus = 'paid' | 'pending' | 'scheduled';
 
 export type PaymentMethod = 'account' | 'credit-card' | 'pix' | 'cash';
 
+/** Receita e despesa nao compartilham categoria: cada formulario oferece so as do seu lado. */
+export type CategoryKind = 'income' | 'expense';
+
 export interface Category {
   id: ID;
   name: string;
+  kind: CategoryKind;
   /** Indice do token de cor de grafico (--chart-1 ... --chart-6). */
   colorToken: 1 | 2 | 3 | 4 | 5 | 6;
 }
@@ -23,9 +27,39 @@ export interface Transaction {
   method: PaymentMethod;
   /** Data ISO (YYYY-MM-DD). */
   date: string;
-  category: Category;
+  /** Transferencia so move dinheiro entre contas proprias, entao nao tem categoria. */
+  category: Category | null;
+  /** Conta ou cartao de origem do dinheiro. */
+  accountId: ID;
   accountName: string;
+  /** Conta de destino; presente apenas em transferencias. */
+  toAccountId?: ID;
+  toAccountName?: string;
   notes?: string;
+}
+
+/**
+ * Corpo enviado ao criar ou editar um lancamento. O cliente manda ids: quem
+ * resolve nome de conta e de categoria e o servidor (hoje, a camada de mock).
+ */
+export interface TransactionPayload {
+  description: string;
+  amount: number;
+  kind: TransactionKind;
+  status: TransactionStatus;
+  method: PaymentMethod;
+  date: string;
+  categoryId?: ID;
+  accountId: ID;
+  toAccountId?: ID;
+  notes?: string;
+}
+
+/** Origem de dinheiro escolhivel num lancamento: uma conta propria ou um cartao. */
+export interface PaymentSource {
+  id: ID;
+  name: string;
+  group: 'account' | 'card';
 }
 
 export type AccountType = 'checking' | 'savings' | 'wallet' | 'brokerage';

@@ -1,4 +1,4 @@
-import type { TransactionKind, TransactionStatus } from '@/types';
+import type { PaymentMethod, TransactionKind, TransactionStatus } from '@/types';
 
 /**
  * Rotulos de dominio compartilhados entre a tabela e os filtros.
@@ -23,3 +23,15 @@ export const transactionKindPluralLabel: Record<TransactionKind, string> = {
   expense: 'Despesas',
   transfer: 'Transferências',
 };
+
+export const paymentMethodLabel: Record<PaymentMethod, string> = {
+  account: 'Débito em conta',
+  'credit-card': 'Cartão de crédito',
+  pix: 'Pix',
+  cash: 'Dinheiro',
+};
+
+/** Ordem em que as formas de pagamento aparecem no formulario. */
+export const paymentMethods: PaymentMethod[] = ['account', 'pix', 'credit-card', 'cash'];
+
+export const transactionStatuses: TransactionStatus[] = ['paid', 'pending', 'scheduled'];

@@ -62,11 +62,16 @@
   --brand-facet-shade: #3f63c9;
 
   /* --- Camadas --------------------------------------------------------- */
+  /*
+   * O popover fica acima do modal de proposito: um Select dentro de um
+   * formulario em modal renderiza a lista num portal no body, e ela precisa
+   * flutuar sobre o painel. So o toast passa por cima.
+   */
   --z-header: 30;
-  --z-popover: 35;
   --z-sidebar: 40;
   --z-overlay: 50;
   --z-modal: 60;
+  --z-popover: 65;
   --z-toast: 70;
 }
 

@@ -26,6 +26,13 @@
     box-shadow var(--duration-fast) var(--ease-out);
 }
 
+/* Campo de varias linhas cresce com o conteudo em vez de manter altura fixa. */
+.controlMultiline {
+  height: auto;
+  align-items: stretch;
+  padding-block: var(--space-2);
+}
+
 .control:hover {
   border-color: var(--text-subtle);
 }
@@ -56,9 +63,43 @@
   color: var(--text-subtle);
 }
 
+.textarea {
+  height: auto;
+  padding: 0;
+  resize: vertical;
+  line-height: var(--lh-normal);
+  font-family: inherit;
+}
+
 .icon {
   color: var(--text-subtle);
   flex-shrink: 0;
+}
+
+/* "R$" antes do valor: mesma cor de apoio dos icones, sem competir com o numero. */
+.prefix {
+  flex-shrink: 0;
+  color: var(--text-subtle);
+  font-size: var(--fs-base);
+}
+
+/*
+ * O seletor nativo de data desenha o proprio icone. Com `color-scheme` ja
+ * definido nos tokens ele acompanha o tema; aqui so aproximamos o botao do
+ * calendario do resto do campo.
+ */
+.input[type='date'] {
+  cursor: text;
+}
+
+.input[type='date']::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.input[type='date']::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
 }
 
 .hint {
