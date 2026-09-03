@@ -1,54 +1,129 @@
-# Contorno — controle de finanças pessoais (frontend)
+<div align="center"> <br> 
+  <img align="center" alt="prisma-react" height="150" width="150" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/react/react-original.svg" />
+</div> 
 
-Frontend de uma aplicação de finanças pessoais: contas, cartões, lançamentos, investimentos e planejamento.
+<br> 
 
-Esta é a **Etapa 1**: fundação do frontend (estrutura, layout, navegação, identidade visual e camada de dados
-preparada para a API). O backend em Java / Spring Boot / PostgreSQL será desenvolvido nas próximas etapas.
+<div align="center">
+  Este projeto é o frontend de uma aplicação de finanças pessoais, criada para dar ao usuário uma visão clara e organizada do próprio dinheiro. Reúne contas, cartões, lançamentos, investimentos e planejamento em uma única interface, com dashboard de saldo, fluxo de caixa, gastos por categoria e histórico de movimentações. A camada de dados já nasce preparada para consumir a API, permitindo que as telas sejam desenvolvidas e validadas antes mesmo do backend existir.
+</div> 
 
-## Stack
+ <br> <br> 
 
-| Camada | Escolha |
-| --- | --- |
-| Build | Vite 5 |
-| UI | React 18 + TypeScript 5 (modo `strict`) |
-| Rotas | React Router 6 |
-| Estilos | CSS Modules + custom properties (sem framework de UI) |
-| Ícones | lucide-react |
-| Gráficos | Recharts |
+## 🚀 Ferramentas Utilizadas
 
-## Como executar
+* ⚛️ React 18
 
-Requer Node.js 18+.
+* 🔷 TypeScript 5
+
+* ⚡ Vite 5
+
+* 🧭 React Router 6
+
+* 🎨 CSS Modules
+
+* 📊 Recharts 2
+
+* 🖼️ Lucide React
+
+
+<br>
+
+
+## 📌 Status do Projeto
+
+Esta é a **Etapa 1**: a fundação do frontend — estrutura, layout, navegação, identidade visual e camada de dados preparada para a API. O backend em Java / Spring Boot / PostgreSQL será desenvolvido nas próximas etapas.
+
+
+<br>
+
+
+## ⚙️ Como Executar
+
+Requer Node.js 18 ou superior.
+
+<br>
+
+🔹 Instalação
+```bash
+# Instala as dependências do projeto
+$ npm install
+```
+
+🔹 Ambiente
+```bash
+# Cria o arquivo de variáveis a partir do exemplo
+$ cp .env.example .env
+```
+
+🔹 Execução
+```bash
+# Sobe o servidor de desenvolvimento em http://localhost:5173
+$ npm run dev
+```
+
+
+<br>
+
+
+## 📜 Scripts Disponíveis
+
+<br>
+
+🔹 dev
+```bash
+# Servidor de desenvolvimento com HMR
+$ npm run dev
+```
+
+🔹 build
+```bash
+# Checagem de tipos e build de produção
+$ npm run build
+```
+
+🔹 preview
+```bash
+# Serve o build de produção localmente
+$ npm run preview
+```
+
+🔹 typecheck
+```bash
+# Apenas a checagem de tipos
+$ npm run typecheck
+```
+
+
+<br>
+
+
+## 🔐 Variáveis de Ambiente
+
+Todas as variáveis ficam no arquivo `.env` (veja o `.env.example`). Nenhum outro arquivo lê `import.meta.env` diretamente: isso acontece apenas em `src/constants/env.ts`.
+
+<br>
 
 ```bash
-npm install
-cp .env.example .env
-npm run dev
+# URL base do backend
+VITE_API_URL=http://localhost:8080/api
+
+# Troque para "false" quando a API real existir
+VITE_USE_MOCKS=true
+
+# Latência simulada dos mocks, em milissegundos
+VITE_MOCK_DELAY=450
 ```
 
-A aplicação sobe em `http://localhost:5173`.
 
-| Script | O que faz |
-| --- | --- |
-| `npm run dev` | Servidor de desenvolvimento com HMR |
-| `npm run build` | Checagem de tipos (`tsc -b`) e build de produção |
-| `npm run preview` | Serve o build de produção localmente |
-| `npm run typecheck` | Só a checagem de tipos |
+<br>
 
-## Variáveis de ambiente
 
-Todas ficam em `.env` (veja `.env.example`). Nenhum outro arquivo lê `import.meta.env`:
-isso acontece só em `src/constants/env.ts`.
+## 📂 Estrutura do Projeto
 
-```
-VITE_API_URL=http://localhost:8080/api   # URL base do backend
-VITE_USE_MOCKS=true                      # false quando a API real existir
-VITE_MOCK_DELAY=450                      # latência simulada dos mocks, em ms
-```
+<br>
 
-## Estrutura
-
-```
+```bash
 src/
 ├── api/           httpClient, ApiError, endpoints (única fonte de URLs)
 ├── components/
@@ -73,9 +148,15 @@ src/
 └── utils/         cn, date, format
 ```
 
-## Como a troca de mock por API vai funcionar
+
+<br>
+
+
+## 🔄 Camada de Dados
 
 Os componentes nunca falam com `fetch` nem sabem de onde vêm os dados. Cada service decide a origem:
+
+<br>
 
 ```ts
 export const dashboardService = {
@@ -88,43 +169,73 @@ export const dashboardService = {
 };
 ```
 
-Os mocks passam por `mockResponse`, que aplica latência artificial e respeita `AbortSignal`.
-Ou seja: as telas já exercitam carregamento, erro e cancelamento exatamente como farão contra o backend real.
+<br>
 
-Quando a API existir, basta trocar `VITE_USE_MOCKS` para `false`. Se os contratos em `src/types/finance.ts`
-forem respeitados pelo backend, nenhum componente precisa mudar.
+Os mocks passam por `mockResponse`, que aplica latência artificial e respeita `AbortSignal`. Ou seja: as telas já exercitam carregamento, erro e cancelamento exatamente como farão contra o backend real.
 
-O `httpClient` já tem timeout, normalização de erros em `ApiError` e um ponto único (`getAuthToken`)
-para plugar o token quando entrar o Spring Security.
+Quando a API existir, basta trocar `VITE_USE_MOCKS` para `false`. Se os contratos em `src/types/finance.ts` forem respeitados pelo backend, nenhum componente precisa mudar.
 
-## Tema claro e escuro
+O `httpClient` já conta com timeout, normalização de erros em `ApiError` e um ponto único (`getAuthToken`) para plugar o token quando entrar o Spring Security.
 
-- Tokens em `src/styles/tokens.css`, sob `[data-theme='light']` e `[data-theme='dark']`.
-  Nenhum componente declara cor em hex.
-- Um script inline no `index.html` aplica o tema salvo antes do React montar, evitando o flash de tema errado.
-- Três modos: claro, escuro e "sistema" (acompanha o dispositivo). Escolha em **Configurações**,
-  atalho rápido no header.
-- Recharts escreve cor como atributo de SVG, onde `var(--token)` não resolve de forma confiável.
-  O hook `useChartPalette` lê os tokens computados e recalcula quando o tema muda.
 
-## Responsividade
+<br>
 
-- **Desktop**: sidebar fixa, com modo recolhido (76px) persistido em `localStorage`.
-- **Tablet / mobile** (< 1100px): sidebar vira drawer com scrim, fecha ao navegar e trava o scroll do fundo.
-- Grid do dashboard: 4 cards → 2 → 1. Tabelas ganham scroll horizontal.
-- `prefers-reduced-motion` respeitado globalmente.
 
-## O que já está pronto
+## 🌗 Tema Claro e Escuro
 
-- Dashboard com saldo, receitas, despesas, investimentos, fatura atual, fluxo de caixa,
-  gastos por categoria e últimos lançamentos (dados mockados).
-- Lançamentos com listagem, busca, filtro por tipo via rota e modal de filtros.
-- Configurações com seleção de tema e diagnóstico do ambiente de API.
-- Componentes reutilizáveis, estados de carregamento, vazio e erro.
+* 🎨 Tokens em `src/styles/tokens.css`, sob `[data-theme='light']` e `[data-theme='dark']`. Nenhum componente declara cor em hex.
 
-## Próximas etapas
+* ⚡ Um script inline no `index.html` aplica o tema salvo antes do React montar, evitando o flash de tema errado.
 
-- Backend em Spring Boot + PostgreSQL e substituição dos mocks.
-- CRUD de lançamentos, contas, cartões e faturas.
-- Investimentos, orçamento, despesas recorrentes, previsão e relatórios.
-- Autenticação, ESLint/Prettier, testes e code-splitting por rota.
+* 🔀 Três modos disponíveis: claro, escuro e sistema (acompanha o dispositivo). A escolha fica em **Configurações**, com atalho rápido no header.
+
+* 📊 O Recharts escreve cor como atributo de SVG, onde `var(--token)` não resolve de forma confiável. O hook `useChartPalette` lê os tokens computados e recalcula quando o tema muda.
+
+
+<br>
+
+
+## 📱 Responsividade
+
+* 🖥️ **Desktop**: sidebar fixa, com modo recolhido (76px) persistido em `localStorage`.
+
+* 📲 **Tablet e mobile** (< 1100px): a sidebar vira drawer com scrim, fecha ao navegar e trava o scroll do fundo.
+
+* 🧩 Grid do dashboard: 4 cards → 2 → 1. Tabelas ganham scroll horizontal.
+
+* ♿ `prefers-reduced-motion` respeitado globalmente.
+
+
+<br>
+
+
+## ✅ O Que Já Está Pronto
+
+* 📊 Dashboard com saldo, receitas, despesas, investimentos, fatura atual, fluxo de caixa, gastos por categoria e últimos lançamentos.
+
+* 💸 Lançamentos com listagem, busca, filtro por tipo via rota e modal de filtros.
+
+* ⚙️ Configurações com seleção de tema e diagnóstico do ambiente de API.
+
+* 🧱 Componentes reutilizáveis, com estados de carregamento, vazio e erro.
+
+
+<br>
+
+
+## 🗺️ Próximas Etapas
+
+* 🟢 Backend em Spring Boot + PostgreSQL e substituição dos mocks.
+
+* 📝 CRUD de lançamentos, contas, cartões e faturas.
+
+* 📈 Investimentos, orçamento, despesas recorrentes, previsão e relatórios.
+
+* 🔐 Autenticação, ESLint/Prettier, testes e code-splitting por rota.
+
+
+<br> 
+ 
+## 🖥️ Desenvolvedor
+
+### 🔵 LinkedIn: [Gustavo Correa](https://www.linkedin.com/in/gustavo-chauar-correa-946168269/)
