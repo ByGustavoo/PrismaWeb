@@ -12,19 +12,19 @@
 
 ## 🚀 Ferramentas Utilizadas
 
-* ⚛️ React 18
-
-* 🔷 TypeScript 5
-
 * ⚡ Vite 5
 
-* 🧭 React Router 6
-
-* 🎨 CSS Modules
+* ⚛️ React 18
 
 * 📊 Recharts 2
 
+* 🎨 CSS Modules
+ 
 * 🖼️ Lucide React
+
+* 🔷 TypeScript 5
+
+* 🧭 React Router 6
 
 
 <br>
