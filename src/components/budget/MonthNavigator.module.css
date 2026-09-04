@@ -1,0 +1,44 @@
+.navigator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: var(--control-height-sm);
+  padding: 2px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.arrow {
+  display: grid;
+  place-items: center;
+  width: calc(var(--control-height-sm) - 6px);
+  height: calc(var(--control-height-sm) - 6px);
+  border-radius: var(--radius-xs);
+  color: var(--text-muted);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.arrow:hover:not(:disabled) {
+  background-color: var(--surface-muted);
+  color: var(--text);
+}
+
+.arrow:disabled {
+  color: var(--text-subtle);
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/*
+ * Largura minima suficiente para "Setembro de 2026", o rotulo mais longo do
+ * ano: sem ela as setas dancam a cada troca de mes.
+ */
+.label {
+  min-width: 148px;
+  text-align: center;
+  font-size: var(--fs-base);
+  font-weight: 500;
+}

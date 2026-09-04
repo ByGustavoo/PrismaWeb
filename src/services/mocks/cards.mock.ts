@@ -279,6 +279,21 @@ export function buildInvoiceDetail(id: string): InvoiceDetail | undefined {
   return { ...invoice, items: invoiceItems(card, invoice.month) };
 }
 
+/**
+ * Soma das parcelas que caem nas faturas de um mes, de todos os cartoes. E o
+ * que a previsao financeira precisa saber: uma compra em doze vezes ja e uma
+ * despesa assumida dos proximos doze meses, mesmo sem lancamento nenhum.
+ */
+export function installmentTotalIn(monthKey: string): number {
+  return money(
+    installmentPurchases.reduce((total, purchase) => {
+      const index = monthDiff(purchase.firstMonth, monthKey);
+      if (index < 0 || index >= purchase.count) return total;
+      return total + (installmentAmounts(purchase)[index] ?? 0);
+    }, 0),
+  );
+}
+
 /* -------------------------------------------------------------------------- */
 /* Cartoes                                                                    */
 /* -------------------------------------------------------------------------- */

@@ -1,10 +1,12 @@
 import type {
   Account,
+  Budget,
   Card,
   Category,
   InstallmentPurchase,
   Investment,
   PaymentSource,
+  RecurringExpense,
   Transaction,
 } from '@/types';
 import { addDays, monthKeyFromOffset, toISODate } from '@/utils/date';
@@ -281,12 +283,234 @@ export const installmentPurchases: InstallmentPurchase[] = [
 /* Investimentos                                                              */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Carteira de investimentos. Como os demais cadastros desta secao, o array e
+ * mutavel: `investments.store.ts` cria, edita e remove posicoes aqui, e a
+ * evolucao do patrimonio em `investments.mock.ts` e recalculada a partir dele.
+ *
+ * `startDate` nao e enfeite: e dela que sai a idade da posicao, e a idade e o
+ * que distribui os aportes ao longo do historico. Sem ela, a curva de evolucao
+ * teria de supor que tudo entrou no mesmo dia.
+ */
 export const investments: Investment[] = [
-  { id: 'inv-cdb', name: 'CDB Liquidez Diária', assetClass: 'fixed-income', invested: 24000, currentValue: 25890.4 },
-  { id: 'inv-tesouro', name: 'Tesouro IPCA+ 2029', assetClass: 'fixed-income', invested: 18000, currentValue: 19640.15 },
-  { id: 'inv-acoes', name: 'Carteira de ações', assetClass: 'stocks', invested: 21000, currentValue: 23120.8 },
-  { id: 'inv-fii', name: 'Fundos imobiliários', assetClass: 'reits', invested: 12000, currentValue: 12480.55 },
-  { id: 'inv-cripto', name: 'Cripto', assetClass: 'crypto', invested: 4000, currentValue: 3410.2 },
+  {
+    id: 'inv-1',
+    name: 'CDB Liquidez Diária',
+    assetClass: 'cdb',
+    institution: 'Banco Nova',
+    invested: 24000,
+    currentValue: 25890.4,
+    startDate: dayOfMonth(-22, 10),
+    notes: 'Reserva de curto prazo, com resgate em D+0.',
+  },
+  {
+    id: 'inv-2',
+    name: 'Tesouro IPCA+ 2029',
+    assetClass: 'treasury',
+    institution: 'Tesouro Direto',
+    invested: 18000,
+    currentValue: 19640.15,
+    startDate: dayOfMonth(-30, 18),
+  },
+  {
+    id: 'inv-3',
+    name: 'LCI prefixada',
+    assetClass: 'fixed-income',
+    institution: 'Banco Meridiano',
+    invested: 9000,
+    currentValue: 9584.2,
+    startDate: dayOfMonth(-11, 5),
+  },
+  {
+    id: 'inv-4',
+    name: 'Carteira de ações',
+    assetClass: 'stocks',
+    institution: 'Meridiano Investimentos',
+    invested: 21000,
+    currentValue: 23120.8,
+    startDate: dayOfMonth(-26, 3),
+  },
+  {
+    id: 'inv-5',
+    name: 'ETF de índice amplo',
+    assetClass: 'etf',
+    institution: 'Meridiano Investimentos',
+    invested: 11000,
+    currentValue: 12470.65,
+    startDate: dayOfMonth(-16, 12),
+  },
+  {
+    id: 'inv-6',
+    name: 'Fundo imobiliário',
+    assetClass: 'funds',
+    institution: 'Meridiano Investimentos',
+    invested: 12000,
+    currentValue: 12480.55,
+    startDate: dayOfMonth(-19, 8),
+  },
+  {
+    id: 'inv-7',
+    name: 'Criptomoedas',
+    assetClass: 'crypto',
+    institution: 'Bitpar',
+    invested: 4000,
+    currentValue: 3410.2,
+    startDate: dayOfMonth(-14, 21),
+    notes: 'Posição pequena, que aceita oscilar.',
+  },
+  {
+    id: 'inv-8',
+    name: 'Previdência privada',
+    assetClass: 'other',
+    institution: 'Seguradora Atlas',
+    invested: 7200,
+    currentValue: 7845.3,
+    startDate: dayOfMonth(-33, 15),
+  },
+];
+
+/* -------------------------------------------------------------------------- */
+/* Orcamento                                                                  */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Limites mensais por categoria. O orcamento e recorrente e nao tem mes: vale
+ * de um mes para o outro ate ser alterado. Guardar uma linha por mes obrigaria
+ * quem planeja a redigitar o mesmo numero doze vezes por ano, e deixaria todo
+ * mes seguinte comecando sem orcamento nenhum.
+ *
+ * Educacao e outras despesas ficam de proposito sem limite: e o que faz a tela
+ * mostrar o bloco de gasto fora do orcamento, sem o qual a soma dos limites
+ * seria lida como o gasto total do mes — e nem todo mundo orca tudo.
+ */
+export const budgets: Budget[] = [
+  { id: 'bud-1', category: category.moradia, limit: 4600 },
+  { id: 'bud-2', category: category.alimentacao, limit: 1400 },
+  { id: 'bud-3', category: category.transporte, limit: 1900 },
+  { id: 'bud-4', category: category.saude, limit: 2400 },
+  { id: 'bud-5', category: category.lazer, limit: 1000 },
+];
+
+/* -------------------------------------------------------------------------- */
+/* Despesas recorrentes                                                       */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Proxima ocorrencia do dia `day`: ainda neste mes se ele nao passou, no mes
+ * seguinte se ja passou. E o mesmo criterio que o cadastro sugere ao usuario.
+ */
+function nextDueOn(day: number): string {
+  return dayOfMonth(today.getDate() <= day ? 0 : 1, day);
+}
+
+/**
+ * As recorrentes nao sao lancamentos, e sim o compromisso que os gera. Elas
+ * alimentam a previsao dos proximos meses; o lancamento de cada mes continua
+ * nascendo em `transactions`, como qualquer outra despesa ja paga.
+ */
+export const recurringExpenses: RecurringExpense[] = [
+  {
+    id: 'rec-1',
+    description: 'Aluguel',
+    amount: 2450,
+    category: category.moradia,
+    frequency: 'monthly',
+    nextDueDate: nextDueOn(5),
+    accountId: 'acc-1',
+    accountName: 'Conta corrente',
+    status: 'active',
+  },
+  {
+    id: 'rec-2',
+    description: 'Condomínio',
+    amount: 640,
+    category: category.moradia,
+    frequency: 'monthly',
+    nextDueDate: nextDueOn(10),
+    accountId: 'acc-1',
+    accountName: 'Conta corrente',
+    status: 'active',
+  },
+  {
+    id: 'rec-3',
+    description: 'Internet fibra',
+    amount: 129.9,
+    category: category.moradia,
+    frequency: 'monthly',
+    nextDueDate: nextDueOn(12),
+    accountId: 'acc-1',
+    accountName: 'Conta corrente',
+    status: 'active',
+  },
+  {
+    id: 'rec-4',
+    description: 'Plano de saúde',
+    amount: 740.3,
+    category: category.saude,
+    frequency: 'monthly',
+    nextDueDate: nextDueOn(14),
+    accountId: 'acc-1',
+    accountName: 'Conta corrente',
+    status: 'active',
+    notes: 'Reajuste anual em janeiro.',
+  },
+  {
+    id: 'rec-5',
+    description: 'Academia',
+    amount: 159.9,
+    category: category.saude,
+    frequency: 'monthly',
+    nextDueDate: nextDueOn(26),
+    accountId: 'acc-1',
+    accountName: 'Conta corrente',
+    status: 'active',
+  },
+  {
+    id: 'rec-6',
+    description: 'Streaming e assinaturas',
+    amount: 89.7,
+    category: category.lazer,
+    frequency: 'monthly',
+    nextDueDate: nextDueOn(16),
+    accountId: 'card-2',
+    accountName: 'Viagem Gold',
+    status: 'active',
+  },
+  {
+    id: 'rec-7',
+    description: 'Seguro do carro',
+    amount: 2340,
+    category: category.transporte,
+    frequency: 'yearly',
+    nextDueDate: dayOfMonth(4, 9),
+    accountId: 'acc-1',
+    accountName: 'Conta corrente',
+    status: 'active',
+    notes: 'Pago à vista, com desconto.',
+  },
+  {
+    id: 'rec-8',
+    description: 'Plano de idiomas',
+    amount: 1188,
+    category: category.educacao,
+    frequency: 'semiannual',
+    nextDueDate: dayOfMonth(2, 20),
+    accountId: 'card-1',
+    accountName: 'Nova Platinum',
+    status: 'active',
+  },
+  {
+    id: 'rec-9',
+    description: 'Clube esportivo',
+    amount: 210,
+    category: category.lazer,
+    frequency: 'monthly',
+    nextDueDate: nextDueOn(22),
+    accountId: 'acc-1',
+    accountName: 'Conta corrente',
+    status: 'paused',
+    notes: 'Pausado enquanto a academia estiver ativa.',
+  },
 ];
 
 /* -------------------------------------------------------------------------- */

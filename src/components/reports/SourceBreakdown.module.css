@@ -1,0 +1,81 @@
+/* O cartao acompanha o proprio conteudo em vez de esticar ate o vizinho. */
+.card {
+  align-self: start;
+}
+
+.empty {
+  font-size: var(--fs-base);
+  color: var(--text-subtle);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-base);
+}
+
+/*
+ * O icone distingue conta de cartao: dois nomes proprios lado a lado ("Conta
+ * corrente" e "Nova Platinum") nao dizem sozinhos qual e qual.
+ */
+.iconBox {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-xs);
+  background-color: var(--surface-muted);
+  color: var(--text-muted);
+}
+
+.name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.share {
+  color: var(--text-subtle);
+  font-size: var(--fs-xs);
+}
+
+.info > :last-child {
+  margin-left: auto;
+}
+
+.track {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background-color: var(--surface-muted);
+  overflow: hidden;
+}
+
+/*
+ * Uma cor so para todas as origens: aqui a comparacao e de tamanho, nao de
+ * identidade — dar uma cor a cada conta faria a barra competir com o codigo de
+ * cores das categorias, que e o unico do produto.
+ */
+.bar {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background-color: var(--chart-1);
+  opacity: 0.9;
+}

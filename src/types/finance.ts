@@ -262,14 +262,81 @@ export interface InstallmentPayload {
 /* Investimentos                                                              */
 /* -------------------------------------------------------------------------- */
 
-export type InvestmentClass = 'fixed-income' | 'stocks' | 'funds' | 'crypto' | 'reits';
+export type InvestmentClass =
+  | 'fixed-income'
+  | 'cdb'
+  | 'treasury'
+  | 'stocks'
+  | 'etf'
+  | 'funds'
+  | 'crypto'
+  | 'other';
 
 export interface Investment {
   id: ID;
   name: string;
   assetClass: InvestmentClass;
+  institution: string;
+  /** Total aportado ate hoje. */
+  invested: number;
+  /** Quanto a posicao vale agora. */
+  currentValue: number;
+  /** Data ISO do primeiro aporte; e o que da idade a posicao. */
+  startDate: string;
+  notes?: string;
+}
+
+export interface InvestmentPayload {
+  name: string;
+  assetClass: InvestmentClass;
+  institution: string;
   invested: number;
   currentValue: number;
+  startDate: string;
+  notes?: string;
+}
+
+/** Uma posicao com os numeros da tela ja calculados, como a API devolveria. */
+export interface InvestmentPosition {
+  investment: Investment;
+  /** Patrimonio atual menos o investido; negativo em prejuizo. */
+  profit: number;
+  /** Rentabilidade sobre o investido: 0.082 e 8,2%. */
+  profitability: number;
+  /** Participacao no patrimonio da carteira (0 a 1). */
+  share: number;
+}
+
+/** Uma fatia da distribuicao por tipo de ativo. */
+export interface InvestmentAllocation {
+  assetClass: InvestmentClass;
+  invested: number;
+  currentValue: number;
+  profit: number;
+  share: number;
+  /** Quantas posicoes a classe reune. */
+  count: number;
+}
+
+export interface PortfolioPoint {
+  /** Rotulo curto do mes: "jan", "fev"... */
+  label: string;
+  /** Mes de referencia, YYYY-MM. */
+  month: string;
+  invested: number;
+  value: number;
+}
+
+export interface PortfolioSummary {
+  invested: number;
+  currentValue: number;
+  profit: number;
+  profitability: number;
+  /** Variacao do patrimonio em relacao ao mes anterior. */
+  valueDelta: Delta;
+  allocation: InvestmentAllocation[];
+  history: PortfolioPoint[];
+  positions: InvestmentPosition[];
 }
 
 export interface CategorySpending {
@@ -345,4 +412,214 @@ export interface DashboardSummary {
   dailySpending: DailySpending[];
   spendingByCategory: CategorySpending[];
   recentTransactions: Transaction[];
+}
+
+/* -------------------------------------------------------------------------- */
+/* Orcamento                                                                  */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * `warning` comeca na faixa de atencao e `exceeded` so depois de o gasto passar
+ * do limite. As faixas ficam em `constants/budget.ts`, junto das que pintam a
+ * barra, para que cor e rotulo nunca discordem.
+ */
+export type BudgetStatus = 'safe' | 'warning' | 'exceeded';
+
+/**
+ * Limite mensal de uma categoria de despesa. O orcamento e recorrente: vale
+ * todo mes ate ser alterado, e nao um registro por mes — quem planeja gasto de
+ * alimentacao nao quer redigitar o mesmo numero em janeiro, fevereiro e marco.
+ */
+export interface Budget {
+  id: ID;
+  category: Category;
+  limit: number;
+}
+
+export interface BudgetPayload {
+  categoryId: ID;
+  limit: number;
+}
+
+export interface BudgetUsage {
+  budget: Budget;
+  spent: number;
+  /** Quanto ainda cabe no limite; negativo quando estourou. */
+  remaining: number;
+  /** Consumo do limite; passa de 1 no estouro. */
+  ratio: number;
+  /**
+   * Onde o gasto chega no fim do mes mantido o ritmo atual. E o que torna a
+   * tela util no dia 5, quando toda barra ainda esta vazia e nenhum limite
+   * disparou: 30% consumidos em 10% do mes ja e um aviso.
+   */
+  projected: number;
+  status: BudgetStatus;
+}
+
+export interface BudgetOverview {
+  /** Mes de referencia, YYYY-MM. */
+  month: string;
+  planned: number;
+  spent: number;
+  remaining: number;
+  ratio: number;
+  /** Dias que ainda faltam no mes; zero quando o mes ja se encerrou. */
+  daysLeft: number;
+  /** Dias ja vividos do mes, base da projecao de ritmo. */
+  daysElapsed: number;
+  daysInMonth: number;
+  items: BudgetUsage[];
+  /**
+   * Categorias com gasto no mes e sem limite definido. Sem elas, a soma dos
+   * orcamentos pareceria o gasto total do mes, e nao e.
+   */
+  unplanned: CategorySpending[];
+}
+
+/* -------------------------------------------------------------------------- */
+/* Despesas recorrentes                                                       */
+/* -------------------------------------------------------------------------- */
+
+export type RecurrenceFrequency =
+  | 'weekly'
+  | 'biweekly'
+  | 'monthly'
+  | 'bimonthly'
+  | 'quarterly'
+  | 'semiannual'
+  | 'yearly';
+
+/** Pausada continua no cadastro, mas sai do custo mensal e da previsao. */
+export type RecurringStatus = 'active' | 'paused';
+
+export interface RecurringExpense {
+  id: ID;
+  description: string;
+  amount: number;
+  category: Category | null;
+  frequency: RecurrenceFrequency;
+  /** Data ISO do proximo vencimento. */
+  nextDueDate: string;
+  /** Conta ou cartao de onde o dinheiro sai. */
+  accountId: ID;
+  accountName: string;
+  status: RecurringStatus;
+  notes?: string;
+}
+
+export interface RecurringPayload {
+  description: string;
+  amount: number;
+  categoryId?: ID;
+  frequency: RecurrenceFrequency;
+  nextDueDate: string;
+  accountId: ID;
+  status: RecurringStatus;
+  notes?: string;
+}
+
+export interface RecurringSummary {
+  items: RecurringExpense[];
+  /**
+   * Custo mensal equivalente das ativas: a anual entra dividida por doze, a
+   * semanal multiplicada por 4,33. Sem essa normalizacao, somar assinatura
+   * mensal com seguro anual daria um numero que nao corresponde a mes nenhum.
+   */
+  monthlyCost: number;
+  yearlyCost: number;
+  /** As que vencem dentro da janela de atencao, da mais proxima em diante. */
+  dueSoon: RecurringExpense[];
+}
+
+/* -------------------------------------------------------------------------- */
+/* Previsao financeira                                                        */
+/* -------------------------------------------------------------------------- */
+
+export interface ForecastMonth {
+  /** Mes projetado, YYYY-MM. */
+  month: string;
+  /** Rotulo curto do mes: "jan", "fev"... */
+  label: string;
+  income: number;
+  /** Despesas recorrentes que caem no mes. */
+  recurring: number;
+  /** Parcelas de compras parceladas que caem nas faturas do mes. */
+  installments: number;
+  /** O gasto variavel que sobra depois de descontar recorrentes e parcelas. */
+  variable: number;
+  /** Soma das tres linhas de despesa. */
+  expense: number;
+  net: number;
+  /** Saldo projetado no fim do mes. */
+  endingBalance: number;
+}
+
+export interface ForecastSummary {
+  /** Saldo de hoje; e de onde a projecao parte. */
+  startingBalance: number;
+  months: ForecastMonth[];
+  /** Saldo projetado no fim da janela. */
+  endingBalance: number;
+  /** Resultado medio dos meses projetados. */
+  averageNet: number;
+  /** O mes mais apertado da janela — o que a tela existe para antecipar. */
+  lowest: { month: string; balance: number };
+}
+
+/* -------------------------------------------------------------------------- */
+/* Relatorios                                                                 */
+/* -------------------------------------------------------------------------- */
+
+/** Recorte de datas de um relatorio; aqui o dia importa, nao so o mes. */
+export interface ReportRange {
+  /** Data ISO inicial, inclusiva. */
+  from: string;
+  /** Data ISO final, inclusiva. */
+  to: string;
+}
+
+/** Gasto somado por origem do dinheiro: uma conta ou um cartao. */
+export interface SourceSpending {
+  id: ID;
+  name: string;
+  group: 'account' | 'card';
+  amount: number;
+  /** Participacao no total de despesas do recorte (0 a 1). */
+  share: number;
+}
+
+/**
+ * Patrimonio de um mes separado em suas duas metades: o que esta em conta e o
+ * que esta investido. Somadas elas dao o total, mas a divisao e a informacao —
+ * um total estavel pode esconder dinheiro migrando de um lado para o outro.
+ */
+export interface NetWorthPoint {
+  label: string;
+  month: string;
+  accounts: number;
+  investments: number;
+  total: number;
+}
+
+export interface ReportSummary {
+  from: string;
+  to: string;
+  income: number;
+  expense: number;
+  net: number;
+  incomeDelta: Delta;
+  expenseDelta: Delta;
+  /** Quantos lancamentos entraram na conta, transferencias a parte. */
+  transactionCount: number;
+  expenseByCategory: CategorySpending[];
+  incomeByCategory: CategorySpending[];
+  /**
+   * Entradas e saidas agrupadas. O balde e a semana em recortes curtos e o mes
+   * nos longos: doze barras de um ano se leem, trezentas e sessenta nao.
+   */
+  cashflow: CashflowPoint[];
+  expenseBySource: SourceSpending[];
+  balanceHistory: BalancePoint[];
+  netWorth: NetWorthPoint[];
 }

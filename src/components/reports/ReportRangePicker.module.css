@@ -1,0 +1,90 @@
+.picker {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+/*
+ * Fileira de botoes numa moldura unica: eles sao alternativas de uma mesma
+ * escolha, e separa-los com espaco os faria parecer seis acoes independentes.
+ */
+.segments {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: var(--control-height-sm);
+  padding: 2px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.segment {
+  height: calc(var(--control-height-sm) - 6px);
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-xs);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  white-space: nowrap;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.segment:hover {
+  background-color: var(--surface-muted);
+  color: var(--text);
+}
+
+/*
+ * O escolhido usa o acento cheio, e nao so peso de fonte: numa fileira de seis
+ * rotulos curtos, negrito sozinho nao se distingue a distancia de leitura.
+ */
+.segment[aria-pressed='true'] {
+  background-color: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 500;
+}
+
+.segment:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.dates {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.date {
+  width: 148px;
+}
+
+.separator {
+  font-size: var(--fs-sm);
+  color: var(--text-subtle);
+}
+
+.select {
+  width: 200px;
+}
+
+@media (max-width: 599px) {
+  .picker,
+  .dates {
+    width: 100%;
+  }
+
+  .select {
+    flex: 1;
+    width: auto;
+  }
+
+  .date {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+  }
+}

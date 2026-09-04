@@ -39,7 +39,7 @@
 }
 
 .warning {
-  border-left-color: var(--warning);
+  border-left-color: var(--warning-graphic);
 }
 .warning .icon {
   color: var(--warning);

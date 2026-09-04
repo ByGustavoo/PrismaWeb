@@ -170,6 +170,45 @@ table {
   animation-delay: calc(var(--i, 0) * var(--stagger-step));
 }
 
+/*
+ * Troca de recorte sem corte seco. O bloco marcado recua enquanto os dados
+ * novos vem e volta quando eles chegam — trocar o mes do orcamento, o periodo
+ * do dashboard ou o intervalo de um relatorio deixa de ser um salto instantaneo
+ * de um conteudo para outro.
+ *
+ * Quem liga e desliga o estado e o `aria-busy` que as telas ja mantinham para o
+ * leitor de tela; a classe apenas diz quais blocos participam. Por isso o
+ * esqueleto da primeira carga fica de fora: ele tambem e `aria-busy`, mas ali
+ * nao ha conteudo anterior a atenuar — atenuar o proprio esqueleto so o deixaria
+ * palido.
+ *
+ * O atraso na ida e sem contrapartida na volta e o detalhe que evita o pisca:
+ * uma resposta que chega antes de `--duration-fast` nunca chega a esmaecer, e a
+ * espera curta continua sendo apenas uma espera curta. So a opacidade se move —
+ * deslocar o bloco durante a carga seria movimento sem causa, e o `Amount`
+ * precisa continuar montado para os algarismos rolarem de um valor ao outro.
+ */
+.refreshing {
+  transition: opacity var(--duration-base) var(--ease-out);
+}
+
+.refreshing[aria-busy='true'] {
+  opacity: 0.55;
+  transition-delay: var(--duration-fast);
+}
+
+/*
+ * Aqui nao basta herdar a regra global, que apenas zera a duracao: sem
+ * transicao, o bloco saltaria para 55% e voltaria — um pisca, justamente o que
+ * quem pede menos movimento quer evitar. O recuo simplesmente nao acontece, e
+ * quem anuncia a atualizacao continua sendo o `aria-busy`.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .refreshing[aria-busy='true'] {
+    opacity: 1;
+  }
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

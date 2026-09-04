@@ -9,12 +9,14 @@ planejamento). O nome do produto e **Prisma**, usado de forma consistente no rep
 `package.json`, em `APP_NAME` (`src/constants/app.ts`), no `<title>` do `index.html` e nos
 prefixos de `localStorage` (`prisma:*`). Ao renomear um deles, renomeie todos.
 
-O estado atual vai ate a **Etapa 4**: fundacao do frontend, dashboard, as telas de lancamentos
-(listagem com filtros, cadastro, edicao e exclusao de receitas, despesas e transferencias) e o
+O estado atual vai ate a **Etapa 5**: fundacao do frontend, dashboard, as telas de lancamentos
+(listagem com filtros, cadastro, edicao e exclusao de receitas, despesas e transferencias), o
 bloco de contas e cartoes — cadastro de contas, cadastro dos quatro tipos de cartao, faturas com
-detalhe de compras e compras parceladas. Nao existe backend ainda; toda a camada de dados responde
-com mocks, e a escrita vive em memoria pelo tempo da sessao. O backend em Java / Spring Boot /
-PostgreSQL vira nas proximas etapas.
+detalhe de compras e compras parceladas — e o bloco de patrimonio e analise: carteira de
+investimentos, orcamento mensal por categoria, despesas recorrentes, previsao financeira e
+relatorios. Nao existe backend ainda; toda a camada de dados responde com mocks, e a escrita vive
+em memoria pelo tempo da sessao. O backend em Java / Spring Boot / PostgreSQL vira nas proximas
+etapas.
 
 ## Comandos
 
@@ -23,11 +25,15 @@ npm install         # instala dependencias
 npm run dev         # servidor de desenvolvimento em http://localhost:5173
 npm run build       # tsc -b + build de producao
 npm run preview     # serve o build de producao
-npm run typecheck   # apenas checagem de tipos (tsc --noEmit)
+npm run typecheck   # apenas checagem de tipos (tsc -b)
 ```
 
 Nao existe linter, formatter nem suite de testes configurados. **A verificacao antes de dar uma
 tarefa por concluida e `npm run typecheck`** — rode sempre depois de mexer em `.ts`/`.tsx`.
+
+O script usa `tsc -b`, e nao `tsc --noEmit`: o `tsconfig.json` da raiz e uma solucao com
+`references` e `files: []`, entao `tsc --noEmit` nao checa arquivo nenhum e passa sempre. Como
+`tsconfig.app.json` ja tem `noEmit: true`, o `-b` checa sem gerar saida. Nao volte o script.
 
 ## Stack
 
@@ -97,7 +103,9 @@ Estas sao as invariantes do projeto. Quebra-las e o erro mais caro que se pode c
 
 8. **Excecao ao token de cor: Recharts.** A biblioteca escreve cor como atributo de SVG, onde
    `var(--token)` nao resolve de forma confiavel. Use o hook `useChartPalette`, que le os tokens
-   computados e recalcula quando o tema muda.
+   computados e recalcula quando o tema muda. A serie tem oito cores (`--chart-1` a `--chart-8`);
+   as duas ultimas entraram com a distribuicao da carteira, que tem oito classes de ativo e nao
+   pode repetir cor entre fatias vizinhas.
 
 ## Estrutura
 
@@ -119,17 +127,28 @@ src/
 │   ├── cards/     CardTile, CardFormModal, meta (icone, tom de limite, tom de fatura)
 │   ├── invoices/  InvoiceEntry (destaque e linha), InvoiceDetailModal
 │   ├── installments/ InstallmentCard (com cronograma), InstallmentFormModal
+│   ├── investments/ AllocationChart (rosca), PortfolioChart, InvestmentCard,
+│   │              InvestmentFormModal, meta (cor da classe, tom do resultado)
+│   ├── budget/    MonthNavigator, BudgetRow, BudgetFormModal
+│   ├── recurring/ RecurringCard, RecurringFormModal
+│   ├── forecast/  ForecastChart, ForecastTable, ForecastList (versao compacta)
+│   ├── reports/   ReportRangePicker, SourceBreakdown, BalanceTrendChart, NetWorthChart
 │   └── charts/    ChartTooltip
-├── constants/     env, app, navigation, transactions, accounts, cards
+├── constants/     env, app, navigation, transactions, accounts, cards, investments, budget,
+│                  recurring, forecast, reports
 ├── hooks/         useAsyncData, useMediaQuery, useLocalStorage, useLockBodyScroll, useChartPalette
 ├── layouts/       AppLayout (sidebar + header + conteudo)
 ├── pages/         Dashboard, Lancamentos, Contas, Cartoes, Faturas, Parcelamentos,
-│                  Configuracoes, placeholders, 404
+│                  Investimentos, Orcamento, Recorrentes, Previsao, Relatorios,
+│                  Configuracoes, 404
 ├── providers/     ThemeProvider, ToastProvider, PeriodProvider, AppProviders
 ├── routes/        AppRoutes, paths
-├── services/      dashboard, transactions, categories, accounts, cards, investments, alerts
-│   └── mocks/     data, transactions.store, accounts.store, cards.store, dashboard.mock,
-│                  cards.mock, alerts.mock, mockResponse
+├── services/      dashboard, transactions, categories, accounts, cards, investments, budget,
+│                  recurring, forecast, reports, alerts
+│   └── mocks/     data, balance, aggregate, transactions.store, accounts.store, cards.store,
+│                  investments.store, budget.store, recurring.store, dashboard.mock, cards.mock,
+│                  investments.mock, budget.mock, recurring.mock, forecast.mock, reports.mock,
+│                  alerts.mock, mockResponse
 ├── styles/        tokens.css, global.css
 ├── types/         common, finance
 └── utils/         cn, date, format
@@ -190,6 +209,14 @@ Cada pasta de componentes tem um `index.ts` de barril — ao criar um componente
 - `--chart-2`/`--chart-3` sao parentes de `--positive`/`--negative`, mas nao os mesmos valores: texto
   precisa de 4.5:1 e acaba escuro, enquanto barra e area sao objeto grafico (3:1) e podem ser mais
   claras e saturadas. Nao unifique os dois pares.
+- **`--warning-graphic` e o terceiro par dessa familia**, e existe por um motivo que os outros dois
+  nao tem: vermelho e verde escurecem sem perder identidade, amarelo nao. O `--warning` de texto
+  (`#8a6000`, 5.59:1) numa barra grossa deixa de parecer ambar e passa a parecer marrom. O par
+  grafico mantem matiz e saturacao e sobe sete pontos de luminosidade — o mesmo degrau entre
+  `--negative` e `--chart-3` —, ficando em `#ab7600` e 3.95:1. Ele vale so onde a cor e forma:
+  a barra do `ProgressBar`, a faixa do mes mais apertado na previsao e a borda do toast de aviso.
+  Badge, icone do sino, data de vencimento e titulo de faixa continuam no `--warning` de texto. No
+  tema escuro os dois coincidem, porque la a cor de texto ja e clara.
 - Contraste e requisito, nao detalhe: texto em 4.5:1 e cor de grafico em 3:1 sobre a superficie em
   que aparece, nos dois temas. Vale tambem para o par cor/fundo dos badges (`--positive` sobre
   `--positive-soft`, e assim por diante), que e o ponto onde isso costuma escapar.
@@ -204,6 +231,18 @@ Cada pasta de componentes tem um `index.ts` de barril — ao criar um componente
   com `style={{ '--i': index }}`: alem de duas listas distantes precisarem da mesma curva, o CSS
   Modules reescreve o nome da animacao dentro de um `.module.css` — `animation: prisma-list-in`
   viraria `_prisma-list-in_hash`, que nao corresponde a keyframe nenhuma, e nada anima.
+- **Troca de recorte nao e corte seco.** A classe global `.refreshing` (`global.css`) marca o bloco
+  de conteudo de cada tela; enquanto o `aria-busy` que a tela ja mantinha estiver ligado, o bloco
+  recua para 55% e volta ao chegar o dado novo. E o que suaviza trocar o mes do orcamento, o
+  periodo do dashboard e o recorte de um relatorio. Tres detalhes sustentam a escolha e nao devem
+  ser desfeitos: a atenuacao entra com atraso de `--duration-fast` e sai sem atraso, para que uma
+  resposta rapida nunca chegue a piscar; so a opacidade se move, porque o `Amount` precisa continuar
+  montado para os algarismos rolarem de um valor ao outro; e sob `prefers-reduced-motion` o recuo e
+  cancelado por completo — zerar so a duracao, como faz a regra global, transformaria o efeito no
+  pisca que ele existe para evitar. O esqueleto da primeira carga fica de fora da classe de
+  proposito: ali nao ha conteudo anterior a atenuar. Filtros aplicados em memoria (cartao em Faturas
+  e Parcelamentos, tudo em Lancamentos) nao passam por isso porque nao esperam nada — a troca
+  acontece no mesmo quadro do clique.
 - Os tokens `--brand-*` sao a excecao a regra de tema: um logotipo nao muda de cor com o tema,
   entao eles ficam no bloco `:root` e valem para claro e escuro.
 
@@ -293,6 +332,102 @@ parcelamentos sao leitura calculada, exceto o cadastro da compra parcelada.
   terceira listra vazia entre dois blocos largos. Ja as janelas de meses de "Proximas faturas" e
   "Faturas anteriores" ficam no cabecalho de cada bloco, porque so recortam aquele bloco — e o
   total ao lado do titulo soma o que esta a vista, nao o grupo inteiro.
+
+## Investimentos
+
+Uma tela em `/investimentos`, sob "Patrimonio" na sidebar. E cadastro (criar, editar, excluir) e
+leitura calculada ao mesmo tempo: a carteira guarda posicoes, e distribuicao, rentabilidade e
+evolucao saem do calculo.
+
+- **Sao oito classes de ativo** (`InvestmentClass`), e cada uma tem um token de grafico fixo em
+  `constants/investments.ts`. A cor e da classe, nao da posicao dela no ranking: se saisse da ordem
+  das fatias, a mesma classe mudaria de cor ao ganhar ou perder participacao entre uma carga e
+  outra.
+- **`startDate` nao e enfeite.** A evolucao do patrimonio distribui os aportes linearmente entre o
+  primeiro deles e hoje — e a suposicao mais honesta sem uma serie de aportes real, e a unica que
+  faz a curva chegar em hoje valendo exatamente o que o cadastro diz. Por isso o store recusa data
+  de primeiro aporte no futuro.
+- **A oscilacao da curva e fixa** (`marketWave` em `investments.mock.ts`), como a do historico de
+  lancamentos: o grafico precisa balancar, mas nao pode mudar a cada recarregamento. O primeiro
+  valor e 1 porque o mes corrente tem de fechar no valor cadastrado. Cada classe sente a oscilacao
+  numa amplitude propria (`classVolatility`) — um CDB nao balanca como uma cripto.
+- **A rosca guarda o total no centro.** Sem ele, quem le "32%" teria de procurar o patrimonio em
+  outro bloco para saber de quanto sao esses 32%. A legenda e uma lista ao lado, e nao a `Legend`
+  do Recharts: com oito classes os rotulos em volta do circulo se sobrepoem.
+- **A evolucao desenha duas series**: a area do patrimonio e a linha tracejada do total aportado. A
+  distancia entre elas e o rendimento, e se le sem nenhum numero. A tracejada e deliberada — o
+  aporte e a referencia, nao uma segunda medida de mesmo peso.
+
+## Orcamento, recorrentes e previsao
+
+Tres telas sob "Planejamento": `/planejamento/orcamento`, `/planejamento/recorrentes` e
+`/planejamento/previsao`. As duas primeiras sao cadastro; a previsao e leitura calculada a partir
+delas, dos parcelamentos e do historico.
+
+- **O orcamento e recorrente e nao tem mes.** Um `Budget` guarda categoria e limite, e vale de um
+  mes para o outro ate ser alterado. Guardar uma linha por mes obrigaria a redigitar o mesmo numero
+  doze vezes por ano e deixaria todo mes seguinte comecando sem orcamento. O consumo, esse sim, e
+  por mes: `buildBudgetOverview(month)` soma as despesas daquele mes.
+- **Uma categoria tem no maximo um limite.** O store devolve `409` na duplicata e o formulario nem
+  oferece as categorias ja orcadas — melhor nao oferecer a opcao do que deixar escolher e falhar
+  depois de preencher o valor.
+- **O bloco "gasto fora do orcamento" nao e detalhe.** Sem ele, a soma dos limites seria lida como o
+  gasto total do mes, e nao e: o que nao tem limite tambem saiu da conta.
+- **A projecao de ritmo tem piso** (`BUDGET_PROJECTION_MIN_DAYS`, dez dias). Extrapolar linearmente
+  o dia 4 multiplica por sete um aluguel que acontece uma vez no mes, e "no ritmo atual, R$ 21.700
+  de moradia" nao e um aviso, e um erro de leitura. Antes disso a tela projeta nada, e o cabecalho
+  continua dizendo quantos dias do mes ja passaram.
+- **As faixas do orcamento ficam em `constants/budget.ts`**, junto das que pintam a barra e o badge
+  — separadas, a barra ficaria ambar sem que o rotulo dissesse "perto do limite".
+- **A tela de orcamento navega por mes com setas**, nao com o `PeriodSwitcher` do header (que so
+  existe no dashboard) nem com uma lista: o orcamento se consulta em sequencia — "e no mes
+  passado?" — e um seletor pediria dois cliques para a pergunta mais comum. O rotulo tem largura
+  fixa para as setas nao se deslocarem entre "Maio" e "Setembro".
+- **Recorrencia normaliza para o mes** (`monthlyOccurrences`): a anual entra dividida por doze e a
+  semanal multiplicada por 4,3452 — a media real de semanas num mes. Sem isso, somar assinatura
+  mensal com seguro anual daria um numero que nao corresponde a mes nenhum. Ja a previsao usa
+  `occurrencesIn(item, mes)`, que poe o seguro do carro no mes exato em que ele vence, em vez de
+  diluir um doze avos por todos os meses.
+- **Pausar existe para nao apagar.** A recorrente pausada continua no cadastro, sai do custo mensal
+  e da previsao, e volta com um clique — por isso o cartao tem o botao proprio, sem passar pelo
+  formulario inteiro.
+- **A previsao comeca no mes que vem.** Metade do mes corrente ja aconteceu: somar realizado com
+  previsto na mesma linha produziria um numero que nao e nem um nem outro, e o dashboard ja
+  responde pelo mes em curso. O saldo de partida, esse sim, e o de hoje.
+- **O gasto variavel e um resto, nao uma media solta.** Ele e a media de despesa dos tres meses
+  fechados menos as recorrentes e as parcelas medias do mesmo periodo. Sem esse desconto, aluguel e
+  parcelas apareceriam duas vezes — uma na sua linha, outra dentro da media — e a projecao ficaria
+  pessimista o bastante para nao servir para nada.
+- **A tela de previsao diz como ela foi feita.** A nota de metodo ao fim nao e enfeite: um numero
+  apresentado como certeza vira decisao errada quando erra.
+
+## Relatorios
+
+Uma tela em `/relatorios`, com o recorte escolhido em `ReportRangePicker`.
+
+- **Relatorio se pede por dia, nao por mes.** `ReportRange` carrega duas datas ISO, ao contrario do
+  `DashboardPeriod`, que trabalha em `YYYY-MM`: "ultimos 7 dias" e "de 12/03 a 04/05" nao cabem numa
+  chave de mes. Todo atalho termina hoje — incluir dias que ainda nao aconteceram dividiria os
+  totais por um periodo maior que o vivido.
+- **Os seis recortes ficam a vista como botoes**, e nao dentro de um seletor: eles sao a acao
+  principal da tela, que nao tem nada para cadastrar. Abaixo de 900px viram um `Select`, e as duas
+  datas do recorte proprio so aparecem quando "Personalizado" esta escolhido — um controle presente
+  que nao responde e pior que um ausente.
+- **O agrupamento do grafico segue a duracao**: por dia ate dez dias, por semana ate quarenta e
+  cinco, por mes acima disso (`constants/reports.ts`). Uma semana em baldes semanais viraria uma
+  barra sozinha; um ano em baldes diarios, trezentas e sessenta.
+- **A evolucao do patrimonio e empilhada em conta e investimento.** O topo continua sendo o total,
+  mas a divisao mostra dinheiro migrando de um lado para o outro — que e o que um aporte faz todo
+  mes, e o que um total estavel esconderia.
+- **Gasto por origem usa uma cor so.** Ali a comparacao e de tamanho, nao de identidade: dar uma cor
+  a cada conta faria a barra competir com o codigo de cores das categorias, que e o unico do
+  produto.
+- **A tela reusa `CashflowChart` e `CategoryBreakdown` do dashboard**, com titulo e descricao por
+  prop. Duplicar o desenho para trocar um rotulo criaria um segundo grafico para o mesmo problema —
+  e e assim que dois blocos iguais comecam a divergir.
+- **Saldo, variacao e agrupamento por categoria saem dos mesmos modulos que o dashboard usa**
+  (`mocks/balance.ts` e `mocks/aggregate.ts`). Duas telas que somam a mesma coisa de dois jeitos
+  acabam com dois resultados, e o usuario descobre isso antes de nos.
 
 ## Periodo do dashboard e busca
 
@@ -388,6 +523,13 @@ lista com tres fundos coloridos vira ruido. O ponto no sino conta apenas os avis
 - **Nada de esconder acao sem substituto.** Na mesma faixa o campo de busca do header vira um
   botao que abre a busca sobre o header, e "Novo lancamento" perde o rotulo mas continua la como
   botao de icone. Antes os dois sumiam com `display: none`.
+- **A previsao troca a tabela de sete colunas por cartoes abaixo de 900px** (`ForecastList`), pelo
+  mesmo motivo da listagem de lancamentos: rolar de lado ate o saldo previsto, que e o dado mais
+  importante da linha, nao e leitura. O mesmo limite decide se o filtro de relatorios e uma fileira
+  de botoes ou um `Select`.
+- **Investimentos, orcamento e recorrentes usam `auto-fill` com largura minima.** A rosca da
+  carteira sobe para cima da legenda abaixo de 900px: lado a lado, nessa faixa, sobrariam duas
+  colunas estreitas demais para nome da classe e valor na mesma linha.
 - `prefers-reduced-motion` e respeitado globalmente — nao adicione animacao sem cobrir esse caso.
 
 ## Alvos de toque e campos
@@ -419,7 +561,11 @@ e um ponto unico (`getAuthToken`) para plugar o token quando entrar o Spring Sec
 ## Fora de escopo hoje
 
 Backend, autenticacao, persistencia real, ESLint/Prettier, testes e code-splitting por rota ainda
-nao existem. Investimentos, orcamento, recorrentes, previsao e relatorios continuam como telas em
-construcao, e nao ha pagamento de fatura nem registro de quitacao — a fatura vencida e tratada como
-paga. Nao
+nao existem. Nao ha pagamento de fatura nem registro de quitacao — a fatura vencida e tratada como
+paga —, nem historico de cotacao por ativo: a evolucao do patrimonio e reconstruida a partir do
+valor atual e da idade da posicao. Exportacao de relatorio (PDF, CSV) tambem ficou de fora. Nao
 invente configuracao dessas sem o usuario pedir.
+
+`components/common/UnderConstruction` ficou sem consumidor quando as cinco telas em construcao
+viraram telas de verdade. Ele continua no barril de proposito, para a proxima area que nascer
+antes de existir; se ele seguir sem uso, remova-o junto com o proximo trabalho que passar por ali.

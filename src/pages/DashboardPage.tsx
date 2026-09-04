@@ -114,7 +114,7 @@ export function DashboardPage() {
          * numero ao outro. O spinner de "Atualizar" e o `aria-busy` dizem que ainda
          * esta carregando.
          */
-        <div className={styles.grid} aria-busy={loading}>
+        <div className={`${styles.grid} refreshing`} aria-busy={loading}>
           <BalancePanel
             label={isCurrentMonth ? 'Saldo atual' : `Saldo no fim de ${capitalize(formatMonthLabel(shownTo))}`}
             balance={data.currentBalance}

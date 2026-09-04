@@ -1,0 +1,90 @@
+.header {
+  padding: var(--space-5) var(--space-5) var(--space-2);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list > li + li {
+  border-top: 1px solid var(--border);
+}
+
+/* Faixa lateral no mes mais apertado, o mesmo destaque da tabela. */
+.lowest {
+  box-shadow: inset 3px 0 0 var(--warning-graphic);
+}
+
+/*
+ * O padding e do item, e nao do cartao: o cartao usa `padding="none"` para que
+ * as bordas entre os meses atravessem a largura inteira. Sem ele aqui, o
+ * conteudo de cada mes encostava nas bordas do cartao no celular.
+ */
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+}
+
+.top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.month {
+  font-weight: 600;
+}
+
+.balance {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.balanceLabel {
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+
+.lines {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+}
+
+.line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.line dd {
+  margin: 0;
+}
+
+/*
+ * O resultado fecha a lista ocupando a linha inteira: ele e a soma das quatro
+ * de cima, e dividir a largura com outra linha o faria parecer mais um item.
+ */
+.result {
+  grid-column: 1 / -1;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border);
+  color: var(--text);
+}
+
+@media (max-width: 479px) {
+  .lines {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -1,0 +1,30 @@
+.header {
+  padding: var(--space-5) var(--space-5) 0;
+}
+
+.body {
+  padding: var(--space-4) 0 0;
+}
+
+/*
+ * Sete colunas, tres delas com valores longos: abaixo desta largura a tabela
+ * rola de lado dentro do proprio cartao, sem empurrar a pagina. Na faixa
+ * estreita a tela troca a tabela por cartoes e este bloco nem aparece.
+ */
+.table {
+  min-width: 880px;
+}
+
+.month {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/*
+ * O mes mais apertado da janela e o que a tela existe para antecipar. O
+ * destaque e uma faixa lateral, e nao um fundo colorido: com sete colunas de
+ * numeros, um fundo tingido custaria contraste em cada uma delas.
+ */
+.lowest td:first-child {
+  box-shadow: inset 3px 0 0 var(--warning-graphic);
+}

@@ -154,6 +154,15 @@
   --negative-soft: #fde4e1;
   --negative-contrast: #ffffff;
   --warning: #8a6000;
+  /*
+   * O ambar como objeto grafico: mesma matiz e mesma saturacao do `--warning`,
+   * sete pontos de luminosidade acima — o mesmo degrau que separa `--negative`
+   * de `--chart-3`. Existe porque o ocre de texto, escuro o bastante para 4.5:1,
+   * numa barra grossa deixa de parecer ambar e passa a parecer marrom. Vermelho
+   * e verde escurecem sem perder identidade; amarelo, nao. Fica em 3.95:1 sobre
+   * a superficie, acima dos 3:1 que objeto grafico pede.
+   */
+  --warning-graphic: #ab7600;
   --warning-soft: #fbeed4;
   --neutral-soft: #eceef2;
 
@@ -170,6 +179,14 @@
   --chart-4: #8a6000;
   --chart-5: #6b5bd2;
   --chart-6: #3f8fa8;
+  /*
+   * A serie foi de seis para oito por causa da distribuicao da carteira: sao
+   * oito classes de ativo, e repetir uma cor deixaria duas fatias vizinhas
+   * indistinguiveis. As duas novas ocupam as matizes que faltavam na roda —
+   * magenta e oliva — para nenhuma encostar nas seis anteriores.
+   */
+  --chart-7: #a8367f;
+  --chart-8: #5f7d1f;
 
   /*
    * Escala de calor do calendario de gastos. Comeca no cinza de superficie —
@@ -219,6 +236,9 @@
   --negative-soft: #351a1a;
   --negative-contrast: #2a0e09;
   --warning: #e8b44a;
+  /* No escuro os dois coincidem: a cor de texto ja e clara, e clarea-la mais
+     so tiraria saturacao sem ganhar nada. */
+  --warning-graphic: #e8b44a;
   --warning-soft: #322612;
   --neutral-soft: #26272c;
 
@@ -235,6 +255,8 @@
   --chart-4: #e8b44a;
   --chart-5: #b18cff;
   --chart-6: #58c2e0;
+  --chart-7: #f57bc0;
+  --chart-8: #a9cc4f;
 
   --heat-0: #26272c;
   --heat-1: #4a2320;

@@ -1,0 +1,94 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.total {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Texto corrido pelo mesmo motivo de `.note` no BudgetRow: com `gap`, o ponto
+   final da frase se descola do valor que vem antes dele. */
+.totalNote {
+  margin: 0;
+  max-width: none;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-snug);
+  color: var(--text-muted);
+}
+
+.totalNote > span {
+  margin-left: var(--space-1);
+}
+
+/* Valor dentro de uma frase: alinha na linha do texto em vez de virar bloco. */
+.inline {
+  display: inline-flex;
+}
+
+/*
+ * Duas colunas a partir de 1100px. Cada limite carrega numero, barra e uma
+ * frase de apoio: em tres colunas a frase quebraria em quatro linhas, e em uma
+ * so a lista de seis categorias ficaria mais alta que a tela.
+ */
+.list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.unplanned {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.unplannedItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-base);
+}
+
+.marker {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.unplannedName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unplannedItem > :last-child {
+  margin-left: auto;
+}
+
+.confirmTitle {
+  font-size: var(--fs-md);
+  font-weight: 600;
+}
+
+.confirmMeta {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+@media (max-width: 599px) {
+  .list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

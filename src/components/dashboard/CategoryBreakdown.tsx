@@ -8,9 +8,21 @@ interface CategoryBreakdownProps {
   data: CategorySpending[];
   /** "mês" ou "período", conforme o recorte escolhido no header. */
   periodNoun: string;
+  /** Relatorios reusam o bloco para as receitas, que pedem outro rotulo. */
+  title?: string;
+  /** Substitui a descricao padrao quando o total comparado nao e o de despesas. */
+  description?: string;
+  /** Texto do bloco vazio, quando "nenhuma despesa" nao e o que falta. */
+  emptyLabel?: string;
 }
 
-export function CategoryBreakdown({ data, periodNoun }: CategoryBreakdownProps) {
+export function CategoryBreakdown({
+  data,
+  periodNoun,
+  title = 'Gastos por categoria',
+  description,
+  emptyLabel = 'Nenhuma despesa com categoria neste período.',
+}: CategoryBreakdownProps) {
   const largest = data[0]?.share ?? 1;
 
   /*
@@ -20,10 +32,13 @@ export function CategoryBreakdown({ data, periodNoun }: CategoryBreakdownProps) 
    */
   return (
     <Card className={styles.card}>
-      <CardHeader title="Gastos por categoria" description={`Participação no total de despesas do ${periodNoun}`} />
+      <CardHeader
+        title={title}
+        description={description ?? `Participação no total de despesas do ${periodNoun}`}
+      />
       <CardBody>
         {data.length === 0 ? (
-          <p className={styles.empty}>Nenhuma despesa com categoria neste período.</p>
+          <p className={styles.empty}>{emptyLabel}</p>
         ) : (
           <ul className={styles.list}>
             {data.map((entry) => (

@@ -60,7 +60,15 @@ export function useCountUp(target: number, enabled: boolean): CountUp {
     const start = performance.now();
 
     const step = (now: number) => {
-      const progress = Math.min((now - start) / DURATION, 1);
+      /*
+       * O piso em zero nao e simetria com o teto: `requestAnimationFrame`
+       * entrega o instante em que o quadro comecou, que pode ser anterior ao
+       * `performance.now()` lido aqui no efeito. Sem o piso, o primeiro quadro
+       * roda com progresso negativo, `easeOut` devolve um numero negativo e o
+       * valor aparece com sinal de menos — um saldo positivo piscando como
+       * divida.
+       */
+      const progress = Math.min(Math.max((now - start) / DURATION, 0), 1);
 
       if (progress < 1) {
         // Vale para negativo sem nenhum caso especial: a interpolacao vai de

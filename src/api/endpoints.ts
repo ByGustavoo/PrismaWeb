@@ -37,6 +37,28 @@ export const endpoints = {
   },
   investments: {
     list: '/investments',
+    create: '/investments',
+    byId: (id: string) => `/investments/${id}`,
+    /** Carteira consolidada: totais, distribuicao e evolucao do patrimonio. */
+    portfolio: '/investments/portfolio',
+  },
+  budgets: {
+    list: '/budgets',
+    create: '/budgets',
+    byId: (id: string) => `/budgets/${id}`,
+    /** Consumo do mes: limites, gasto e o que ficou fora do orcamento. */
+    overview: '/budgets/overview',
+  },
+  recurring: {
+    list: '/recurring-expenses',
+    create: '/recurring-expenses',
+    byId: (id: string) => `/recurring-expenses/${id}`,
+  },
+  forecast: {
+    summary: '/forecast',
+  },
+  reports: {
+    summary: '/reports/summary',
   },
   alerts: {
     list: '/alerts',

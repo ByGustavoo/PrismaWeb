@@ -1,0 +1,187 @@
+.card {
+  position: relative;
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out);
+}
+
+.card:hover,
+.card:focus-within {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-accent);
+}
+
+/* Cobre o cartao e abre a edicao de qualquer ponto; ver o comentario no TSX. */
+.open {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: var(--radius-md);
+}
+
+.open:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  pointer-events: none;
+}
+
+.top {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+/*
+ * O quadrado do icone carrega a cor da classe, e nao o cinza das outras telas:
+ * e o mesmo codigo de cor da rosca, entao a lista abaixo dela continua legivel
+ * como continuacao do grafico.
+ */
+.iconBox {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-muted);
+}
+
+.identity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+/* Espacamento proprio: um espaco de texto encolhe junto do tracking da fonte. */
+.separator {
+  margin-inline: 5px;
+  color: var(--text-subtle);
+}
+
+.delete {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: var(--tap-size);
+  height: var(--tap-size);
+  margin: calc(var(--space-2) * -1) calc(var(--space-2) * -1) 0 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-subtle);
+  pointer-events: auto;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.delete:hover {
+  background-color: var(--negative-soft);
+  color: var(--negative);
+}
+
+/*
+ * Valor e resultado lado a lado: sao a pergunta dupla que se faz a uma posicao
+ * — quanto vale e se esta ganhando. Empilhados, o segundo cairia abaixo da
+ * dobra do cartao em telas estreitas.
+ */
+.figures {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-top: auto;
+}
+
+.value,
+.profit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.profit {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.figureLabel {
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+
+.profitRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.percent {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.share {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.shareBar {
+  width: 100%;
+}
+
+.shareLabel {
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+
+/* Dentro de uma frase, o valor acompanha o tamanho do texto ao redor. */
+.inline {
+  display: inline-flex;
+}
+
+.since {
+  margin: 0;
+  max-width: none;
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+
+@media (max-width: 399px) {
+  .figures {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .profit {
+    align-items: flex-start;
+    text-align: left;
+  }
+}

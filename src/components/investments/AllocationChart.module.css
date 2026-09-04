@@ -1,0 +1,147 @@
+/* O cartao acompanha o proprio conteudo em vez de esticar ate o vizinho. */
+.card {
+  align-self: start;
+}
+
+/*
+ * A rosca tem largura fixa e a legenda fica com o resto. Os 176px sao o
+ * suficiente para o total caber no centro do anel — o que sobra vale mais na
+ * legenda, onde "Criptomoedas" e "R$ 25.890,40" disputam a mesma linha.
+ */
+.body {
+  display: grid;
+  grid-template-columns: 176px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.chart {
+  position: relative;
+}
+
+/*
+ * O total ocupa o vazio da rosca. `pointer-events: none` porque ele fica sobre
+ * o grafico, e um rotulo nao pode roubar o hover das fatias.
+ */
+.center {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+/* Ver o comentario no componente: com a fatia sob o cursor, quem fala e o tooltip. */
+.centerHidden {
+  opacity: 0;
+}
+
+/*
+ * Cinto de seguranca para o quadro em que os dois ainda coexistem: enquanto o
+ * total esvanece, o painel do tooltip — que tem fundo opaco — precisa estar por
+ * cima. Sem isto, o rotulo central atravessava o tooltip, porque vem depois no
+ * DOM e os dois sao posicionados.
+ */
+.chart :global(.recharts-tooltip-wrapper) {
+  z-index: 1;
+}
+
+.centerLabel {
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-base);
+  min-width: 0;
+}
+
+.marker {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* Reivindica o espaco que sobra: sem `flex: 1` o nome cede largura para o
+   valor e reticencia antes de ser preciso. */
+.name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.share {
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+
+.value {
+  margin-left: auto;
+}
+
+.tooltip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-popover);
+}
+
+.tooltipName {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.tooltipValue {
+  font-family: var(--font-figure);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+}
+
+.tooltipShare {
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+
+/*
+ * Abaixo de 900px a rosca vai para cima e a legenda ocupa a largura inteira:
+ * lado a lado, nessa faixa, sobrariam duas colunas estreitas demais para o
+ * nome da classe e o valor caberem na mesma linha.
+ */
+@media (max-width: 899px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+  }
+
+  .chart {
+    width: 176px;
+  }
+
+  .legend {
+    width: 100%;
+  }
+}

@@ -181,7 +181,7 @@ export function CardsPage() {
           />
         </Card>
       ) : (
-        <div className={styles.stack} aria-busy={loading}>
+        <div className={`${styles.stack} refreshing`} aria-busy={loading}>
           {creditCards.length > 0 ? (
             <SummaryBar
               items={[

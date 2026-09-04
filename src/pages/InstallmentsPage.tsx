@@ -217,7 +217,7 @@ export function InstallmentsPage() {
           />
         </Card>
       ) : (
-        <div className={styles.stack} aria-busy={loading}>
+        <div className={`${styles.stack} refreshing`} aria-busy={loading}>
           <SummaryBar
             items={[
               {

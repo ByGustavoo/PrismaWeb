@@ -45,8 +45,9 @@
   --tone: var(--positive);
 }
 
+/* A barra e forma, nao texto: usa o ambar grafico. Ver o token em tokens.css. */
 .warning {
-  --tone: var(--warning);
+  --tone: var(--warning-graphic);
 }
 
 .negative {

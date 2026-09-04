@@ -6,4 +6,8 @@ export { accountsService } from './accounts.service';
 export { cardsService } from './cards.service';
 export { categoriesService } from './categories.service';
 export { investmentsService } from './investments.service';
+export { budgetService } from './budget.service';
+export { recurringService } from './recurring.service';
+export { forecastService } from './forecast.service';
+export { reportsService } from './reports.service';
 export { alertsService } from './alerts.service';

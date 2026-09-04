@@ -28,7 +28,7 @@ export function useChartPalette(): ChartPalette {
       surfaceMuted: read('--surface-muted'),
       border: read('--border-strong'),
       axisText: read('--text-subtle'),
-      series: [1, 2, 3, 4, 5, 6].map((index) => read(`--chart-${index}`)),
+      series: [1, 2, 3, 4, 5, 6, 7, 8].map((index) => read(`--chart-${index}`)),
     };
   }, [theme]);
 }
