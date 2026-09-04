@@ -98,8 +98,18 @@ export function formatSignedPercent(value: number): string {
   return `${sign}${formatPercent(value)}`;
 }
 
+/**
+ * "2026-09-03" -> "03 de Set". O nome do mes leva inicial maiuscula como em
+ * todo o resto do app. A troca e feita pela parte de mes do `Intl`, e nao por
+ * corte de texto: em pt-BR o formatador devolve "03 de set.", e capitalizar a
+ * primeira palavra depois do espaco produzia "03 De set".
+ */
 export function formatShortDate(isoDate: string): string {
-  return dayMonthFormatter.format(fromISODate(isoDate)).replace('.', '');
+  return dayMonthFormatter
+    .formatToParts(fromISODate(isoDate))
+    .map((part) => (part.type === 'month' ? capitalize(part.value) : part.value))
+    .join('')
+    .replace('.', '');
 }
 
 export function formatFullDate(isoDate: string): string {
@@ -203,4 +213,15 @@ export function parseAmountInput(raw: string): number | undefined {
 /** Numero -> texto do campo de moeda, sem simbolo: 1200.5 -> "1.200,50". */
 export function toAmountInput(value: number): string {
   return amountInputFormatter.format(value);
+}
+
+/**
+ * Texto pronto para comparacao: sem acento e sem caixa. Quem digita "saude"
+ * espera achar "Saúde", e quem digita "tenis" espera achar "Tênis".
+ */
+export function fold(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase();
 }

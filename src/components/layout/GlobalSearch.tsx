@@ -11,7 +11,7 @@ import { accountsService, categoriesService, transactionsService } from '@/servi
 import { ACCOUNT_PARAM, CATEGORY_PARAM, EDIT_TRANSACTION_PARAM, SEARCH_PARAM, paths } from '@/routes/paths';
 import type { Category, PaymentSource, Transaction } from '@/types';
 import { cn } from '@/utils/cn';
-import { formatShortDate } from '@/utils/format';
+import { fold, formatShortDate } from '@/utils/format';
 import styles from './GlobalSearch.module.css';
 
 /** Quantos itens cada grupo mostra antes de sobrar para "ver todos". */
@@ -44,14 +44,6 @@ const groupLabel: Record<ResultGroup, string> = {
   account: 'Contas e cartões',
   all: '',
 };
-
-/** Sem acento e sem caixa: quem digita "saude" espera achar "Saúde". */
-function fold(value: string): string {
-  return value
-    .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, '')
-    .toLowerCase();
-}
 
 function buildResults(catalog: Catalog, term: string): SearchResult[] {
   const needle = fold(term);

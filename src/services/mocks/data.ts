@@ -3,6 +3,7 @@ import type {
   Budget,
   Card,
   Category,
+  Goal,
   InstallmentPurchase,
   Investment,
   PaymentSource,
@@ -510,6 +511,112 @@ export const recurringExpenses: RecurringExpense[] = [
     accountName: 'Conta corrente',
     status: 'paused',
     notes: 'Pausado enquanto a academia estiver ativa.',
+  },
+];
+
+/* -------------------------------------------------------------------------- */
+/* Metas e desejos                                                            */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Cada meta nasce com o historico completo, e nao com um preco solto: o menor
+ * preco, a media e a curva de evolucao so existem porque a serie inteira esta
+ * guardada. As datas sao relativas a hoje pelo mesmo motivo das outras
+ * sementes — um mock com data fixa envelhece e passa a mostrar uma tela morta.
+ *
+ * A amostra cobre de proposito os cinco casos que a analise sabe ler: preco no
+ * fundo da faixa, abaixo da media, acima da media, colado no topo e estavel.
+ */
+export const goals: Goal[] = [
+  {
+    id: 'goal-1',
+    name: 'Tênis Nike Pegasus 41',
+    url: 'https://www.nike.com.br',
+    status: 'tracking',
+    createdAt: daysAgo(118),
+    notes: 'Esperar a semana de promoções de fim de temporada.',
+    history: [
+      { id: 'gp-1-1', date: daysAgo(118), price: 899.9, note: 'Preço de vitrine.' },
+      { id: 'gp-1-2', date: daysAgo(76), price: 949.9 },
+      { id: 'gp-1-3', date: daysAgo(41), price: 829.9 },
+      { id: 'gp-1-4', date: daysAgo(9), price: 749.9, note: 'Cupom de primeira compra aplicado.' },
+    ],
+  },
+  {
+    id: 'goal-2',
+    name: 'Notebook Dell Inspiron 15',
+    url: 'https://www.dell.com/pt-br',
+    status: 'tracking',
+    createdAt: daysAgo(152),
+    notes: 'Trocar o notebook de trabalho antes do fim da garantia do atual.',
+    history: [
+      { id: 'gp-2-1', date: daysAgo(152), price: 4299 },
+      { id: 'gp-2-2', date: daysAgo(97), price: 4599 },
+      { id: 'gp-2-3', date: daysAgo(52), price: 4799, note: 'Alta depois do lançamento da linha nova.' },
+      { id: 'gp-2-4', date: daysAgo(21), price: 4649 },
+      { id: 'gp-2-5', date: daysAgo(4), price: 4499 },
+    ],
+  },
+  {
+    id: 'goal-3',
+    name: 'Cadeira ergonômica',
+    url: 'https://www.flexform.com.br',
+    status: 'tracking',
+    createdAt: daysAgo(64),
+    history: [
+      { id: 'gp-3-1', date: daysAgo(64), price: 1890 },
+      { id: 'gp-3-2', date: daysAgo(33), price: 1690 },
+      { id: 'gp-3-3', date: daysAgo(6), price: 1549, note: 'Menor preço desde que comecei a olhar.' },
+    ],
+  },
+  {
+    id: 'goal-4',
+    name: 'iPhone 15 de 128 GB',
+    url: 'https://www.apple.com/br',
+    status: 'tracking',
+    createdAt: daysAgo(88),
+    notes: 'Só trocar se o preço voltar para a faixa dos R$ 5.000,00.',
+    history: [
+      { id: 'gp-4-1', date: daysAgo(88), price: 4999 },
+      { id: 'gp-4-2', date: daysAgo(55), price: 5199 },
+      { id: 'gp-4-3', date: daysAgo(23), price: 5399 },
+      { id: 'gp-4-4', date: daysAgo(3), price: 5449, note: 'Subiu junto com o dólar.' },
+    ],
+  },
+  {
+    id: 'goal-5',
+    name: 'Monitor 27" 144 Hz',
+    status: 'tracking',
+    createdAt: daysAgo(47),
+    history: [
+      { id: 'gp-5-1', date: daysAgo(47), price: 1799 },
+      { id: 'gp-5-2', date: daysAgo(14), price: 1799, note: 'Mesmo preço da primeira consulta.' },
+    ],
+  },
+  {
+    id: 'goal-6',
+    name: 'Cafeteira espresso',
+    url: 'https://www.nespresso.com/br',
+    status: 'purchased',
+    createdAt: daysAgo(210),
+    notes: 'Comprada na Black Friday, R$ 300,00 abaixo do pico.',
+    history: [
+      { id: 'gp-6-1', date: daysAgo(210), price: 1299 },
+      { id: 'gp-6-2', date: daysAgo(147), price: 1349 },
+      { id: 'gp-6-3', date: daysAgo(102), price: 999, note: 'Fechei a compra neste preço.' },
+    ],
+  },
+  {
+    id: 'goal-7',
+    name: 'Bicicleta gravel',
+    url: 'https://www.sense.com.br',
+    status: 'cancelled',
+    createdAt: daysAgo(174),
+    notes: 'Cancelada: passou a caber melhor no orçamento do ano que vem.',
+    history: [
+      { id: 'gp-7-1', date: daysAgo(174), price: 6890 },
+      { id: 'gp-7-2', date: daysAgo(112), price: 7290 },
+    ],
   },
 ];
 

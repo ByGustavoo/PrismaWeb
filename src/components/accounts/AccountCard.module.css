@@ -108,11 +108,17 @@
   color: var(--negative);
 }
 
+/*
+ * O saldo fica logo abaixo do cabecalho, e nao empurrado para o fim: com o
+ * espaco livre embaixo, os numeros principais alinham entre cartoes com e sem
+ * barra de participacao. Antes o margin-top automatico vivia aqui, e a Corretora
+ * (fora do saldo total) e a conta inativa — as duas sem barra — mostravam o
+ * saldo trinta pixels abaixo das vizinhas.
+ */
 .balance {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  margin-top: auto;
 }
 
 .balanceLabel {
@@ -123,6 +129,7 @@
 .bottom {
   display: flex;
   align-items: center;
+  margin-top: auto;
   gap: var(--space-3);
   flex-wrap: wrap;
 }

@@ -1,0 +1,48 @@
+.delta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+
+/* A seta acompanha a linha de base do texto em vez de flutuar acima dela. */
+.delta svg {
+  align-self: center;
+  flex-shrink: 0;
+}
+
+.sm {
+  font-size: var(--fs-xs);
+  gap: var(--space-1);
+}
+
+/*
+ * Preco que cai e a boa noticia de quem quer comprar; preco que sobe, a ma. A
+ * palavra ao lado da seta e o que impede a leitura invertida.
+ */
+.down {
+  color: var(--positive);
+}
+
+.up {
+  color: var(--negative);
+}
+
+.flat {
+  color: var(--text-muted);
+}
+
+.word {
+  white-space: nowrap;
+}
+
+/*
+ * A porcentagem e a segunda leitura do mesmo fato: fica um degrau abaixo do
+ * valor em reais, entre parenteses visuais dados pelo peso, nao por sinais.
+ */
+.percent {
+  font-size: 0.92em;
+  font-weight: 500;
+  opacity: 0.85;
+}

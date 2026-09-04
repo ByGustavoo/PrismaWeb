@@ -1,0 +1,51 @@
+.filters {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+/*
+ * A busca cresce, mas com teto: ocupando a faixa inteira ela viraria uma barra
+ * de busca — e o header logo acima ja tem uma, que procura outra coisa.
+ */
+.search {
+  flex: 1 1 220px;
+  max-width: 320px;
+}
+
+.select {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.clear {
+  flex-shrink: 0;
+}
+
+/*
+ * A contagem fica no fim da linha e nao empurra nada quando aparece: o
+ * paragrafo esta sempre no fluxo, so o texto e que entra e sai.
+ */
+.count {
+  margin: 0 0 0 auto;
+  max-width: none;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+@media (max-width: 899px) {
+  .search {
+    flex-basis: 100%;
+    max-width: none;
+  }
+
+  .select {
+    flex: 1 1 180px;
+  }
+
+  .count {
+    flex-basis: 100%;
+    margin-left: 0;
+  }
+}

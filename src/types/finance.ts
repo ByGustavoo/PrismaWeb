@@ -1,4 +1,4 @@
-import type { Delta, ID } from './common';
+import type { Delta, ID, Trend } from './common';
 
 export type TransactionKind = 'income' | 'expense' | 'transfer';
 
@@ -622,4 +622,130 @@ export interface ReportSummary {
   expenseBySource: SourceSpending[];
   balanceHistory: BalancePoint[];
   netWorth: NetWorthPoint[];
+}
+
+/* -------------------------------------------------------------------------- */
+/* Metas e desejos                                                            */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * `tracking` e a meta viva, a unica que entra nos totais da tela. `purchased` e
+ * `cancelled` saem do acompanhamento mas continuam no cadastro: o historico ja
+ * registrado e o que responde se a compra aconteceu no momento certo.
+ */
+export type GoalStatus = 'tracking' | 'purchased' | 'cancelled';
+
+/**
+ * Um preco consultado num dia. O registro nunca substitui o anterior — e a
+ * regra que sustenta a tela inteira: sem a serie completa nao ha menor preco,
+ * media nem grafico de evolucao, so o ultimo numero digitado.
+ */
+export interface GoalPriceEntry {
+  id: ID;
+  /** Data ISO (YYYY-MM-DD) da consulta. */
+  date: string;
+  price: number;
+  note?: string;
+}
+
+export interface Goal {
+  id: ID;
+  name: string;
+  /** Endereco da pagina do produto, quando informado. */
+  url?: string;
+  imageUrl?: string;
+  status: GoalStatus;
+  notes?: string;
+  /** Data ISO do primeiro registro. */
+  createdAt: string;
+  /** Do registro mais antigo ao mais recente; nunca vazio. */
+  history: GoalPriceEntry[];
+}
+
+/**
+ * Cadastro de uma meta. Leva o primeiro preco junto porque uma meta sem nenhum
+ * registro nao teria preco atual para mostrar — o cadastro e, ao mesmo tempo,
+ * a primeira consulta.
+ */
+export interface GoalPayload {
+  name: string;
+  url?: string;
+  imageUrl?: string;
+  price: number;
+  /** Data do primeiro registro; sem ela o servidor usa hoje. */
+  date: string;
+  status: GoalStatus;
+  notes?: string;
+}
+
+/**
+ * Edicao nao mexe em preco. Corrigir o valor pela edicao apagaria um ponto do
+ * historico; preco novo e sempre um registro novo.
+ */
+export interface GoalUpdatePayload {
+  name: string;
+  url?: string;
+  imageUrl?: string;
+  status: GoalStatus;
+  notes?: string;
+}
+
+export interface GoalPricePayload {
+  price: number;
+  date: string;
+  note?: string;
+}
+
+/**
+ * Leitura do preco atual dentro da faixa ja registrada. O texto de cada caso
+ * fica em `constants/goals.ts`: a analise e conta de servidor, a frase e
+ * interface.
+ */
+export type GoalInsight = 'first' | 'lowest' | 'below-average' | 'above-average' | 'highest' | 'stable';
+
+export interface GoalAnalysis {
+  /** Preco do primeiro registro; e a referencia de toda a variacao. */
+  initialPrice: number;
+  currentPrice: number;
+  lowestPrice: number;
+  highestPrice: number;
+  averagePrice: number;
+  /** Diferenca em reais entre o preco atual e o primeiro registrado. */
+  change: number;
+  /** Variacao percentual sobre o primeiro registro: -10 e uma queda de 10%. */
+  changePercentage: number;
+  /** Direcao do preco. Aqui `down` e a boa noticia de quem pretende comprar. */
+  trend: Trend;
+  /** Quanto o preco atual esta abaixo do maior ja registrado; nunca negativo. */
+  savings: number;
+  /** Data ISO do registro mais recente. */
+  lastUpdate: string;
+  /** Quantos precos ja foram registrados, contando o inicial. */
+  entryCount: number;
+  insight: GoalInsight;
+}
+
+/** Uma meta com os numeros da tela ja calculados, como a API devolveria. */
+export interface GoalTracking {
+  goal: Goal;
+  analysis: GoalAnalysis;
+}
+
+/**
+ * Os totais olham apenas as metas em acompanhamento: somar o preco de algo ja
+ * comprado ou cancelado num "quanto custa a minha lista" seria contar duas
+ * vezes o que ja saiu da conta ou nunca vai sair.
+ */
+export interface GoalsSummary {
+  items: GoalTracking[];
+  trackingCount: number;
+  purchasedCount: number;
+  /** Soma dos precos atuais das metas em acompanhamento. */
+  currentTotal: number;
+  /** Soma dos precos iniciais das mesmas metas. */
+  initialTotal: number;
+  /** Quanto o conjunto barateou (negativo) ou encareceu desde o registro. */
+  totalChange: number;
+  /** Soma do quanto cada meta esta abaixo do proprio pico. */
+  totalSavings: number;
 }

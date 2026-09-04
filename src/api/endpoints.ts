@@ -54,6 +54,13 @@ export const endpoints = {
     create: '/recurring-expenses',
     byId: (id: string) => `/recurring-expenses/${id}`,
   },
+  goals: {
+    list: '/goals',
+    create: '/goals',
+    byId: (id: string) => `/goals/${id}`,
+    /** Registro de um preco novo; nunca substitui o anterior. */
+    prices: (id: string) => `/goals/${id}/prices`,
+  },
   forecast: {
     summary: '/forecast',
   },

@@ -14,10 +14,16 @@
   border-color: var(--border-strong);
 }
 
+/*
+ * Grade de tres colunas para a linha de identificacao poder atravessar por
+ * baixo do nome e das acoes. O icone fica so na primeira linha; a segunda
+ * comeca alinhada com o nome.
+ */
 .header {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--space-1) var(--space-3);
 }
 
 .iconBox {
@@ -29,14 +35,6 @@
   border-radius: var(--radius-sm);
   background-color: var(--surface-muted);
   color: var(--text-muted);
-}
-
-.identity {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  flex: 1;
-  min-width: 0;
 }
 
 .nameRow {
@@ -52,6 +50,7 @@
 }
 
 .meta {
+  grid-column: 2 / -1;
   font-size: var(--fs-sm);
   color: var(--text-muted);
 }
@@ -59,7 +58,6 @@
 .actions {
   display: inline-flex;
   gap: var(--space-1);
-  flex-shrink: 0;
   margin-top: calc(var(--space-1) * -1);
 }
 

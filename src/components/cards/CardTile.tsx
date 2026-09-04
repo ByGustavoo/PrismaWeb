@@ -40,23 +40,14 @@ export function CardTile({ card, invoice, accountBalance, onEdit, onDelete, onOp
         <span className={styles.iconBox} aria-hidden="true">
           <Icon size={18} strokeWidth={1.75} />
         </span>
-
-        <span className={styles.identity}>
-          <span className={styles.nameRow}>
-            <span className={styles.name}>{card.name}</span>
-            <Badge>{cardTypeShortLabel[card.type]}</Badge>
-            {card.status === 'inactive' ? (
-              <Badge tone={cardStatusTone.inactive} dot>
-                {cardStatusLabel.inactive}
-              </Badge>
-            ) : null}
-          </span>
-          <span className={styles.meta}>
-            {/* Espaco inquebravel: "•••• 4417" quebrando no meio vira dois lixos visuais. */}
-            {[card.institution, card.brand, card.lastDigits ? `•••• ${card.lastDigits}` : null]
-              .filter(Boolean)
-              .join(' · ')}
-          </span>
+        <span className={styles.nameRow}>
+          <span className={styles.name}>{card.name}</span>
+          <Badge>{cardTypeShortLabel[card.type]}</Badge>
+          {card.status === 'inactive' ? (
+            <Badge tone={cardStatusTone.inactive} dot>
+              {cardStatusLabel.inactive}
+            </Badge>
+          ) : null}
         </span>
 
         <span className={styles.actions}>
@@ -75,6 +66,19 @@ export function CardTile({ card, invoice, accountBalance, onEdit, onDelete, onOp
             aria-label={`Excluir ${card.name}`}
             onClick={() => onDelete(card)}
           />
+        </span>
+
+        {/*
+          A linha de identificacao ocupa a largura do nome mais a das acoes: com
+          ela espremida na coluna do nome, "Banco Nova · Mastercard · •••• 4417"
+          quebrava em duas e deixava um separador solto no fim da primeira.
+          Espaco inquebravel nos digitos: "•••• 4417" partido no meio vira dois
+          lixos visuais.
+        */}
+        <span className={styles.meta}>
+          {[card.institution, card.brand, card.lastDigits ? `•••• ${card.lastDigits}` : null]
+            .filter(Boolean)
+            .join(' · ')}
         </span>
       </header>
 

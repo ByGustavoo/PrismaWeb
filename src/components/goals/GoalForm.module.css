@@ -1,0 +1,40 @@
+.form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.full {
+  grid-column: 1 / -1;
+}
+
+/*
+ * Explica por que o campo de preco nao esta aqui. Usa a superficie sutil, e nao
+ * o acento: e informacao de apoio, nao um aviso de erro.
+ */
+.note {
+  grid-column: 1 / -1;
+  margin: 0;
+  /* `p` tem max-width de leitura no global.css; aqui o bloco e um painel. */
+  max-width: none;
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--surface-muted);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+/* Explica o asterisco dos rotulos: sozinho ele e convencao, nao instrucao. */
+.legend {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+
+@media (max-width: 599px) {
+  .form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

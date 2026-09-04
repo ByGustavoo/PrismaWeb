@@ -8,6 +8,7 @@ export { InvestmentsPage } from './InvestmentsPage';
 export { BudgetPage } from './BudgetPage';
 export { RecurringPage } from './RecurringPage';
 export { ForecastPage } from './ForecastPage';
+export { GoalsPage } from './GoalsPage';
 export { ReportsPage } from './ReportsPage';
 export { SettingsPage } from './SettingsPage';
 export { NotFoundPage } from './NotFoundPage';

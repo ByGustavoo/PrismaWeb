@@ -6,6 +6,7 @@ import {
   CardsPage,
   DashboardPage,
   ForecastPage,
+  GoalsPage,
   InstallmentsPage,
   InvestmentsPage,
   InvoicesPage,
@@ -69,6 +70,7 @@ export function AppRoutes() {
         <Route path={paths.budget} element={<BudgetPage />} />
         <Route path={paths.recurring} element={<RecurringPage />} />
         <Route path={paths.forecast} element={<ForecastPage />} />
+        <Route path={paths.goals} element={<GoalsPage />} />
 
         <Route path={paths.reports} element={<ReportsPage />} />
         <Route path={paths.settings} element={<SettingsPage />} />

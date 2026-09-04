@@ -17,6 +17,7 @@ export const paths = {
   budget: '/planejamento/orcamento',
   recurring: '/planejamento/recorrentes',
   forecast: '/planejamento/previsao',
+  goals: '/planejamento/metas',
 
   reports: '/relatorios',
   settings: '/configuracoes',

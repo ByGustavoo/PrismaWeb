@@ -1,6 +1,7 @@
 import { LOCALE } from '@/constants/app';
 import type { CategorySpending, Delta, Transaction, TransactionKind } from '@/types';
 import { fromMonthKey } from '@/utils/date';
+import { capitalize } from '@/utils/format';
 
 /**
  * Contas que dashboard, previsao e relatorios fazem do mesmo jeito. Ficam num
@@ -10,9 +11,13 @@ import { fromMonthKey } from '@/utils/date';
 
 const monthShort = new Intl.DateTimeFormat(LOCALE, { month: 'short' });
 
-/** "2026-09" -> "set" */
+/**
+ * "2026-09" -> "Set". Com inicial maiuscula porque e assim que o mes aparece
+ * em todo o resto do produto — a faixa do calendario de gastos, logo abaixo do
+ * grafico de fluxo, ja escrevia "Set/2026".
+ */
 export function shortMonthLabel(monthKey: string): string {
-  return monthShort.format(fromMonthKey(monthKey)).replace('.', '');
+  return capitalize(monthShort.format(fromMonthKey(monthKey)).replace('.', ''));
 }
 
 export function sumKind(list: Transaction[], kind: TransactionKind): number {

@@ -64,6 +64,7 @@ export const navigation: NavSection[] = [
           { label: 'Orçamento', to: paths.budget },
           { label: 'Despesas recorrentes', to: paths.recurring },
           { label: 'Previsão financeira', to: paths.forecast },
+          { label: 'Metas', to: paths.goals },
         ],
       },
     ],

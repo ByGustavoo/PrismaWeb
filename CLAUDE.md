@@ -13,10 +13,10 @@ O estado atual vai ate a **Etapa 5**: fundacao do frontend, dashboard, as telas 
 (listagem com filtros, cadastro, edicao e exclusao de receitas, despesas e transferencias), o
 bloco de contas e cartoes — cadastro de contas, cadastro dos quatro tipos de cartao, faturas com
 detalhe de compras e compras parceladas — e o bloco de patrimonio e analise: carteira de
-investimentos, orcamento mensal por categoria, despesas recorrentes, previsao financeira e
-relatorios. Nao existe backend ainda; toda a camada de dados responde com mocks, e a escrita vive
-em memoria pelo tempo da sessao. O backend em Java / Spring Boot / PostgreSQL vira nas proximas
-etapas.
+investimentos, orcamento mensal por categoria, despesas recorrentes, previsao financeira, metas e
+desejos com historico de precos, e relatorios. Nao existe backend ainda; toda a camada de dados
+responde com mocks, e a escrita vive em memoria pelo tempo da sessao. O backend em Java / Spring
+Boot / PostgreSQL vira nas proximas etapas.
 
 ## Comandos
 
@@ -131,24 +131,26 @@ src/
 │   │              InvestmentFormModal, meta (cor da classe, tom do resultado)
 │   ├── budget/    MonthNavigator, BudgetRow, BudgetFormModal
 │   ├── recurring/ RecurringCard, RecurringFormModal
+│   ├── goals/     GoalCard, GoalFormModal, GoalDetailModal, GoalFilters, PriceDelta,
+│                  PriceSparkline, PriceHistoryChart, meta e query (busca, filtro e ordenacao)
 │   ├── forecast/  ForecastChart, ForecastTable, ForecastList (versao compacta)
 │   ├── reports/   ReportRangePicker, SourceBreakdown, BalanceTrendChart, NetWorthChart
 │   └── charts/    ChartTooltip
 ├── constants/     env, app, navigation, transactions, accounts, cards, investments, budget,
-│                  recurring, forecast, reports
+│                  recurring, goals, forecast, reports
 ├── hooks/         useAsyncData, useMediaQuery, useLocalStorage, useLockBodyScroll, useChartPalette
 ├── layouts/       AppLayout (sidebar + header + conteudo)
 ├── pages/         Dashboard, Lancamentos, Contas, Cartoes, Faturas, Parcelamentos,
-│                  Investimentos, Orcamento, Recorrentes, Previsao, Relatorios,
+│                  Investimentos, Orcamento, Recorrentes, Previsao, Metas, Relatorios,
 │                  Configuracoes, 404
 ├── providers/     ThemeProvider, ToastProvider, PeriodProvider, AppProviders
 ├── routes/        AppRoutes, paths
 ├── services/      dashboard, transactions, categories, accounts, cards, investments, budget,
-│                  recurring, forecast, reports, alerts
+│                  recurring, goals, forecast, reports, alerts
 │   └── mocks/     data, balance, aggregate, transactions.store, accounts.store, cards.store,
-│                  investments.store, budget.store, recurring.store, dashboard.mock, cards.mock,
-│                  investments.mock, budget.mock, recurring.mock, forecast.mock, reports.mock,
-│                  alerts.mock, mockResponse
+│                  investments.store, budget.store, recurring.store, goals.store,
+│                  dashboard.mock, cards.mock, investments.mock, budget.mock, recurring.mock,
+│                  goals.mock, forecast.mock, reports.mock, alerts.mock, mockResponse
 ├── styles/        tokens.css, global.css
 ├── types/         common, finance
 └── utils/         cn, date, format
@@ -400,6 +402,61 @@ delas, dos parcelamentos e do historico.
   pessimista o bastante para nao servir para nada.
 - **A tela de previsao diz como ela foi feita.** A nota de metodo ao fim nao e enfeite: um numero
   apresentado como certeza vira decisao errada quando erra.
+
+## Metas e desejos
+
+Uma tela em `/planejamento/metas`, listada na sidebar como **Metas**, dentro do grupo
+"Planejamento". O titulo da tela e "Metas e desejos" de proposito: so "Metas" abriria espaco para
+ler a tela como uma lista de compras de e-commerce, e o que ela faz e acompanhar quanto custa o
+que se pretende comprar — planejamento, nao vitrine.
+
+- **O historico e a tela; o preco atual e so a ultima linha dele.** Registrar um preco novo nunca
+  sobrescreve o anterior (`addGoalPrice`, nunca um update de preco): sem a serie inteira nao ha
+  menor preco, media, variacao nem grafico — sobra o ultimo numero digitado, que um campo de texto
+  qualquer ja daria. Por isso a edicao (`GoalUpdatePayload`) nao carrega preco: ela mexe em nome,
+  link, imagem, situacao e observacao, e o preco tem caminho proprio (`POST /goals/{id}/prices`).
+- **Aqui a cor segue a noticia, nao a direcao do numero.** Preco que cai e a boa noticia de quem
+  quer comprar, entao a queda e verde. Isso nao contradiz a regra do `DeltaIndicator` — que
+  continua sendo "subiu e verde" em toda variacao financeira — porque este indicador e outro
+  componente (`PriceDelta`) e nunca mostra uma seta sozinha: ele escreve "Baixou" ou "Subiu" ao
+  lado dela. Seta, palavra e cor dizem a mesma coisa, e nao existe seta para baixo em verde sem a
+  palavra que a explica. Nao unifique os dois componentes.
+- **A analise e conta de servidor; a frase e interface.** `GoalAnalysis` devolve um `GoalInsight`
+  (`first`, `lowest`, `below-average`, `above-average`, `highest`, `stable`) e o texto de cada caso
+  vive em `constants/goals.ts`. Traduzir a tela nao pode exigir mexer na API.
+- **A media sozinha nao bastaria.** Numa serie que desceu de 900 para 750 e voltou a 780, "abaixo
+  da media" e verdade e ainda assim esconde que o fundo foi bem mais baixo. Por isso o insight olha
+  primeiro a posicao dentro da faixa (`GOAL_EXTREME_TOLERANCE`) e so depois a media.
+- **Uma meta com um registro so nao tem variacao.** Cartao, cabecalho do detalhe e insight dizem
+  "Primeiro registro" em vez de "Preco estavel": afirmar estabilidade sobre uma unica observacao e
+  falso. No lugar da curva entra o convite a registrar de novo — um vao entre o preco e o rodape do
+  cartao nao informa nada.
+- **Os totais olham so o que esta em acompanhamento.** Somar no "custo da lista" o que ja foi
+  comprado ou cancelado daria um numero que nao corresponde a decisao nenhuma. Comprada e cancelada
+  continuam no cadastro porque o historico delas e o que responde se a compra saiu na hora certa.
+- **O registro de preco fica embutido no modal de detalhe, e nao num segundo modal.** Dois paineis
+  empilhados disputariam a trava de Tab e o Escape do `Modal`. Pelo mesmo motivo, "Editar" e
+  "Excluir" fecham o detalhe antes de abrir o painel seguinte.
+- **O modal de detalhe le a meta pelo id, nao por um retrato.** `GoalsPage` guarda `detailId` e
+  encontra a meta na lista recarregada; guardar o objeto faria o modal continuar mostrando o
+  historico de antes do preco que o usuario acabou de registrar.
+- **A minicurva do cartao e SVG escrito a mao** (`PriceSparkline`), nao Recharts: para quatro
+  pontos sem eixo, rotulo nem tooltip, montar um grafico inteiro custaria mais do que informa — e a
+  cor sai de `currentColor`, entao ela segue o tema sem passar pelo `useChartPalette`. O grafico do
+  detalhe, esse sim, e Recharts como os demais, com a media em tracejado: e contra ela que se le a
+  frase da analise.
+- **O eixo de valores usa marcas redondas** (`niceAxis` em `PriceHistoryChart`). Deixar o Recharts
+  dividir o intervalo cru produzia "R$ 989,9" num eixo de precos — um numero que ninguem escreveria,
+  e que faz conferir a casa decimal em vez de olhar a curva.
+- **Busca, situacao e ordenacao sao aplicadas em memoria** (`components/goals/query.ts`), como em
+  Lancamentos. Os mesmos parametros existem em `GoalFilters` do service porque sao os que a API vai
+  receber como query string quando a lista crescer. A busca ignora acento (`fold`, em
+  `utils/format.ts`, compartilhado com a busca global).
+- **O campo de busca da tela e estreito de proposito e diz "Buscar nas metas".** Ele mora na faixa
+  de filtros, ao lado dos dois seletores, e nao numa barra larga: assim nao compete com a busca
+  global do header, que procura outra coisa. Metas nao entra em `pageOwnsControls`.
+- **Nao ha scraping nem atualizacao automatica de preco.** Todo valor e digitado por quem consultou.
+  O link do produto so abre a pagina numa aba nova.
 
 ## Relatorios
 
