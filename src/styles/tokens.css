@@ -63,9 +63,21 @@
   --tap-size: 34px;
 
   /* --- Movimento ------------------------------------------------------- */
+  /*
+   * `--ease-spring` passa um pouco do alvo antes de assentar. E o unico easing
+   * com ultrapassagem do projeto, reservado a quatro movimentos: entrada de item
+   * de lista, entrada de popover (Select, avisos, periodo), curso do Switch e
+   * rolagem de algarismo do `Amount`. Sao os casos em que algo fisico chega a um
+   * lugar. Cor, borda, sombra e giro de seta continuam em `--ease-out`, sem
+   * repique — um indicador nao precisa de peso.
+   */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.42, 0.54, 1);
   --duration-fast: 120ms;
   --duration-base: 200ms;
+  --duration-slow: 420ms;
+  /* Intervalo entre um item e o seguinte numa entrada escalonada. */
+  --stagger-step: 32ms;
 
   /* --- Marca (constante nos dois temas) --------------------------------- */
   --brand-surface: #16181d;
@@ -158,6 +170,18 @@
   --chart-4: #8a6000;
   --chart-5: #6b5bd2;
   --chart-6: #3f8fa8;
+
+  /*
+   * Escala de calor do calendario de gastos. Comeca no cinza de superficie —
+   * dia sem gasto ainda e um dia, nao um buraco — e sobe ate --negative, a cor
+   * que o produto ja usa para dinheiro que sai. Os degraus sao objeto grafico,
+   * entao o requisito e distinguir um nivel do vizinho, nao 4.5:1 de texto.
+   */
+  --heat-0: #eceef2;
+  --heat-1: #fbd8d2;
+  --heat-2: #f4a294;
+  --heat-3: #e2604b;
+  --heat-4: #c92a12;
 }
 
 /* --- Tema escuro ------------------------------------------------------- */
@@ -211,4 +235,10 @@
   --chart-4: #e8b44a;
   --chart-5: #b18cff;
   --chart-6: #58c2e0;
+
+  --heat-0: #26272c;
+  --heat-1: #4a2320;
+  --heat-2: #7d3029;
+  --heat-3: #bd3d32;
+  --heat-4: #fa5252;
 }

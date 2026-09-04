@@ -167,7 +167,14 @@ export function InstallmentsPage() {
         }
       />
 
-      {loading ? (
+      {/*
+        O esqueleto e so da primeira carga. Depois de cadastrar, editar ou trocar
+        o filtro, os numeros anteriores ficam na tela ate os novos chegarem:
+        apagar a tela a cada gravacao piscava o conteudo inteiro e, pior,
+        remontava a faixa de resumo — o que faria a contagem de entrada
+        (`Amount countUp`) recomecar do zero a cada salvamento.
+      */}
+      {loading && !data ? (
         <div className={styles.stack} aria-busy="true">
           <Card padding="none">
             <LoadingBlock lines={2} height={92} />
@@ -210,19 +217,19 @@ export function InstallmentsPage() {
           />
         </Card>
       ) : (
-        <div className={styles.stack}>
+        <div className={styles.stack} aria-busy={loading}>
           <SummaryBar
             items={[
               {
                 label: 'Falta pagar',
-                value: <Amount value={summary.remaining} size="lg" />,
+                value: <Amount value={summary.remaining} size="lg" countUp />,
                 hint: summary.lastMonth
                   ? `Última parcela em ${formatShortMonth(summary.lastMonth)}`
                   : 'Nenhuma parcela em aberto',
               },
               {
                 label: 'Já pago',
-                value: <Amount value={summary.paid} tone="positive" />,
+                value: <Amount value={summary.paid} tone="positive" countUp />,
                 hint: 'Somando todas as compras da lista',
               },
               {

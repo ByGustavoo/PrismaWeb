@@ -9,16 +9,19 @@ import {
   TransactionsList,
   TransactionsTable,
   TransferFormModal,
+  ViewToggle,
   applyQuery,
   emptyQuery,
   hasActiveFilters,
   initialSortDirection,
   netTotal,
 } from '@/components/transactions';
-import type { SortField, TransactionQuery } from '@/components/transactions';
+import type { SortField, TransactionQuery, TransactionsView } from '@/components/transactions';
 import { Button, Card, ConfirmDialog, EmptyState, LoadingBlock } from '@/components/ui';
+import { TRANSACTIONS_VIEW_STORAGE_KEY } from '@/constants/app';
 import { transactionKindLabel } from '@/constants/transactions';
 import { useAsyncData } from '@/hooks/useAsyncData';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useIsCompact } from '@/hooks/useMediaQuery';
 import { useToast } from '@/providers/ToastProvider';
 import {
@@ -55,6 +58,16 @@ export function TransactionsPage({ kind, title, description }: TransactionsPageP
   const toast = useToast();
   // A tabela de oito colunas so cabe no desktop; abaixo disso a lista vira cartoes.
   const isCompact = useIsCompact();
+  const [preferredView, setPreferredView] = useLocalStorage<TransactionsView>(
+    TRANSACTIONS_VIEW_STORAGE_KEY,
+    'table',
+  );
+  /*
+   * A largura tem a ultima palavra: onde a tabela nao cabe, preferir tabela
+   * devolveria uma tela que rola 1000px de lado ate o valor. A escolha fica
+   * guardada e volta a valer assim que houver espaco para ela.
+   */
+  const view = isCompact ? 'cards' : preferredView;
 
   // A URL e o canal de entrada da tela: `?novo=despesa` abre o cadastro,
   // `?editar=<id>` abre a edicao e `?busca`, `?categoria` e `?conta` chegam da
@@ -245,9 +258,14 @@ export function TransactionsPage({ kind, title, description }: TransactionsPageP
           />
 
           <div className={styles.summary}>
-            <span className={styles.summaryLabel}>
-              {transactions.length} {transactions.length === 1 ? 'lançamento' : 'lançamentos'}
-            </span>
+            <div className={styles.summaryCount}>
+              <span className={styles.summaryLabel}>
+                {transactions.length} {transactions.length === 1 ? 'lançamento' : 'lançamentos'}
+              </span>
+
+              {/* Onde so uma das duas formas cabe, escolher entre elas nao existe. */}
+              {isCompact ? null : <ViewToggle value={preferredView} onChange={setPreferredView} />}
+            </div>
             {kind === 'transfer' ? (
               <span className={styles.summaryLabel}>Transferências não entram no resultado do período</span>
             ) : (
@@ -292,7 +310,7 @@ export function TransactionsPage({ kind, title, description }: TransactionsPageP
               )
             }
           />
-        ) : isCompact ? (
+        ) : view === 'cards' ? (
           <TransactionsList
             transactions={transactions}
             sortField={query.sortField}

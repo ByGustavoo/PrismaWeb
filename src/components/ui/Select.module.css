@@ -136,7 +136,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-popover);
-  animation: menuIn var(--duration-fast) var(--ease-out);
+  animation: menuIn var(--duration-base) var(--ease-spring);
 }
 
 .menu:focus {

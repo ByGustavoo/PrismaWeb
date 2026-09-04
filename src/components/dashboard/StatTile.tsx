@@ -22,7 +22,8 @@ export function StatTile({ label, value, icon: Icon, delta, footnote }: StatTile
         </span>
       </header>
 
-      <Amount value={value} size="lg" />
+      {/* Conta na entrada; depois disso troca rolando, com o seletor de periodo. */}
+      <Amount value={value} size="lg" animate countUp />
 
       <footer className={styles.footer}>
         {delta ? <DeltaIndicator delta={delta} /> : null}

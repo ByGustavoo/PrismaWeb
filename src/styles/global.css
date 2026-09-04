@@ -147,6 +147,29 @@ table {
   transform: translateY(0);
 }
 
+/*
+ * Entrada de item de lista, escalonada pelo indice em `--i`. O keyframe e a
+ * classe vivem aqui, e nao em cada `.module.css`, por dois motivos: duas listas
+ * distantes (os ultimos lancamentos do dashboard e o painel de avisos) precisam
+ * da mesma curva, e o CSS Modules reescreve o nome da animacao dentro de um
+ * modulo — `animation: prisma-list-in` viraria `_prisma-list-in_hash`, um nome
+ * que nao corresponde a keyframe nenhuma, e a animacao simplesmente nao roda.
+ *
+ * `backwards` mantem o item invisivel durante o atraso; sem isso a lista
+ * aparece inteira e so depois cada linha volta para o inicio da animacao.
+ */
+@keyframes prisma-list-in {
+  from {
+    opacity: 0;
+    transform: translateY(9px);
+  }
+}
+
+.list-item-in {
+  animation: prisma-list-in var(--duration-base) var(--ease-spring) backwards;
+  animation-delay: calc(var(--i, 0) * var(--stagger-step));
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -164,7 +187,14 @@ table {
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    /*
+     * Sem zerar o atraso, uma entrada escalonada com `fill-mode: backwards`
+     * deixaria os ultimos itens invisiveis por centenas de milissegundos —
+     * a animacao acaba instantanea, mas so comeca depois do atraso.
+     */
+    animation-delay: 0ms !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
     scroll-behavior: auto !important;
   }
 }

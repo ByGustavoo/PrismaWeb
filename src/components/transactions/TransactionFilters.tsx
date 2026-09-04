@@ -1,7 +1,7 @@
 import { useId, useMemo, useState } from 'react';
 import { ArrowLeftRight, CalendarRange, CircleDot, Search, SlidersHorizontal, Tag, Wallet, X } from 'lucide-react';
 import { HeaderSlot } from '@/components/layout';
-import { Button, Input, Select } from '@/components/ui';
+import { Button, DatePicker, Input, Select } from '@/components/ui';
 import { LOCALE } from '@/constants/app';
 import { transactionKindPluralLabel, transactionStatusLabel } from '@/constants/transactions';
 import { useIsCompact } from '@/hooks/useMediaQuery';
@@ -204,21 +204,19 @@ export function TransactionFilters({
       {/* As datas so aparecem quando o usuario pede um periodo proprio. */}
       {showControls && query.period === 'custom' ? (
         <div className={styles.range}>
-          <Input
+          <DatePicker
             className={styles.date}
-            type="date"
             label="De"
             value={query.from}
             max={query.to || undefined}
-            onChange={(event) => onChange({ from: event.target.value })}
+            onChange={(from) => onChange({ from })}
           />
-          <Input
+          <DatePicker
             className={styles.date}
-            type="date"
             label="Até"
             value={query.to}
             min={query.from || undefined}
-            onChange={(event) => onChange({ to: event.target.value })}
+            onChange={(to) => onChange({ to })}
           />
         </div>
       ) : null}

@@ -1,0 +1,272 @@
+/*
+ * O gatilho repete o desenho do campo (ver Field.module.css) e do Select: os
+ * tres precisam ser indistinguiveis numa mesma linha de formulario.
+ */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.label {
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+/* Ver Field.module.css: reforco visual, a semantica vem de aria-required. */
+.required {
+  margin-left: 2px;
+  color: var(--negative);
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding-inline: var(--space-3);
+  background-color: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.md {
+  height: var(--control-height);
+  font-size: var(--control-font);
+}
+
+.sm {
+  height: var(--control-height-sm);
+  font-size: var(--fs-sm);
+}
+
+.trigger:hover:not(:disabled) {
+  border-color: var(--text-subtle);
+  background-color: var(--surface-muted);
+}
+
+.trigger:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+}
+
+.triggerOpen,
+.triggerOpen:hover:not(:disabled) {
+  border-color: var(--accent);
+  background-color: var(--surface);
+  box-shadow: var(--focus-ring);
+}
+
+.triggerError {
+  border-color: var(--negative);
+}
+
+.trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.icon {
+  flex-shrink: 0;
+  color: var(--text-subtle);
+}
+
+.value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.placeholder {
+  color: var(--text-subtle);
+  font-weight: 400;
+}
+
+/* --- Painel ------------------------------------------------------------ */
+
+.panel {
+  position: fixed;
+  z-index: var(--z-popover);
+  padding: var(--space-3);
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-popover);
+  /* Mesma entrada dos outros popovers: avisos, periodo, busca e Select. */
+  animation: calendarIn var(--duration-base) var(--ease-spring);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.month {
+  font-size: var(--fs-base);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+}
+
+.nav {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: var(--radius-xs);
+  color: var(--text-muted);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.nav:hover {
+  background-color: var(--surface-muted);
+  color: var(--text);
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.weekdays,
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+}
+
+.weekday {
+  display: grid;
+  place-items: center;
+  height: 24px;
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  color: var(--text-subtle);
+}
+
+.day,
+.blank {
+  display: grid;
+  place-items: center;
+  height: 34px;
+  border-radius: var(--radius-xs);
+  font-size: var(--fs-base);
+}
+
+.day {
+  cursor: pointer;
+  color: var(--text);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+/*
+ * O cursor do teclado e o hover sao o mesmo estado: um so realce evita a duvida
+ * de qual dos dois o Enter vai escolher.
+ *
+ * O realce e `--accent-soft`, e nao o `--surface-muted` que o `Select` usa nas
+ * opcoes: la o alvo e uma linha de ponta a ponta do painel, aqui e um quadrado
+ * de 34px. No tema escuro `--surface-muted` fica a um passo de `--surface-raised`
+ * na escala de elevacao — diferenca que a linha inteira mostra e a casa engole.
+ */
+.cursor:not(.selected):not(.blocked) {
+  background-color: var(--accent-soft);
+  color: var(--accent);
+}
+
+/*
+ * Hoje se anuncia por um anel, nao por preenchimento: o preenchimento e do dia
+ * escolhido, e dois blocos cheios competiriam pela mesma leitura.
+ */
+.today:not(.selected) {
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+  font-weight: 600;
+}
+
+.selected,
+.selected.cursor {
+  background-color: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 600;
+}
+
+/*
+ * Dia fora do intervalo permitido continua legivel — some da escolha, nao da
+ * leitura: quem procura 30 de agosto precisa ver que ele existe e esta barrado.
+ */
+.blocked {
+  color: var(--text-subtle);
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+.action {
+  padding: var(--space-1) var(--space-2);
+  margin-left: calc(var(--space-2) * -1);
+  border-radius: var(--radius-xs);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--accent);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.action:hover:not(:disabled) {
+  background-color: var(--accent-soft);
+}
+
+.action:disabled {
+  color: var(--text-subtle);
+  cursor: not-allowed;
+}
+
+.cursorHint {
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+
+.hint {
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+
+.error {
+  font-size: var(--fs-xs);
+  color: var(--negative);
+}
+
+@keyframes calendarIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}

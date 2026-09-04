@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Button, Input, Modal, Select, Textarea } from '@/components/ui';
+import { Button, DatePicker, Input, Modal, Select, Textarea } from '@/components/ui';
 import {
   paymentMethodLabel,
   paymentMethods,
@@ -212,12 +212,11 @@ export function TransactionFormModal({
           error={errors.amount}
         />
 
-        <Input
+        <DatePicker
           required
           label="Data"
-          type="date"
           value={form.date}
-          onChange={(event) => set('date', event.target.value)}
+          onChange={(date) => set('date', date)}
           error={errors.date}
         />
 

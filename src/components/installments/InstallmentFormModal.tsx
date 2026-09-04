@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Amount } from '@/components/common';
-import { Button, Input, Modal, Select, Textarea } from '@/components/ui';
+import { Button, DatePicker, Input, Modal, Select, Textarea } from '@/components/ui';
 import { installmentCounts, isCreditCard } from '@/constants/cards';
 import type { CreditCard } from '@/constants/cards';
 import type { Card, Category, InstallmentPayload, InstallmentPurchase, Option } from '@/types';
@@ -247,13 +247,12 @@ export function InstallmentFormModal({
           error={errors.cardId}
         />
 
-        <Input
+        <DatePicker
           required
           label="Data da compra"
-          type="date"
           value={form.purchaseDate}
-          onChange={(event) => {
-            set('purchaseDate', event.target.value);
+          onChange={(purchaseDate) => {
+            set('purchaseDate', purchaseDate);
             set('firstMonth', '');
           }}
           error={errors.purchaseDate}

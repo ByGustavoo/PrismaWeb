@@ -63,3 +63,59 @@
     font-size: var(--fs-2xl);
   }
 }
+
+/* --- Algarismos que rolam (Amount animate) ---------------------------- */
+
+/*
+ * A altura de cada casa. E a mesma medida em tres lugares — caixa da coluna,
+ * altura de um algarismo e passo do deslocamento —, e e o que garante que o
+ * algarismo vizinho pare exatamente na borda da coluna, sem espiar.
+ */
+.roller {
+  --roll-step: 1.12em;
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.slot {
+  position: relative;
+  display: inline-block;
+  line-height: 1.12;
+  /*
+   * Recorta com clip-path, e nao com overflow: um inline-block com overflow
+   * diferente de visible passa a ter a linha de base no rodape da caixa, e o
+   * "R$" ao lado desceria junto com ela.
+   */
+  clip-path: inset(0);
+}
+
+/*
+ * Um algarismo em branco sustenta a coluna: dele saem a largura (tabular, igual
+ * para os dez) e a linha de base. A roda flutua por cima sem participar do
+ * layout, entao rolar nunca reposiciona o que esta ao lado.
+ */
+.ghost {
+  visibility: hidden;
+}
+
+.wheel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(calc(var(--digit) * var(--roll-step) * -1));
+  transition: transform var(--duration-slow) var(--ease-spring);
+  transition-delay: calc(var(--order) * var(--stagger-step) * 0.6);
+}
+
+.face {
+  height: var(--roll-step);
+  line-height: 1.12;
+}
+
+/* Separador de milhar e de centavos: fica parado enquanto as casas rolam. */
+.separator {
+  line-height: 1.12;
+}

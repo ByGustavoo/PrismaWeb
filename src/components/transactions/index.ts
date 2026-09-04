@@ -2,6 +2,8 @@ export { TransactionFilters } from './TransactionFilters';
 export { TransactionsTable } from './TransactionsTable';
 export { TransactionsList } from './TransactionsList';
 export { TransactionFormModal } from './TransactionFormModal';
+export { ViewToggle } from './ViewToggle';
+export type { TransactionsView } from './ViewToggle';
 export { TransferFormModal } from './TransferFormModal';
 export { kindIcon, kindSign, kindTone, statusTone } from './meta';
 export {

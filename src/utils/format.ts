@@ -41,6 +41,17 @@ const shortMonthFormatter = new Intl.DateTimeFormat(LOCALE, {
   month: 'short',
 });
 
+const numericDateFormatter = new Intl.DateTimeFormat(LOCALE, {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+});
+
+const timeFormatter = new Intl.DateTimeFormat(LOCALE, {
+  hour: '2-digit',
+  minute: '2-digit',
+});
+
 /** Espaco inquebravel entre o simbolo e os algarismos. */
 const NBSP = ' ';
 
@@ -93,6 +104,21 @@ export function formatShortDate(isoDate: string): string {
 
 export function formatFullDate(isoDate: string): string {
   return fullDateFormatter.format(fromISODate(isoDate));
+}
+
+/**
+ * "2026-09-03" -> "03/09/2026". Forma curta para o campo de data, onde a data
+ * por extenso nao caberia: o valor precisa caber num campo estreito de filtro
+ * sem reticencias. Quem usa leitor de tela recebe a data por extenso pelo
+ * `aria-label` do campo.
+ */
+export function formatNumericDate(isoDate: string): string {
+  return numericDateFormatter.format(fromISODate(isoDate));
+}
+
+/** Hora local no formato "14:32". */
+export function formatTime(value: Date = new Date()): string {
+  return timeFormatter.format(value);
 }
 
 /** "2026-08" -> "agosto de 2026" */

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
+import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { CalendarClock, CreditCard, Receipt, TriangleAlert } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -98,8 +99,8 @@ export function NotificationsPanel({ open, onClose, onCountChange }: Notificatio
         </div>
       ) : (
         <ul className={styles.list}>
-          {alerts.map((alert) => (
-            <AlertRow key={alert.id} alert={alert} onNavigate={onClose} />
+          {alerts.map((alert, index) => (
+            <AlertRow key={alert.id} alert={alert} index={index} onNavigate={onClose} />
           ))}
         </ul>
       )}
@@ -107,7 +108,14 @@ export function NotificationsPanel({ open, onClose, onCountChange }: Notificatio
   );
 }
 
-function AlertRow({ alert, onNavigate }: { alert: Alert; onNavigate: () => void }) {
+interface AlertRowProps {
+  alert: Alert;
+  /** Posicao na lista: e o que escalona a entrada da linha. */
+  index: number;
+  onNavigate: () => void;
+}
+
+function AlertRow({ alert, index, onNavigate }: AlertRowProps) {
   const Icon = kindIcon[alert.kind];
 
   const content = (
@@ -129,7 +137,7 @@ function AlertRow({ alert, onNavigate }: { alert: Alert; onNavigate: () => void 
   );
 
   return (
-    <li>
+    <li className="list-item-in" style={{ '--i': index } as CSSProperties}>
       {alert.to ? (
         <Link className={styles.item} to={alert.to} onClick={onNavigate}>
           {content}

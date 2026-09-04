@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowDown } from 'lucide-react';
-import { Button, Input, Modal, Select, Textarea } from '@/components/ui';
+import { Button, DatePicker, Input, Modal, Select, Textarea } from '@/components/ui';
 import { transactionStatusLabel, transactionStatuses } from '@/constants/transactions';
 import type { Option, PaymentSource, Transaction, TransactionPayload, TransactionStatus } from '@/types';
 import { cn } from '@/utils/cn';
@@ -211,12 +211,11 @@ export function TransferFormModal({
           error={errors.amount}
         />
 
-        <Input
+        <DatePicker
           required
           label="Data"
-          type="date"
           value={form.date}
-          onChange={(event) => set('date', event.target.value)}
+          onChange={(date) => set('date', date)}
           error={errors.date}
         />
 

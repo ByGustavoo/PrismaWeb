@@ -135,7 +135,14 @@ export function CardsPage() {
         }
       />
 
-      {loading ? (
+      {/*
+        O esqueleto e so da primeira carga. Depois de cadastrar, editar ou trocar
+        o filtro, os numeros anteriores ficam na tela ate os novos chegarem:
+        apagar a tela a cada gravacao piscava o conteudo inteiro e, pior,
+        remontava a faixa de resumo — o que faria a contagem de entrada
+        (`Amount countUp`) recomecar do zero a cada salvamento.
+      */}
+      {loading && !data ? (
         <div className={styles.stack} aria-busy="true">
           <Card padding="none">
             <LoadingBlock lines={2} height={92} />
@@ -170,23 +177,23 @@ export function CardsPage() {
           />
         </Card>
       ) : (
-        <div className={styles.stack}>
+        <div className={styles.stack} aria-busy={loading}>
           {creditCards.length > 0 ? (
             <SummaryBar
               items={[
                 {
                   label: 'Limite disponível',
-                  value: <Amount value={summary.available} size="lg" />,
+                  value: <Amount value={summary.available} size="lg" countUp />,
                   hint: 'Somando todos os cartões de crédito',
                 },
                 {
                   label: 'Limite comprometido',
-                  value: <Amount value={summary.used} tone="muted" />,
+                  value: <Amount value={summary.used} tone="muted" countUp />,
                   hint: 'Faturas em aberto e parcelas a vencer',
                 },
                 {
                   label: 'Faturas atuais',
-                  value: <Amount value={summary.openTotal} tone="muted" />,
+                  value: <Amount value={summary.openTotal} tone="muted" countUp />,
                   hint: 'Total dos ciclos ainda não pagos',
                 },
               ]}

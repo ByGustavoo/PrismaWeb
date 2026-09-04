@@ -97,7 +97,14 @@ export function AccountsPage() {
         }
       />
 
-      {loading ? (
+      {/*
+        O esqueleto e so da primeira carga. Depois de cadastrar, editar ou trocar
+        o filtro, os numeros anteriores ficam na tela ate os novos chegarem:
+        apagar a tela a cada gravacao piscava o conteudo inteiro e, pior,
+        remontava a faixa de resumo — o que faria a contagem de entrada
+        (`Amount countUp`) recomecar do zero a cada salvamento.
+      */}
+      {loading && !data ? (
         <div className={styles.stack} aria-busy="true">
           <Card padding="none">
             <LoadingBlock lines={2} height={92} />
@@ -132,17 +139,17 @@ export function AccountsPage() {
           />
         </Card>
       ) : (
-        <div className={styles.stack}>
+        <div className={styles.stack} aria-busy={loading}>
           <SummaryBar
             items={[
               {
                 label: 'Saldo total',
-                value: <Amount value={summary.total} size="lg" />,
+                value: <Amount value={summary.total} size="lg" countUp />,
                 hint: 'Soma das contas ativas que entram no total',
               },
               {
                 label: 'Fora do saldo total',
-                value: <Amount value={summary.excluded} tone="muted" />,
+                value: <Amount value={summary.excluded} tone="muted" countUp />,
                 hint: 'Contas marcadas para não somar',
               },
               {

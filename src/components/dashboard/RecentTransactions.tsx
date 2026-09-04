@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { Amount } from '@/components/common';
 import { kindIcon, kindSign, kindTone, statusTone } from '@/components/transactions/meta';
@@ -37,8 +38,8 @@ export function RecentTransactions({ transactions, description }: RecentTransact
               </Tr>
             </THead>
             <TBody>
-              {transactions.map((transaction) => (
-                <TransactionRow key={transaction.id} transaction={transaction} />
+              {transactions.map((transaction, index) => (
+                <TransactionRow key={transaction.id} transaction={transaction} index={index} />
               ))}
             </TBody>
           </Table>
@@ -48,11 +49,18 @@ export function RecentTransactions({ transactions, description }: RecentTransact
   );
 }
 
-export function TransactionRow({ transaction }: { transaction: Transaction }) {
+interface TransactionRowProps {
+  transaction: Transaction;
+  /** Posicao na lista: e o que escalona a entrada da linha. */
+  index?: number;
+}
+
+export function TransactionRow({ transaction, index = 0 }: TransactionRowProps) {
   const Icon = kindIcon[transaction.kind];
 
+  // `list-item-in` e uma classe global (global.css): entrada escalonada por `--i`.
   return (
-    <Tr interactive>
+    <Tr interactive className="list-item-in" style={{ '--i': index } as CSSProperties}>
       <Td>
         <div className={styles.description}>
           <span className={`${styles.kindIcon} ${styles[transaction.kind]}`} aria-hidden="true">

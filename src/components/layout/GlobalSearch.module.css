@@ -69,7 +69,8 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-popover);
-  animation: panelIn var(--duration-fast) var(--ease-out);
+  /* Mesma entrada dos outros popovers: avisos, periodo e lista do Select. */
+  animation: panelIn var(--duration-base) var(--ease-spring);
 }
 
 .groupLabel {

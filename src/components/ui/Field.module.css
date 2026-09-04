@@ -92,25 +92,6 @@
   font-size: var(--control-font);
 }
 
-/*
- * O seletor nativo de data desenha o proprio icone. Com `color-scheme` ja
- * definido nos tokens ele acompanha o tema; aqui so aproximamos o botao do
- * calendario do resto do campo.
- */
-.input[type='date'] {
-  cursor: text;
-}
-
-.input[type='date']::-webkit-calendar-picker-indicator {
-  cursor: pointer;
-  opacity: 0.6;
-  transition: opacity var(--duration-fast) var(--ease-out);
-}
-
-.input[type='date']::-webkit-calendar-picker-indicator:hover {
-  opacity: 1;
-}
-
 .hint {
   font-size: var(--fs-xs);
   color: var(--text-subtle);

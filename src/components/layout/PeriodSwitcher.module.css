@@ -66,6 +66,7 @@
   text-overflow: ellipsis;
 }
 
+/* Sem mola aqui: a seta do `Select` gira igual, e as duas nao podem divergir. */
 .chevron {
   flex-shrink: 0;
   color: var(--text-subtle);
@@ -88,7 +89,8 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-popover);
-  animation: panelIn var(--duration-fast) var(--ease-out);
+  /* Mesma entrada dos outros popovers: painel de avisos e lista do Select. */
+  animation: panelIn var(--duration-base) var(--ease-spring);
 }
 
 .presets {
@@ -108,6 +110,7 @@
   font-size: var(--fs-base);
   color: var(--text);
   text-align: left;
+  transition: background-color var(--duration-fast) var(--ease-out);
 }
 
 .preset:hover {

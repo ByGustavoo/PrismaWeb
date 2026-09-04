@@ -1,6 +1,8 @@
 export { useAsyncData } from './useAsyncData';
 export type { AsyncResult } from './useAsyncData';
 export { useMediaQuery, useIsMobile, useIsTablet, useIsCompact } from './useMediaQuery';
+export { useCountUp } from './useCountUp';
+export type { CountUp } from './useCountUp';
 export { useLocalStorage } from './useLocalStorage';
 export { useLockBodyScroll } from './useLockBodyScroll';
 export { useChartPalette } from './useChartPalette';

@@ -158,7 +158,14 @@ export function InvoicesPage() {
         }
       />
 
-      {loading ? (
+      {/*
+        O esqueleto e so da primeira carga. Depois de cadastrar, editar ou trocar
+        o filtro, os numeros anteriores ficam na tela ate os novos chegarem:
+        apagar a tela a cada gravacao piscava o conteudo inteiro e, pior,
+        remontava a faixa de resumo — o que faria a contagem de entrada
+        (`Amount countUp`) recomecar do zero a cada salvamento.
+      */}
+      {loading && !data ? (
         <div className={styles.stack} aria-busy="true">
           <Card padding="none">
             <LoadingBlock lines={2} height={92} />
@@ -188,24 +195,24 @@ export function InvoicesPage() {
           />
         </Card>
       ) : (
-        <div className={styles.stack}>
+        <div className={styles.stack} aria-busy={loading}>
           <SummaryBar
             items={[
               {
                 label: 'A pagar agora',
-                value: <Amount value={summary.toPay} size="lg" />,
+                value: <Amount value={summary.toPay} size="lg" countUp />,
                 hint: summary.nextDue
                   ? capitalize(formatDueLabel(summary.nextDue))
                   : 'Nenhuma fatura fechada',
               },
               {
                 label: 'Ciclo em aberto',
-                value: <Amount value={summary.current} tone="muted" />,
+                value: <Amount value={summary.current} tone="muted" countUp />,
                 hint: 'Ainda acumulando compras',
               },
               {
                 label: 'Já comprometido',
-                value: <Amount value={summary.upcoming} tone="muted" />,
+                value: <Amount value={summary.upcoming} tone="muted" countUp />,
                 hint: `${summary.upcomingCount} ${summary.upcomingCount === 1 ? 'fatura futura' : 'faturas futuras'}`,
               },
             ]}

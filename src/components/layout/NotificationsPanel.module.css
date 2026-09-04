@@ -11,7 +11,8 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-overlay);
-  animation: panelIn var(--duration-fast) var(--ease-out);
+  /* Mesma curva do painel de periodos: dois popovers do header, uma entrada so. */
+  animation: panelIn var(--duration-base) var(--ease-spring);
 }
 
 .header {

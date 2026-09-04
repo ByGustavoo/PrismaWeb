@@ -1,0 +1,184 @@
+/*
+ * A grade cresce ate onde o conteudo pede e as estatisticas ocupam o resto:
+ * sozinha num cartao de largura inteira, a grade de um mes unico deixaria dois
+ * tercos da faixa vazios.
+ */
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 232px);
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.readout {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  font-size: var(--fs-sm);
+}
+
+.readoutLabel {
+  color: var(--text-muted);
+}
+
+/*
+ * O slot de acao do Card nao encolhe, entao uma leitura larga espremeria o
+ * titulo ate uma palavra por linha. Nesta faixa ela sai: e informacao de
+ * ponteiro, e o maior gasto continua escrito na lista de numeros ao lado.
+ */
+@media (max-width: 699px) {
+  .readout {
+    display: none;
+  }
+}
+
+/*
+ * `auto-fill` com largura minima, como as grades de contas, cartoes e
+ * parcelamentos. E o que garante que o mes sozinho na ultima linha tenha o
+ * mesmo tamanho dos outros: com flex ele esticava ate a largura da faixa, e a
+ * casa do dia virava um azulejo do tamanho de uma semana.
+ */
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: var(--space-4);
+}
+
+/* O piso de 132px da grade mantem a casa do dia com uns 16px de lado — menos
+   que isso ela deixa de ser um alvo. */
+.month {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.monthName {
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.weekdays,
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 3px;
+}
+
+.weekdays {
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+  text-align: center;
+}
+
+.day,
+.blank {
+  aspect-ratio: 1;
+  border-radius: var(--radius-xs);
+}
+
+/* As casas antes do primeiro dia do mes existem so para alinhar a semana. */
+.blank {
+  visibility: hidden;
+}
+
+.day {
+  background-color: var(--heat-0);
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.day:hover {
+  transform: scale(1.14);
+  box-shadow: 0 0 0 1px var(--text-subtle);
+}
+
+.level0 {
+  background-color: var(--heat-0);
+}
+.level1 {
+  background-color: var(--heat-1);
+}
+.level2 {
+  background-color: var(--heat-2);
+}
+.level3 {
+  background-color: var(--heat-3);
+}
+.level4 {
+  background-color: var(--heat-4);
+}
+
+/*
+ * Dia que ainda nao chegou fica vazado: pintado do mesmo cinza do dia sem gasto
+ * ele diria que nada foi gasto, o que e diferente de ainda nao ter acontecido.
+ * E nao responde ao ponteiro — anunciar "R$ 0,00" para um dia que nem comecou
+ * seria a mesma mentira em texto.
+ */
+.ahead,
+.ahead.level0 {
+  background-color: transparent;
+  box-shadow: inset 0 0 0 1px var(--border);
+  pointer-events: none;
+}
+
+/* Hoje leva um anel: e o ponto a partir do qual o calendario para de contar. */
+.today {
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.stats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.stat {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--fs-sm);
+}
+
+.stat dt {
+  color: var(--text-muted);
+}
+
+.stat dd {
+  margin: 0;
+  font-weight: 500;
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+
+.swatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* Abaixo de 900px a coluna de estatisticas nao cabe ao lado: ela desce. */
+@media (max-width: 899px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

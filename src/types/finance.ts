@@ -284,6 +284,17 @@ export interface BalancePoint {
   balance: number;
 }
 
+/**
+ * Despesas somadas de um dia do periodo. O dia sem gasto vem com zero, e nao
+ * ausente: o calendario precisa desenhar a casa vazia, e uma sequencia de dias
+ * sem gasto e informacao — nao um buraco na serie.
+ */
+export interface DailySpending {
+  /** Data ISO (YYYY-MM-DD). */
+  date: string;
+  amount: number;
+}
+
 export type AlertKind = 'invoice-due' | 'bill-due' | 'scheduled' | 'card-limit';
 
 export type AlertSeverity = 'critical' | 'attention' | 'info';
@@ -323,6 +334,8 @@ export interface DashboardSummary {
   };
   balanceHistory: BalancePoint[];
   cashflow: CashflowPoint[];
+  /** Todos os dias da janela dos graficos, do primeiro ao ultimo, em ordem. */
+  dailySpending: DailySpending[];
   spendingByCategory: CategorySpending[];
   recentTransactions: Transaction[];
 }

@@ -45,26 +45,33 @@ export function BalancePanel({
     <section className={styles.panel} aria-label={label}>
       <div className={styles.summary}>
         <p className={styles.label}>{label}</p>
-        <Amount value={balance} size="display" />
+        <Amount value={balance} size="display" animate countUp />
         <DeltaIndicator delta={delta} caption={`em relação ao ${periodNoun} anterior`} />
 
         <dl className={styles.flows}>
           <div className={styles.flow}>
             <dt>Entradas do {periodNoun}</dt>
             <dd>
-              <Amount value={income} tone="positive" size="md" sign="plus" />
+              <Amount value={income} tone="positive" size="md" sign="plus" animate countUp />
             </dd>
           </div>
           <div className={styles.flow}>
             <dt>Saídas do {periodNoun}</dt>
             <dd>
-              <Amount value={expense} tone="negative" size="md" sign="minus" />
+              <Amount value={expense} tone="negative" size="md" sign="minus" animate countUp />
             </dd>
           </div>
           <div className={styles.flow}>
             <dt>Resultado</dt>
             <dd>
-              <Amount value={income - expense} tone={income - expense >= 0 ? 'positive' : 'negative'} size="md" sign="auto" />
+              <Amount
+                value={income - expense}
+                tone={income - expense >= 0 ? 'positive' : 'negative'}
+                size="md"
+                sign="auto"
+                animate
+                countUp
+              />
             </dd>
           </div>
         </dl>

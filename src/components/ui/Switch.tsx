@@ -36,6 +36,13 @@ export function Switch({ checked, onChange, label, hint, disabled = false, class
         onClick={() => onChange(!checked)}
       >
         <span className={cn(styles.track, checked && styles.trackOn)} aria-hidden="true">
+          {/*
+            O preenchimento e uma camada propria para poder crescer de debaixo do
+            polegar ligado ate tomar a chave inteira — e encolher de volta para
+            la ao desligar. Trocar so a cor de fundo do trilho chegaria a mesma
+            cor final, sem nenhum sentido de origem.
+          */}
+          <span className={styles.fill} />
           <span className={styles.thumb} />
         </span>
         <span className={styles.label}>{label}</span>

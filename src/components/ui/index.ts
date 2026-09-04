@@ -10,6 +10,8 @@ export { Textarea } from './Textarea';
 export type { TextareaProps } from './Textarea';
 export { Select } from './Select';
 export type { SelectProps } from './Select';
+export { DatePicker } from './DatePicker';
+export type { DatePickerProps } from './DatePicker';
 export { Switch } from './Switch';
 export type { SwitchProps } from './Switch';
 export { ProgressBar } from './ProgressBar';

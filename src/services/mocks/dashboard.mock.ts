@@ -3,12 +3,22 @@ import type {
   BalancePoint,
   CashflowPoint,
   CategorySpending,
+  DailySpending,
   DashboardSummary,
   Delta,
   Transaction,
   TransactionKind,
 } from '@/types';
-import { fromMonthKey, monthKeyRange, monthsBetween, shiftMonthKey, todayISO } from '@/utils/date';
+import {
+  addDays,
+  fromISODate,
+  fromMonthKey,
+  monthKeyRange,
+  monthsBetween,
+  shiftMonthKey,
+  toISODate,
+  todayISO,
+} from '@/utils/date';
 import { buildInvoices } from './cards.mock';
 import { accounts, currentMonth, investments, transactions } from './data';
 
@@ -156,6 +166,41 @@ function buildSpendingByCategory(list: Transaction[]): CategorySpending[] {
     .sort((a, b) => b.amount - a.amount);
 }
 
+/**
+ * Um total de despesas para cada dia da janela desenhada — a mesma dos outros
+ * graficos, entao um mes unico vem acompanhado dos cinco anteriores. Trinta
+ * quadradinhos sozinhos nao mostram habito nenhum: e a repeticao de seis meses
+ * que faz aparecer o dia da semana em que se gasta e a semana do mes que pesa.
+ *
+ * A serie e continua de proposito, com o dia sem gasto valendo zero: e o
+ * calendario que decide como pintar o vazio e o dia que ainda nao chegou, e
+ * para isso ele precisa de todas as casas.
+ */
+function buildDailySpending(window: string[]): DailySpending[] {
+  const first = window[0];
+  const last = window[window.length - 1];
+  if (!first || !last) return [];
+
+  const totals = new Map<string, number>();
+
+  for (const item of transactions) {
+    if (item.kind !== 'expense') continue;
+    const month = item.date.slice(0, 7);
+    if (month < first || month > last) continue;
+    totals.set(item.date, (totals.get(item.date) ?? 0) + item.amount);
+  }
+
+  const days: DailySpending[] = [];
+  const end = fromISODate(monthKeyRange(last).to);
+
+  for (let cursor = fromMonthKey(first); cursor <= end; cursor = addDays(cursor, 1)) {
+    const date = toISODate(cursor);
+    days.push({ date, amount: totals.get(date) ?? 0 });
+  }
+
+  return days;
+}
+
 function buildCashflow(window: string[]): CashflowPoint[] {
   return window.map((key) => {
     const list = ofMonth(key);
@@ -230,6 +275,7 @@ export function buildDashboardSummary(
     currentInvoice: buildInvoice(period.to),
     balanceHistory: buildBalanceHistory(window),
     cashflow: buildCashflow(window),
+    dailySpending: buildDailySpending(window),
     spendingByCategory: buildSpendingByCategory(current),
     recentTransactions,
   };

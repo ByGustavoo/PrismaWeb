@@ -79,12 +79,21 @@ Estas sao as invariantes do projeto. Quebra-las e o erro mais caro que se pode c
 6. **Contratos de dominio em `src/types/finance.ts`.** Sao o contrato esperado do backend futuro;
    mudar um tipo la e uma decisao de API, nao um detalhe de tela.
 
-7. **Nada de `<select>` nativo.** O navegador desenha a lista do elemento nativo com as cores do
+7. **Nada de `<select>` nem de `<input type="date">` nativos.** O navegador desenha a lista do elemento nativo com as cores do
    sistema e ignora os tokens, o que deixa as opcoes ilegiveis no tema escuro. Campos de escolha
    usam `components/ui/Select`, um combobox proprio com `role="listbox"`, navegacao por teclado e
    estados de hover, selecao e foco vindos dos tokens. A lista sai num portal no `body` com posicao
    fixa: dentro de um formulario em modal, que rola, uma lista absoluta seria cortada pela borda do
    painel. Por isso `--z-popover` fica acima de `--z-modal` — nao inverta essa ordem.
+
+   O campo de data tem o mesmo problema e a mesma solucao: `components/ui/DatePicker`. O calendario
+   nativo e desenhado pelo navegador, ignora os tokens e muda de forma a cada navegador — no tema
+   escuro ele abria como uma janela clara no meio de um formulario escuro. O `DatePicker` repete a
+   arquitetura do `Select`, e nao por gosto: o painel vai para um portal e **o foco fica no
+   gatilho**, com o dia sob o cursor anunciado por `aria-activedescendant`. Mover o foco para dentro
+   do portal brigaria com a trava de Tab do `Modal`, que so conhece os elementos do proprio painel.
+   Pelo mesmo motivo o Escape do calendario chama `stopPropagation`: sem isso ele fecharia o
+   formulario inteiro.
 
 8. **Excecao ao token de cor: Recharts.** A biblioteca escreve cor como atributo de SVG, onde
    `var(--token)` nao resolve de forma confiavel. Use o hook `useChartPalette`, que le os tokens
@@ -96,15 +105,16 @@ Estas sao as invariantes do projeto. Quebra-las e o erro mais caro que se pode c
 src/
 ├── api/           httpClient, ApiError, endpoints
 ├── components/
-│   ├── ui/        Button, Card, Input, Textarea, Select, Switch, Modal, ConfirmDialog, Badge,
-│   │              Table, ProgressBar, Loading, EmptyState, Toast
+│   ├── ui/        Button, Card, Input, Textarea, Select, DatePicker, Switch, Modal, ConfirmDialog,
+│   │              Badge, Table, ProgressBar, Loading, EmptyState, Toast
 │   ├── common/    Amount, BrandMark, DeltaIndicator, SummaryBar, UnderConstruction
 │   ├── layout/    Sidebar, Header, HeaderSlot, PageHeader, NotificationsPanel,
 │   │              GlobalSearch, PeriodSwitcher
-│   ├── dashboard/ BalancePanel, StatTile, CashflowChart, CategoryBreakdown, RecentTransactions
+│   ├── dashboard/ BalancePanel, StatTile, CashflowChart, CategoryBreakdown, SpendingCalendar,
+│   │              RecentTransactions
 │   ├── transactions/ TransactionFilters, TransactionsTable, TransactionsList (cartoes),
-│   │              formularios de lancamento, meta (icone/cor por tipo e situacao) e
-│   │              query (filtro, periodo e ordenacao)
+│   │              ViewToggle (densidade da listagem), formularios de lancamento,
+│   │              meta (icone/cor por tipo e situacao) e query (filtro, periodo e ordenacao)
 │   ├── accounts/  AccountCard, AccountFormModal, meta (icone por tipo, tom por situacao)
 │   ├── cards/     CardTile, CardFormModal, meta (icone, tom de limite, tom de fatura)
 │   ├── invoices/  InvoiceEntry (destaque e linha), InvoiceDetailModal
@@ -147,6 +157,16 @@ Cada pasta de componentes tem um `index.ts` de barril — ao criar um componente
 - Formatacao de moeda, numero e data passa por `src/utils/format.ts`, que usa `Intl` com
   `LOCALE = 'pt-BR'` e `CURRENCY = 'BRL'` de `src/constants/app.ts`. Todo valor exibido sai como
   `R$ 5.000,00`.
+- **`Amount` tem dois modos de movimento, e eles nao se sobrepoem.** `countUp` conta de zero ate o
+  valor **uma vez**, quando o numero aparece (`hooks/useCountUp`); `animate` faz os algarismos
+  rolarem quando o valor **muda**. Durante a contagem os digitos sao texto comum e as rodas so
+  assumem no fim, ja no valor final: as rodas assentam por transicao de CSS, que precisa de um alvo
+  parado. Os dois modos valem so para os indicadores que dao o titulo da tela: no dashboard, o saldo,
+  as tres linhas de fluxo e os quatro tiles; em Contas, Cartoes, Faturas e Parcelamentos, os valores
+  da `SummaryBar` do topo. O que esta nos cartoes da lista abaixo dela nao conta — uma tela inteira
+  contando junto seria festa, nao leitura.
+  A trava de "ja contou" fecha na **chegada**, nunca na partida: o `StrictMode` monta duas vezes em
+  desenvolvimento, e uma trava fechada na partida faria a contagem existir so no build.
 - **Valor monetario na tela sempre pelo componente `Amount`.** Ele usa `formatCurrencyParts` para
   separar o simbolo dos algarismos: "R$" fica em um span com a familia de interface e os digitos em
   um span `.tabular` com a familia de numeros. Escrever `{formatCurrency(x)}` direto no JSX faz o
@@ -173,6 +193,17 @@ Cada pasta de componentes tem um `index.ts` de barril — ao criar um componente
 - Contraste e requisito, nao detalhe: texto em 4.5:1 e cor de grafico em 3:1 sobre a superficie em
   que aparece, nos dois temas. Vale tambem para o par cor/fundo dos badges (`--positive` sobre
   `--positive-soft`, e assim por diante), que e o ponto onde isso costuma escapar.
+- `--heat-0` a `--heat-4` sao a escala do calendario de gastos por dia. Comecam no cinza de
+  superficie (dia sem gasto) e terminam em `--negative`. Sao objeto grafico: o requisito e um
+  degrau distinguir do vizinho, nao 4.5:1 de texto. Nao os reaproveite para texto nem para badge.
+- Movimento tem tokens proprios: `--ease-out` para cor, borda, sombra e giro de seta;
+  `--ease-spring` — o unico com ultrapassagem — para entrada de item de lista, entrada de popover
+  (Select, avisos, periodo), curso do Switch e rolagem de algarismo;
+  `--duration-fast/base/slow` e `--stagger-step`, o intervalo entre um item e o seguinte numa
+  entrada escalonada. A entrada de lista e a classe **global** `.list-item-in` (`global.css`), usada
+  com `style={{ '--i': index }}`: alem de duas listas distantes precisarem da mesma curva, o CSS
+  Modules reescreve o nome da animacao dentro de um `.module.css` — `animation: prisma-list-in`
+  viraria `_prisma-list-in_hash`, que nao corresponde a keyframe nenhuma, e nada anima.
 - Os tokens `--brand-*` sao a excecao a regra de tema: um logotipo nao muda de cor com o tema,
   entao eles ficam no bloco `:root` e valem para claro e escuro.
 
@@ -279,6 +310,16 @@ O `PeriodSwitcher` e a busca global sao os dois pontos em que o header conversa 
   As setas deslocam a janela inteira: de "maio a agosto" chega-se a "janeiro a abril". O seletor
   so aparece no dashboard — as outras telas ou nao tem nocao de periodo ou tem o proprio filtro,
   como Lancamentos.
+- **O esqueleto e so da primeira carga** — no dashboard e tambem em Contas, Cartoes, Faturas e
+  Parcelamentos (`loading && !data`). Trocar de periodo — ou cadastrar, editar e excluir — mantem os
+  numeros anteriores na tela enquanto a nova carga vem; quem diz que ainda esta carregando e o spinner de
+  "Atualizar" e o `aria-busy` do grid. Apagar a tela inteira a cada clique na seta custava mais
+  atencao do que informava, e desmontava os valores no exato momento em que eles deveriam rolar de
+  um numero ao outro (`Amount animate`) — e, nas telas de cadastro, faria a contagem de entrada
+  recomecar do zero a cada gravacao. Em troca, **os rotulos do conteudo seguem `data.from`/
+  `data.to`, nao o periodo selecionado**: durante a carga os numeros ainda sao os do recorte
+  anterior, e "Saldo no fim de Agosto de 2026" sobre o saldo de setembro seria falso. So o titulo
+  da pagina acompanha a selecao na hora — ele fica ao lado do botao que gira.
 - **O periodo nao vai para a URL.** Ele vive no `PeriodProvider` (`usePeriod`), em memoria. O
   endereco de uma tela diz que tela e, nao qual filtro esta aberto nela, e um `?de=&ate=` colado
   no fim de `/dashboard` era ruido em todo print e em todo link compartilhado. O preco assumido e
@@ -287,7 +328,10 @@ O `PeriodSwitcher` e a busca global sao os dois pontos em que o header conversa 
   chave `prisma:*`, como a sidebar recolhida, e nao a query string.
 - **A janela dos graficos nao e sempre o periodo.** Um mes sozinho nao conta historia nenhuma numa
   linha, entao o recorte de mes unico desenha os cinco meses anteriores como contexto. Um periodo
-  de varios meses ja e a propria janela — mostrar meses de fora dele confundiria.
+  de varios meses ja e a propria janela — mostrar meses de fora dele confundiria. Vale igualmente
+  para o calendario de gastos por dia (`SpendingCalendar`): trinta quadradinhos sozinhos nao
+  mostram habito nenhum, e seis meses lado a lado tambem preenchem a faixa de largura inteira em
+  vez de deixar dois tercos do cartao vazios.
 - **Rotulo segue o recorte.** Fora do mes corrente, "Saldo atual" vira "Saldo no fim de agosto de
   2026"; num intervalo, "Receitas do mes" vira "Receitas do periodo" e a variacao passa a ser "em
   relacao ao periodo anterior", comparada com a janela de mesmo tamanho imediatamente anterior.
@@ -337,6 +381,10 @@ lista com tres fundos coloridos vira ruido. O ponto no sino conta apenas os avis
 - **Contas, cartoes e parcelamentos usam `auto-fill` com largura minima**, nao um numero fixo de
   colunas: o conteudo de cada cartao e que define quando vale quebrar. As faturas futuras e antigas
   sao linhas que viram duas abaixo de 900px, em vez de uma tabela que rola de lado ate o valor.
+- **A troca de tabela por cartoes tambem e escolha, nao so largura.** No desktop o `ViewToggle` da
+  linha de resumo guarda a preferencia em `prisma:transactions-view`; abaixo de 900px a largura tem
+  a ultima palavra (cartoes) e o seletor sai da tela, porque um seletor com uma opcao viavel so e
+  um botao que nao faz nada.
 - **Nada de esconder acao sem substituto.** Na mesma faixa o campo de busca do header vira um
   botao que abre a busca sobre o header, e "Novo lancamento" perde o rotulo mas continua la como
   botao de icone. Antes os dois sumiam com `display: none`.

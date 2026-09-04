@@ -26,17 +26,20 @@
   outline-offset: 3px;
 }
 
+/*
+ * O trilho tem 42x24 com polegar de 20: a proporcao da chave do iOS, que e a
+ * referencia que quase todo mundo ja tem na mao. Menor que isso o curso fica
+ * curto demais para o movimento significar alguma coisa.
+ */
 .track {
   position: relative;
   flex-shrink: 0;
-  width: 38px;
-  height: 22px;
+  width: 42px;
+  height: 24px;
   border-radius: var(--radius-pill);
   background-color: var(--neutral-soft);
   border: 1px solid var(--border-strong);
-  transition:
-    background-color var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out);
+  transition: border-color var(--duration-base) var(--ease-out);
 }
 
 .control:hover:not(:disabled) .track {
@@ -45,29 +48,69 @@
 
 .trackOn,
 .control:hover:not(:disabled) .trackOn {
-  background-color: var(--accent);
   border-color: var(--accent);
 }
 
 /*
- * So o `transform` anima: mexer em `left` recalcularia layout a cada quadro para
- * um deslocamento de 16px.
+ * Cobre a borda (inset negativo) para que ligar nao deixe uma linha cinza em
+ * volta do azul. Nasce e morre sob o polegar ligado, nao no centro do trilho:
+ * a cor parece vir de onde o dedo deixou a chave.
+ */
+.fill {
+  position: absolute;
+  inset: -1px;
+  border-radius: var(--radius-pill);
+  background-color: var(--accent);
+  transform-origin: 78% center;
+  transform: scale(0.24);
+  opacity: 0;
+  transition:
+    transform var(--duration-base) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out);
+}
+
+.trackOn .fill {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/*
+ * So o `transform` anima: mexer em `left` recalcularia layout a cada quadro
+ * para um deslocamento de 18px. A curva com ultrapassagem e o que da peso ao
+ * polegar — ele chega, passa um fio e assenta, como um interruptor de verdade.
  */
 .thumb {
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   border-radius: var(--radius-pill);
   background-color: var(--surface);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-  transition: transform var(--duration-fast) var(--ease-out);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28);
+  transform-origin: left center;
+  transition:
+    transform var(--duration-base) var(--ease-spring),
+    background-color var(--duration-base) var(--ease-out);
 }
 
 .trackOn .thumb {
-  transform: translateX(16px);
+  transform: translateX(18px);
+  transform-origin: right center;
   background-color: var(--accent-contrast);
+}
+
+/*
+ * Pressionado, o polegar se alonga no sentido em que vai andar. E o retorno
+ * tatil que a chave do iOS da antes mesmo de o valor mudar — e some sozinho no
+ * `prefers-reduced-motion`, junto com as outras transicoes.
+ */
+.control:active:not(:disabled) .thumb {
+  transform: scaleX(1.16);
+}
+
+.control:active:not(:disabled) .trackOn .thumb {
+  transform: translateX(18px) scaleX(1.16);
 }
 
 .label {
