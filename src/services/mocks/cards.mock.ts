@@ -316,12 +316,6 @@ export function buildCards(): Card[] {
   return cards.map((card) => (isCreditCard(card) ? { ...card, used: usedLimitOf(card.id) } : { ...card }));
 }
 
-/** Fatura aberta (ou a proxima a vencer) de um cartao. */
-export function currentInvoiceOf(cardId: string): Invoice | undefined {
-  const invoices = buildInvoices(cardId);
-  return invoices.find((invoice) => invoice.status === 'open') ?? invoices.find((invoice) => invoice.status === 'closed');
-}
-
 /** Cartoes de credito acima da faixa de atencao, para o painel de avisos. */
 export function cardsNearLimit(): Array<{ card: CreditCard; used: number; ratio: number }> {
   return buildCards()

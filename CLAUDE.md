@@ -9,7 +9,7 @@ planejamento). O nome do produto e **Prisma**, usado de forma consistente no rep
 `package.json`, em `APP_NAME` (`src/constants/app.ts`), no `<title>` do `index.html` e nos
 prefixos de `localStorage` (`prisma:*`). Ao renomear um deles, renomeie todos.
 
-O estado atual vai ate a **Etapa 5**: fundacao do frontend, dashboard, as telas de lancamentos
+O estado atual vai ate a **Etapa 6**: fundacao do frontend, dashboard, as telas de lancamentos
 (listagem com filtros, cadastro, edicao e exclusao de receitas, despesas e transferencias), o
 bloco de contas e cartoes — cadastro de contas, cadastro dos quatro tipos de cartao, faturas com
 detalhe de compras e compras parceladas — e o bloco de patrimonio e analise: carteira de
@@ -17,6 +17,13 @@ investimentos, orcamento mensal por categoria, despesas recorrentes, previsao fi
 desejos com historico de precos, e relatorios. Nao existe backend ainda; toda a camada de dados
 responde com mocks, e a escrita vive em memoria pelo tempo da sessao. O backend em Java / Spring
 Boot / PostgreSQL vira nas proximas etapas.
+
+A Etapa 6 fechou o frontend para integracao: o `API_CONTRACT.md` da raiz especifica os 42 endpoints
+que o backend precisa expor — metodo, URL, parametros, corpo, status, validacoes e as regras de
+calculo de cada um —, e o `README.md` documenta instalacao, variaveis, como os mocks funcionam e
+como virar a chave para a API real. **Ao mudar um contrato em `src/types/finance.ts`, uma rota em
+`src/api/endpoints.ts` ou uma validacao de store, atualize o `API_CONTRACT.md` no mesmo trabalho.**
+Tres documentos que divergem valem menos que um so.
 
 ## Comandos
 
@@ -115,7 +122,7 @@ src/
 ├── components/
 │   ├── ui/        Button, Card, Input, Textarea, Select, DatePicker, Switch, Modal, ConfirmDialog,
 │   │              Badge, Table, ProgressBar, Loading, EmptyState, Toast
-│   ├── common/    Amount, BrandMark, DeltaIndicator, SummaryBar, UnderConstruction
+│   ├── common/    Amount, BrandMark, DeltaIndicator, SummaryBar
 │   ├── layout/    Sidebar, Header, HeaderSlot, PageHeader, NotificationsPanel,
 │   │              GlobalSearch, PeriodSwitcher
 │   ├── dashboard/ BalancePanel, StatTile, CashflowChart, CategoryBreakdown, SpendingCalendar,
@@ -623,6 +630,7 @@ paga —, nem historico de cotacao por ativo: a evolucao do patrimonio e reconst
 valor atual e da idade da posicao. Exportacao de relatorio (PDF, CSV) tambem ficou de fora. Nao
 invente configuracao dessas sem o usuario pedir.
 
-`components/common/UnderConstruction` ficou sem consumidor quando as cinco telas em construcao
-viraram telas de verdade. Ele continua no barril de proposito, para a proxima area que nascer
-antes de existir; se ele seguir sem uso, remova-o junto com o proximo trabalho que passar por ali.
+`components/common/UnderConstruction` e o tipo `Page<T>` de `types/common.ts` foram removidos na
+revisao da Etapa 6: os dois estavam sem consumidor. O `Page<T>` era o mais arriscado, e nao por
+ocupar espaco — um tipo de paginacao exposto no contrato sugere ao backend que a listagem e
+paginada, e nenhuma e.

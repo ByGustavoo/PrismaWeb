@@ -319,7 +319,7 @@ export interface InvestmentAllocation {
 }
 
 export interface PortfolioPoint {
-  /** Rotulo curto do mes: "jan", "fev"... */
+  /** Rotulo curto do mes, com inicial maiuscula: "Jan", "Fev"... */
   label: string;
   /** Mes de referencia, YYYY-MM. */
   month: string;
@@ -347,7 +347,7 @@ export interface CategorySpending {
 }
 
 export interface CashflowPoint {
-  /** Rotulo curto do mes: "jan", "fev"... */
+  /** Rotulo curto do mes, com inicial maiuscula: "Jan", "Fev"... */
   label: string;
   income: number;
   expense: number;
@@ -539,7 +539,7 @@ export interface RecurringSummary {
 export interface ForecastMonth {
   /** Mes projetado, YYYY-MM. */
   month: string;
-  /** Rotulo curto do mes: "jan", "fev"... */
+  /** Rotulo curto do mes, com inicial maiuscula: "Jan", "Fev"... */
   label: string;
   income: number;
   /** Despesas recorrentes que caem no mes. */

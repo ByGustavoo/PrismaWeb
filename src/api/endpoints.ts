@@ -43,7 +43,7 @@ export const endpoints = {
     portfolio: '/investments/portfolio',
   },
   budgets: {
-    list: '/budgets',
+    /* Nao ha listagem crua: a tela le os limites de dentro de /budgets/overview. */
     create: '/budgets',
     byId: (id: string) => `/budgets/${id}`,
     /** Consumo do mes: limites, gasto e o que ficou fora do orcamento. */

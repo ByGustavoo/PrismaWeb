@@ -5,4 +5,3 @@ export type { AmountProps, AmountTone, AmountSize } from './Amount';
 export { DeltaIndicator } from './DeltaIndicator';
 export { SummaryBar } from './SummaryBar';
 export type { SummaryBarProps, SummaryItem } from './SummaryBar';
-export { UnderConstruction } from './UnderConstruction';
