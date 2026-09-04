@@ -11,6 +11,18 @@ import { accountsService } from '@/services';
 import type { Account, AccountPayload } from '@/types';
 import styles from './AccountsPage.module.css';
 
+/**
+ * Fatia da conta no saldo total. So tem fatia quem entra na conta desse total e
+ * esta com saldo positivo: uma conta inativa, uma marcada para nao somar ou uma
+ * no cheque especial nao ocupam um pedaco do bolo — mostrar uma barra vazia nas
+ * tres so acrescentaria um trilho cinza a cada cartao.
+ */
+function shareOf(account: Account, total: number): number | undefined {
+  if (total <= 0 || account.status !== 'active' || !account.includeInTotal) return undefined;
+  if (account.balance <= 0) return undefined;
+  return account.balance / total;
+}
+
 export function AccountsPage() {
   const [editing, setEditing] = useState<Account | null>(null);
   const [creating, setCreating] = useState(false);
@@ -168,6 +180,7 @@ export function AccountsPage() {
               <AccountCard
                 key={account.id}
                 account={account}
+                share={shareOf(account, summary.total)}
                 onEdit={setEditing}
                 onDelete={setRemoving}
               />

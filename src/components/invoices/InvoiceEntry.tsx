@@ -1,4 +1,4 @@
-import { ArrowRight, ChevronRight } from 'lucide-react';
+import { ArrowDownRight, ArrowRight, ArrowUpRight, ChevronRight } from 'lucide-react';
 import { Amount } from '@/components/common';
 import { Badge, Button } from '@/components/ui';
 import { invoiceStatusTone } from '@/components/cards';
@@ -24,6 +24,17 @@ function itemsLabel(count: number): string {
 export function InvoiceHighlight({ invoice, onOpen }: InvoiceEntryProps) {
   const empty = invoice.itemCount === 0;
 
+  /*
+   * A primeira pergunta diante de uma fatura nao e "quanto", e "quanto a mais".
+   * A diferenca vai em reais, e nao em porcentagem: o que se paga a mais e um
+   * valor, nao uma taxa. Fica em cinza de proposito — pintar de verde uma fatura
+   * que subiu inverteria o sentido, e pintar de vermelho uma seta para baixo
+   * repetiria a contradicao que o DeltaIndicator existe para evitar.
+   */
+  const previous = invoice.previousTotal;
+  const difference = previous !== undefined && previous > 0 ? invoice.total - previous : undefined;
+  const changed = difference !== undefined && Math.abs(difference) >= 0.01;
+
   return (
     <article className={styles.highlight}>
       <header className={styles.highlightHeader}>
@@ -37,6 +48,18 @@ export function InvoiceHighlight({ invoice, onOpen }: InvoiceEntryProps) {
 
       <Amount value={invoice.total} size="lg" />
       <span className={styles.items}>{empty ? 'Nenhuma compra ainda' : itemsLabel(invoice.itemCount)}</span>
+
+      {changed && difference !== undefined ? (
+        <span className={styles.compare}>
+          {difference > 0 ? (
+            <ArrowUpRight size={14} strokeWidth={2.25} aria-hidden="true" />
+          ) : (
+            <ArrowDownRight size={14} strokeWidth={2.25} aria-hidden="true" />
+          )}
+          <Amount value={Math.abs(difference)} size="sm" tone="muted" />
+          {difference > 0 ? 'acima da fatura anterior' : 'abaixo da fatura anterior'}
+        </span>
+      ) : null}
 
       <dl className={styles.dates}>
         <div className={styles.date}>

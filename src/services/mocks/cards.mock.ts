@@ -240,6 +240,10 @@ function buildCardInvoices(card: Card): Invoice[] {
     // Fatura futura sem nada dentro nao existe: so polui a lista com zeros.
     if (items.length === 0 && (status === 'future' || status === 'paid')) continue;
 
+    // A anterior e a ultima que entrou na lista, e nao a do mes -1: um mes sem
+    // compra nenhuma nao vira fatura, e comparar com um buraco nao diz nada.
+    const previous = invoices[invoices.length - 1];
+
     invoices.push({
       id: invoiceId(card.id, month),
       cardId: card.id,
@@ -250,6 +254,7 @@ function buildCardInvoices(card: Card): Invoice[] {
       closingDate,
       dueDate,
       itemCount: items.length,
+      ...(previous ? { previousTotal: previous.total } : {}),
     });
   }
 

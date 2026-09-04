@@ -112,11 +112,15 @@ export function CardsPage() {
      e limpa a URL, como fazem os atalhos da busca global. */
   const openInvoices = (card: CardModel) => navigate(`${paths.invoices}?${CARD_PARAM}=${card.id}`);
 
+  /* O saldo da conta vinculada da ao cartao de debito o numero que ele nao tem. */
+  const accountBalances = new Map(accounts.map((account) => [account.id, account.balance]));
+
   const renderTile = (card: CardModel) => (
     <CardTile
       key={card.id}
       card={card}
       invoice={currentInvoices.get(card.id)}
+      accountBalance={card.accountId ? accountBalances.get(card.accountId) : undefined}
       onEdit={setEditing}
       onDelete={setRemoving}
       onOpenInvoices={openInvoices}

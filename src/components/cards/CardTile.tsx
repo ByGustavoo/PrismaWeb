@@ -11,6 +11,12 @@ interface CardTileProps {
   card: Card;
   /** Fatura em curso; so cartao de credito tem uma. */
   invoice?: Invoice | undefined;
+  /**
+   * Saldo da conta que o cartao de debito acessa. E o numero que responde quanto
+   * ele pode gastar: sem ele, o unico cartao da tela sem valor algum era
+   * justamente o que se usa todo dia.
+   */
+  accountBalance?: number | undefined;
   onEdit: (card: Card) => void;
   onDelete: (card: Card) => void;
   onOpenInvoices: (card: Card) => void;
@@ -22,7 +28,7 @@ interface CardTileProps {
  * vales mostram o saldo carregado. Repetir a moldura em quatro componentes
  * separados faria a mesma identidade visual divergir com o tempo.
  */
-export function CardTile({ card, invoice, onEdit, onDelete, onOpenInvoices }: CardTileProps) {
+export function CardTile({ card, invoice, accountBalance, onEdit, onDelete, onOpenInvoices }: CardTileProps) {
   const Icon = cardTypeIcon[card.type];
   const credit = isCreditCard(card);
   const used = card.used ?? 0;
@@ -135,10 +141,16 @@ export function CardTile({ card, invoice, onEdit, onDelete, onOpenInvoices }: Ca
               <span className={styles.simpleLabel}>Saldo disponível</span>
               <Amount value={card.balance ?? 0} size="lg" />
             </>
-          ) : (
+          ) : accountBalance === undefined ? (
             <>
               <span className={styles.simpleLabel}>Debita direto na conta</span>
               <span className={styles.linked}>{card.accountName ?? 'Conta não vinculada'}</span>
+            </>
+          ) : (
+            <>
+              <span className={styles.simpleLabel}>Disponível na conta</span>
+              <Amount value={accountBalance} size="lg" />
+              <span className={styles.linked}>{card.accountName}</span>
             </>
           )}
         </div>

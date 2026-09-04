@@ -131,3 +131,23 @@
   font-size: var(--fs-xs);
   color: var(--text-subtle);
 }
+
+/*
+ * A fatia fica colada no saldo, e nao no rodape: ela qualifica aquele numero, e
+ * separada dele por um bloco de status viraria mais um dado solto no cartao.
+ */
+.share {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: calc(var(--space-4) * -1 + var(--space-2));
+}
+
+.shareBar {
+  width: 100%;
+}
+
+.shareLabel {
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}

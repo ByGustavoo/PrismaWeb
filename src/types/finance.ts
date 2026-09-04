@@ -173,6 +173,13 @@ export interface Invoice {
   /** Data ISO de vencimento. */
   dueDate: string;
   itemCount: number;
+  /**
+   * Total da fatura anterior do mesmo cartao, quando existe. E o que responde
+   * "este mes pesou mais?" sem obrigar quem le a procurar a fatura passada no
+   * bloco de anteriores. Nem sempre e o mes imediatamente anterior: um mes sem
+   * nenhuma compra nao gera fatura.
+   */
+  previousTotal?: number;
 }
 
 export interface InvoiceItem {

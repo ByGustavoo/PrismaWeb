@@ -1,6 +1,6 @@
 import { Trash2 } from 'lucide-react';
 import { Amount } from '@/components/common';
-import { Badge } from '@/components/ui';
+import { Badge, ProgressBar } from '@/components/ui';
 import { accountStatusLabel, accountTypeLabel } from '@/constants/accounts';
 import type { Account } from '@/types';
 import { accountStatusTone, accountTypeIcon } from './meta';
@@ -8,6 +8,12 @@ import styles from './AccountCard.module.css';
 
 interface AccountCardProps {
   account: Account;
+  /**
+   * Fatia desta conta no saldo total, de 0 a 1. Ausente quando a conta nao entra
+   * no total, esta inativa ou tem saldo negativo — nesses casos ela nao tem uma
+   * fatia para mostrar, e uma barra vazia seria pior que barra nenhuma.
+   */
+  share?: number;
   onEdit: (account: Account) => void;
   onDelete: (account: Account) => void;
 }
@@ -18,7 +24,7 @@ interface AccountCardProps {
  * arranjo da lista de lancamentos, para que a acao destrutiva continue exigindo
  * um toque proprio.
  */
-export function AccountCard({ account, onEdit, onDelete }: AccountCardProps) {
+export function AccountCard({ account, share, onEdit, onDelete }: AccountCardProps) {
   const Icon = accountTypeIcon[account.type];
   const inactive = account.status === 'inactive';
 
@@ -59,6 +65,24 @@ export function AccountCard({ account, onEdit, onDelete }: AccountCardProps) {
           <span className={styles.balanceLabel}>Saldo</span>
           <Amount value={account.balance} size="lg" tone={inactive ? 'muted' : 'default'} />
         </div>
+
+        {/*
+          A tela promete "onde o seu dinheiro esta hoje" e, sem isto, cada cartao
+          respondia so "quanto". A fatia usa a mesma barra do limite do cartao:
+          quando duas telas medem proporcao, elas medem do mesmo jeito.
+        */}
+        {share === undefined ? null : (
+          <div className={styles.share}>
+            <ProgressBar
+              value={share}
+              label={`Participação de ${account.name} no saldo total`}
+              className={styles.shareBar}
+            />
+            <span className={styles.shareLabel}>
+              <span className="tabular">{Math.round(share * 100)}%</span> do saldo total
+            </span>
+          </div>
+        )}
 
         <div className={styles.bottom}>
           <Badge tone={accountStatusTone[account.status]} dot>
