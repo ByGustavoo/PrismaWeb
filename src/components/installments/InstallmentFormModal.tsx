@@ -67,18 +67,18 @@ function validate(form: FormState): FormErrors {
   const total = parseAmountInput(form.totalAmount);
 
   if (form.description.trim().length < 2) {
-    errors.description = 'Informe uma descrição com pelo menos 2 caracteres.';
+    errors.description = 'Informe uma descrição com pelo menos 2 caracteres!';
   }
   if (total === undefined) {
-    errors.totalAmount = 'Informe o valor total da compra.';
+    errors.totalAmount = 'Informe o valor total da compra!';
   } else if (total <= 0) {
-    errors.totalAmount = 'O valor precisa ser maior que zero.';
+    errors.totalAmount = 'O valor precisa ser maior que zero!';
   }
   if (!form.cardId) {
-    errors.cardId = 'Escolha o cartão de crédito da compra.';
+    errors.cardId = 'Escolha o cartão de crédito da compra!';
   }
   if (!form.purchaseDate) {
-    errors.purchaseDate = 'Informe a data da compra.';
+    errors.purchaseDate = 'Informe a data da compra!';
   }
 
   return errors;

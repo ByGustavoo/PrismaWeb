@@ -51,25 +51,25 @@ function validate(form: FormState): FormErrors {
   const currentValue = parseAmountInput(form.currentValue);
 
   if (form.name.trim().length < 2) {
-    errors.name = 'Informe um nome com pelo menos 2 caracteres.';
+    errors.name = 'Informe um nome com pelo menos 2 caracteres!';
   }
   if (form.institution.trim().length < 2) {
-    errors.institution = 'Informe onde o dinheiro está aplicado.';
+    errors.institution = 'Informe onde o dinheiro está aplicado!';
   }
   if (invested === undefined) {
-    errors.invested = 'Informe quanto já foi aportado.';
+    errors.invested = 'Informe quanto já foi aportado!';
   } else if (invested <= 0) {
-    errors.invested = 'O valor aportado precisa ser maior que zero.';
+    errors.invested = 'O valor aportado precisa ser maior que zero!';
   }
   if (currentValue === undefined) {
-    errors.currentValue = 'Informe quanto a posição vale hoje.';
+    errors.currentValue = 'Informe quanto a posição vale hoje!';
   } else if (currentValue < 0) {
-    errors.currentValue = 'O valor atual não pode ser negativo.';
+    errors.currentValue = 'O valor atual não pode ser negativo!';
   }
   if (!form.startDate) {
-    errors.startDate = 'Informe a data do primeiro aporte.';
+    errors.startDate = 'Informe a data do primeiro aporte!';
   } else if (form.startDate > todayISO()) {
-    errors.startDate = 'O primeiro aporte não pode estar no futuro.';
+    errors.startDate = 'O primeiro aporte não pode estar no futuro!';
   }
 
   return errors;

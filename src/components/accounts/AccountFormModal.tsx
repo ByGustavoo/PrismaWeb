@@ -47,13 +47,13 @@ function validate(form: FormState): FormErrors {
   const errors: FormErrors = {};
 
   if (form.name.trim().length < 2) {
-    errors.name = 'Informe um nome com pelo menos 2 caracteres.';
+    errors.name = 'Informe um nome com pelo menos 2 caracteres!';
   }
   if (form.institution.trim().length < 2) {
-    errors.institution = 'Informe o banco ou a instituição da conta.';
+    errors.institution = 'Informe o banco ou a instituição da conta!';
   }
   if (parseAmountInput(form.balance) === undefined) {
-    errors.balance = 'Informe o saldo atual da conta.';
+    errors.balance = 'Informe o saldo atual da conta!';
   }
 
   return errors;

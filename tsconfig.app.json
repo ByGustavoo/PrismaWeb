@@ -22,9 +22,8 @@
     "exactOptionalPropertyTypes": false,
     "verbatimModuleSyntax": true,
 
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src"]

@@ -47,23 +47,23 @@ function validate(form: FormState): FormErrors {
   const amount = parseAmountInput(form.amount);
 
   if (!form.accountId) {
-    errors.accountId = 'Escolha a conta de origem.';
+    errors.accountId = 'Escolha a conta de origem!';
   }
   if (!form.toAccountId) {
-    errors.toAccountId = 'Escolha a conta de destino.';
+    errors.toAccountId = 'Escolha a conta de destino!';
   } else if (form.toAccountId === form.accountId) {
-    errors.toAccountId = 'O destino precisa ser diferente da origem.';
+    errors.toAccountId = 'O destino precisa ser diferente da origem!';
   }
   if (amount === undefined) {
-    errors.amount = 'Informe um valor.';
+    errors.amount = 'Informe o valor da transferência!';
   } else if (amount <= 0) {
-    errors.amount = 'O valor precisa ser maior que zero.';
+    errors.amount = 'O valor precisa ser maior que zero!';
   }
   if (!form.date) {
-    errors.date = 'Informe a data.';
+    errors.date = 'Informe a data da transferência!';
   }
   if (form.description.trim().length < 2) {
-    errors.description = 'Informe uma descrição com pelo menos 2 caracteres.';
+    errors.description = 'Informe uma descrição com pelo menos 2 caracteres!';
   }
 
   return errors;

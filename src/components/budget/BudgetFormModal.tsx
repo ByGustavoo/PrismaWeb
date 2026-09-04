@@ -72,9 +72,9 @@ export function BudgetFormModal({
     const limit = parseAmountInput(form.limit);
     const found: FormErrors = {};
 
-    if (!form.categoryId) found.categoryId = 'Escolha a categoria que receberá o limite.';
-    if (limit === undefined) found.limit = 'Informe o limite mensal.';
-    else if (limit <= 0) found.limit = 'O limite precisa ser maior que zero.';
+    if (!form.categoryId) found.categoryId = 'Escolha a categoria que receberá o limite!';
+    if (limit === undefined) found.limit = 'Informe o limite mensal!';
+    else if (limit <= 0) found.limit = 'O limite precisa ser maior que zero!';
 
     setErrors(found);
 

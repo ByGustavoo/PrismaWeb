@@ -4,13 +4,16 @@
 }
 
 /*
- * A rosca tem largura fixa e a legenda fica com o resto. Os 176px sao o
- * suficiente para o total caber no centro do anel — o que sobra vale mais na
- * legenda, onde "Criptomoedas" e "R$ 25.890,40" disputam a mesma linha.
+ * A rosca tem largura fixa e a legenda fica com o resto. Os 232px vieram de
+ * medir a legenda: a coluna do nome sobrava 153px sobre o rotulo mais longo
+ * ("Criptomoedas"), o que abria um vao morto entre o nome e a porcentagem e
+ * deixava o assunto do cartao — a rosca — como o elemento menor dele. A folga
+ * foi para o anel, que ainda cabe de sobra no espaco vertical da legenda de
+ * oito linhas, entao o cartao nao mudou de altura.
  */
 .body {
   display: grid;
-  grid-template-columns: 176px minmax(0, 1fr);
+  grid-template-columns: 232px minmax(0, 1fr);
   align-items: center;
   gap: var(--space-5);
 }
@@ -20,35 +23,31 @@
 }
 
 /*
- * O total ocupa o vazio da rosca. `pointer-events: none` porque ele fica sobre
- * o grafico, e um rotulo nao pode roubar o hover das fatias.
+ * Sem esta transicao a fatia acende e apaga em corte seco enquanto o cursor
+ * atravessa o anel. `fill-opacity` e propriedade de pintura: anima barato, sem
+ * recalcular geometria nenhuma.
+ */
+.chart :global(.recharts-sector) {
+  transition: fill-opacity var(--duration-fast) var(--ease-out);
+}
+
+/*
+ * O leitor ocupa o vazio da rosca. `pointer-events: none` porque ele fica sobre
+ * o grafico, e um rotulo nao pode roubar o hover das fatias. Como e absoluto e
+ * centrado, passar de duas para tres linhas cresce em torno do meio e nao
+ * empurra nada na pagina.
  */
 .center {
   position: absolute;
   inset: 0;
-  z-index: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 2px;
+  padding-inline: var(--space-4);
+  text-align: center;
   pointer-events: none;
-  transition: opacity var(--duration-fast) var(--ease-out);
-}
-
-/* Ver o comentario no componente: com a fatia sob o cursor, quem fala e o tooltip. */
-.centerHidden {
-  opacity: 0;
-}
-
-/*
- * Cinto de seguranca para o quadro em que os dois ainda coexistem: enquanto o
- * total esvanece, o painel do tooltip — que tem fundo opaco — precisa estar por
- * cima. Sem isto, o rotulo central atravessava o tooltip, porque vem depois no
- * DOM e os dois sao posicionados.
- */
-.chart :global(.recharts-tooltip-wrapper) {
-  z-index: 1;
 }
 
 .centerLabel {
@@ -56,21 +55,39 @@
   color: var(--text-subtle);
 }
 
+.centerShare {
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+
 .legend {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-1);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+/*
+ * O recuo negativo devolve a faixa acesa a largura do bloco: sem ele, o realce
+ * comecaria depois do marcador e terminaria antes do valor, parecendo um
+ * retangulo mal cortado em vez da linha inteira.
+ */
 .item {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  margin-inline: calc(var(--space-2) * -1);
+  border-radius: var(--radius-sm);
   font-size: var(--fs-base);
   min-width: 0;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.itemActive {
+  background-color: var(--surface-muted);
 }
 
 .marker {
@@ -99,33 +116,6 @@
   margin-left: auto;
 }
 
-.tooltip {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: var(--space-2) var(--space-3);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-popover);
-}
-
-.tooltipName {
-  font-size: var(--fs-sm);
-  color: var(--text-muted);
-}
-
-.tooltipValue {
-  font-family: var(--font-figure);
-  font-weight: 600;
-  letter-spacing: var(--tracking-tight);
-}
-
-.tooltipShare {
-  font-size: var(--fs-xs);
-  color: var(--text-subtle);
-}
-
 /*
  * Abaixo de 900px a rosca vai para cima e a legenda ocupa a largura inteira:
  * lado a lado, nessa faixa, sobrariam duas colunas estreitas demais para o
@@ -138,7 +128,7 @@
   }
 
   .chart {
-    width: 176px;
+    width: 232px;
   }
 
   .legend {

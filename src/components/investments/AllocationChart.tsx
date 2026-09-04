@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
+import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts';
 import { Amount } from '@/components/common';
 import { Card, CardBody, CardHeader } from '@/components/ui';
 import { investmentClassLabel } from '@/constants/investments';
-import type { InvestmentAllocation } from '@/types';
+import type { InvestmentAllocation, InvestmentClass } from '@/types';
 import { cn } from '@/utils/cn';
-import { formatCurrency, formatPercent } from '@/utils/format';
+import { formatPercent } from '@/utils/format';
 import { classColor } from './meta';
 import styles from './AllocationChart.module.css';
 
@@ -25,26 +25,27 @@ interface AllocationChartProps {
  */
 export function AllocationChart({ data, total }: AllocationChartProps) {
   /*
-   * O total no centro sai de cena enquanto o cursor esta sobre uma fatia. O
-   * tooltip nasce junto do cursor, que anda pela borda do anel, e cai
-   * justamente sobre o centro: com os dois visiveis, um texto atravessava o
-   * outro e nenhum se lia. Ou se le o total, ou se le a fatia — nunca os dois
-   * empilhados.
+   * O centro e o leitor da rosca, e por isso nao ha tooltip aqui. O painel
+   * flutuante do Recharts nasce junto do cursor, que anda pela borda do anel:
+   * ele cobria justamente a fatia sob inspecao e as vizinhas dela. Trazer a
+   * leitura para o vazio do meio resolve as duas coisas de uma vez — nada
+   * encobre o grafico, e o buraco da rosca deixa de ficar mudo durante o hover.
    */
-  const [hovering, setHovering] = useState(false);
+  const [active, setActive] = useState<InvestmentClass | null>(null);
+  const activeEntry = data.find((entry) => entry.assetClass === active) ?? null;
 
   return (
     <Card className={styles.card}>
       <CardHeader title="Distribuição por tipo" description="Participação de cada classe no patrimônio atual" />
       <CardBody className={styles.body}>
-        <div className={styles.chart}>
-          <ResponsiveContainer width="100%" height={196}>
+        <div className={styles.chart} onMouseLeave={() => setActive(null)}>
+          <ResponsiveContainer width="100%" height={232}>
             <PieChart>
               <Pie
                 data={data}
                 dataKey="currentValue"
                 nameKey="assetClass"
-                innerRadius="66%"
+                innerRadius="64%"
                 outerRadius="100%"
                 paddingAngle={data.length > 1 ? 2 : 0}
                 stroke="none"
@@ -56,40 +57,61 @@ export function AllocationChart({ data, total }: AllocationChartProps) {
                  * lado, que e texto de verdade.
                  */
                 rootTabIndex={-1}
-                onMouseEnter={() => setHovering(true)}
-                onMouseLeave={() => setHovering(false)}
               >
                 {data.map((entry) => (
-                  <Cell key={entry.assetClass} fill={classColor(entry.assetClass)} />
+                  <Cell
+                    key={entry.assetClass}
+                    fill={classColor(entry.assetClass)}
+                    /*
+                     * Apagar as outras, em vez de crescer a ativa: com oito
+                     * fatias e duas delas abaixo de 5%, mexer no raio muda a
+                     * geometria inteira do anel a cada milimetro do cursor.
+                     */
+                    fillOpacity={active && active !== entry.assetClass ? 0.4 : 1}
+                    onMouseEnter={() => setActive(entry.assetClass)}
+                  />
                 ))}
               </Pie>
-              <Tooltip
-                content={({ active, payload }) => {
-                  const slice = active ? (payload?.[0]?.payload as InvestmentAllocation | undefined) : undefined;
-                  if (!slice) return null;
-
-                  return (
-                    <div className={styles.tooltip}>
-                      <span className={styles.tooltipName}>{investmentClassLabel[slice.assetClass]}</span>
-                      <span className={`${styles.tooltipValue} tabular`}>{formatCurrency(slice.currentValue)}</span>
-                      <span className={`${styles.tooltipShare} tabular`}>{formatPercent(slice.share * 100, 1)}</span>
-                    </div>
-                  );
-                }}
-              />
             </PieChart>
           </ResponsiveContainer>
 
-          {/* O total mora no vazio da rosca; ver o comentario do componente. */}
-          <div className={cn(styles.center, hovering && styles.centerHidden)} aria-hidden="true">
-            <span className={styles.centerLabel}>Patrimônio</span>
-            <Amount value={total} size="md" />
+          {/*
+            O leitor mora no vazio da rosca. `aria-hidden` porque ele e eco
+            visual: a legenda ao lado ja diz tudo isto em texto, e o patrimonio
+            tambem esta na faixa de resumo no topo da tela.
+          */}
+          <div className={styles.center} aria-hidden="true">
+            {activeEntry ? (
+              <>
+                <span className={styles.centerLabel}>{investmentClassLabel[activeEntry.assetClass]}</span>
+                <Amount value={activeEntry.currentValue} size="md" />
+                <span className={`${styles.centerShare} tabular`}>
+                  {formatPercent(activeEntry.share * 100, 1)} do patrimônio
+                </span>
+              </>
+            ) : (
+              <>
+                <span className={styles.centerLabel}>Patrimônio</span>
+                <Amount value={total} size="md" />
+              </>
+            )}
           </div>
         </div>
 
         <ul className={styles.legend}>
           {data.map((entry) => (
-            <li key={entry.assetClass} className={styles.item}>
+            <li
+              key={entry.assetClass}
+              /*
+               * A legenda acende a fatia, e nao so o contrario: com oito cores
+               * proximas, achar no anel a fatia de "Outros" era o trabalho que
+               * sobrava para o usuario. Vale ainda mais para as classes de 3%,
+               * pequenas demais para acertar com o cursor.
+               */
+              className={cn(styles.item, active === entry.assetClass && styles.itemActive)}
+              onMouseEnter={() => setActive(entry.assetClass)}
+              onMouseLeave={() => setActive(null)}
+            >
               <span
                 className={styles.marker}
                 style={{ backgroundColor: classColor(entry.assetClass) }}

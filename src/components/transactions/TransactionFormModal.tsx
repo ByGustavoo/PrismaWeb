@@ -50,26 +50,27 @@ function initialState(transaction: Transaction | null): FormState {
   };
 }
 
-function validate(form: FormState): FormErrors {
+function validate(form: FormState, isExpense: boolean): FormErrors {
   const errors: FormErrors = {};
   const amount = parseAmountInput(form.amount);
+  const noun = isExpense ? 'despesa' : 'receita';
 
   if (form.description.trim().length < 2) {
-    errors.description = 'Informe uma descrição com pelo menos 2 caracteres.';
+    errors.description = 'Informe uma descrição com pelo menos 2 caracteres!';
   }
   if (amount === undefined) {
-    errors.amount = 'Informe um valor.';
+    errors.amount = `Informe o valor da ${noun}!`;
   } else if (amount <= 0) {
-    errors.amount = 'O valor precisa ser maior que zero.';
+    errors.amount = 'O valor precisa ser maior que zero!';
   }
   if (!form.date) {
-    errors.date = 'Informe a data.';
+    errors.date = `Informe a data da ${noun}!`;
   }
   if (!form.categoryId) {
-    errors.categoryId = 'Escolha uma categoria.';
+    errors.categoryId = `Escolha a categoria da ${noun}!`;
   }
   if (!form.accountId) {
-    errors.accountId = 'Escolha uma conta.';
+    errors.accountId = isExpense ? 'Escolha a conta ou o cartão da despesa!' : 'Escolha a conta da receita!';
   }
 
   return errors;
@@ -132,7 +133,7 @@ export function TransactionFormModal({
   };
 
   const handleSubmit = () => {
-    const found = validate(form);
+    const found = validate(form, isExpense);
     setErrors(found);
 
     if (Object.values(found).some(Boolean)) {

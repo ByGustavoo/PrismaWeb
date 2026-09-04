@@ -61,44 +61,52 @@ function parseDay(raw: string): number | undefined {
   return Number.isInteger(parsed) && parsed >= 1 && parsed <= 31 ? parsed : undefined;
 }
 
+/*
+ * Dois campos de dia lado a lado repetindo a mesma frase nao dizem qual deles
+ * ficou em branco; a faixa valida so ajuda quando ha um numero para corrigir.
+ */
+function dayMessage(raw: string, field: string): string {
+  return raw.trim() ? 'Informe um dia entre 1 e 31!' : `Informe o ${field}!`;
+}
+
 function validate(form: FormState): FormErrors {
   const errors: FormErrors = {};
 
   if (form.name.trim().length < 2) {
-    errors.name = 'Informe um nome com pelo menos 2 caracteres.';
+    errors.name = 'Informe um nome com pelo menos 2 caracteres!';
   }
   if (form.institution.trim().length < 2) {
-    errors.institution = 'Informe o banco ou a operadora do cartão.';
+    errors.institution = 'Informe o banco ou a operadora do cartão!';
   }
   if (form.lastDigits.trim() && !/^\d{4}$/.test(form.lastDigits.trim())) {
-    errors.lastDigits = 'Informe exatamente 4 números.';
+    errors.lastDigits = 'Informe exatamente 4 números!';
   }
 
   if (form.type === 'credit') {
     const limit = parseAmountInput(form.limit);
     if (limit === undefined) {
-      errors.limit = 'Informe o limite do cartão.';
+      errors.limit = 'Informe o limite do cartão!';
     } else if (limit <= 0) {
-      errors.limit = 'O limite precisa ser maior que zero.';
+      errors.limit = 'O limite precisa ser maior que zero!';
     }
     if (parseDay(form.closingDay) === undefined) {
-      errors.closingDay = 'Informe um dia entre 1 e 31.';
+      errors.closingDay = dayMessage(form.closingDay, 'dia de fechamento');
     }
     if (parseDay(form.dueDay) === undefined) {
-      errors.dueDay = 'Informe um dia entre 1 e 31.';
+      errors.dueDay = dayMessage(form.dueDay, 'dia de vencimento');
     }
   }
 
   if (form.type === 'debit' && !form.accountId) {
-    errors.accountId = 'Escolha a conta que o cartão acessa.';
+    errors.accountId = 'Escolha a conta que o cartão acessa!';
   }
 
   if (form.type === 'food-voucher' || form.type === 'meal-voucher') {
     const balance = parseAmountInput(form.balance);
     if (balance === undefined) {
-      errors.balance = 'Informe o saldo do cartão.';
+      errors.balance = 'Informe o saldo do cartão!';
     } else if (balance < 0) {
-      errors.balance = 'O saldo não pode ser negativo.';
+      errors.balance = 'O saldo não pode ser negativo!';
     }
   }
 

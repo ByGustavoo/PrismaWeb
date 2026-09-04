@@ -59,18 +59,18 @@ function validate(form: FormState): FormErrors {
   const amount = parseAmountInput(form.amount);
 
   if (form.description.trim().length < 2) {
-    errors.description = 'Informe uma descrição com pelo menos 2 caracteres.';
+    errors.description = 'Informe uma descrição com pelo menos 2 caracteres!';
   }
   if (amount === undefined) {
-    errors.amount = 'Informe o valor da despesa.';
+    errors.amount = 'Informe o valor da despesa!';
   } else if (amount <= 0) {
-    errors.amount = 'O valor precisa ser maior que zero.';
+    errors.amount = 'O valor precisa ser maior que zero!';
   }
   if (!form.nextDueDate) {
-    errors.nextDueDate = 'Informe a data do próximo vencimento.';
+    errors.nextDueDate = 'Informe a data do próximo vencimento!';
   }
   if (!form.accountId) {
-    errors.accountId = 'Escolha a conta ou o cartão que paga esta despesa.';
+    errors.accountId = 'Escolha a conta ou o cartão que paga esta despesa!';
   }
 
   return errors;
