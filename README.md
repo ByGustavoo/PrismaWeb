@@ -83,6 +83,7 @@ A próxima etapa é o backend em **Java / Spring Boot / PostgreSQL**.
 * Tema claro, escuro e sistema.
 * Busca global em lançamentos, categorias e contas, ignorando acentuação.
 * Painel de avisos derivado dos próprios dados: faturas a vencer, lançamentos próximos e cartões perto do limite.
+* Página 404 própria, fora do shell do app: o endereço que falhou fica à vista, com atalhos para as telas de entrada e uma série que se desenha em laço até o ponto onde os dados acabam.
 * Estados de carregamento, vazio e erro em todas as telas, e responsividade do desktop ao celular.
 
 
@@ -313,6 +314,8 @@ aparece no toast da tela.
 * 🔀 Três modos disponíveis: claro, escuro e sistema (acompanha o dispositivo). A escolha fica em **Configurações**, com atalho rápido no header.
 
 * 📊 O Recharts escreve cor como atributo de SVG, onde `var(--token)` não resolve de forma confiável. O hook `useChartPalette` lê os tokens computados e recalcula quando o tema muda.
+
+* 🧭 A página 404 fica fora do shell do app, mas dentro dos providers: ela abre no mesmo tema em que a pessoa estava, inclusive quando o endereço é digitado direto na barra do navegador.
 
 * ♿ Contraste é requisito, não acabamento: texto em 4.5:1 e cor de gráfico em 3:1 sobre a superfície em que aparecem, nos dois temas.
 

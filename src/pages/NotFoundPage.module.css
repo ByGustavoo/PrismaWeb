@@ -1,49 +1,91 @@
-.page {
+/*
+ * Esta tela e a unica do app desenhada fora do `AppLayout`: um endereco que nao
+ * existe nao e uma tela do produto, e cercar o erro de sidebar, busca e seletor
+ * de periodo seria oferecer o mobiliario de um lugar onde nao ha nada. Em troca,
+ * a marca no topo e os atalhos do rodape assumem o papel da navegacao.
+ */
+.screen {
   display: grid;
-  place-items: center;
-  /*
-   * A tela nao tem cabecalho nem outro bloco. Sem ocupar a altura livre abaixo
-   * do header, o painel fica no terco de cima com um vao morto embaixo; o
-   * desconto e o do proprio `.content` do layout: header e paddings da area.
-   */
-  min-height: calc(100dvh - var(--header-height) - var(--space-8) - var(--space-12));
+  align-content: center;
+  justify-items: center;
+  gap: var(--space-6);
+  min-height: 100dvh;
+  padding: var(--space-10) var(--space-4);
+  background-color: var(--canvas);
 }
 
-.panel {
-  position: relative;
-  overflow: hidden;
+.brand {
+  display: inline-flex;
   align-items: center;
-  gap: var(--space-4);
-  width: 100%;
-  max-width: 560px;
-  padding: var(--space-12) var(--space-8) var(--space-10);
-  text-align: center;
+  gap: var(--space-3);
+  color: var(--text);
+}
+
+.brandName {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-figure);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.15;
+}
+
+.brandName small {
+  color: var(--text-subtle);
+  font-family: var(--font-ui);
+  font-size: var(--fs-xs);
+  font-weight: 400;
+  letter-spacing: 0;
 }
 
 /*
- * Halo suave atras dos algarismos, na cor do acento. E o unico ornamento da
- * tela e existe para o "404" nao flutuar sozinho no branco do cartao.
+ * Unico cartao do produto com sombra: aqui ele flutua sozinho sobre o canvas,
+ * sem sidebar nem grade em volta, e no tema claro a borda sozinha quase nao o
+ * separa do fundo. Dentro do app, onde ha vizinhos, a moldura continua chapada.
  */
-.panel::before {
+.card {
+  width: 100%;
+  max-width: 620px;
+  overflow: hidden;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-popover);
+}
+
+/* --- Topo: o numero e a serie que para no meio ------------------------- */
+
+.hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: var(--space-10);
+  background-color: var(--surface-muted);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Halo do acento atras do numero, para o topo nao ser um bloco chapado. */
+.hero::before {
   content: '';
   position: absolute;
-  top: -46%;
+  top: -52%;
   left: 50%;
-  width: 460px;
+  width: 440px;
   aspect-ratio: 1;
   transform: translateX(-50%);
   background: radial-gradient(circle, var(--accent-soft), transparent 62%);
   pointer-events: none;
 }
 
-/* O halo e posicionado, entao pintaria por cima do conteudo em fluxo. */
-.panel > * {
+.hero > * {
   position: relative;
 }
 
 .code {
   font-family: var(--font-figure);
-  font-size: clamp(4rem, 15vw, 6.25rem);
+  font-size: clamp(3.75rem, 14vw, 5.75rem);
   font-weight: 600;
   line-height: 1;
   letter-spacing: var(--tracking-figure);
@@ -52,6 +94,257 @@
 
 .zero {
   color: var(--accent);
+}
+
+/* --- O grafico --------------------------------------------------------- */
+
+/*
+ * A coreografia toda pende de tres variaveis vindas do componente:
+ * `--draw-length`, o comprimento exato da poligonal; `--sweep-duration`, o ciclo
+ * de ida e volta do traco; e `--draw-duration`, o instante em que a ida termina.
+ * Os atrasos dos demais elementos saem dela, entao mudar o ciclo no TSX reordena
+ * a cena inteira sozinha.
+ *
+ * Todos os keyframes moram neste arquivo de proposito: o CSS Modules reescreve
+ * o nome da animacao junto com a referencia quando os dois estao no mesmo
+ * modulo. Uma animacao declarada aqui e definida no `global.css` nao rodaria.
+ */
+.chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: var(--space-6);
+  /* Encosta na borda do bloco: o grafico e o piso do topo, nao um cartao solto. */
+  margin-bottom: -1px;
+}
+
+.grid {
+  stroke: var(--chart-grid);
+  stroke-dasharray: 3 3;
+  animation: fade-in var(--duration-base) var(--ease-out) backwards;
+}
+
+/*
+ * A area so aparece no fim do tracado. Ela e uma forma inteira, entao entrar
+ * junto com a linha mostraria o preenchimento adiantado, cobrindo um trecho que
+ * a serie ainda nem desenhou.
+ */
+.area {
+  animation: area-in var(--draw-duration) var(--ease-out) backwards;
+}
+
+@keyframes area-in {
+  0%,
+  60% {
+    opacity: 0;
+  }
+}
+
+.areaTop {
+  stop-color: var(--accent);
+  stop-opacity: 0.24;
+}
+
+.areaBottom {
+  stop-color: var(--accent);
+  stop-opacity: 0;
+}
+
+.strokeFade {
+  stop-color: var(--accent);
+  stop-opacity: 0;
+}
+
+.strokeFull {
+  stop-color: var(--accent);
+  stop-opacity: 1;
+}
+
+.line {
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: var(--draw-length);
+  animation: sweep-series var(--sweep-duration) var(--ease-out) infinite;
+}
+
+/* Mesmo tracado, desfocado e por baixo: o traco ganha corpo sem engrossar. */
+.glow {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.5;
+  stroke-dasharray: var(--draw-length);
+  animation: sweep-series var(--sweep-duration) var(--ease-out) infinite;
+}
+
+/*
+ * O vaivem da leitura: 42% do ciclo avancando, um quinto parado no ponto em que
+ * a historia acaba — tempo de ler que ela acabou —, e o resto recuando ate o
+ * comeco. O tracado recua pelo fim, que e por onde ele cresceu; e a mesma
+ * propriedade animada nos dois sentidos, entao a volta nunca destoa da ida.
+ *
+ * O quadro de 42% e o mesmo `SWEEP_FORWARD` do componente: e dele que saem os
+ * atrasos de tudo que entra quando a linha chega ao fim pela primeira vez.
+ */
+@keyframes sweep-series {
+  0% {
+    stroke-dashoffset: var(--draw-length);
+  }
+  42%,
+  62% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: var(--draw-length);
+  }
+}
+
+/* Cada ponto assenta no instante em que a linha passa por cima dele. */
+.dot {
+  fill: var(--surface-muted);
+  stroke: var(--accent);
+  stroke-width: 2;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: settle var(--duration-base) var(--ease-spring) var(--delay, 0ms) backwards;
+}
+
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+}
+
+/*
+ * A marca vertical desce do topo ate a base quando a serie para: e o gesto que
+ * separa o que existe do que nao existe.
+ */
+.marker {
+  stroke: var(--border-strong);
+  stroke-dasharray: 3 4;
+  transform-box: fill-box;
+  transform-origin: top;
+  animation: drop var(--duration-base) var(--ease-out) var(--draw-duration) backwards;
+}
+
+@keyframes drop {
+  from {
+    opacity: 0;
+    transform: scaleY(0);
+  }
+}
+
+/*
+ * O tracejado corre para a direita sem nunca chegar, no mesmo laco sem fim da
+ * serie: a espera por um dado que nao vem e exatamente o que a pagina esta
+ * dizendo. Fica em cinza, na velocidade de um respiro, para nao competir com o
+ * texto ao lado.
+ */
+.trail {
+  fill: none;
+  stroke: var(--border-strong);
+  stroke-width: 2;
+  stroke-dasharray: 6 7;
+  stroke-linecap: round;
+  animation:
+    fade-in var(--duration-base) var(--ease-out) var(--draw-duration) backwards,
+    march 1.6s linear var(--draw-duration) infinite;
+}
+
+@keyframes march {
+  to {
+    stroke-dashoffset: -26;
+  }
+}
+
+.point {
+  fill: var(--accent);
+  stroke: var(--surface-muted);
+  stroke-width: 2;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: settle var(--duration-base) var(--ease-spring) var(--draw-duration) backwards;
+}
+
+/* Ponto vazio: marca de dado ausente, nao de valor zero. */
+.end {
+  fill: var(--surface-muted);
+  stroke: var(--border-strong);
+  stroke-width: 2;
+  animation: fade-in var(--duration-base) var(--ease-out) calc(var(--draw-duration) + 240ms) backwards;
+}
+
+/* O halo que se abre e some no lugar onde o proximo dado deveria estar. */
+.pulse {
+  fill: none;
+  stroke: var(--border-strong);
+  stroke-width: 2;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pulse 2.8s var(--ease-out) calc(var(--draw-duration) + 400ms) infinite backwards;
+}
+
+/*
+ * O laco comeca e termina invisivel de proposito. Como a animacao tem atraso e
+ * `backwards`, o navegador pinta o primeiro quadro durante toda a espera: um
+ * `from` opaco deixaria o halo aceso no canto desde o inicio, antes mesmo de a
+ * serie ser desenhada.
+ */
+@keyframes pulse {
+  from {
+    opacity: 0;
+    transform: scale(1);
+  }
+  25% {
+    opacity: 0.5;
+  }
+  70%,
+  to {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/*
+ * Sem movimento, a serie precisa existir inteira. A regra global reduz toda
+ * animacao a um instante, e um laco reduzido assim para no ultimo quadro — que
+ * aqui e a linha recolhida, ou seja, um grafico vazio. Por isso o tracado perde
+ * a animacao e o tracejado em vez de herdar o atalho, e o halo do ponto final,
+ * que so existe enquanto pulsa, sai de cena.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .line,
+  .glow {
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+
+  .pulse {
+    display: none;
+  }
+}
+
+/* --- Miolo: mensagem, acoes e atalhos ---------------------------------- */
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-8);
+  text-align: center;
 }
 
 .title {
@@ -87,7 +380,7 @@
 
 .shortcuts {
   width: 100%;
-  margin-top: var(--space-6);
+  margin-top: var(--space-5);
   padding-top: var(--space-5);
   border-top: 1px solid var(--border);
 }
@@ -131,14 +424,30 @@
   color: var(--accent);
 }
 
-@media (max-width: 767px) {
-  /* O `.content` do layout troca de padding aqui; a altura livre acompanha. */
-  .page {
-    min-height: calc(100dvh - var(--header-height) - var(--space-5) - var(--space-10));
+/*
+ * A regra global de foco tambem arredonda o alvo em `--radius-xs`, o que
+ * deixaria a pilula quadrada justamente enquanto ela esta em foco.
+ */
+.link:focus-visible {
+  border-radius: var(--radius-pill);
+}
+
+.brand:focus-visible {
+  border-radius: var(--radius-sm);
+  outline-offset: 4px;
+}
+
+@media (max-width: 599px) {
+  .screen {
+    padding: var(--space-6) var(--space-4);
   }
 
-  .panel {
-    padding: var(--space-10) var(--space-5) var(--space-8);
+  .hero {
+    padding-top: var(--space-8);
+  }
+
+  .content {
+    padding: var(--space-6) var(--space-5) var(--space-8);
   }
 }
 
@@ -152,12 +461,4 @@
   .actions > * {
     width: 100%;
   }
-}
-
-/*
- * A regra global de foco tambem arredonda o alvo em `--radius-xs`, o que
- * deixaria a pilula quadrada justamente enquanto ela esta em foco.
- */
-.link:focus-visible {
-  border-radius: var(--radius-pill);
 }

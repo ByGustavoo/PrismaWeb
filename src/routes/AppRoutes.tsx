@@ -74,9 +74,16 @@ export function AppRoutes() {
 
         <Route path={paths.reports} element={<ReportsPage />} />
         <Route path={paths.settings} element={<SettingsPage />} />
-
-        <Route path="*" element={<NotFoundPage />} />
       </Route>
+
+      {/*
+        A 404 fica fora do `AppLayout` de proposito: um endereco que nao existe
+        nao e uma tela do produto, e cerca-lo de sidebar, busca e seletor de
+        periodo seria mostrar o mobiliario de um lugar onde nao ha nada. A propria
+        pagina assume a navegacao, com a marca no topo e atalhos para as telas de
+        entrada.
+      */}
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }

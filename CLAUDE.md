@@ -503,6 +503,43 @@ Uma tela em `/relatorios`, com o recorte escolhido em `ReportRangePicker`.
   (`mocks/balance.ts` e `mocks/aggregate.ts`). Duas telas que somam a mesma coisa de dois jeitos
   acabam com dois resultados, e o usuario descobre isso antes de nos.
 
+## Pagina 404
+
+A rota `*` e a unica do app que fica **fora do `AppLayout`**: um endereco que nao existe nao e uma
+tela do produto, e cerca-lo de sidebar, busca e seletor de periodo seria mostrar o mobiliario de um
+lugar onde nao ha nada. Por isso a propria pagina assume a navegacao — a marca no topo leva ao
+dashboard e quatro atalhos em pilula apontam para as telas de entrada. Ela continua dentro do
+`AppProviders`, entao herda o tema escolhido como qualquer outra tela, inclusive numa carga direta
+pela barra de enderecos, em que o script inline do `index.html` ja aplica o tema salvo.
+
+- **O erro se conta no vocabulario do produto.** O heroi e uma serie que sobe e para: traco cheio
+  ate o ultimo ponto que existe, marca vertical no corte e tracejado ate um ponto oco. Nas telas de
+  previsao e da carteira o tracejado ja significa "isto nao aconteceu", entao aqui ele diz que o
+  endereco pedido nao tem historia. E SVG escrito a mao, como o `PriceSparkline`, e nao Recharts:
+  sem eixo, rotulo nem tooltip, montar um grafico inteiro custaria mais do que informa.
+- **A serie e um laco de ida e volta.** O keyframe `sweep-series` avanca ate 42% do ciclo, segura
+  ate 62% e recua ate o comeco. Tres variaveis vindas do componente sustentam a cena:
+  `--draw-length` (o comprimento da poligonal), `--sweep-duration` (o ciclo) e `--draw-duration` (o
+  instante em que a ida termina), de onde saem os atrasos de tudo que entra junto com o vazio. A
+  constante `SWEEP_FORWARD` do TSX e o quadro de 42% do CSS sao o mesmo numero em dois lugares —
+  ao mexer em um, mexa no outro.
+- **O comprimento sai da geometria, nao do DOM.** A serie e uma poligonal, entao a soma das
+  hipotenusas e exata e ja esta pronta no primeiro quadro; medir com `getTotalLength()` depois da
+  montagem faria a linha aparecer inteira antes de se esconder para animar. Como o valor vale em
+  unidades do `viewBox`, os tracos animados **nao** usam `non-scaling-stroke`: com ele o tracejado
+  passa a ser medido em pixels de tela e a mesma animacao corta a linha pela metade num celular.
+- **Movimento reduzido pede uma regra propria aqui.** A regra global reduz qualquer animacao a um
+  instante, e um laco reduzido assim para no ultimo quadro — que neste caso e a linha recolhida, ou
+  seja, um grafico vazio. Sob `prefers-reduced-motion` o traco perde a animacao e o tracejado, e o
+  halo do ponto final, que so existe enquanto pulsa, sai de cena.
+- **O botao "Voltar" so aparece quando ha para onde voltar** (`location.key !== 'default'`). Quem
+  colou a URL errada direto na barra do navegador nao tem pagina anterior dentro do app, e o botao
+  ali ou nao faria nada ou jogaria a pessoa para fora.
+- **E o unico cartao do produto com sombra**, porque e o unico que flutua sozinho sobre o canvas,
+  sem vizinhos. Dentro do app a moldura continua chapada.
+- A tela troca o `document.title` enquanto esta montada e o devolve ao sair: ela costuma chegar por
+  link externo, e o titulo e a primeira coisa que se le no historico do navegador.
+
 ## Periodo do dashboard e busca
 
 O `PeriodSwitcher` e a busca global sao os dois pontos em que o header conversa com as telas.
