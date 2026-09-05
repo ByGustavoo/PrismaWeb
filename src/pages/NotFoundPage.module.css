@@ -1,0 +1,163 @@
+.page {
+  display: grid;
+  place-items: center;
+  /*
+   * A tela nao tem cabecalho nem outro bloco. Sem ocupar a altura livre abaixo
+   * do header, o painel fica no terco de cima com um vao morto embaixo; o
+   * desconto e o do proprio `.content` do layout: header e paddings da area.
+   */
+  min-height: calc(100dvh - var(--header-height) - var(--space-8) - var(--space-12));
+}
+
+.panel {
+  position: relative;
+  overflow: hidden;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 560px;
+  padding: var(--space-12) var(--space-8) var(--space-10);
+  text-align: center;
+}
+
+/*
+ * Halo suave atras dos algarismos, na cor do acento. E o unico ornamento da
+ * tela e existe para o "404" nao flutuar sozinho no branco do cartao.
+ */
+.panel::before {
+  content: '';
+  position: absolute;
+  top: -46%;
+  left: 50%;
+  width: 460px;
+  aspect-ratio: 1;
+  transform: translateX(-50%);
+  background: radial-gradient(circle, var(--accent-soft), transparent 62%);
+  pointer-events: none;
+}
+
+/* O halo e posicionado, entao pintaria por cima do conteudo em fluxo. */
+.panel > * {
+  position: relative;
+}
+
+.code {
+  font-family: var(--font-figure);
+  font-size: clamp(4rem, 15vw, 6.25rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: var(--tracking-figure);
+  font-variant-numeric: tabular-nums;
+}
+
+.zero {
+  color: var(--accent);
+}
+
+.title {
+  font-size: var(--fs-xl);
+}
+
+.description {
+  max-width: 46ch;
+  color: var(--text-muted);
+  font-size: var(--fs-md);
+}
+
+.path {
+  display: inline-block;
+  max-width: 100%;
+  padding: 1px var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background-color: var(--surface-muted);
+  color: var(--text);
+  font-family: var(--font-figure);
+  font-size: var(--fs-sm);
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.shortcuts {
+  width: 100%;
+  margin-top: var(--space-6);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border);
+}
+
+.shortcutsLabel {
+  display: block;
+  margin-bottom: var(--space-3);
+  color: var(--text-subtle);
+  font-size: var(--fs-sm);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 0;
+  list-style: none;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-size);
+  padding-inline: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background-color: var(--surface-muted);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.link:hover {
+  border-color: var(--accent);
+  background-color: var(--accent-soft);
+  color: var(--accent);
+}
+
+@media (max-width: 767px) {
+  /* O `.content` do layout troca de padding aqui; a altura livre acompanha. */
+  .page {
+    min-height: calc(100dvh - var(--header-height) - var(--space-5) - var(--space-10));
+  }
+
+  .panel {
+    padding: var(--space-10) var(--space-5) var(--space-8);
+  }
+}
+
+/* Dois botoes lado a lado nao cabem sem quebrar o rotulo em telas estreitas. */
+@media (max-width: 479px) {
+  .actions {
+    align-self: stretch;
+    flex-direction: column;
+  }
+
+  .actions > * {
+    width: 100%;
+  }
+}
+
+/*
+ * A regra global de foco tambem arredonda o alvo em `--radius-xs`, o que
+ * deixaria a pilula quadrada justamente enquanto ela esta em foco.
+ */
+.link:focus-visible {
+  border-radius: var(--radius-pill);
+}
