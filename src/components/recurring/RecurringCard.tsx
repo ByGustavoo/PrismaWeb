@@ -39,10 +39,10 @@ export function RecurringCard({ expense, onEdit, onToggle, onDelete }: Recurring
                 <>
                   <span
                     className={styles.marker}
-                    style={{ backgroundColor: `var(--chart-${expense.category.colorToken})` }}
+                    style={{ backgroundColor: `var(--chart-${expense.category.tokenCor})` }}
                     aria-hidden="true"
                   />
-                  {expense.category.name}
+                  {expense.category.nome}
                   <span className={styles.separator} aria-hidden="true">
                     ·
                   </span>

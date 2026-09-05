@@ -15,7 +15,7 @@ let purchaseSequence = installmentPurchases.length;
 function findCardIndexOrThrow(id: string): number {
   const index = cards.findIndex((item) => item.id === id);
   if (index < 0) {
-    throw new ApiError('Cartão não encontrado.', 404, 'not_found');
+    throw new ApiError('Cartão não encontrado.', 404, 'nao_encontrado');
   }
   return index;
 }
@@ -23,14 +23,14 @@ function findCardIndexOrThrow(id: string): number {
 function findPurchaseIndexOrThrow(id: string): number {
   const index = installmentPurchases.findIndex((item) => item.id === id);
   if (index < 0) {
-    throw new ApiError('Compra parcelada não encontrada.', 404, 'not_found');
+    throw new ApiError('Compra parcelada não encontrada.', 404, 'nao_encontrado');
   }
   return index;
 }
 
 function assertDay(value: number | undefined, field: string): number {
   if (typeof value !== 'number' || !Number.isInteger(value) || value < 1 || value > 31) {
-    throw new ApiError(`Informe um dia de ${field} entre 1 e 31.`, 422, 'validation_error');
+    throw new ApiError(`Informe um dia de ${field} entre 1 e 31.`, 422, 'erro_validacao');
   }
   return value;
 }
@@ -56,18 +56,18 @@ function resolveCard(payload: CardPayload): Omit<Card, 'id'> {
   };
 
   if (payload.name.trim().length < 2) {
-    throw new ApiError('Informe o nome do cartão.', 422, 'validation_error');
+    throw new ApiError('Informe o nome do cartão.', 422, 'erro_validacao');
   }
   if (payload.institution.trim().length < 2) {
-    throw new ApiError('Informe a instituição do cartão.', 422, 'validation_error');
+    throw new ApiError('Informe a instituição do cartão.', 422, 'erro_validacao');
   }
   if (payload.lastDigits && !/^\d{4}$/.test(payload.lastDigits.trim())) {
-    throw new ApiError('Os últimos dígitos precisam ser quatro números.', 422, 'validation_error');
+    throw new ApiError('Os últimos dígitos precisam ser quatro números.', 422, 'erro_validacao');
   }
 
   if (payload.type === 'CREDITO') {
     if (typeof payload.limit !== 'number' || !Number.isFinite(payload.limit) || payload.limit <= 0) {
-      throw new ApiError('Informe o limite do cartão.', 422, 'validation_error');
+      throw new ApiError('Informe o limite do cartão.', 422, 'erro_validacao');
     }
 
     return {
@@ -81,14 +81,14 @@ function resolveCard(payload: CardPayload): Omit<Card, 'id'> {
   if (payload.type === 'DEBITO') {
     const account = accounts.find((item) => item.id === payload.accountId);
     if (!account) {
-      throw new ApiError('Escolha a conta vinculada ao cartão de débito.', 422, 'validation_error');
+      throw new ApiError('Escolha a conta vinculada ao cartão de débito.', 422, 'erro_validacao');
     }
     return { ...base, accountId: account.id, accountName: account.name };
   }
 
   const balance = payload.balance ?? 0;
   if (!Number.isFinite(balance) || balance < 0) {
-    throw new ApiError('Informe um saldo válido para o cartão.', 422, 'validation_error');
+    throw new ApiError('Informe um saldo válido para o cartão.', 422, 'erro_validacao');
   }
   return { ...base, balance };
 }
@@ -107,7 +107,7 @@ export function updateCard(id: string, payload: CardPayload): Card {
 
   // Nome desnormalizado nos lancamentos e nas compras parceladas, como viria da API.
   for (const item of transactions) {
-    if (item.accountId === id) item.accountName = updated.name;
+    if (item.idOrigem === id) item.nomeOrigem = updated.name;
   }
   for (const purchase of installmentPurchases) {
     if (purchase.cardId === id) purchase.cardName = updated.name;
@@ -124,14 +124,14 @@ export function updateCard(id: string, payload: CardPayload): Card {
 export function deleteCard(id: string): void {
   const index = findCardIndexOrThrow(id);
   const linked =
-    transactions.filter((item) => item.accountId === id).length +
+    transactions.filter((item) => item.idOrigem === id).length +
     installmentPurchases.filter((item) => item.cardId === id).length;
 
   if (linked > 0) {
     throw new ApiError(
       `Este cartão tem ${linked} ${linked === 1 ? 'registro' : 'registros'} no histórico. Marque-o como inativo para tirá-lo dos lançamentos sem apagar o passado.`,
       409,
-      'conflict',
+      'conflito',
     );
   }
 
@@ -144,24 +144,24 @@ export function deleteCard(id: string): void {
 
 function resolvePurchase(payload: InstallmentPayload): Omit<InstallmentPurchase, 'id'> {
   if (payload.description.trim().length < 2) {
-    throw new ApiError('Informe a descrição da compra.', 422, 'validation_error');
+    throw new ApiError('Informe a descrição da compra.', 422, 'erro_validacao');
   }
   if (!Number.isFinite(payload.totalAmount) || payload.totalAmount <= 0) {
-    throw new ApiError('Informe o valor total da compra.', 422, 'validation_error');
+    throw new ApiError('Informe o valor total da compra.', 422, 'erro_validacao');
   }
   if (!Number.isInteger(payload.count) || payload.count < 2 || payload.count > 48) {
-    throw new ApiError('O parcelamento precisa ter de 2 a 48 parcelas.', 422, 'validation_error');
+    throw new ApiError('O parcelamento precisa ter de 2 a 48 parcelas.', 422, 'erro_validacao');
   }
   if (!isMonthKey(payload.firstMonth)) {
-    throw new ApiError('Informe o mês da primeira parcela.', 422, 'validation_error');
+    throw new ApiError('Informe o mês da primeira parcela.', 422, 'erro_validacao');
   }
 
   const card = cards.find((item) => item.id === payload.cardId);
   if (!card) {
-    throw new ApiError('O cartão informado não existe.', 422, 'validation_error');
+    throw new ApiError('O cartão informado não existe.', 422, 'erro_validacao');
   }
   if (card.type !== 'CREDITO') {
-    throw new ApiError('Só cartões de crédito aceitam compras parceladas.', 422, 'validation_error');
+    throw new ApiError('Só cartões de crédito aceitam compras parceladas.', 422, 'erro_validacao');
   }
 
   return {

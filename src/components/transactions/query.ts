@@ -1,6 +1,6 @@
 import { LOCALE } from '@/constants/app';
 import { transactionStatusLabel } from '@/constants/transactions';
-import type { Option, Transaction } from '@/types';
+import type { Option, Lancamento } from '@/types';
 import { lastDaysRange, monthRange, yearRange } from '@/utils/date';
 
 /** Valor usado por todo filtro para "sem restricao". */
@@ -100,44 +100,44 @@ export function hasActiveFilters(query: TransactionQuery): boolean {
   );
 }
 
-function matchesSearch(item: Transaction, term: string): boolean {
+function matchesSearch(item: Lancamento, term: string): boolean {
   if (!term) return true;
   return (
-    item.description.toLowerCase().includes(term) ||
-    (item.notes?.toLowerCase().includes(term) ?? false) ||
-    (item.category?.name.toLowerCase().includes(term) ?? false) ||
-    item.accountName.toLowerCase().includes(term) ||
-    (item.toAccountName?.toLowerCase().includes(term) ?? false) ||
-    transactionStatusLabel[item.status].toLowerCase().includes(term)
+    item.descricao.toLowerCase().includes(term) ||
+    (item.observacoes?.toLowerCase().includes(term) ?? false) ||
+    (item.categoria?.nome.toLowerCase().includes(term) ?? false) ||
+    item.nomeOrigem.toLowerCase().includes(term) ||
+    (item.nomeContaDestino?.toLowerCase().includes(term) ?? false) ||
+    transactionStatusLabel[item.situacao].toLowerCase().includes(term)
   );
 }
 
-function compare(a: Transaction, b: Transaction, field: SortField): number {
+function compare(a: Lancamento, b: Lancamento, field: SortField): number {
   switch (field) {
     case 'amount':
-      return a.amount - b.amount;
+      return a.valor - b.valor;
     case 'description':
-      return a.description.localeCompare(b.description, LOCALE);
+      return a.descricao.localeCompare(b.descricao, LOCALE);
     default:
       // Empate na data cai para a descricao: a ordem nao muda a cada renderizacao.
-      return a.date.localeCompare(b.date) || a.description.localeCompare(b.description, LOCALE);
+      return a.data.localeCompare(b.data) || a.descricao.localeCompare(b.descricao, LOCALE);
   }
 }
 
 /** Aplica filtros e ordenacao em memoria, sem tocar na lista original. */
-export function applyQuery(list: Transaction[], query: TransactionQuery): Transaction[] {
+export function applyQuery(list: Lancamento[], query: TransactionQuery): Lancamento[] {
   const term = query.search.trim().toLowerCase();
   const { from, to } = resolvePeriod(query);
 
   const filtered = list.filter((item) => {
-    if (query.kind !== ALL && item.kind !== query.kind) return false;
-    if (query.status !== ALL && item.status !== query.status) return false;
-    if (query.categoryId !== ALL && item.category?.id !== query.categoryId) return false;
-    if (from && item.date < from) return false;
-    if (to && item.date > to) return false;
+    if (query.kind !== ALL && item.tipo !== query.kind) return false;
+    if (query.status !== ALL && item.situacao !== query.status) return false;
+    if (query.categoryId !== ALL && item.categoria?.id !== query.categoryId) return false;
+    if (from && item.data < from) return false;
+    if (to && item.data > to) return false;
 
     // Numa transferencia, a conta filtrada pode ser tanto a origem quanto o destino.
-    if (query.accountId !== ALL && item.accountId !== query.accountId && item.toAccountId !== query.accountId) {
+    if (query.accountId !== ALL && item.idOrigem !== query.accountId && item.idContaDestino !== query.accountId) {
       return false;
     }
 
@@ -152,10 +152,10 @@ export function applyQuery(list: Transaction[], query: TransactionQuery): Transa
  * Total liquido do resultado. Transferencia nao entra: ela apenas move dinheiro
  * entre contas do proprio usuario e nao altera o patrimonio.
  */
-export function netTotal(list: Transaction[]): number {
+export function netTotal(list: Lancamento[]): number {
   return list.reduce((sum, item) => {
-    if (item.kind === 'RECEITA') return sum + item.amount;
-    if (item.kind === 'DESPESA') return sum - item.amount;
+    if (item.tipo === 'RECEITA') return sum + item.valor;
+    if (item.tipo === 'DESPESA') return sum - item.valor;
     return sum;
   }, 0);
 }

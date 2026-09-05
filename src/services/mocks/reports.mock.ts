@@ -1,12 +1,12 @@
 import { REPORT_DAILY_BUCKET_MAX_DAYS, REPORT_WEEKLY_BUCKET_MAX_DAYS } from '@/constants/reports';
 import type {
-  BalancePoint,
-  CashflowPoint,
+  PontoSaldo,
+  PontoFluxo,
   NetWorthPoint,
   ReportRange,
   ReportSummary,
   SourceSpending,
-  Transaction,
+  Lancamento,
 } from '@/types';
 import {
   addDays,
@@ -33,8 +33,8 @@ function money(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-function inRange(range: ReportRange): Transaction[] {
-  return transactions.filter((item) => item.date >= range.from && item.date <= range.to);
+function inRange(range: ReportRange): Lancamento[] {
+  return transactions.filter((item) => item.data >= range.from && item.data <= range.to);
 }
 
 /** O intervalo de mesma duracao imediatamente anterior, base das variacoes. */
@@ -94,41 +94,45 @@ function buckets(range: ReportRange): Array<{ label: string; from: string; to: s
   });
 }
 
-function buildCashflow(range: ReportRange): CashflowPoint[] {
+function buildCashflow(range: ReportRange): PontoFluxo[] {
   return buckets(range).map((bucket) => {
-    const list = transactions.filter((item) => item.date >= bucket.from && item.date <= bucket.to);
-    return { label: bucket.label, income: sumKind(list, 'RECEITA'), expense: sumKind(list, 'DESPESA') };
+    const list = transactions.filter((item) => item.data >= bucket.from && item.data <= bucket.to);
+    return {
+      rotulo: bucket.label,
+      receitas: sumKind(list, 'RECEITA'),
+      despesas: sumKind(list, 'DESPESA'),
+    };
   });
 }
 
 /** Saldo no ultimo dia de cada balde: e a evolucao do saldo dentro do recorte. */
-function buildBalanceHistory(range: ReportRange): BalancePoint[] {
-  return buckets(range).map((bucket) => ({ label: bucket.label, balance: balanceAt(bucket.to) }));
+function buildBalanceHistory(range: ReportRange): PontoSaldo[] {
+  return buckets(range).map((bucket) => ({ rotulo: bucket.label, saldo: balanceAt(bucket.to) }));
 }
 
 /**
  * Gasto por origem do dinheiro. A transferencia fica de fora: ela sai de uma
  * conta e entra em outra, entao contaria como gasto de uma conta que nao gastou.
  */
-function buildBySource(list: Transaction[]): SourceSpending[] {
-  const expenses = list.filter((item) => item.kind === 'DESPESA');
-  const total = expenses.reduce((sum, item) => sum + item.amount, 0);
+function buildBySource(list: Lancamento[]): SourceSpending[] {
+  const expenses = list.filter((item) => item.tipo === 'DESPESA');
+  const total = expenses.reduce((sum, item) => sum + item.valor, 0);
   const grouped = new Map<string, SourceSpending>();
 
   for (const item of expenses) {
-    const existing = grouped.get(item.accountId);
+    const existing = grouped.get(item.idOrigem);
     if (existing) {
-      existing.amount += item.amount;
+      existing.amount += item.valor;
       continue;
     }
 
-    grouped.set(item.accountId, {
-      id: item.accountId,
-      name: item.accountName,
+    grouped.set(item.idOrigem, {
+      id: item.idOrigem,
+      name: item.nomeOrigem,
       // Os ids de cartao sao prefixados no cadastro; e o que distingue a compra
       // no cartao do debito em conta sem uma segunda consulta.
-      group: item.accountId.startsWith('card-') ? 'CARTAO' : 'CONTA',
-      amount: item.amount,
+      group: item.idOrigem.startsWith('card-') ? 'CARTAO' : 'CONTA',
+      amount: item.valor,
       share: 0,
     });
   }
@@ -180,7 +184,7 @@ export function buildReportSummary(range: ReportRange): ReportSummary {
     net: money(income - expense),
     incomeDelta: percentDelta(income, sumKind(comparison, 'RECEITA')),
     expenseDelta: percentDelta(expense, sumKind(comparison, 'DESPESA')),
-    transactionCount: current.filter((item) => item.kind !== 'TRANSFERENCIA').length,
+    transactionCount: current.filter((item) => item.tipo !== 'TRANSFERENCIA').length,
     expenseByCategory: groupByCategory(current, 'DESPESA'),
     incomeByCategory: groupByCategory(current, 'RECEITA'),
     cashflow: buildCashflow(range),

@@ -36,14 +36,14 @@ function getAuthToken(): string | null {
 
 async function parseError(response: Response): Promise<ApiError> {
   let message = `Falha na requisição (${response.status})`;
-  let code = 'http_error';
+  let code = 'erro_http';
   let details: unknown;
 
   try {
-    const body = (await response.json()) as { message?: string; code?: string; errors?: unknown };
-    message = body.message ?? message;
-    code = body.code ?? code;
-    details = body.errors;
+    const body = (await response.json()) as { mensagem?: string; codigo?: string; erros?: unknown };
+    message = body.mensagem ?? message;
+    code = body.codigo ?? code;
+    details = body.erros;
   } catch {
     // resposta sem corpo JSON: mantem a mensagem padrao
   }

@@ -104,10 +104,10 @@ export function InvoiceDetailModal({ invoice, onClose }: InvoiceDetailModalProps
                   <span className={styles.category}>
                     <span
                       className={styles.categoryDot}
-                      style={{ backgroundColor: `var(--chart-${item.category.colorToken})` }}
+                      style={{ backgroundColor: `var(--chart-${item.category.tokenCor})` }}
                       aria-hidden="true"
                     />
-                    {item.category.name}
+                    {item.category.nome}
                   </span>
                 ) : null}
               </span>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button, Input, Modal, Select } from '@/components/ui';
-import type { Budget, BudgetPayload, Category, Option } from '@/types';
+import type { Budget, BudgetPayload, Categoria, Option } from '@/types';
 import { parseAmountInput, toAmountInput } from '@/utils/format';
 import styles from './BudgetForm.module.css';
 
@@ -8,7 +8,7 @@ interface BudgetFormModalProps {
   open: boolean;
   /** Presente apenas na edicao. */
   budget: Budget | null;
-  categories: Category[];
+  categories: Categoria[];
   /** Categorias que ja tem limite: elas saem da lista, exceto a que se edita. */
   usedCategoryIds: string[];
   saving: boolean;
@@ -57,9 +57,9 @@ export function BudgetFormModal({
   const categoryOptions = useMemo<Option[]>(
     () =>
       categories
-        .filter((item) => item.kind === 'DESPESA')
+        .filter((item) => item.tipo === 'DESPESA')
         .filter((item) => !usedCategoryIds.includes(item.id) || item.id === budget?.category.id)
-        .map((item) => ({ value: item.id, label: item.name })),
+        .map((item) => ({ value: item.id, label: item.nome })),
     [categories, usedCategoryIds, budget],
   );
 

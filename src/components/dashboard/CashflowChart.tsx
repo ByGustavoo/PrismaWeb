@@ -2,12 +2,12 @@ import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAx
 import { ChartTooltip } from '@/components/charts';
 import { useChartPalette } from '@/hooks/useChartPalette';
 import { Card, CardBody, CardHeader } from '@/components/ui';
-import type { CashflowPoint } from '@/types';
+import type { PontoFluxo } from '@/types';
 import { formatCompactCurrency } from '@/utils/format';
 import styles from './CashflowChart.module.css';
 
 interface CashflowChartProps {
-  data: CashflowPoint[];
+  data: PontoFluxo[];
   /** A janela termina no mes de referencia, que nem sempre e o mes corrente. */
   description: string;
   /**
@@ -51,7 +51,7 @@ export function CashflowChart({
           >
             <CartesianGrid vertical={false} stroke={palette.grid} />
             <XAxis
-              dataKey="label"
+              dataKey="rotulo"
               axisLine={false}
               tickLine={false}
               tick={{ fill: palette.axisText, fontSize: 12 }}
@@ -74,8 +74,8 @@ export function CashflowChart({
               wrapperStyle={{ paddingTop: 12 }}
               formatter={(value) => <span className={styles.legendLabel}>{value}</span>}
             />
-            <Bar dataKey="income" name="Entradas" fill={palette.series[1]} radius={[4, 4, 0, 0]} maxBarSize={maxBarSize} />
-            <Bar dataKey="expense" name="Saídas" fill={palette.series[2]} radius={[4, 4, 0, 0]} maxBarSize={maxBarSize} />
+            <Bar dataKey="receitas" name="Entradas" fill={palette.series[1]} radius={[4, 4, 0, 0]} maxBarSize={maxBarSize} />
+            <Bar dataKey="despesas" name="Saídas" fill={palette.series[2]} radius={[4, 4, 0, 0]} maxBarSize={maxBarSize} />
           </BarChart>
         </ResponsiveContainer>
       </CardBody>

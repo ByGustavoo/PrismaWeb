@@ -2,7 +2,7 @@ import { CreditCard, ShoppingBasket, Utensils, WalletCards } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react';
 import type { BadgeTone, ProgressTone } from '@/components/ui';
 import { CARD_LIMIT_CRITICAL_RATIO, CARD_LIMIT_WARNING_RATIO } from '@/constants/cards';
-import type { CardStatus, CardType, InstallmentStatus, InvoiceStatus } from '@/types';
+import type { CardStatus, CardType, InstallmentStatus, SituacaoFatura } from '@/types';
 
 export const cardTypeIcon: Record<CardType, LucideIcon> = {
   CREDITO: CreditCard,
@@ -31,7 +31,7 @@ export function limitTone(ratio: number): ProgressTone {
  * o acento por ser a que esta em curso, a fechada pede atencao porque tem
  * pagamento a fazer, e a vencida e o unico caso vermelho.
  */
-export const invoiceStatusTone: Record<InvoiceStatus, BadgeTone> = {
+export const invoiceStatusTone: Record<SituacaoFatura, BadgeTone> = {
   FUTURA: 'neutral',
   ABERTA: 'accent',
   FECHADA: 'warning',

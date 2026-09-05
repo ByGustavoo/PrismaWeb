@@ -3,7 +3,7 @@ import { Amount } from '@/components/common';
 import { Button, DatePicker, Input, Modal, Select, Textarea } from '@/components/ui';
 import { installmentCounts, isCreditCard } from '@/constants/cards';
 import type { CreditCard } from '@/constants/cards';
-import type { Card, Category, InstallmentPayload, InstallmentPurchase, Option } from '@/types';
+import type { Card, Categoria, InstallmentPayload, InstallmentPurchase, Option } from '@/types';
 import { shiftMonthKey, todayISO } from '@/utils/date';
 import { capitalize, formatMonthLabel, formatShortMonth, parseAmountInput, toAmountInput } from '@/utils/format';
 import styles from './InstallmentForm.module.css';
@@ -13,7 +13,7 @@ interface InstallmentFormModalProps {
   /** Presente apenas na edicao. */
   purchase: InstallmentPurchase | null;
   cards: Card[];
-  categories: Category[];
+  categories: Categoria[];
   saving: boolean;
   onSubmit: (payload: InstallmentPayload) => void;
   onClose: () => void;
@@ -116,8 +116,8 @@ export function InstallmentFormModal({
   const expenseCategoryOptions = useMemo<Option[]>(
     () =>
       categories
-        .filter((item) => item.kind === 'DESPESA')
-        .map((item) => ({ value: item.id, label: item.name })),
+        .filter((item) => item.tipo === 'DESPESA')
+        .map((item) => ({ value: item.id, label: item.nome })),
     [categories],
   );
 

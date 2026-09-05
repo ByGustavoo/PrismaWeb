@@ -1,58 +1,73 @@
-import type { Delta, ID, Trend } from './common';
+import type { ID, Tendencia, Variacao } from './common';
 
-export type TransactionKind = 'RECEITA' | 'DESPESA' | 'TRANSFERENCIA';
+/*
+ * Categorias e lancamentos estao em portugues porque e assim que o backend vai
+ * responder — ver docs/api/01-dashboard-resumo.pdf. Os nomes saem das colunas
+ * de docs/api/sql/00-schema-completo.sql: o banco escreve em snake_case e a API
+ * em camelCase, e a traducao acontece uma vez so, no mapeamento da entidade JPA.
+ *
+ * Os demais dominios deste arquivo continuam em ingles ate cada um ganhar o seu
+ * documento de contrato. Migrar um dominio sem documento seria decidir no escuro
+ * o nome de campo que o backend teria de honrar depois.
+ */
 
-export type TransactionStatus = 'PAGO' | 'PENDENTE' | 'AGENDADO';
+export type TipoLancamento = 'RECEITA' | 'DESPESA' | 'TRANSFERENCIA';
 
-export type PaymentMethod = 'CONTA' | 'CARTAO_CREDITO' | 'PIX' | 'DINHEIRO';
+export type SituacaoLancamento = 'PAGO' | 'PENDENTE' | 'AGENDADO';
+
+export type FormaPagamento = 'CONTA' | 'CARTAO_CREDITO' | 'PIX' | 'DINHEIRO';
 
 /** Receita e despesa nao compartilham categoria: cada formulario oferece so as do seu lado. */
-export type CategoryKind = 'RECEITA' | 'DESPESA';
+export type TipoCategoria = 'RECEITA' | 'DESPESA';
 
-export interface Category {
+export interface Categoria {
   id: ID;
-  name: string;
-  kind: CategoryKind;
+  nome: string;
+  tipo: TipoCategoria;
   /** Indice do token de cor de grafico (--chart-1 ... --chart-6). */
-  colorToken: 1 | 2 | 3 | 4 | 5 | 6;
+  tokenCor: 1 | 2 | 3 | 4 | 5 | 6;
 }
 
-export interface Transaction {
+export interface Lancamento {
   id: ID;
-  description: string;
-  /** Valor sempre positivo. A direcao do dinheiro vem de `kind`. */
-  amount: number;
-  kind: TransactionKind;
-  status: TransactionStatus;
-  method: PaymentMethod;
+  descricao: string;
+  /** Valor sempre positivo. A direcao do dinheiro vem de `tipo`. */
+  valor: number;
+  tipo: TipoLancamento;
+  situacao: SituacaoLancamento;
+  forma: FormaPagamento;
   /** Data ISO (YYYY-MM-DD). */
-  date: string;
+  data: string;
   /** Transferencia so move dinheiro entre contas proprias, entao nao tem categoria. */
-  category: Category | null;
-  /** Conta ou cartao de origem do dinheiro. */
-  accountId: ID;
-  accountName: string;
+  categoria: Categoria | null;
+  /**
+   * Origem do dinheiro: uma conta ou um cartao. A API expoe um campo so, mas no
+   * banco sao duas chaves estrangeiras de verdade (`id_conta` e `id_cartao`) e a
+   * resposta emite o COALESCE das duas — seguro porque ambas sao UUID.
+   */
+  idOrigem: ID;
+  nomeOrigem: string;
   /** Conta de destino; presente apenas em transferencias. */
-  toAccountId?: ID;
-  toAccountName?: string;
-  notes?: string;
+  idContaDestino?: ID;
+  nomeContaDestino?: string;
+  observacoes?: string;
 }
 
 /**
  * Corpo enviado ao criar ou editar um lancamento. O cliente manda ids: quem
  * resolve nome de conta e de categoria e o servidor (hoje, a camada de mock).
  */
-export interface TransactionPayload {
-  description: string;
-  amount: number;
-  kind: TransactionKind;
-  status: TransactionStatus;
-  method: PaymentMethod;
-  date: string;
-  categoryId?: ID;
-  accountId: ID;
-  toAccountId?: ID;
-  notes?: string;
+export interface LancamentoPayload {
+  descricao: string;
+  valor: number;
+  tipo: TipoLancamento;
+  situacao: SituacaoLancamento;
+  forma: FormaPagamento;
+  data: string;
+  idCategoria?: ID;
+  idOrigem: ID;
+  idContaDestino?: ID;
+  observacoes?: string;
 }
 
 /** Origem de dinheiro escolhivel num lancamento: uma conta propria ou um cartao. */
@@ -158,7 +173,7 @@ export interface CardPayload {
  * parcelas ja estao comprometidas. `open` e o ciclo em andamento, que continua
  * aceitando compras.
  */
-export type InvoiceStatus = 'FUTURA' | 'ABERTA' | 'FECHADA' | 'PAGA' | 'VENCIDA';
+export type SituacaoFatura = 'FUTURA' | 'ABERTA' | 'FECHADA' | 'PAGA' | 'VENCIDA';
 
 export interface Invoice {
   id: ID;
@@ -167,7 +182,7 @@ export interface Invoice {
   /** Mes de referencia YYYY-MM. */
   month: string;
   total: number;
-  status: InvoiceStatus;
+  status: SituacaoFatura;
   /** Data ISO em que o ciclo fecha. */
   closingDate: string;
   /** Data ISO de vencimento. */
@@ -187,7 +202,7 @@ export interface InvoiceItem {
   description: string;
   date: string;
   amount: number;
-  category: Category | null;
+  category: Categoria | null;
   /** Presente quando o item e uma parcela de uma compra parcelada. */
   installment?: {
     number: number;
@@ -229,7 +244,7 @@ export interface InstallmentPurchase {
   firstMonth: string;
   cardId: ID;
   cardName: string;
-  category: Category | null;
+  category: Categoria | null;
   notes?: string;
 }
 
@@ -333,29 +348,29 @@ export interface PortfolioSummary {
   profit: number;
   profitability: number;
   /** Variacao do patrimonio em relacao ao mes anterior. */
-  valueDelta: Delta;
+  valueDelta: Variacao;
   allocation: InvestmentAllocation[];
   history: PortfolioPoint[];
   positions: InvestmentPosition[];
 }
 
-export interface CategorySpending {
-  category: Category;
-  amount: number;
+export interface GastoPorCategoria {
+  categoria: Categoria;
+  valor: number;
   /** Participacao no total de despesas do periodo (0 a 1). */
-  share: number;
+  participacao: number;
 }
 
-export interface CashflowPoint {
-  /** Rotulo curto do mes, com inicial maiuscula: "Jan", "Fev"... */
-  label: string;
-  income: number;
-  expense: number;
+export interface PontoFluxo {
+  /** Rotulo curto do mes, com inicial maiuscula e sem ponto: "Jan", "Fev"... */
+  rotulo: string;
+  receitas: number;
+  despesas: number;
 }
 
-export interface BalancePoint {
-  label: string;
-  balance: number;
+export interface PontoSaldo {
+  rotulo: string;
+  saldo: number;
 }
 
 /**
@@ -363,10 +378,10 @@ export interface BalancePoint {
  * ausente: o calendario precisa desenhar a casa vazia, e uma sequencia de dias
  * sem gasto e informacao — nao um buraco na serie.
  */
-export interface DailySpending {
+export interface GastoDiario {
   /** Data ISO (YYYY-MM-DD). */
-  date: string;
-  amount: number;
+  data: string;
+  valor: number;
 }
 
 export type AlertKind = 'FATURA_VENCENDO' | 'CONTA_VENCENDO' | 'LANCAMENTO_AGENDADO' | 'LIMITE_CARTAO';
@@ -387,31 +402,37 @@ export interface Alert {
   to?: string;
 }
 
-export interface DashboardSummary {
+/** Resposta de GET /dashboard/resumo. Ver docs/api/01-dashboard-resumo.pdf. */
+export interface ResumoDashboard {
   /** Primeiro mes do periodo, YYYY-MM. */
-  from: string;
-  /** Ultimo mes do periodo, YYYY-MM. Igual a `from` quando o recorte e um mes so. */
-  to: string;
-  currentBalance: number;
-  balanceDelta: Delta;
-  monthIncome: number;
-  incomeDelta: Delta;
-  monthExpense: number;
-  expenseDelta: Delta;
-  investmentsTotal: number;
-  investmentsDelta: Delta;
-  currentInvoice: {
+  de: string;
+  /** Ultimo mes do periodo, YYYY-MM. Igual a `de` quando o recorte e um mes so. */
+  ate: string;
+  saldoAtual: number;
+  variacaoSaldo: Variacao;
+  receitasMes: number;
+  variacaoReceitas: Variacao;
+  despesasMes: number;
+  variacaoDespesas: Variacao;
+  totalInvestido: number;
+  variacaoInvestimentos: Variacao;
+  /**
+   * Nunca nulo, e `nomeCartao` nunca vazio: sem cartao movimentado no mes vem
+   * "Nenhum cartao", porque a tela monta o rodape do bloco concatenando nome e
+   * vencimento e uma string vazia deixaria um "·" solto na frente da data.
+   */
+  faturaAtual: {
     total: number;
-    cardName: string;
-    dueDate: string;
-    status: InvoiceStatus;
+    nomeCartao: string;
+    dataVencimento: string;
+    situacao: SituacaoFatura;
   };
-  balanceHistory: BalancePoint[];
-  cashflow: CashflowPoint[];
+  historicoSaldo: PontoSaldo[];
+  fluxoCaixa: PontoFluxo[];
   /** Todos os dias da janela dos graficos, do primeiro ao ultimo, em ordem. */
-  dailySpending: DailySpending[];
-  spendingByCategory: CategorySpending[];
-  recentTransactions: Transaction[];
+  gastoDiario: GastoDiario[];
+  gastoPorCategoria: GastoPorCategoria[];
+  lancamentosRecentes: Lancamento[];
 }
 
 /* -------------------------------------------------------------------------- */
@@ -432,7 +453,7 @@ export type BudgetStatus = 'SEGURO' | 'ALERTA' | 'ESTOURADO';
  */
 export interface Budget {
   id: ID;
-  category: Category;
+  category: Categoria;
   limit: number;
 }
 
@@ -474,7 +495,7 @@ export interface BudgetOverview {
    * Categorias com gasto no mes e sem limite definido. Sem elas, a soma dos
    * orcamentos pareceria o gasto total do mes, e nao e.
    */
-  unplanned: CategorySpending[];
+  unplanned: GastoPorCategoria[];
 }
 
 /* -------------------------------------------------------------------------- */
@@ -497,7 +518,7 @@ export interface RecurringExpense {
   id: ID;
   description: string;
   amount: number;
-  category: Category | null;
+  category: Categoria | null;
   frequency: RecurrenceFrequency;
   /** Data ISO do proximo vencimento. */
   nextDueDate: string;
@@ -608,19 +629,19 @@ export interface ReportSummary {
   income: number;
   expense: number;
   net: number;
-  incomeDelta: Delta;
-  expenseDelta: Delta;
+  incomeDelta: Variacao;
+  expenseDelta: Variacao;
   /** Quantos lancamentos entraram na conta, transferencias a parte. */
   transactionCount: number;
-  expenseByCategory: CategorySpending[];
-  incomeByCategory: CategorySpending[];
+  expenseByCategory: GastoPorCategoria[];
+  incomeByCategory: GastoPorCategoria[];
   /**
    * Entradas e saidas agrupadas. O balde e a semana em recortes curtos e o mes
    * nos longos: doze barras de um ano se leem, trezentas e sessenta nao.
    */
-  cashflow: CashflowPoint[];
+  cashflow: PontoFluxo[];
   expenseBySource: SourceSpending[];
-  balanceHistory: BalancePoint[];
+  balanceHistory: PontoSaldo[];
   netWorth: NetWorthPoint[];
 }
 
@@ -715,7 +736,7 @@ export interface GoalAnalysis {
   /** Variacao percentual sobre o primeiro registro: -10 e uma queda de 10%. */
   changePercentage: number;
   /** Direcao do preco. Aqui `down` e a boa noticia de quem pretende comprar. */
-  trend: Trend;
+  trend: Tendencia;
   /** Quanto o preco atual esta abaixo do maior ja registrado; nunca negativo. */
   savings: number;
   /** Data ISO do registro mais recente. */

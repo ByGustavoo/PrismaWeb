@@ -18,20 +18,20 @@ function nextId(): string {
 function findIndexOrThrow(id: string): number {
   const index = accounts.findIndex((item) => item.id === id);
   if (index < 0) {
-    throw new ApiError('Conta não encontrada.', 404, 'not_found');
+    throw new ApiError('Conta não encontrada.', 404, 'nao_encontrado');
   }
   return index;
 }
 
 function validate(payload: AccountPayload, id?: string): void {
   if (payload.name.trim().length < 2) {
-    throw new ApiError('Informe o nome da conta.', 422, 'validation_error');
+    throw new ApiError('Informe o nome da conta.', 422, 'erro_validacao');
   }
   if (payload.institution.trim().length < 2) {
-    throw new ApiError('Informe a instituição da conta.', 422, 'validation_error');
+    throw new ApiError('Informe a instituição da conta.', 422, 'erro_validacao');
   }
   if (!Number.isFinite(payload.balance)) {
-    throw new ApiError('Informe um saldo válido.', 422, 'validation_error');
+    throw new ApiError('Informe um saldo válido.', 422, 'erro_validacao');
   }
 
   // Duas contas com o mesmo nome na mesma instituicao sao indistinguiveis nos
@@ -46,7 +46,7 @@ function validate(payload: AccountPayload, id?: string): void {
   );
 
   if (duplicated) {
-    throw new ApiError('Já existe uma conta com esse nome nessa instituição.', 409, 'conflict');
+    throw new ApiError('Já existe uma conta com esse nome nessa instituição.', 409, 'conflito');
   }
 }
 
@@ -78,8 +78,8 @@ export function updateAccount(id: string, payload: AccountPayload): Account {
 
   // O nome da conta esta desnormalizado nos lancamentos, como viria da API.
   for (const item of transactions) {
-    if (item.accountId === id) item.accountName = updated.name;
-    if (item.toAccountId === id) item.toAccountName = updated.name;
+    if (item.idOrigem === id) item.nomeOrigem = updated.name;
+    if (item.idContaDestino === id) item.nomeContaDestino = updated.name;
   }
 
   return updated;
@@ -92,13 +92,13 @@ export function updateAccount(id: string, payload: AccountPayload): Account {
  */
 export function deleteAccount(id: string): void {
   const index = findIndexOrThrow(id);
-  const linked = transactions.filter((item) => item.accountId === id || item.toAccountId === id).length;
+  const linked = transactions.filter((item) => item.idOrigem === id || item.idContaDestino === id).length;
 
   if (linked > 0) {
     throw new ApiError(
       `Esta conta tem ${linked} ${linked === 1 ? 'lançamento' : 'lançamentos'} no histórico. Marque-a como inativa para tirá-la do saldo sem apagar o passado.`,
       409,
-      'conflict',
+      'conflito',
     );
   }
 

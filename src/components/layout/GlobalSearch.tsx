@@ -9,7 +9,7 @@ import { Spinner } from '@/components/ui';
 import { transactionKindPluralLabel } from '@/constants/transactions';
 import { accountsService, categoriesService, transactionsService } from '@/services';
 import { ACCOUNT_PARAM, CATEGORY_PARAM, EDIT_TRANSACTION_PARAM, SEARCH_PARAM, paths } from '@/routes/paths';
-import type { Category, PaymentSource, Transaction } from '@/types';
+import type { Categoria, PaymentSource, Lancamento } from '@/types';
 import { cn } from '@/utils/cn';
 import { fold, formatShortDate } from '@/utils/format';
 import styles from './GlobalSearch.module.css';
@@ -27,12 +27,12 @@ interface SearchResult {
   to: string;
   icon: LucideIcon;
   /** Presente so nos lancamentos, que mostram o valor a direita. */
-  transaction?: Transaction;
+  transaction?: Lancamento;
 }
 
 interface Catalog {
-  transactions: Transaction[];
-  categories: Category[];
+  transactions: Lancamento[];
+  categories: Categoria[];
   sources: PaymentSource[];
 }
 
@@ -51,27 +51,27 @@ function buildResults(catalog: Catalog, term: string): SearchResult[] {
     fields.some((field) => (field ? fold(field).includes(needle) : false));
 
   const transactionResults = catalog.transactions
-    .filter((item) => matches(item.description, item.notes, item.category?.name, item.accountName, item.toAccountName))
-    .sort((a, b) => b.date.localeCompare(a.date))
+    .filter((item) => matches(item.descricao, item.observacoes, item.categoria?.nome, item.nomeOrigem, item.nomeContaDestino))
+    .sort((a, b) => b.data.localeCompare(a.data))
     .slice(0, LIMITS.transaction)
     .map<SearchResult>((item) => ({
       key: `transaction-${item.id}`,
       group: 'transaction',
-      label: item.description,
-      hint: `${formatShortDate(item.date)} · ${item.accountName}`,
+      label: item.descricao,
+      hint: `${formatShortDate(item.data)} · ${item.nomeOrigem}`,
       to: `${paths.transactions}?${EDIT_TRANSACTION_PARAM}=${item.id}`,
-      icon: kindIcon[item.kind],
+      icon: kindIcon[item.tipo],
       transaction: item,
     }));
 
   const categoryResults = catalog.categories
-    .filter((item) => matches(item.name))
+    .filter((item) => matches(item.nome))
     .slice(0, LIMITS.category)
     .map<SearchResult>((item) => ({
       key: `category-${item.id}`,
       group: 'category',
-      label: item.name,
-      hint: transactionKindPluralLabel[item.kind],
+      label: item.nome,
+      hint: transactionKindPluralLabel[item.tipo],
       to: `${paths.transactions}?${CATEGORY_PARAM}=${item.id}`,
       icon: Tag,
     }));
@@ -322,10 +322,10 @@ export function GlobalSearch({ expanded = false, onCollapse }: GlobalSearchProps
 
                   {result.transaction ? (
                     <Amount
-                      value={result.transaction.amount}
+                      value={result.transaction.valor}
                       size="sm"
-                      tone={kindTone[result.transaction.kind]}
-                      sign={kindSign[result.transaction.kind]}
+                      tone={kindTone[result.transaction.tipo]}
+                      sign={kindSign[result.transaction.tipo]}
                     />
                   ) : null}
 

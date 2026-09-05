@@ -5,12 +5,12 @@ import { kindIcon, kindSign, kindTone, statusTone } from '@/components/transacti
 import { Badge, Card, CardBody, CardHeader, TBody, THead, Table, TableWrapper, Td, Th, Tr } from '@/components/ui';
 import { transactionStatusLabel } from '@/constants/transactions';
 import { paths } from '@/routes/paths';
-import type { Transaction } from '@/types';
+import type { Lancamento } from '@/types';
 import { formatShortDate } from '@/utils/format';
 import styles from './RecentTransactions.module.css';
 
 interface RecentTransactionsProps {
-  transactions: Transaction[];
+  transactions: Lancamento[];
   description: string;
 }
 
@@ -50,54 +50,54 @@ export function RecentTransactions({ transactions, description }: RecentTransact
 }
 
 interface TransactionRowProps {
-  transaction: Transaction;
+  transaction: Lancamento;
   /** Posicao na lista: e o que escalona a entrada da linha. */
   index?: number;
 }
 
 export function TransactionRow({ transaction, index = 0 }: TransactionRowProps) {
-  const Icon = kindIcon[transaction.kind];
+  const Icon = kindIcon[transaction.tipo];
 
   // `list-item-in` e uma classe global (global.css): entrada escalonada por `--i`.
   return (
     <Tr interactive className="list-item-in" style={{ '--i': index } as CSSProperties}>
       <Td>
         <div className={styles.description}>
-          <span className={`${styles.kindIcon} ${styles[transaction.kind]}`} aria-hidden="true">
+          <span className={`${styles.kindIcon} ${styles[transaction.tipo]}`} aria-hidden="true">
             <Icon size={15} strokeWidth={2} />
           </span>
-          {transaction.description}
+          {transaction.descricao}
         </div>
       </Td>
       <Td>
-        {transaction.category ? (
+        {transaction.categoria ? (
           <span className={styles.category}>
             <span
               className={styles.categoryDot}
-              style={{ backgroundColor: `var(--chart-${transaction.category.colorToken})` }}
+              style={{ backgroundColor: `var(--chart-${transaction.categoria.tokenCor})` }}
               aria-hidden="true"
             />
-            {transaction.category.name}
+            {transaction.categoria.nome}
           </span>
         ) : (
           <span className={styles.muted}>—</span>
         )}
       </Td>
       <Td className={styles.muted}>
-        {transaction.toAccountName ? `${transaction.accountName} → ${transaction.toAccountName}` : transaction.accountName}
+        {transaction.nomeContaDestino ? `${transaction.nomeOrigem} → ${transaction.nomeContaDestino}` : transaction.nomeOrigem}
       </Td>
-      <Td className={`${styles.muted} tabular`}>{formatShortDate(transaction.date)}</Td>
+      <Td className={`${styles.muted} tabular`}>{formatShortDate(transaction.data)}</Td>
       <Td>
-        <Badge tone={statusTone[transaction.status]} dot>
-          {transactionStatusLabel[transaction.status]}
+        <Badge tone={statusTone[transaction.situacao]} dot>
+          {transactionStatusLabel[transaction.situacao]}
         </Badge>
       </Td>
       <Td numeric>
         <Amount
-          value={transaction.amount}
-          tone={kindTone[transaction.kind]}
+          value={transaction.valor}
+          tone={kindTone[transaction.tipo]}
           size="sm"
-          sign={kindSign[transaction.kind]}
+          sign={kindSign[transaction.tipo]}
         />
       </Td>
     </Tr>

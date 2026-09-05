@@ -1,11 +1,11 @@
-import type { Trend } from '@/types';
+import type { Tendencia } from '@/types';
 import { cn } from '@/utils/cn';
 import styles from './PriceSparkline.module.css';
 
 interface PriceSparklineProps {
   /** Precos em ordem cronologica; menos de dois pontos nao desenham nada. */
   prices: number[];
-  trend: Trend;
+  trend: Tendencia;
   className?: string;
 }
 

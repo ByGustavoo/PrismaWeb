@@ -26,17 +26,17 @@ export function BudgetRow({ usage, showProjection, onEdit, onDelete }: BudgetRow
   return (
     <li className={styles.row}>
       <button type="button" className={styles.open} onClick={() => onEdit(usage)}>
-        <span className="visually-hidden">Editar o limite de {budget.category.name}</span>
+        <span className="visually-hidden">Editar o limite de {budget.category.nome}</span>
       </button>
 
       <div className={styles.content}>
         <div className={styles.top}>
           <span
             className={styles.marker}
-            style={{ backgroundColor: `var(--chart-${budget.category.colorToken})` }}
+            style={{ backgroundColor: `var(--chart-${budget.category.tokenCor})` }}
             aria-hidden="true"
           />
-          <span className={styles.name}>{budget.category.name}</span>
+          <span className={styles.name}>{budget.category.nome}</span>
 
           <Badge tone={budgetStatusTone[status]} className={styles.badge}>
             {budgetStatusLabel[status]}
@@ -45,7 +45,7 @@ export function BudgetRow({ usage, showProjection, onEdit, onDelete }: BudgetRow
           <button
             type="button"
             className={styles.delete}
-            aria-label={`Excluir o limite de ${budget.category.name}`}
+            aria-label={`Excluir o limite de ${budget.category.nome}`}
             onClick={() => onDelete(usage)}
           >
             <Trash2 size={16} strokeWidth={2} />
@@ -66,7 +66,7 @@ export function BudgetRow({ usage, showProjection, onEdit, onDelete }: BudgetRow
         <ProgressBar
           value={ratio}
           tone={budgetProgressTone[status]}
-          label={`${budget.category.name}: ${formatPercent(ratio * 100, 0)} do limite`}
+          label={`${budget.category.nome}: ${formatPercent(ratio * 100, 0)} do limite`}
         />
 
         <p className={styles.note}>

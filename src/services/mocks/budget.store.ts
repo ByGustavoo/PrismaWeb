@@ -7,7 +7,7 @@ let sequence = budgets.length;
 function findIndexOrThrow(id: string): number {
   const index = budgets.findIndex((item) => item.id === id);
   if (index < 0) {
-    throw new ApiError('Orçamento não encontrado.', 404, 'not_found');
+    throw new ApiError('Orçamento não encontrado.', 404, 'nao_encontrado');
   }
   return index;
 }
@@ -21,21 +21,21 @@ function resolve(payload: BudgetPayload, currentId?: string): Omit<Budget, 'id'>
   const category = categories.find((item) => item.id === payload.categoryId);
 
   if (!category) {
-    throw new ApiError('Escolha a categoria do orçamento.', 422, 'validation_error');
+    throw new ApiError('Escolha a categoria do orçamento.', 422, 'erro_validacao');
   }
-  if (category.kind !== 'DESPESA') {
-    throw new ApiError('Só categorias de despesa aceitam orçamento.', 422, 'validation_error');
+  if (category.tipo !== 'DESPESA') {
+    throw new ApiError('Só categorias de despesa aceitam orçamento.', 422, 'erro_validacao');
   }
   if (!Number.isFinite(payload.limit) || payload.limit <= 0) {
-    throw new ApiError('Informe um limite maior que zero.', 422, 'validation_error');
+    throw new ApiError('Informe um limite maior que zero.', 422, 'erro_validacao');
   }
 
   const duplicated = budgets.some((item) => item.category.id === category.id && item.id !== currentId);
   if (duplicated) {
     throw new ApiError(
-      `Já existe um orçamento para ${category.name}. Edite o limite existente em vez de criar outro.`,
+      `Já existe um orçamento para ${category.nome}. Edite o limite existente em vez de criar outro.`,
       409,
-      'conflict',
+      'conflito',
     );
   }
 

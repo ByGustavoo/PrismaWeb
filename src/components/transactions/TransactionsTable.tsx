@@ -2,21 +2,21 @@ import { ArrowRight, ArrowUpDown, ChevronDown, ChevronUp, Pencil, Trash2 } from 
 import { Amount } from '@/components/common';
 import { Badge, Button, TBody, THead, Table, TableWrapper, Td, Th, Tr } from '@/components/ui';
 import { transactionKindLabel, transactionStatusLabel } from '@/constants/transactions';
-import type { Transaction } from '@/types';
+import type { Lancamento } from '@/types';
 import { formatShortDate } from '@/utils/format';
 import { kindIcon, kindSign, kindTone, statusTone } from './meta';
 import type { SortDirection, SortField } from './query';
 import styles from './TransactionsTable.module.css';
 
 interface TransactionsTableProps {
-  transactions: Transaction[];
+  transactions: Lancamento[];
   sortField: SortField;
   sortDirection: SortDirection;
   onSort: (field: SortField) => void;
   /** Escondida em Transferencias, onde a coluna seria um traco em toda linha. */
   showCategory: boolean;
-  onEdit: (transaction: Transaction) => void;
-  onDelete: (transaction: Transaction) => void;
+  onEdit: (transaction: Lancamento) => void;
+  onDelete: (transaction: Lancamento) => void;
 }
 
 interface SortableHeaderProps {
@@ -95,11 +95,11 @@ export function TransactionsTable({
 
         <TBody>
           {transactions.map((transaction) => {
-            const Icon = kindIcon[transaction.kind];
+            const Icon = kindIcon[transaction.tipo];
 
             return (
               <Tr key={transaction.id} interactive onClick={() => onEdit(transaction)}>
-                <Td className={`${styles.muted} tabular`}>{formatShortDate(transaction.date)}</Td>
+                <Td className={`${styles.muted} tabular`}>{formatShortDate(transaction.data)}</Td>
 
                 {/*
                   A descricao e um botao de verdade. A linha inteira continua
@@ -113,21 +113,21 @@ export function TransactionsTable({
                     className={styles.descriptionButton}
                     onClick={() => onEdit(transaction)}
                   >
-                    <span className={styles.description}>{transaction.description}</span>
-                    {transaction.notes ? <span className={styles.notes}>{transaction.notes}</span> : null}
+                    <span className={styles.description}>{transaction.descricao}</span>
+                    {transaction.observacoes ? <span className={styles.notes}>{transaction.observacoes}</span> : null}
                   </button>
                 </Td>
 
                 {showCategory ? (
                   <Td>
-                    {transaction.category ? (
+                    {transaction.categoria ? (
                       <span className={styles.category}>
                         <span
                           className={styles.categoryDot}
-                          style={{ backgroundColor: `var(--chart-${transaction.category.colorToken})` }}
+                          style={{ backgroundColor: `var(--chart-${transaction.categoria.tokenCor})` }}
                           aria-hidden="true"
                         />
-                        {transaction.category.name}
+                        {transaction.categoria.nome}
                       </span>
                     ) : (
                       <span className={styles.empty}>—</span>
@@ -136,36 +136,36 @@ export function TransactionsTable({
                 ) : null}
 
                 <Td className={styles.muted}>
-                  {transaction.toAccountName ? (
+                  {transaction.nomeContaDestino ? (
                     <span className={styles.route}>
-                      {transaction.accountName}
+                      {transaction.nomeOrigem}
                       <ArrowRight size={13} strokeWidth={2} aria-hidden="true" />
-                      {transaction.toAccountName}
+                      {transaction.nomeContaDestino}
                     </span>
                   ) : (
-                    transaction.accountName
+                    transaction.nomeOrigem
                   )}
                 </Td>
 
                 <Td>
-                  <span className={`${styles.kind} ${styles[transaction.kind]}`}>
+                  <span className={`${styles.kind} ${styles[transaction.tipo]}`}>
                     <Icon size={14} strokeWidth={2} aria-hidden="true" />
-                    {transactionKindLabel[transaction.kind]}
+                    {transactionKindLabel[transaction.tipo]}
                   </span>
                 </Td>
 
                 <Td numeric>
                   <Amount
-                    value={transaction.amount}
-                    tone={kindTone[transaction.kind]}
+                    value={transaction.valor}
+                    tone={kindTone[transaction.tipo]}
                     size="sm"
-                    sign={kindSign[transaction.kind]}
+                    sign={kindSign[transaction.tipo]}
                   />
                 </Td>
 
                 <Td>
-                  <Badge tone={statusTone[transaction.status]} dot>
-                    {transactionStatusLabel[transaction.status]}
+                  <Badge tone={statusTone[transaction.situacao]} dot>
+                    {transactionStatusLabel[transaction.situacao]}
                   </Badge>
                 </Td>
 
@@ -176,7 +176,7 @@ export function TransactionsTable({
                       variant="ghost"
                       size="sm"
                       icon={Pencil}
-                      aria-label={`Editar ${transaction.description}`}
+                      aria-label={`Editar ${transaction.descricao}`}
                       onClick={() => onEdit(transaction)}
                     />
                     <Button
@@ -184,7 +184,7 @@ export function TransactionsTable({
                       size="sm"
                       icon={Trash2}
                       className={styles.delete}
-                      aria-label={`Excluir ${transaction.description}`}
+                      aria-label={`Excluir ${transaction.descricao}`}
                       onClick={() => onDelete(transaction)}
                     />
                   </div>

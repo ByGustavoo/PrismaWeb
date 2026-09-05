@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Amount } from '@/components/common';
 import { Card, CardBody, CardHeader } from '@/components/ui';
-import type { DailySpending } from '@/types';
+import type { GastoDiario } from '@/types';
 import { cn } from '@/utils/cn';
 import { fromISODate, todayISO } from '@/utils/date';
 import { formatCurrency, formatFullDate, formatShortMonth } from '@/utils/format';
@@ -9,7 +9,7 @@ import styles from './SpendingCalendar.module.css';
 
 interface SpendingCalendarProps {
   /** Todos os dias do periodo, em ordem, inclusive os sem gasto. */
-  days: DailySpending[];
+  days: GastoDiario[];
   description: string;
 }
 
@@ -24,7 +24,7 @@ interface MonthBlock {
   key: string;
   /** Dia da semana em que o mes comeca: quantas casas vazias abrem a grade. */
   offset: number;
-  days: DailySpending[];
+  days: GastoDiario[];
 }
 
 interface HeatScale {
@@ -38,9 +38,9 @@ interface HeatScale {
  * Uma unica compra grande no mes achataria todo o resto contra o primeiro nivel,
  * e o calendario ficaria com uma casa escura no meio de trinta iguais.
  */
-function buildScale(days: DailySpending[]): HeatScale {
+function buildScale(days: GastoDiario[]): HeatScale {
   const sorted = days
-    .map((day) => day.amount)
+    .map((day) => day.valor)
     .filter((amount) => amount > 0)
     .sort((a, b) => a - b);
 
@@ -63,12 +63,12 @@ function levelOf(amount: number, scale: HeatScale): number {
  * olho — e saber que o fim de semana leva o dobro do resto muda o que se faz
  * com o proximo sabado.
  */
-function heaviestWeekday(days: DailySpending[]): string | null {
+function heaviestWeekday(days: GastoDiario[]): string | null {
   const totals = [0, 0, 0, 0, 0, 0, 0];
 
   for (const day of days) {
-    const index = fromISODate(day.date).getDay();
-    totals[index] = (totals[index] ?? 0) + day.amount;
+    const index = fromISODate(day.data).getDay();
+    totals[index] = (totals[index] ?? 0) + day.valor;
   }
 
   let best = -1;
@@ -79,11 +79,11 @@ function heaviestWeekday(days: DailySpending[]): string | null {
   return WEEKDAY_NAMES[best] ?? null;
 }
 
-function groupByMonth(days: DailySpending[]): MonthBlock[] {
-  const grouped = new Map<string, DailySpending[]>();
+function groupByMonth(days: GastoDiario[]): MonthBlock[] {
+  const grouped = new Map<string, GastoDiario[]>();
 
   for (const day of days) {
-    const key = day.date.slice(0, 7);
+    const key = day.data.slice(0, 7);
     const list = grouped.get(key);
     if (list) list.push(day);
     else grouped.set(key, [day]);
@@ -91,7 +91,7 @@ function groupByMonth(days: DailySpending[]): MonthBlock[] {
 
   return [...grouped.entries()].map(([key, list]) => ({
     key,
-    offset: list[0] ? fromISODate(list[0].date).getDay() : 0,
+    offset: list[0] ? fromISODate(list[0].data).getDay() : 0,
     days: list,
   }));
 }
@@ -113,17 +113,17 @@ export function SpendingCalendar({ days, description }: SpendingCalendarProps) {
   const today = todayISO();
   const months = useMemo(() => groupByMonth(days), [days]);
   const scale = useMemo(() => buildScale(days), [days]);
-  const byDate = useMemo(() => new Map(days.map((day) => [day.date, day])), [days]);
+  const byDate = useMemo(() => new Map(days.map((day) => [day.data, day])), [days]);
 
   /* Media e recordes olham so o que ja aconteceu: incluir os dias que ainda nao
      chegaram derrubaria a media de um mes em andamento pela metade. */
-  const elapsed = useMemo(() => days.filter((day) => day.date <= today), [days, today]);
-  const total = elapsed.reduce((sum, day) => sum + day.amount, 0);
+  const elapsed = useMemo(() => days.filter((day) => day.data <= today), [days, today]);
+  const total = elapsed.reduce((sum, day) => sum + day.valor, 0);
   const average = elapsed.length > 0 ? total / elapsed.length : 0;
-  const quietDays = elapsed.filter((day) => day.amount === 0).length;
+  const quietDays = elapsed.filter((day) => day.valor === 0).length;
   const heaviest = useMemo(() => heaviestWeekday(elapsed), [elapsed]);
-  const peak = elapsed.reduce<DailySpending | null>(
-    (best, day) => (day.amount > (best?.amount ?? 0) ? day : best),
+  const peak = elapsed.reduce<GastoDiario | null>(
+    (best, day) => (day.valor > (best?.valor ?? 0) ? day : best),
     null,
   );
 
@@ -136,7 +136,7 @@ export function SpendingCalendar({ days, description }: SpendingCalendarProps) {
   const focus = (hovered ? byDate.get(hovered) : null) ?? null;
 
   const summary = peak
-    ? `Gastos por dia. Maior gasto em ${formatFullDate(peak.date)}: ${formatCurrency(peak.amount)}.`
+    ? `Gastos por dia. Maior gasto em ${formatFullDate(peak.data)}: ${formatCurrency(peak.valor)}.`
     : 'Gastos por dia. Nenhuma despesa no período.';
 
   return (
@@ -147,8 +147,8 @@ export function SpendingCalendar({ days, description }: SpendingCalendarProps) {
         action={
           focus ? (
             <span className={styles.readout}>
-              <span className={styles.readoutLabel}>{formatFullDate(focus.date)}</span>
-              <Amount value={focus.amount} size="sm" tone={focus.amount > 0 ? 'negative' : 'muted'} />
+              <span className={styles.readoutLabel}>{formatFullDate(focus.data)}</span>
+              <Amount value={focus.valor} size="sm" tone={focus.valor > 0 ? 'negative' : 'muted'} />
             </span>
           ) : null
         }
@@ -187,13 +187,13 @@ export function SpendingCalendar({ days, description }: SpendingCalendarProps) {
 
                 {month.days.map((day) => (
                   <span
-                    key={day.date}
-                    data-date={day.date}
+                    key={day.data}
+                    data-date={day.data}
                     className={cn(
                       styles.day,
-                      styles[`level${levelOf(day.amount, scale)}`],
-                      day.date > today && styles.ahead,
-                      day.date === today && styles.today,
+                      styles[`level${levelOf(day.valor, scale)}`],
+                      day.data > today && styles.ahead,
+                      day.data === today && styles.today,
                     )}
                   />
                 ))}
@@ -213,7 +213,7 @@ export function SpendingCalendar({ days, description }: SpendingCalendarProps) {
             <div className={styles.stat}>
               <dt>Maior gasto num dia</dt>
               <dd>
-                <Amount value={peak?.amount ?? 0} size="sm" />
+                <Amount value={peak?.valor ?? 0} size="sm" />
               </dd>
             </div>
             <div className={styles.stat}>

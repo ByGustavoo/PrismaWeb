@@ -1,6 +1,6 @@
 import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react';
 import { Amount } from '@/components/common';
-import type { Trend } from '@/types';
+import type { Tendencia } from '@/types';
 import { cn } from '@/utils/cn';
 import { formatPercent } from '@/utils/format';
 import { priceTone, priceTrendLabel } from './meta';
@@ -11,7 +11,7 @@ interface PriceDeltaProps {
   change: number;
   /** Variacao percentual sobre o preco de referencia. */
   percentage: number;
-  trend: Trend;
+  trend: Tendencia;
   size?: 'sm' | 'md';
   className?: string;
 }

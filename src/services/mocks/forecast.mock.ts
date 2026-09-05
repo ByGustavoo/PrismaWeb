@@ -1,5 +1,5 @@
 import { FORECAST_BASELINE_MONTHS, FORECAST_MONTHS } from '@/constants/forecast';
-import type { ForecastMonth, ForecastSummary, Transaction } from '@/types';
+import type { ForecastMonth, ForecastSummary, Lancamento } from '@/types';
 import { shiftMonthKey, todayISO } from '@/utils/date';
 import { shortMonthLabel, sumKind } from './aggregate';
 import { balanceAt } from './balance';
@@ -18,8 +18,8 @@ function money(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-function ofMonth(monthKey: string): Transaction[] {
-  return transactions.filter((item) => item.date.startsWith(monthKey));
+function ofMonth(monthKey: string): Lancamento[] {
+  return transactions.filter((item) => item.data.startsWith(monthKey));
 }
 
 /** Meses fechados que servem de base para as medias. */

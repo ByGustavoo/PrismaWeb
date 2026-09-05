@@ -1,0 +1,431 @@
+/*
+ * Folha de estilo dos documentos de endpoint do contrato da API do Prisma.
+ *
+ * E uma folha de impressao, nao de tela: o alvo e a pagina A4 gerada pelo
+ * Chrome headless em docs/api/build.js. Por isso as medidas sao absolutas, nao
+ * ha media query de largura e nada depende de interacao.
+ *
+ * A paleta e neutra de proposito, como a do produto: cinzas sem desvio de
+ * matiz, e a cor reservada ao metodo HTTP, ao status da resposta e ao codigo de
+ * erro — os tres pontos em que ela carrega significado.
+ */
+
+:root {
+  /* Tinta */
+  --ink: #16181d;
+  --ink-2: #494e59;
+  --ink-3: #6f7480;
+
+  /* Superficie e regua */
+  --paper: #ffffff;
+  --surface: #f6f7f9;
+  --rule: #dcdee3;
+  --rule-soft: #ebedf0;
+
+  /* Cor com significado */
+  --accent: #1f5fbf;
+  --accent-soft: #e8f0fc;
+  --code: #3a4bbf;
+  --code-soft: #eceefb;
+  --positive: #1c7a4a;
+  --positive-soft: #e6f4ec;
+  --negative: #b02a2a;
+  --negative-soft: #fbeaea;
+
+  --font-sans: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'Cascadia Mono', Consolas, 'DejaVu Sans Mono', 'Liberation Mono', monospace;
+}
+
+@page {
+  size: A4;
+  margin: 15mm;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  /* A caixa de texto de 680px e a largura util do A4 com margem de 15mm. */
+  font-size: 16px;
+}
+
+body {
+  width: 680px;
+  margin: 0;
+  color: var(--ink);
+  background: var(--paper);
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ---------------------------------------------------------------- cabecalho */
+
+.eyebrow {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink-3);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.eyebrow strong {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+
+.route {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 22px 0 10px;
+}
+
+.method {
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.route h1 {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.lead {
+  margin: 0;
+  max-width: 62em;
+  color: var(--ink-2);
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+/* Faixa de tres celulas com o consumidor, o service e a autenticacao. */
+.meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  margin: 18px 0 0;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.meta > div {
+  padding: 9px 14px;
+  border-left: 1px solid var(--rule);
+}
+
+.meta > div:first-child {
+  border-left: 0;
+}
+
+.meta dt {
+  margin: 0 0 2px;
+  color: var(--ink-3);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.meta dd {
+  margin: 0;
+  font-size: 11.5px;
+}
+
+.meta dd code {
+  background: none;
+  padding: 0;
+  color: var(--ink);
+}
+
+/* ------------------------------------------------------------------- secoes */
+
+section {
+  margin-top: 26px;
+  border-top: 2px solid var(--ink);
+  padding-top: 10px;
+}
+
+h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+h2 .status {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--positive-soft);
+  color: var(--positive);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+h2 .type {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+h3 {
+  margin: 20px 0 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+/*
+ * Titulo nunca fica sozinho no rodape da pagina, separado do que ele anuncia —
+ * e o mesmo vale para a frase que apresenta um bloco de codigo.
+ */
+h2,
+h3,
+p:has(+ pre) {
+  break-after: avoid;
+}
+
+p {
+  margin: 0 0 10px;
+  max-width: 62em;
+}
+
+/* ------------------------------------------------------------------ tabelas */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+thead th {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink-3);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+tbody td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+
+tbody tr:last-child td {
+  border-bottom: 1px solid var(--rule);
+}
+
+/* Cabecalho de tabela repetido quando a tabela atravessa a quebra de pagina. */
+thead {
+  display: table-header-group;
+}
+
+tr {
+  break-inside: avoid;
+}
+
+.col-campo {
+  width: 30%;
+}
+
+.col-tipo {
+  width: 22%;
+}
+
+.col-obrig {
+  width: 14%;
+  white-space: nowrap;
+}
+
+td.campo,
+td.tipo {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+}
+
+td.campo {
+  font-weight: 600;
+}
+
+td.tipo {
+  color: var(--ink-2);
+}
+
+/* Campo aninhado dentro de um objeto ou de um item de lista. */
+td.campo.filho {
+  padding-left: 22px;
+  font-weight: 400;
+}
+
+td.campo.filho::before {
+  content: '└';
+  position: absolute;
+  margin-left: -13px;
+  color: var(--ink-3);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+/*
+ * Na tabela de origem no banco a coluna inteira e identificador de SQL. Com o
+ * fundo de chip em cada um deles a linha vira uma fileira de caixas, e a folga
+ * lateral da caixa ainda abre um vao antes da virgula e do ponto final. Ali o
+ * monoespacado e a cor ja bastam para separar o identificador da prosa.
+ */
+.origem code {
+  padding: 0;
+  background: none;
+}
+
+td.campo {
+  position: relative;
+}
+
+/* Tabela de erro: o status colorido segue a familia do codigo. */
+td.status {
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+td.status.erro {
+  color: var(--negative);
+}
+
+td.codigo {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--negative);
+}
+
+/* --------------------------------------------------------------- codigo */
+
+pre {
+  margin: 10px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--rule-soft);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.6;
+  white-space: pre;
+  break-inside: avoid;
+}
+
+pre .cmt {
+  color: var(--ink-3);
+}
+
+pre .key {
+  font-weight: 600;
+}
+
+code {
+  padding: 1px 3px;
+  border-radius: 3px;
+  background: var(--code-soft);
+  color: var(--code);
+  font-family: var(--font-mono);
+  font-size: 0.94em;
+}
+
+/* --------------------------------------------------------------- regras */
+
+ol.regras {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: regra;
+}
+
+ol.regras > li {
+  position: relative;
+  margin-bottom: 12px;
+  padding-left: 26px;
+  max-width: 62em;
+  break-inside: avoid;
+}
+
+ol.regras > li::before {
+  counter-increment: regra;
+  content: counter(regra);
+  position: absolute;
+  left: 0;
+  top: 1px;
+  width: 17px;
+  height: 17px;
+  border-radius: 4px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 17px;
+  text-align: center;
+}
+
+ol.regras strong {
+  font-weight: 600;
+}
+
+.nota {
+  margin: 16px 0 0;
+  padding: 10px 14px;
+  border-left: 2px solid var(--accent);
+  border-radius: 0 4px 4px 0;
+  background: var(--surface);
+  color: var(--ink-2);
+  break-inside: avoid;
+}
+
+.nota p:last-child {
+  margin-bottom: 0;
+}
+
+/* --------------------------------------------------------------- rodape */
+
+footer {
+  margin-top: 26px;
+  padding-top: 8px;
+  border-top: 1px solid var(--rule);
+  color: var(--ink-3);
+  font-size: 9.5px;
+  line-height: 1.5;
+}
+
+footer code {
+  background: none;
+  padding: 0;
+  color: var(--ink-3);
+}

@@ -19,14 +19,14 @@ let priceSequence = goals.reduce((total, goal) => total + goal.history.length, 0
 function findIndexOrThrow(id: string): number {
   const index = goals.findIndex((item) => item.id === id);
   if (index < 0) {
-    throw new ApiError('Meta não encontrada.', 404, 'not_found');
+    throw new ApiError('Meta não encontrada.', 404, 'nao_encontrado');
   }
   return index;
 }
 
 function findOrThrow(id: string): Goal {
   const goal = goals[findIndexOrThrow(id)];
-  if (!goal) throw new ApiError('Meta não encontrada.', 404, 'not_found');
+  if (!goal) throw new ApiError('Meta não encontrada.', 404, 'nao_encontrado');
   return goal;
 }
 
@@ -36,26 +36,26 @@ function assertLink(value: string | undefined, field: string): string | undefine
   if (!trimmed) return undefined;
 
   if (!/^https?:\/\/\S+$/i.test(trimmed)) {
-    throw new ApiError(`Informe um ${field} começando com http:// ou https://.`, 422, 'validation_error');
+    throw new ApiError(`Informe um ${field} começando com http:// ou https://.`, 422, 'erro_validacao');
   }
   return trimmed;
 }
 
 function assertPrice(value: number): number {
   if (!Number.isFinite(value) || value <= 0) {
-    throw new ApiError('Informe um preço maior que zero.', 422, 'validation_error');
+    throw new ApiError('Informe um preço maior que zero.', 422, 'erro_validacao');
   }
   return value;
 }
 
 function assertDate(value: string): string {
   if (!value) {
-    throw new ApiError('Informe a data do registro.', 422, 'validation_error');
+    throw new ApiError('Informe a data do registro.', 422, 'erro_validacao');
   }
   // Um preco consultado no futuro nao foi consultado: a serie perderia o
   // sentido de "o que eu vi, e quando".
   if (value > todayISO()) {
-    throw new ApiError('A data do registro não pode estar no futuro.', 422, 'validation_error');
+    throw new ApiError('A data do registro não pode estar no futuro.', 422, 'erro_validacao');
   }
   return value;
 }
@@ -67,7 +67,7 @@ function nextPriceId(): string {
 
 export function createGoal(payload: GoalPayload): Goal {
   if (payload.name.trim().length < 2) {
-    throw new ApiError('Informe o nome do produto.', 422, 'validation_error');
+    throw new ApiError('Informe o nome do produto.', 422, 'erro_validacao');
   }
 
   const price = assertPrice(payload.price);
@@ -99,7 +99,7 @@ export function updateGoal(id: string, payload: GoalUpdatePayload): Goal {
   const current = findOrThrow(id);
 
   if (payload.name.trim().length < 2) {
-    throw new ApiError('Informe o nome do produto.', 422, 'validation_error');
+    throw new ApiError('Informe o nome do produto.', 422, 'erro_validacao');
   }
 
   const url = assertLink(payload.url, 'link do produto');
@@ -128,13 +128,13 @@ export function addGoalPrice(id: string, payload: GoalPricePayload): Goal {
   // Um registro anterior ao primeiro trocaria silenciosamente o "preco
   // inicial", que e a referencia de toda a variacao mostrada na tela.
   if (date < goal.createdAt) {
-    throw new ApiError('A data do registro não pode ser anterior ao primeiro preço.', 422, 'validation_error');
+    throw new ApiError('A data do registro não pode ser anterior ao primeiro preço.', 422, 'erro_validacao');
   }
 
   // Mesmo preco no mesmo dia e clique repetido, nao consulta nova.
   const duplicated = goal.history.some((entry) => entry.date === date && entry.price === price);
   if (duplicated) {
-    throw new ApiError('Já existe um registro com esse preço nesta data.', 409, 'conflict');
+    throw new ApiError('Já existe um registro com esse preço nesta data.', 409, 'conflito');
   }
 
   goal.history.push({

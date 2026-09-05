@@ -66,7 +66,7 @@ export const cardsService = {
   getInvoice(id: ID, signal?: AbortSignal): Promise<InvoiceDetail> {
     if (env.useMocks) {
       const detail = buildInvoiceDetail(id);
-      if (!detail) return Promise.reject(new ApiError('Fatura não encontrada.', 404, 'not_found'));
+      if (!detail) return Promise.reject(new ApiError('Fatura não encontrada.', 404, 'nao_encontrado'));
       return mockResponse(detail, signal);
     }
     return httpClient.get<InvoiceDetail>(endpoints.invoices.byId(id), { ...(signal ? { signal } : {}) });

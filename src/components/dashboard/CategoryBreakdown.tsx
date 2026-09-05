@@ -1,11 +1,11 @@
 import { Card, CardBody, CardHeader } from '@/components/ui';
 import { Amount } from '@/components/common';
-import type { CategorySpending } from '@/types';
+import type { GastoPorCategoria } from '@/types';
 import { formatPercent } from '@/utils/format';
 import styles from './CategoryBreakdown.module.css';
 
 interface CategoryBreakdownProps {
-  data: CategorySpending[];
+  data: GastoPorCategoria[];
   /** "mês" ou "período", conforme o recorte escolhido no header. */
   periodNoun: string;
   /** Relatorios reusam o bloco para as receitas, que pedem outro rotulo. */
@@ -23,7 +23,7 @@ export function CategoryBreakdown({
   description,
   emptyLabel = 'Nenhuma despesa com categoria neste período.',
 }: CategoryBreakdownProps) {
-  const largest = data[0]?.share ?? 1;
+  const largest = data[0]?.participacao ?? 1;
 
   /*
    * O cartao para onde o conteudo acaba, em vez de esticar ate a altura do
@@ -42,24 +42,24 @@ export function CategoryBreakdown({
         ) : (
           <ul className={styles.list}>
             {data.map((entry) => (
-              <li key={entry.category.id} className={styles.row}>
+              <li key={entry.categoria.id} className={styles.row}>
                 <div className={styles.info}>
                   <span
                     className={styles.marker}
-                    style={{ backgroundColor: `var(--chart-${entry.category.colorToken})` }}
+                    style={{ backgroundColor: `var(--chart-${entry.categoria.tokenCor})` }}
                     aria-hidden="true"
                   />
-                  <span className={styles.name}>{entry.category.name}</span>
-                  <span className={`${styles.share} tabular`}>{formatPercent(entry.share * 100, 0)}</span>
-                  <Amount value={entry.amount} size="sm" tone="muted" />
+                  <span className={styles.name}>{entry.categoria.nome}</span>
+                  <span className={`${styles.share} tabular`}>{formatPercent(entry.participacao * 100, 0)}</span>
+                  <Amount value={entry.valor} size="sm" tone="muted" />
                 </div>
 
                 <div className={styles.track}>
                   <div
                     className={styles.bar}
                     style={{
-                      width: `${(entry.share / largest) * 100}%`,
-                      backgroundColor: `var(--chart-${entry.category.colorToken})`,
+                      width: `${(entry.participacao / largest) * 100}%`,
+                      backgroundColor: `var(--chart-${entry.categoria.tokenCor})`,
                     }}
                   />
                 </div>

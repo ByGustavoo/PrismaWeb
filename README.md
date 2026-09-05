@@ -240,12 +240,12 @@ service decide a origem:
 
 ```ts
 export const dashboardService = {
-  getSummary(period?: DashboardPeriod, signal?: AbortSignal): Promise<DashboardSummary> {
+  getSummary(period?: DashboardPeriod, signal?: AbortSignal): Promise<ResumoDashboard> {
     if (env.useMocks) {
       return mockResponse(buildDashboardSummary(period), signal);
     }
-    return httpClient.get<DashboardSummary>(endpoints.dashboard.summary, {
-      query: { from: period?.from, to: period?.to },
+    return httpClient.get<ResumoDashboard>(endpoints.dashboard.resumo, {
+      query: { de: period?.from, ate: period?.to },
       signal,
     });
   },

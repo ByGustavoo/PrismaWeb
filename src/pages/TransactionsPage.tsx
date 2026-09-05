@@ -33,13 +33,13 @@ import {
   newTransactionValues,
 } from '@/routes/paths';
 import { accountsService, categoriesService, transactionsService } from '@/services';
-import type { Transaction, TransactionKind, TransactionPayload } from '@/types';
+import type { Lancamento, TipoLancamento, LancamentoPayload } from '@/types';
 import { formatFullDate } from '@/utils/format';
 import styles from './TransactionsPage.module.css';
 
 interface TransactionsPageProps {
   /** Ausente na tela "Lançamentos", que mostra todos os tipos. */
-  kind?: TransactionKind;
+  kind?: TipoLancamento;
   title: string;
   description: string;
 }
@@ -50,8 +50,8 @@ type FormMode = 'RECEITA' | 'DESPESA' | 'TRANSFERENCIA';
 export function TransactionsPage({ kind, title, description }: TransactionsPageProps) {
   const [query, setQuery] = useState<TransactionQuery>(emptyQuery);
   const [formMode, setFormMode] = useState<FormMode | null>(null);
-  const [editing, setEditing] = useState<Transaction | null>(null);
-  const [removing, setRemoving] = useState<Transaction | null>(null);
+  const [editing, setEditing] = useState<Lancamento | null>(null);
+  const [removing, setRemoving] = useState<Lancamento | null>(null);
   const [pendingEditId, setPendingEditId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -132,7 +132,7 @@ export function TransactionsPage({ kind, title, description }: TransactionsPageP
 
     if (found) {
       setEditing(found);
-      setFormMode(found.kind);
+      setFormMode(found.tipo);
     }
   }, [pendingEditId, data]);
 
@@ -172,22 +172,22 @@ export function TransactionsPage({ kind, title, description }: TransactionsPageP
     setFormMode(mode);
   };
 
-  const openEdit = (transaction: Transaction) => {
+  const openEdit = (transaction: Lancamento) => {
     setEditing(transaction);
-    setFormMode(transaction.kind);
+    setFormMode(transaction.tipo);
   };
 
-  const handleSubmit = async (payload: TransactionPayload) => {
+  const handleSubmit = async (payload: LancamentoPayload) => {
     setSaving(true);
-    const noun = transactionKindLabel[payload.kind];
+    const noun = transactionKindLabel[payload.tipo];
 
     try {
       if (editing) {
         await transactionsService.update(editing.id, payload);
-        toast.success(`${noun} atualizada`, payload.description);
+        toast.success(`${noun} atualizada`, payload.descricao);
       } else {
         await transactionsService.create(payload);
-        toast.success(`${noun} cadastrada`, payload.description);
+        toast.success(`${noun} cadastrada`, payload.descricao);
       }
       closeForm();
       reload();
@@ -207,7 +207,7 @@ export function TransactionsPage({ kind, title, description }: TransactionsPageP
 
     try {
       await transactionsService.remove(removing.id);
-      toast.success('Lançamento excluído', removing.description);
+      toast.success('Lançamento excluído', removing.descricao);
       setRemoving(null);
       reload();
     } catch (deleteError) {
@@ -364,11 +364,11 @@ export function TransactionsPage({ kind, title, description }: TransactionsPageP
       >
         {removing ? (
           <>
-            <strong className={styles.confirmTitle}>{removing.description}</strong>
+            <strong className={styles.confirmTitle}>{removing.descricao}</strong>
             <span className={styles.confirmMeta}>
-              {transactionKindLabel[removing.kind]} · {formatFullDate(removing.date)} · {removing.accountName}
+              {transactionKindLabel[removing.tipo]} · {formatFullDate(removing.data)} · {removing.nomeOrigem}
             </span>
-            <Amount value={removing.amount} tone={removing.kind === 'DESPESA' ? 'negative' : 'default'} />
+            <Amount value={removing.valor} tone={removing.tipo === 'DESPESA' ? 'negative' : 'default'} />
           </>
         ) : null}
       </ConfirmDialog>

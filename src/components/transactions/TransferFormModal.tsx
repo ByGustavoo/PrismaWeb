@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowDown } from 'lucide-react';
 import { Button, DatePicker, Input, Modal, Select, Textarea } from '@/components/ui';
 import { transactionStatusLabel, transactionStatuses } from '@/constants/transactions';
-import type { Option, PaymentSource, Transaction, TransactionPayload, TransactionStatus } from '@/types';
+import type { Option, PaymentSource, Lancamento, LancamentoPayload, SituacaoLancamento } from '@/types';
 import { cn } from '@/utils/cn';
 import { todayISO } from '@/utils/date';
 import { parseAmountInput, toAmountInput } from '@/utils/format';
@@ -11,10 +11,10 @@ import styles from './TransactionForm.module.css';
 interface TransferFormModalProps {
   open: boolean;
   /** Presente apenas na edicao. */
-  transaction: Transaction | null;
+  transaction: Lancamento | null;
   sources: PaymentSource[];
   saving: boolean;
-  onSubmit: (payload: TransactionPayload) => void;
+  onSubmit: (payload: LancamentoPayload) => void;
   onClose: () => void;
 }
 
@@ -24,21 +24,21 @@ interface FormState {
   amount: string;
   date: string;
   description: string;
-  status: TransactionStatus;
+  status: SituacaoLancamento;
   notes: string;
 }
 
 type FormErrors = Partial<Record<keyof FormState, string>>;
 
-function initialState(transaction: Transaction | null): FormState {
+function initialState(transaction: Lancamento | null): FormState {
   return {
-    accountId: transaction?.accountId ?? '',
-    toAccountId: transaction?.toAccountId ?? '',
-    amount: transaction ? toAmountInput(transaction.amount) : '',
-    date: transaction?.date ?? todayISO(),
-    description: transaction?.description ?? '',
-    status: transaction?.status ?? 'PAGO',
-    notes: transaction?.notes ?? '',
+    accountId: transaction?.idOrigem ?? '',
+    toAccountId: transaction?.idContaDestino ?? '',
+    amount: transaction ? toAmountInput(transaction.valor) : '',
+    date: transaction?.data ?? todayISO(),
+    description: transaction?.descricao ?? '',
+    status: transaction?.situacao ?? 'PAGO',
+    notes: transaction?.observacoes ?? '',
   };
 }
 
@@ -136,15 +136,15 @@ export function TransferFormModal({
     }
 
     onSubmit({
-      description: form.description,
-      amount: parseAmountInput(form.amount) ?? 0,
-      kind: 'TRANSFERENCIA',
-      status: form.status,
-      method: 'CONTA',
-      date: form.date,
-      accountId: form.accountId,
-      toAccountId: form.toAccountId,
-      notes: form.notes,
+      descricao: form.description,
+      valor: parseAmountInput(form.amount) ?? 0,
+      tipo: 'TRANSFERENCIA',
+      situacao: form.status,
+      forma: 'CONTA',
+      data: form.date,
+      idOrigem: form.accountId,
+      idContaDestino: form.toAccountId,
+      observacoes: form.notes,
     });
   };
 
@@ -232,7 +232,7 @@ export function TransferFormModal({
           label="Situação"
           options={statusOptions}
           value={form.status}
-          onChange={(status) => set('status', status as TransactionStatus)}
+          onChange={(status) => set('status', status as SituacaoLancamento)}
           hint={form.status === 'PAGO' ? 'A transferência já foi feita.' : 'Ainda não saiu da conta de origem.'}
         />
 

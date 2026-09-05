@@ -14,31 +14,31 @@ let sequence = investments.length;
 function findIndexOrThrow(id: string): number {
   const index = investments.findIndex((item) => item.id === id);
   if (index < 0) {
-    throw new ApiError('Investimento não encontrado.', 404, 'not_found');
+    throw new ApiError('Investimento não encontrado.', 404, 'nao_encontrado');
   }
   return index;
 }
 
 function resolve(payload: InvestmentPayload): Omit<Investment, 'id'> {
   if (payload.name.trim().length < 2) {
-    throw new ApiError('Informe o nome do investimento.', 422, 'validation_error');
+    throw new ApiError('Informe o nome do investimento.', 422, 'erro_validacao');
   }
   if (payload.institution.trim().length < 2) {
-    throw new ApiError('Informe a instituição onde o dinheiro está aplicado.', 422, 'validation_error');
+    throw new ApiError('Informe a instituição onde o dinheiro está aplicado.', 422, 'erro_validacao');
   }
   if (!Number.isFinite(payload.invested) || payload.invested <= 0) {
-    throw new ApiError('Informe quanto já foi aportado.', 422, 'validation_error');
+    throw new ApiError('Informe quanto já foi aportado.', 422, 'erro_validacao');
   }
   if (!Number.isFinite(payload.currentValue) || payload.currentValue < 0) {
-    throw new ApiError('Informe quanto a posição vale hoje.', 422, 'validation_error');
+    throw new ApiError('Informe quanto a posição vale hoje.', 422, 'erro_validacao');
   }
   if (!payload.startDate) {
-    throw new ApiError('Informe a data do primeiro aporte.', 422, 'validation_error');
+    throw new ApiError('Informe a data do primeiro aporte.', 422, 'erro_validacao');
   }
   // Aporte com data futura quebraria a curva de evolucao, que distribui os
   // aportes entre o inicio da posicao e hoje.
   if (payload.startDate > todayISO()) {
-    throw new ApiError('A data do primeiro aporte não pode estar no futuro.', 422, 'validation_error');
+    throw new ApiError('A data do primeiro aporte não pode estar no futuro.', 422, 'erro_validacao');
   }
 
   return {

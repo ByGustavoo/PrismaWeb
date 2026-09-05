@@ -68,8 +68,8 @@ export function DashboardPage() {
    * pagina e a excecao: ele fica ao lado do botao que gira, e serve justamente
    * de eco da escolha.
    */
-  const shownFrom = data?.from ?? from;
-  const shownTo = data?.to ?? to;
+  const shownFrom = data?.de ?? from;
+  const shownTo = data?.ate ?? to;
   const isCurrentMonth = shownFrom === thisMonth && shownTo === thisMonth;
   const shownLabel = formatPeriodLabel(shownFrom, shownTo);
   const periodNoun = shownFrom === shownTo ? 'mês' : 'período';
@@ -117,45 +117,45 @@ export function DashboardPage() {
         <div className={`${styles.grid} refreshing`} aria-busy={loading}>
           <BalancePanel
             label={isCurrentMonth ? 'Saldo atual' : `Saldo no fim de ${capitalize(formatMonthLabel(shownTo))}`}
-            balance={data.currentBalance}
-            delta={data.balanceDelta}
-            income={data.monthIncome}
-            expense={data.monthExpense}
+            balance={data.saldoAtual}
+            delta={data.variacaoSaldo}
+            income={data.receitasMes}
+            expense={data.despesasMes}
             periodNoun={periodNoun}
-            history={data.balanceHistory}
+            history={data.historicoSaldo}
           />
 
           <div className={styles.tiles}>
             <StatTile
               label={`Receitas do ${periodNoun}`}
-              value={data.monthIncome}
+              value={data.receitasMes}
               icon={TrendingUp}
-              delta={data.incomeDelta}
+              delta={data.variacaoReceitas}
             />
             <StatTile
               label={`Despesas do ${periodNoun}`}
-              value={data.monthExpense}
+              value={data.despesasMes}
               icon={TrendingDown}
-              delta={data.expenseDelta}
+              delta={data.variacaoDespesas}
             />
             <StatTile
               label="Investimentos"
-              value={data.investmentsTotal}
+              value={data.totalInvestido}
               icon={PiggyBank}
-              delta={data.investmentsDelta}
+              delta={data.variacaoInvestimentos}
               footnote="Rentabilidade acumulada"
             />
             <StatTile
               label={shownFrom === shownTo ? 'Fatura do mês' : `Fatura de ${capitalize(formatMonthLabel(shownTo))}`}
-              value={data.currentInvoice.total}
+              value={data.faturaAtual.total}
               icon={CreditCard}
-              footnote={`${data.currentInvoice.cardName} · vence em ${formatFullDate(data.currentInvoice.dueDate)}`}
+              footnote={`${data.faturaAtual.nomeCartao} · vence em ${formatFullDate(data.faturaAtual.dataVencimento)}`}
             />
           </div>
 
           <div className={styles.charts}>
             <CashflowChart
-              data={data.cashflow}
+              data={data.fluxoCaixa}
               description={
                 shownFrom === shownTo
                   ? isCurrentMonth
@@ -164,12 +164,12 @@ export function DashboardPage() {
                   : `Comparativo mês a mês de ${shownLabel}`
               }
             />
-            <CategoryBreakdown data={data.spendingByCategory} periodNoun={periodNoun} />
+            <CategoryBreakdown data={data.gastoPorCategoria} periodNoun={periodNoun} />
           </div>
 
           {/* Mesma janela do grafico de entradas e saidas, e pelo mesmo motivo. */}
           <SpendingCalendar
-            days={data.dailySpending}
+            days={data.gastoDiario}
             description={
               shownFrom === shownTo
                 ? isCurrentMonth
@@ -180,7 +180,7 @@ export function DashboardPage() {
           />
 
           <RecentTransactions
-            transactions={data.recentTransactions}
+            transactions={data.lancamentosRecentes}
             description={
               isCurrentMonth ? 'Movimentações mais recentes das suas contas' : `Movimentações de ${shownLabel}`
             }

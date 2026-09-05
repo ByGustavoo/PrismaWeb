@@ -2,19 +2,19 @@ import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'rec
 import { ChartTooltip } from '@/components/charts';
 import { useChartPalette } from '@/hooks/useChartPalette';
 import { Amount, DeltaIndicator } from '@/components/common';
-import type { BalancePoint, Delta } from '@/types';
+import type { PontoSaldo, Variacao } from '@/types';
 import styles from './BalancePanel.module.css';
 
 interface BalancePanelProps {
   /** "Saldo atual" no periodo corrente; nos anteriores, o saldo no fim dele. */
   label: string;
   balance: number;
-  delta: Delta;
+  delta: Variacao;
   income: number;
   expense: number;
   /** "mês" ou "período", conforme o recorte escolhido no header. */
   periodNoun: string;
-  history: BalancePoint[];
+  history: PontoSaldo[];
 }
 
 export function BalancePanel({
@@ -34,7 +34,7 @@ export function BalancePanel({
    * com saldo negativo, `min * 0.92` levanta o piso acima do proprio minimo e
    * corta a linha no rodape do grafico.
    */
-  const values = history.map((point) => point.balance);
+  const values = history.map((point) => point.saldo);
   const min = Math.min(...values);
   const max = Math.max(...values);
   const padding = (max - min || Math.abs(max) || 1) * 0.08;
@@ -92,7 +92,7 @@ export function BalancePanel({
               </linearGradient>
             </defs>
             <XAxis
-              dataKey="label"
+              dataKey="rotulo"
               axisLine={false}
               tickLine={false}
               tick={{ fill: palette.axisText, fontSize: 12 }}
@@ -106,7 +106,7 @@ export function BalancePanel({
             />
             <Area
               type="monotone"
-              dataKey="balance"
+              dataKey="saldo"
               name="Saldo"
               // Sem base explicita a area se apoia no zero: um mes com saldo negativo
               // aparece com o preenchimento acima da linha, invertido.

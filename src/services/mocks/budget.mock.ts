@@ -1,5 +1,5 @@
 import { BUDGET_PROJECTION_MIN_DAYS, budgetStatusOf } from '@/constants/budget';
-import type { BudgetOverview, BudgetUsage, CategorySpending, Transaction } from '@/types';
+import type { BudgetOverview, BudgetUsage, GastoPorCategoria, Lancamento } from '@/types';
 import { fromMonthKey, todayISO } from '@/utils/date';
 import { groupByCategory } from './aggregate';
 import { budgets, currentMonth, transactions } from './data';
@@ -14,8 +14,8 @@ function money(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-function expensesOfMonth(monthKey: string): Transaction[] {
-  return transactions.filter((item) => item.kind === 'DESPESA' && item.date.startsWith(monthKey));
+function expensesOfMonth(monthKey: string): Lancamento[] {
+  return transactions.filter((item) => item.tipo === 'DESPESA' && item.data.startsWith(monthKey));
 }
 
 /**
@@ -43,8 +43,8 @@ export function buildBudgetOverview(month: string = currentMonth): BudgetOvervie
 
   const spentByCategory = new Map<string, number>();
   for (const item of expenses) {
-    if (!item.category) continue;
-    spentByCategory.set(item.category.id, (spentByCategory.get(item.category.id) ?? 0) + item.amount);
+    if (!item.categoria) continue;
+    spentByCategory.set(item.categoria.id, (spentByCategory.get(item.categoria.id) ?? 0) + item.valor);
   }
 
   const items: BudgetUsage[] = budgets
@@ -69,8 +69,8 @@ export function buildBudgetOverview(month: string = currentMonth): BudgetOvervie
   const spent = money(items.reduce((total, item) => total + item.spent, 0));
 
   const budgetedIds = new Set(budgets.map((item) => item.category.id));
-  const unplanned: CategorySpending[] = groupByCategory(expenses, 'DESPESA').filter(
-    (entry) => !budgetedIds.has(entry.category.id),
+  const unplanned: GastoPorCategoria[] = groupByCategory(expenses, 'DESPESA').filter(
+    (entry) => !budgetedIds.has(entry.categoria.id),
   );
 
   return {

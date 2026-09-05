@@ -1,10 +1,10 @@
 import { LOCALE } from '@/constants/app';
 import type {
-  BalancePoint,
-  CashflowPoint,
-  DailySpending,
-  DashboardSummary,
-  Transaction,
+  PontoSaldo,
+  PontoFluxo,
+  GastoDiario,
+  ResumoDashboard,
+  Lancamento,
 } from '@/types';
 import {
   addDays,
@@ -44,13 +44,13 @@ function chartWindow(period: DashboardPeriod): string[] {
   return monthWindow(period.to, length > 1 ? length : SINGLE_MONTH_WINDOW);
 }
 
-function inPeriod(period: DashboardPeriod): Transaction[] {
-  const month = (item: Transaction) => item.date.slice(0, 7);
+function inPeriod(period: DashboardPeriod): Lancamento[] {
+  const month = (item: Lancamento) => item.data.slice(0, 7);
   return transactions.filter((item) => month(item) >= period.from && month(item) <= period.to);
 }
 
-function ofMonth(monthKey: string): Transaction[] {
-  return transactions.filter((item) => item.date.startsWith(monthKey));
+function ofMonth(monthKey: string): Lancamento[] {
+  return transactions.filter((item) => item.data.startsWith(monthKey));
 }
 
 /** O periodo de mesmo tamanho imediatamente anterior, base das variacoes. */
@@ -69,7 +69,7 @@ function previousPeriod(period: DashboardPeriod): DashboardPeriod {
  * calendario que decide como pintar o vazio e o dia que ainda nao chegou, e
  * para isso ele precisa de todas as casas.
  */
-function buildDailySpending(window: string[]): DailySpending[] {
+function buildDailySpending(window: string[]): GastoDiario[] {
   const first = window[0];
   const last = window[window.length - 1];
   if (!first || !last) return [];
@@ -77,32 +77,36 @@ function buildDailySpending(window: string[]): DailySpending[] {
   const totals = new Map<string, number>();
 
   for (const item of transactions) {
-    if (item.kind !== 'DESPESA') continue;
-    const month = item.date.slice(0, 7);
+    if (item.tipo !== 'DESPESA') continue;
+    const month = item.data.slice(0, 7);
     if (month < first || month > last) continue;
-    totals.set(item.date, (totals.get(item.date) ?? 0) + item.amount);
+    totals.set(item.data, (totals.get(item.data) ?? 0) + item.valor);
   }
 
-  const days: DailySpending[] = [];
+  const days: GastoDiario[] = [];
   const end = fromISODate(monthKeyRange(last).to);
 
   for (let cursor = fromMonthKey(first); cursor <= end; cursor = addDays(cursor, 1)) {
     const date = toISODate(cursor);
-    days.push({ date, amount: totals.get(date) ?? 0 });
+    days.push({ data: date, valor: totals.get(date) ?? 0 });
   }
 
   return days;
 }
 
-function buildCashflow(window: string[]): CashflowPoint[] {
+function buildCashflow(window: string[]): PontoFluxo[] {
   return window.map((key) => {
     const list = ofMonth(key);
-    return { label: shortMonthLabel(key), income: sumKind(list, 'RECEITA'), expense: sumKind(list, 'DESPESA') };
+    return {
+      rotulo: shortMonthLabel(key),
+      receitas: sumKind(list, 'RECEITA'),
+      despesas: sumKind(list, 'DESPESA'),
+    };
   });
 }
 
-function buildBalanceHistory(window: string[]): BalancePoint[] {
-  return window.map((key) => ({ label: shortMonthLabel(key), balance: balanceAt(monthClosingDate(key)) }));
+function buildBalanceHistory(window: string[]): PontoSaldo[] {
+  return window.map((key) => ({ rotulo: shortMonthLabel(key), saldo: balanceAt(monthClosingDate(key)) }));
 }
 
 /**
@@ -110,7 +114,7 @@ function buildBalanceHistory(window: string[]): BalancePoint[] {
  * cartao aparece nomeado no rodape do bloco, entao somar as faturas de todos os
  * cartoes daria um numero que nao corresponde a nenhum vencimento.
  */
-function buildInvoice(monthKey: string): DashboardSummary['currentInvoice'] {
+function buildInvoice(monthKey: string): ResumoDashboard['faturaAtual'] {
   const monthly = buildInvoices().filter((invoice) => invoice.month === monthKey);
   const open = monthly.filter((invoice) => invoice.status === 'ABERTA');
   const chosen = [...(open.length > 0 ? open : monthly)].sort((a, b) => b.total - a.total)[0];
@@ -118,25 +122,26 @@ function buildInvoice(monthKey: string): DashboardSummary['currentInvoice'] {
   if (chosen) {
     return {
       total: chosen.total,
-      cardName: chosen.cardName,
-      dueDate: chosen.dueDate,
-      status: chosen.status,
+      nomeCartao: chosen.cardName,
+      dataVencimento: chosen.dueDate,
+      situacao: chosen.status,
     };
   }
 
-  // Mes sem nenhum cartao movimentado: o bloco mostra zero em vez de sumir.
+  // Mes sem nenhum cartao movimentado: o bloco mostra zero em vez de sumir. O
+  // nome nunca vem vazio porque a tela concatena nome e vencimento sem guarda.
   return {
     total: 0,
-    cardName: 'Nenhum cartão',
-    dueDate: monthKeyRange(shiftMonthKey(monthKey, 1)).to,
-    status: monthKey < currentMonth ? 'PAGA' : 'ABERTA',
+    nomeCartao: 'Nenhum cartão',
+    dataVencimento: monthKeyRange(shiftMonthKey(monthKey, 1)).to,
+    situacao: monthKey < currentMonth ? 'PAGA' : 'ABERTA',
   };
 }
 
 /** Sem periodo, o mes corrente. */
 export function buildDashboardSummary(
   period: DashboardPeriod = { from: currentMonth, to: currentMonth },
-): DashboardSummary {
+): ResumoDashboard {
   const previous = previousPeriod(period);
   const current = inPeriod(period);
   const comparison = inPeriod(previous);
@@ -149,27 +154,27 @@ export function buildDashboardSummary(
   const investedTotal = investments.reduce((total, item) => total + item.invested, 0);
 
   const recentTransactions = [...current]
-    .sort((a, b) => b.date.localeCompare(a.date) || a.description.localeCompare(b.description, LOCALE))
+    .sort((a, b) => b.data.localeCompare(a.data) || a.descricao.localeCompare(b.descricao, LOCALE))
     .slice(0, 6);
 
   const window = chartWindow(period);
 
   return {
-    from: period.from,
-    to: period.to,
-    currentBalance,
-    balanceDelta: percentDelta(currentBalance, balanceAt(monthClosingDate(previous.to))),
-    monthIncome,
-    incomeDelta: percentDelta(monthIncome, sumKind(comparison, 'RECEITA')),
-    monthExpense,
-    expenseDelta: percentDelta(monthExpense, sumKind(comparison, 'DESPESA')),
-    investmentsTotal,
-    investmentsDelta: percentDelta(investmentsTotal, investedTotal),
-    currentInvoice: buildInvoice(period.to),
-    balanceHistory: buildBalanceHistory(window),
-    cashflow: buildCashflow(window),
-    dailySpending: buildDailySpending(window),
-    spendingByCategory: groupByCategory(current, 'DESPESA'),
-    recentTransactions,
+    de: period.from,
+    ate: period.to,
+    saldoAtual: currentBalance,
+    variacaoSaldo: percentDelta(currentBalance, balanceAt(monthClosingDate(previous.to))),
+    receitasMes: monthIncome,
+    variacaoReceitas: percentDelta(monthIncome, sumKind(comparison, 'RECEITA')),
+    despesasMes: monthExpense,
+    variacaoDespesas: percentDelta(monthExpense, sumKind(comparison, 'DESPESA')),
+    totalInvestido: investmentsTotal,
+    variacaoInvestimentos: percentDelta(investmentsTotal, investedTotal),
+    faturaAtual: buildInvoice(period.to),
+    historicoSaldo: buildBalanceHistory(window),
+    fluxoCaixa: buildCashflow(window),
+    gastoDiario: buildDailySpending(window),
+    gastoPorCategoria: groupByCategory(current, 'DESPESA'),
+    lancamentosRecentes: recentTransactions,
   };
 }

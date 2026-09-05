@@ -2,12 +2,12 @@ import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YA
 import { ChartTooltip } from '@/components/charts';
 import { Card, CardBody, CardHeader } from '@/components/ui';
 import { useChartPalette } from '@/hooks/useChartPalette';
-import type { BalancePoint } from '@/types';
+import type { PontoSaldo } from '@/types';
 import { formatCompactCurrency } from '@/utils/format';
 import styles from './ReportChart.module.css';
 
 interface BalanceTrendChartProps {
-  data: BalancePoint[];
+  data: PontoSaldo[];
 }
 
 /**
@@ -33,7 +33,7 @@ export function BalanceTrendChart({ data }: BalanceTrendChartProps) {
 
             <CartesianGrid vertical={false} stroke={palette.grid} />
             <XAxis
-              dataKey="label"
+              dataKey="rotulo"
               axisLine={false}
               tickLine={false}
               tick={{ fill: palette.axisText, fontSize: 12 }}
@@ -50,7 +50,7 @@ export function BalanceTrendChart({ data }: BalanceTrendChartProps) {
             <Tooltip cursor={{ stroke: palette.border }} content={<ChartTooltip />} />
             <Area
               type="monotone"
-              dataKey="balance"
+              dataKey="saldo"
               name="Saldo"
               stroke={palette.series[0]}
               strokeWidth={2}

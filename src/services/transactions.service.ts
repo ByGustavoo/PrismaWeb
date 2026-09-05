@@ -1,6 +1,6 @@
 import { endpoints, httpClient } from '@/api';
 import { env } from '@/constants/env';
-import type { ID, Transaction, TransactionKind, TransactionPayload, TransactionStatus } from '@/types';
+import type { ID, Lancamento, TipoLancamento, LancamentoPayload, SituacaoLancamento } from '@/types';
 import { createTransaction, deleteTransaction, mockResponse, transactions, updateTransaction } from './mocks';
 
 /**
@@ -8,9 +8,13 @@ import { createTransaction, deleteTransaction, mockResponse, transactions, updat
  * como query string; a tela usa apenas `kind` (que vem da rota) e refina busca,
  * periodo, categoria e situacao em memoria, para responder a cada tecla sem uma
  * nova ida ao servidor.
+ *
+ * Os nomes aqui sao de estado de tela e seguem em ingles; a traducao para os
+ * parametros do contrato (`tipo`, `busca`, `de`, `ate`...) acontece so na
+ * montagem da query.
  */
 export interface TransactionFilters {
-  kind?: TransactionKind;
+  kind?: TipoLancamento;
   search?: string;
   /** Inicio do periodo, data ISO inclusiva. */
   from?: string;
@@ -19,17 +23,17 @@ export interface TransactionFilters {
   categoryId?: ID;
   /** Casa com a conta de origem ou, em transferencias, com a de destino. */
   accountId?: ID;
-  status?: TransactionStatus;
+  status?: SituacaoLancamento;
 }
 
-function matches(item: Transaction, filters: TransactionFilters): boolean {
-  if (filters.kind && item.kind !== filters.kind) return false;
-  if (filters.status && item.status !== filters.status) return false;
-  if (filters.categoryId && item.category?.id !== filters.categoryId) return false;
-  if (filters.from && item.date < filters.from) return false;
-  if (filters.to && item.date > filters.to) return false;
+function matches(item: Lancamento, filters: TransactionFilters): boolean {
+  if (filters.kind && item.tipo !== filters.kind) return false;
+  if (filters.status && item.situacao !== filters.status) return false;
+  if (filters.categoryId && item.categoria?.id !== filters.categoryId) return false;
+  if (filters.from && item.data < filters.from) return false;
+  if (filters.to && item.data > filters.to) return false;
 
-  if (filters.accountId && item.accountId !== filters.accountId && item.toAccountId !== filters.accountId) {
+  if (filters.accountId && item.idOrigem !== filters.accountId && item.idContaDestino !== filters.accountId) {
     return false;
   }
 
@@ -37,41 +41,41 @@ function matches(item: Transaction, filters: TransactionFilters): boolean {
   if (!term) return true;
 
   return (
-    item.description.toLowerCase().includes(term) ||
-    (item.category?.name.toLowerCase().includes(term) ?? false) ||
-    item.accountName.toLowerCase().includes(term) ||
-    (item.toAccountName?.toLowerCase().includes(term) ?? false)
+    item.descricao.toLowerCase().includes(term) ||
+    (item.categoria?.nome.toLowerCase().includes(term) ?? false) ||
+    item.nomeOrigem.toLowerCase().includes(term) ||
+    (item.nomeContaDestino?.toLowerCase().includes(term) ?? false)
   );
 }
 
 export const transactionsService = {
-  list(filters: TransactionFilters = {}, signal?: AbortSignal): Promise<Transaction[]> {
+  list(filters: TransactionFilters = {}, signal?: AbortSignal): Promise<Lancamento[]> {
     if (env.useMocks) {
-      const result = transactions.filter((item) => matches(item, filters)).sort((a, b) => b.date.localeCompare(a.date));
+      const result = transactions.filter((item) => matches(item, filters)).sort((a, b) => b.data.localeCompare(a.data));
       return mockResponse(result, signal);
     }
-    return httpClient.get<Transaction[]>(endpoints.transactions.list, {
+    return httpClient.get<Lancamento[]>(endpoints.transactions.list, {
       query: {
-        kind: filters.kind,
-        search: filters.search,
-        from: filters.from,
-        to: filters.to,
-        categoryId: filters.categoryId,
-        accountId: filters.accountId,
-        status: filters.status,
+        tipo: filters.kind,
+        busca: filters.search,
+        de: filters.from,
+        ate: filters.to,
+        idCategoria: filters.categoryId,
+        idOrigem: filters.accountId,
+        situacao: filters.status,
       },
       ...(signal ? { signal } : {}),
     });
   },
 
-  create(payload: TransactionPayload, signal?: AbortSignal): Promise<Transaction> {
+  create(payload: LancamentoPayload, signal?: AbortSignal): Promise<Lancamento> {
     if (env.useMocks) return mockResponse(createTransaction(payload), signal);
-    return httpClient.post<Transaction>(endpoints.transactions.create, payload, { ...(signal ? { signal } : {}) });
+    return httpClient.post<Lancamento>(endpoints.transactions.create, payload, { ...(signal ? { signal } : {}) });
   },
 
-  update(id: ID, payload: TransactionPayload, signal?: AbortSignal): Promise<Transaction> {
+  update(id: ID, payload: LancamentoPayload, signal?: AbortSignal): Promise<Lancamento> {
     if (env.useMocks) return mockResponse(updateTransaction(id, payload), signal);
-    return httpClient.put<Transaction>(endpoints.transactions.byId(id), payload, { ...(signal ? { signal } : {}) });
+    return httpClient.put<Lancamento>(endpoints.transactions.byId(id), payload, { ...(signal ? { signal } : {}) });
   },
 
   remove(id: ID, signal?: AbortSignal): Promise<void> {

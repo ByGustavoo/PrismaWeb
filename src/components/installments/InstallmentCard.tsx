@@ -53,10 +53,10 @@ export function InstallmentCard({ plan, onEdit, onDelete }: InstallmentCardProps
                 <span className={styles.category}>
                   <span
                     className={styles.categoryDot}
-                    style={{ backgroundColor: `var(--chart-${purchase.category.colorToken})` }}
+                    style={{ backgroundColor: `var(--chart-${purchase.category.tokenCor})` }}
                     aria-hidden="true"
                   />
-                  {purchase.category.name}
+                  {purchase.category.nome}
                 </span>
               </>
             ) : null}

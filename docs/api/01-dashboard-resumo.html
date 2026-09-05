@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Prisma · Endpoint 01 de 42 — GET /dashboard/resumo</title>
+    <link rel="stylesheet" href="assets/contrato.css" />
+  </head>
+  <body>
+    <header class="eyebrow">
+      <span>Prisma · <strong>Contrato da API</strong></span>
+      <span>Endpoint 01 de 42 · Dashboard</span>
+    </header>
+
+    <div class="route">
+      <span class="method">GET</span>
+      <h1>/dashboard/resumo</h1>
+    </div>
+
+    <p class="lead">
+      Resumo consolidado da tela inicial. É o endpoint mais pesado do contrato: devolve, numa só
+      resposta, os totais do período, as variações contra o período anterior e as quatro séries que
+      alimentam os gráficos do dashboard.
+    </p>
+
+    <dl class="meta">
+      <div>
+        <dt>Consumido por</dt>
+        <dd><code>DashboardPage</code></dd>
+      </div>
+      <div>
+        <dt>Serviço</dt>
+        <dd><code>dashboardService.getSummary</code></dd>
+      </div>
+      <div>
+        <dt>Autenticação</dt>
+        <dd>Não (ainda)</dd>
+      </div>
+    </dl>
+
+    <section>
+      <h2>Requisição</h2>
+
+      <p>
+        Sem parâmetro nenhum, o servidor responde pelo mês corrente. Os dois parâmetros andam
+        juntos: enviar só um é requisição malformada.
+      </p>
+
+      <div class="nota">
+        <p>
+          <strong>O que a tela manda na prática.</strong> O dashboard sempre envia os dois: o
+          recorte nasce no mês corrente e vive no seletor do header. Os atalhos vão de um mês a doze
+          (“Este ano”), e o intervalo próprio só oferece os últimos doze meses — mas as setas
+          deslocam a janela inteira sem limite, para trás e para a frente. Então espere receber
+          meses anteriores ao primeiro lançamento e meses no futuro, e responda a ambos sem erro.
+          Nunca chega <code>de</code> posterior a <code>ate</code>: o seletor corrige a ordem antes
+          de enviar.
+        </p>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th class="col-campo">Parâmetro</th>
+            <th class="col-tipo">Tipo</th>
+            <th class="col-obrig">Obrigatório</th>
+            <th>Descrição</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="campo">de</td>
+            <td class="tipo">YYYY-MM</td>
+            <td>Não</td>
+            <td>Primeiro mês do recorte.</td>
+          </tr>
+          <tr>
+            <td class="campo">ate</td>
+            <td class="tipo">YYYY-MM</td>
+            <td>Não</td>
+            <td>
+              Último mês do recorte, inclusivo. Igual a <code>de</code> quando o recorte é de um mês
+              só — que é o caso mais comum.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Exemplos de chamada</h3>
+
+      <pre><span class="cmt">// mês corrente</span>
+GET /api/dashboard/resumo
+
+<span class="cmt">// setembro de 2026</span>
+GET /api/dashboard/resumo?de=2026-09&amp;ate=2026-09
+
+<span class="cmt">// últimos seis meses</span>
+GET /api/dashboard/resumo?de=2026-04&amp;ate=2026-09</pre>
+    </section>
+
+    <section>
+      <h2>Resposta <span class="status">200</span> <span class="type">ResumoDashboard</span></h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th class="col-campo">Campo</th>
+            <th class="col-tipo">Tipo</th>
+            <th>Descrição</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="campo">de</td>
+            <td class="tipo">string YYYY-MM</td>
+            <td>Primeiro mês do recorte efetivamente usado — ver a regra 1.</td>
+          </tr>
+          <tr>
+            <td class="campo">ate</td>
+            <td class="tipo">string YYYY-MM</td>
+            <td>Último mês do recorte efetivamente usado.</td>
+          </tr>
+          <tr>
+            <td class="campo">saldoAtual</td>
+            <td class="tipo">number</td>
+            <td>
+              Saldo no fim do recorte, somando as contas ativas com
+              <code>incluirNoTotal</code>.
+            </td>
+          </tr>
+          <tr>
+            <td class="campo">variacaoSaldo</td>
+            <td class="tipo">Variacao</td>
+            <td>Variação do saldo contra a janela anterior de mesmo tamanho.</td>
+          </tr>
+          <tr>
+            <td class="campo">receitasMes</td>
+            <td class="tipo">number</td>
+            <td>Receitas do recorte. Transferência não entra.</td>
+          </tr>
+          <tr>
+            <td class="campo">variacaoReceitas</td>
+            <td class="tipo">Variacao</td>
+            <td>Variação das receitas contra a janela anterior.</td>
+          </tr>
+          <tr>
+            <td class="campo">despesasMes</td>
+            <td class="tipo">number</td>
+            <td>Despesas do recorte. Transferência não entra.</td>
+          </tr>
+          <tr>
+            <td class="campo">variacaoDespesas</td>
+            <td class="tipo">Variacao</td>
+            <td>Variação das despesas contra a janela anterior.</td>
+          </tr>
+          <tr>
+            <td class="campo">totalInvestido</td>
+            <td class="tipo">number</td>
+            <td>Patrimônio investido hoje, somando todas as posições.</td>
+          </tr>
+          <tr>
+            <td class="campo">variacaoInvestimentos</td>
+            <td class="tipo">Variacao</td>
+            <td>Rentabilidade acumulada da carteira.</td>
+          </tr>
+          <tr>
+            <td class="campo">faturaAtual</td>
+            <td class="tipo">objeto</td>
+            <td>Fatura em destaque do mês de <code>ate</code> — ver a regra 8.</td>
+          </tr>
+          <tr>
+            <td class="campo filho">total</td>
+            <td class="tipo">number</td>
+            <td>Valor da fatura.</td>
+          </tr>
+          <tr>
+            <td class="campo filho">nomeCartao</td>
+            <td class="tipo">string</td>
+            <td>Nome do cartão. Sem cartão movimentado no mês, <code>"Nenhum cartão"</code>.</td>
+          </tr>
+          <tr>
+            <td class="campo filho">dataVencimento</td>
+            <td class="tipo">string YYYY-MM-DD</td>
+            <td>Vencimento da fatura.</td>
+          </tr>
+          <tr>
+            <td class="campo filho">situacao</td>
+            <td class="tipo">SituacaoFatura</td>
+            <td>
+              <code>FUTURA</code> · <code>ABERTA</code> · <code>FECHADA</code> · <code>PAGA</code> ·
+              <code>VENCIDA</code>. O dashboard não a exibe hoje; ela vem porque o objeto é o mesmo
+              usado em Faturas.
+            </td>
+          </tr>
+          <tr>
+            <td class="campo">historicoSaldo</td>
+            <td class="tipo">PontoSaldo[]</td>
+            <td>Saldo ao fim de cada mês da janela dos gráficos — ver a regra 5.</td>
+          </tr>
+          <tr>
+            <td class="campo filho">rotulo</td>
+            <td class="tipo">string</td>
+            <td>Mês abreviado em pt-BR, com inicial maiúscula e sem ponto: Jan, Fev, Abr, Set…</td>
+          </tr>
+          <tr>
+            <td class="campo filho">saldo</td>
+            <td class="tipo">number</td>
+            <td>Saldo naquele mês.</td>
+          </tr>
+          <tr>
+            <td class="campo">fluxoCaixa</td>
+            <td class="tipo">PontoFluxo[]</td>
+            <td>Entradas e saídas de cada mês da janela dos gráficos.</td>
+          </tr>
+          <tr>
+            <td class="campo filho">rotulo</td>
+            <td class="tipo">string</td>
+            <td>Mês abreviado com inicial maiúscula.</td>
+          </tr>
+          <tr>
+            <td class="campo filho">receitas</td>
+            <td class="tipo">number</td>
+            <td>Receitas do mês.</td>
+          </tr>
+          <tr>
+            <td class="campo filho">despesas</td>
+            <td class="tipo">number</td>
+            <td>Despesas do mês.</td>
+          </tr>
+          <tr>
+            <td class="campo">gastoDiario</td>
+            <td class="tipo">GastoDiario[]</td>
+            <td>Todos os dias da janela, em ordem — ver a regra 6.</td>
+          </tr>
+          <tr>
+            <td class="campo filho">data</td>
+            <td class="tipo">string YYYY-MM-DD</td>
+            <td>O dia.</td>
+          </tr>
+          <tr>
+            <td class="campo filho">valor</td>
+            <td class="tipo">number</td>
+            <td>Despesas somadas do dia. Dia sem gasto vem <code>0</code>.</td>
+          </tr>
+          <tr>
+            <td class="campo">gastoPorCategoria</td>
+            <td class="tipo">GastoPorCategoria[]</td>
+            <td>Do maior gasto para o menor. Transferência não entra.</td>
+          </tr>
+          <tr>
+            <td class="campo filho">categoria</td>
+            <td class="tipo">Categoria</td>
+            <td>
+              Categoria resolvida, com <code>id</code>, <code>nome</code>, <code>tipo</code> e
+              <code>tokenCor</code>.
+            </td>
+          </tr>
+          <tr>
+            <td class="campo filho">valor</td>
+            <td class="tipo">number</td>
+            <td>Total gasto na categoria dentro do recorte.</td>
+          </tr>
+          <tr>
+            <td class="campo filho">participacao</td>
+            <td class="tipo">number 0–1</td>
+            <td>Fração, não percentual: <code>0.61</code> é 61%.</td>
+          </tr>
+          <tr>
+            <td class="campo">lancamentosRecentes</td>
+            <td class="tipo">Lancamento[]</td>
+            <td>Os seis lançamentos mais recentes do recorte — ver a regra 7.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Lancamento — o item de <code>lancamentosRecentes</code></h3>
+
+      <p>
+        Mesmo formato devolvido por <code>GET /lancamentos</code>. Está aqui porque sem ele não dá
+        para montar a resposta deste endpoint. Os nomes saem das colunas de
+        <code>lancamentos</code> no esquema.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th class="col-campo">Campo</th>
+            <th class="col-tipo">Tipo</th>
+            <th>Descrição</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="campo">id</td>
+            <td class="tipo">string</td>
+            <td>Identificador do lançamento.</td>
+          </tr>
+          <tr>
+            <td class="campo">descricao</td>
+            <td class="tipo">string</td>
+            <td>Texto livre, de 2 a 160 caracteres.</td>
+          </tr>
+          <tr>
+            <td class="campo">valor</td>
+            <td class="tipo">number</td>
+            <td>Sempre positivo. A direção do dinheiro vem de <code>tipo</code>, nunca do sinal.</td>
+          </tr>
+          <tr>
+            <td class="campo">tipo</td>
+            <td class="tipo">TipoLancamento</td>
+            <td><code>RECEITA</code> · <code>DESPESA</code> · <code>TRANSFERENCIA</code></td>
+          </tr>
+          <tr>
+            <td class="campo">situacao</td>
+            <td class="tipo">SituacaoLancamento</td>
+            <td><code>PAGO</code> · <code>PENDENTE</code> · <code>AGENDADO</code></td>
+          </tr>
+          <tr>
+            <td class="campo">forma</td>
+            <td class="tipo">FormaPagamento</td>
+            <td>
+              <code>CONTA</code> · <code>CARTAO_CREDITO</code> · <code>PIX</code> ·
+              <code>DINHEIRO</code>. O dashboard não a exibe, mas ela faz parte do contrato.
+            </td>
+          </tr>
+          <tr>
+            <td class="campo">data</td>
+            <td class="tipo">string YYYY-MM-DD</td>
+            <td>Dia civil, sem hora e sem fuso.</td>
+          </tr>
+          <tr>
+            <td class="campo">categoria</td>
+            <td class="tipo">Categoria | null</td>
+            <td>Nula em transferência, e só nela: o dinheiro apenas troca de conta.</td>
+          </tr>
+          <tr>
+            <td class="campo">idOrigem</td>
+            <td class="tipo">string</td>
+            <td>
+              Conta ou cartão de onde o dinheiro sai. Um campo só na API,
+              <code>COALESCE(id_conta, id_cartao)</code> no banco.
+            </td>
+          </tr>
+          <tr>
+            <td class="campo">nomeOrigem</td>
+            <td class="tipo">string</td>
+            <td>Nome resolvido pelo servidor. Nunca vazio — a tela o imprime direto.</td>
+          </tr>
+          <tr>
+            <td class="campo">idContaDestino</td>
+            <td class="tipo">string · opcional</td>
+            <td>Presente apenas em transferência.</td>
+          </tr>
+          <tr>
+            <td class="campo">nomeContaDestino</td>
+            <td class="tipo">string · opcional</td>
+            <td>
+              Presente apenas em transferência. A tela escreve
+              “<code>nomeOrigem → nomeContaDestino</code>” quando existe.
+            </td>
+          </tr>
+          <tr>
+            <td class="campo">observacoes</td>
+            <td class="tipo">string · opcional</td>
+            <td>Texto livre. Omitido quando vazio, em vez de string vazia.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Tipos auxiliares</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th class="col-campo">Tipo</th>
+            <th class="col-tipo">Formato</th>
+            <th>Descrição</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="campo">Variacao</td>
+            <td class="tipo">objeto</td>
+            <td>
+              <code>percentual</code> (number, negativo quando cai) e <code>tendencia</code>:
+              <code>ALTA</code> · <code>BAIXA</code> · <code>ESTAVEL</code>.
+            </td>
+          </tr>
+          <tr>
+            <td class="campo">Categoria</td>
+            <td class="tipo">objeto</td>
+            <td>
+              <code>id</code> (string), <code>nome</code> (string), <code>tipo</code>
+              (<code>RECEITA</code> · <code>DESPESA</code>) e <code>tokenCor</code>, o índice de 1 a
+              6 do token de cor de gráfico.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Exemplo</h3>
+
+      <pre>{
+  <span class="key">"de"</span>: "2026-09",
+  <span class="key">"ate"</span>: "2026-09",
+  <span class="key">"saldoAtual"</span>: 32860.95,
+  <span class="key">"variacaoSaldo"</span>: { "percentual": 20.2, "tendencia": "ALTA" },
+  <span class="key">"receitasMes"</span>: 10545.50,
+  <span class="key">"variacaoReceitas"</span>: { "percentual": -41.4, "tendencia": "BAIXA" },
+  <span class="key">"despesasMes"</span>: 4717.22,
+  <span class="key">"variacaoDespesas"</span>: { "percentual": -53.8, "tendencia": "BAIXA" },
+  <span class="key">"totalInvestido"</span>: 114442.25,
+  <span class="key">"variacaoInvestimentos"</span>: { "percentual": 7.8, "tendencia": "ALTA" },
+  <span class="key">"faturaAtual"</span>: {
+    "total": 2680.10,
+    "nomeCartao": "Nova Platinum",
+    "dataVencimento": "2026-10-08",
+    "situacao": "ABERTA"
+  },
+  <span class="key">"historicoSaldo"</span>: [
+    { "rotulo": "Abr", "saldo": 21980.44 }
+  ],
+  <span class="key">"fluxoCaixa"</span>: [
+    { "rotulo": "Abr", "receitas": 13100.00, "despesas": 8420.30 }
+  ],
+  <span class="key">"gastoDiario"</span>: [
+    { "data": "2026-04-01", "valor": 0 }
+  ],
+  <span class="key">"gastoPorCategoria"</span>: [
+    {
+      "categoria": { "id": "cat-moradia", "nome": "Moradia",
+                     "tipo": "DESPESA", "tokenCor": 1 },
+      "valor": 2898.62,
+      "participacao": 0.61
+    }
+  ],
+  <span class="key">"lancamentosRecentes"</span>: []
+}</pre>
+    </section>
+
+    <section>
+      <h2>Regras de negócio</h2>
+
+      <ol class="regras">
+        <li>
+          <strong>Os campos <code>de</code> e <code>ate</code> da resposta ecoam o recorte
+          efetivamente usado</strong>, não o que foi pedido. A tela rotula os números com o que
+          voltou: enquanto a nova carga não chega, os valores exibidos ainda são os do recorte
+          anterior, e escrever “Saldo no fim de Agosto de 2026” sobre o saldo de setembro seria
+          falso.
+        </li>
+        <li>
+          <strong>Toda variação compara com a janela de mesmo tamanho imediatamente
+          anterior.</strong> Um recorte de três meses compara com os três meses anteriores, e não
+          com o mês anterior. Quando a janela anterior vale zero não há variação: devolva
+          <code>percentual: 0</code> e <code>tendencia: "ESTAVEL"</code> em vez de dividir por zero
+          ou inventar 100%. <code>ESTAVEL</code> também é a resposta para toda variação dentro de
+          ±0,05% — abaixo disso a seta na tela seria ruído.
+        </li>
+        <li>
+          <strong>A situação do lançamento não filtra nada.</strong> <code>PAGO</code>,
+          <code>PENDENTE</code> e <code>AGENDADO</code> entram igualmente em
+          <code>receitasMes</code>, <code>despesasMes</code>, <code>saldoAtual</code> e em todas as
+          séries. O dashboard responde “quanto este período movimenta”, não “quanto já foi
+          liquidado” — filtrar por <code>PAGO</code> daria números que não batem com a tela de
+          lançamentos.
+        </li>
+        <li>
+          <strong><code>saldoAtual</code> é o saldo no fim do recorte</strong>, não o saldo de hoje.
+          Num mês passado, reconstrua: parta dos saldos atuais e desfaça o que entrou e saiu depois
+          daquela data. Nessa conta, a transferência só pesa quando cruza a fronteira do total — um
+          aporte para uma conta com <code>incluirNoTotal</code> falso reduz o saldo visível,
+          enquanto uma transferência entre duas contas que somam no total não muda nada. No mês
+          corrente o corte é <em>hoje</em>, não o dia 31: o saldo de um mês em andamento é o de
+          agora, e não uma projeção do que ainda vai cair. Num mês futuro, aí sim, some o que está
+          agendado para acontecer até lá.
+        </li>
+        <li>
+          <strong>A janela dos gráficos nem sempre é o período pedido.</strong> Num recorte de mês
+          único, as séries <code>historicoSaldo</code>, <code>fluxoCaixa</code> e
+          <code>gastoDiario</code> trazem seis meses: o mês pedido e os cinco anteriores. Um mês
+          sozinho não desenha linha nenhuma. Num recorte de vários meses, a janela é o próprio
+          recorte. Já <code>saldoAtual</code>, <code>receitasMes</code>, <code>despesasMes</code> e
+          <code>gastoPorCategoria</code> respeitam sempre o recorte pedido. As três séries nunca vêm
+          vazias, nem num recorte sem lançamento nenhum: a escala do gráfico de saldo sai do menor e
+          do maior ponto da série, e uma lista vazia não tem nem um nem outro.
+        </li>
+        <li>
+          <strong><code>gastoDiario</code> traz todos os dias da janela</strong>, do primeiro ao
+          último. Dia sem gasto vem com <code>valor: 0</code>, e não ausente: o calendário precisa
+          desenhar a casa vazia, e uma sequência de dias sem gasto é informação, não buraco na
+          série. A janela vai até o último dia do mês final, mesmo que ele ainda não tenha chegado —
+          os dias futuros vêm zerados, e é o calendário que decide como pintar o dia que ainda não
+          aconteceu. Diferente de <code>saldoAtual</code>, aqui não há corte em hoje.
+        </li>
+        <li>
+          <strong><code>lancamentosRecentes</code> são seis</strong>, ordenados por data
+          decrescente; no empate, por descrição crescente na collation de
+          <code>pt-BR</code> (acento não muda a ordem). O formato de cada item é o mesmo
+          <code>Lancamento</code> devolvido por <code>GET /lancamentos</code>, descrito na tabela
+          acima.
+        </li>
+        <li>
+          <strong><code>faturaAtual</code> é a fatura do mês de <code>ate</code></strong>, não a
+          maior de todo o recorte. Entre as faturas daquele mês, prefira as de situação
+          <code>ABERTA</code> e escolha a de maior valor; não havendo nenhuma aberta, a de maior
+          valor entre as do mês. Sem nenhum cartão movimentado no mês, devolva
+          <code>total: 0</code>, <code>nomeCartao: "Nenhum cartão"</code>, o último dia do mês
+          seguinte como <code>dataVencimento</code> e situação <code>PAGA</code> para um mês
+          passado ou <code>ABERTA</code> para o corrente. O objeto nunca vem <code>null</code> e
+          <code>nomeCartao</code> nunca vem vazio: a tela monta o rodapé como
+          <code>"{nomeCartao} · vence em {dataVencimento}"</code> sem nenhuma guarda, e uma string
+          vazia deixaria um “·” solto na frente da data.
+        </li>
+      </ol>
+
+      <div class="nota">
+        <p>
+          <strong>Transferência não é receita nem despesa.</strong> Ela fica fora de
+          <code>receitasMes</code>, <code>despesasMes</code> e <code>gastoPorCategoria</code> em todo
+          este endpoint: o dinheiro apenas troca de conta e o patrimônio não muda.
+        </p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Origem no banco</h2>
+
+      <p>
+        As colunas abaixo são as de <code>docs/api/sql/00-schema-completo.sql</code>. O banco escreve
+        em <code>snake_case</code> e a API responde em <code>camelCase</code>: a tradução acontece
+        uma vez só, no mapeamento da entidade JPA, e não em cada consulta.
+      </p>
+
+      <table class="origem">
+        <thead>
+          <tr>
+            <th class="col-campo">Campo da resposta</th>
+            <th>Tabela e coluna que o sustentam</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="campo">saldoAtual</td>
+            <td>
+              Soma de <code>contas.saldo</code> onde <code>situacao = 'ATIVO'</code> e
+              <code>incluir_no_total = TRUE</code>, desfeita para trás com
+              <code>lancamentos</code> quando o recorte não termina hoje.
+            </td>
+          </tr>
+          <tr>
+            <td class="campo">receitasMes<br />despesasMes</td>
+            <td>
+              <code>lancamentos.valor</code> agrupado por <code>lancamentos.tipo</code>
+              (<code>RECEITA</code> e <code>DESPESA</code>) dentro do recorte de
+              <code>lancamentos.data</code>. O valor é sempre positivo no banco — a direção vem do
+              tipo, nunca do sinal.
+            </td>
+          </tr>
+          <tr>
+            <td class="campo">gastoPorCategoria</td>
+            <td>
+              <code>lancamentos</code> unido a <code>categorias</code> por
+              <code>id_categoria</code>. O <code>tokenCor</code> é
+              <code>categorias.token_cor</code> (1 a 6) e o <code>tipo</code> é
+              <code>categorias.tipo</code>.
+            </td>
+          </tr>
+          <tr>
+            <td class="campo">gastoDiario</td>
+            <td>
+              Despesas de <code>lancamentos</code> somadas por <code>data</code>, com os dias sem
+              gasto preenchidos com zero pelo backend — o banco não devolve linha para eles.
+            </td>
+          </tr>
+          <tr>
+            <td class="campo">totalInvestido<br />variacaoInvestimentos</td>
+            <td>
+              Soma de <code>investimentos.valor_atual</code>; a rentabilidade é
+              <code>(valor_atual − aportado) / aportado</code>.
+            </td>
+          </tr>
+          <tr>
+            <td class="campo">faturaAtual</td>
+            <td>
+              Derivada, não armazenada: as despesas de <code>lancamentos</code> com
+              <code>id_cartao</code> preenchido mais as parcelas calculadas sobre
+              <code>compras_parceladas</code>, recortadas pelo ciclo que
+              <code>cartoes.dia_fechamento</code> e <code>cartoes.dia_vencimento</code> definem.
+            </td>
+          </tr>
+          <tr>
+            <td class="campo">lancamentosRecentes</td>
+            <td>
+              <code>lancamentos</code> com <code>categorias</code> e o nome da origem resolvido por
+              <code>COALESCE(id_conta, id_cartao)</code> — a API expõe um campo só, o banco guarda
+              duas chaves estrangeiras de verdade.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Respostas de erro</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th class="col-obrig">Status</th>
+            <th class="col-tipo">Código</th>
+            <th>Quando</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="status erro">400</td>
+            <td class="codigo">requisicao_invalida</td>
+            <td>
+              <code>de</code> ou <code>ate</code> fora do formato <code>YYYY-MM</code>,
+              <code>de</code> posterior a <code>ate</code>, ou apenas um dos dois enviado.
+            </td>
+          </tr>
+          <tr>
+            <td class="status erro">500</td>
+            <td class="codigo">erro_servidor</td>
+            <td>Falha inesperada.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top: 12px">
+        Um recorte válido sem nenhum lançamento não é erro: responda <code>200</code> com os totais
+        zerados e as séries preenchidas com zeros. A tela tem estado vazio próprio, e um
+        <code>404</code> aqui apareceria ao usuário como falha de carregamento.
+      </p>
+
+      <p>O corpo do erro segue o formato único do contrato:</p>
+
+      <pre>{
+  <span class="key">"mensagem"</span>: "O período informado é inválido.",
+  <span class="key">"codigo"</span>: "requisicao_invalida"
+}</pre>
+
+      <p>
+        A <code>mensagem</code> é o texto que aparece no toast da tela — o cliente não traduz nem
+        reescreve erro vindo do servidor.
+      </p>
+    </section>
+
+    <footer>
+      Prisma · Contrato da API · Endpoint 01 de 42 — contrato completo em
+      <code>API_CONTRACT.md</code>, esquema em <code>docs/api/sql/00-schema-completo.sql</code>,
+      tipos em <code>src/types/finance.ts</code>, rota em <code>src/api/endpoints.ts</code>.
+    </footer>
+  </body>
+</html>

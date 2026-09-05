@@ -1,5 +1,5 @@
 import { LOCALE } from '@/constants/app';
-import type { CategorySpending, Delta, Transaction, TransactionKind } from '@/types';
+import type { GastoPorCategoria, Variacao, Lancamento, TipoLancamento } from '@/types';
 import { fromMonthKey } from '@/utils/date';
 import { capitalize } from '@/utils/format';
 
@@ -20,38 +20,38 @@ export function shortMonthLabel(monthKey: string): string {
   return capitalize(monthShort.format(fromMonthKey(monthKey)).replace('.', ''));
 }
 
-export function sumKind(list: Transaction[], kind: TransactionKind): number {
-  return list.reduce((total, item) => (item.kind === kind ? total + item.amount : total), 0);
+export function sumKind(list: Lancamento[], kind: TipoLancamento): number {
+  return list.reduce((total, item) => (item.tipo === kind ? total + item.valor : total), 0);
 }
 
 /** Variacao percentual entre dois periodos. Sem base de comparacao nao ha variacao. */
-export function percentDelta(current: number, previous: number): Delta {
-  if (previous === 0) return { percentage: 0, trend: 'ESTAVEL' };
+export function percentDelta(current: number, previous: number): Variacao {
+  if (previous === 0) return { percentual: 0, tendencia: 'ESTAVEL' };
 
-  const percentage = ((current - previous) / previous) * 100;
-  return { percentage, trend: percentage > 0.05 ? 'ALTA' : percentage < -0.05 ? 'BAIXA' : 'ESTAVEL' };
+  const percentual = ((current - previous) / previous) * 100;
+  return { percentual, tendencia: percentual > 0.05 ? 'ALTA' : percentual < -0.05 ? 'BAIXA' : 'ESTAVEL' };
 }
 
 /**
  * Agrupa por categoria e ordena do maior para o menor. Serve tanto para despesa
  * quanto para receita: o que muda e a lista que chega, nao a conta.
  */
-export function groupByCategory(list: Transaction[], kind: TransactionKind): CategorySpending[] {
-  const items = list.filter((item) => item.kind === kind);
-  const total = items.reduce((sum, item) => sum + item.amount, 0);
-  const grouped = new Map<string, CategorySpending>();
+export function groupByCategory(list: Lancamento[], kind: TipoLancamento): GastoPorCategoria[] {
+  const items = list.filter((item) => item.tipo === kind);
+  const total = items.reduce((sum, item) => sum + item.valor, 0);
+  const grouped = new Map<string, GastoPorCategoria>();
 
   for (const item of items) {
-    if (!item.category) continue;
-    const existing = grouped.get(item.category.id);
+    if (!item.categoria) continue;
+    const existing = grouped.get(item.categoria.id);
     if (existing) {
-      existing.amount += item.amount;
+      existing.valor += item.valor;
     } else {
-      grouped.set(item.category.id, { category: item.category, amount: item.amount, share: 0 });
+      grouped.set(item.categoria.id, { categoria: item.categoria, valor: item.valor, participacao: 0 });
     }
   }
 
   return [...grouped.values()]
-    .map((entry) => ({ ...entry, share: total > 0 ? entry.amount / total : 0 }))
-    .sort((a, b) => b.amount - a.amount);
+    .map((entry) => ({ ...entry, participacao: total > 0 ? entry.valor / total : 0 }))
+    .sort((a, b) => b.valor - a.valor);
 }

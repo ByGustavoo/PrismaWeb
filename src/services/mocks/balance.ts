@@ -1,4 +1,4 @@
-import type { Transaction } from '@/types';
+import type { Lancamento } from '@/types';
 import { monthKeyRange, todayISO } from '@/utils/date';
 import { accounts, transactions } from './data';
 
@@ -35,14 +35,14 @@ export function totalBalance(): number {
  * corretora, que fica de fora, reduz o saldo visivel, enquanto uma transferencia
  * entre duas contas do total nao muda nada.
  */
-export function balanceEffect(item: Transaction, included: Set<string>): number {
-  if (item.kind === 'RECEITA') return item.amount;
-  if (item.kind === 'DESPESA') return -item.amount;
+export function balanceEffect(item: Lancamento, included: Set<string>): number {
+  if (item.tipo === 'RECEITA') return item.valor;
+  if (item.tipo === 'DESPESA') return -item.valor;
 
-  const leaves = included.has(item.accountId);
-  const enters = item.toAccountId ? included.has(item.toAccountId) : false;
+  const leaves = included.has(item.idOrigem);
+  const enters = item.idContaDestino ? included.has(item.idContaDestino) : false;
   if (leaves === enters) return 0;
-  return leaves ? -item.amount : item.amount;
+  return leaves ? -item.valor : item.valor;
 }
 
 /**
@@ -58,7 +58,7 @@ export function balanceAt(dateISO: string): number {
   const included = includedAccountIds();
 
   const net = transactions.reduce(
-    (sum, item) => (item.date > from && item.date <= to ? sum + balanceEffect(item, included) : sum),
+    (sum, item) => (item.data > from && item.data <= to ? sum + balanceEffect(item, included) : sum),
     0,
   );
 

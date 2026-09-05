@@ -1,4 +1,4 @@
-import type { Card, CardStatus, CardType, InstallmentStatus, InvoiceStatus } from '@/types';
+import type { Card, CardStatus, CardType, InstallmentStatus, SituacaoFatura } from '@/types';
 
 export const cardTypeLabel: Record<CardType, string> = {
   CREDITO: 'Cartão de crédito',
@@ -60,7 +60,7 @@ export function isVoucherCard(card: Card): boolean {
 export const CARD_LIMIT_WARNING_RATIO = 0.7;
 export const CARD_LIMIT_CRITICAL_RATIO = 0.9;
 
-export const invoiceStatusLabel: Record<InvoiceStatus, string> = {
+export const invoiceStatusLabel: Record<SituacaoFatura, string> = {
   FUTURA: 'Prevista',
   ABERTA: 'Aberta',
   FECHADA: 'Fechada',

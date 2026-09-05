@@ -7,10 +7,14 @@ export interface Option<T extends string = string> {
   label: string;
 }
 
-export type Trend = 'ALTA' | 'BAIXA' | 'ESTAVEL';
+export type Tendencia = 'ALTA' | 'BAIXA' | 'ESTAVEL';
 
-export interface Delta {
-  /** Variacao percentual em relacao ao periodo anterior. */
-  percentage: number;
-  trend: Trend;
+/**
+ * Variacao percentual contra o periodo anterior. Sem base de comparacao nao ha
+ * variacao: `percentual` vem zero e `tendencia` vem ESTAVEL, em vez de uma
+ * divisao por zero ou de um 100% inventado.
+ */
+export interface Variacao {
+  percentual: number;
+  tendencia: Tendencia;
 }

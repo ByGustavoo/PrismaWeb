@@ -46,21 +46,21 @@ export function buildAlerts(): Alert[] {
 
   // Contas pendentes e lancamentos agendados.
   for (const transaction of transactions) {
-    if (transaction.status === 'PAGO') continue;
-    const days = daysBetween(today, transaction.date);
+    if (transaction.situacao === 'PAGO') continue;
+    const days = daysBetween(today, transaction.data);
     if (days > HORIZON_DAYS) continue;
 
-    const pending = transaction.status === 'PENDENTE';
+    const pending = transaction.situacao === 'PENDENTE';
     alerts.push({
       id: `alert-tx-${transaction.id}`,
       kind: pending ? 'CONTA_VENCENDO' : 'LANCAMENTO_AGENDADO',
       severity: pending ? severityByDays(days) : 'INFO',
-      title: transaction.description,
+      title: transaction.descricao,
       description: pending
-        ? `${transaction.category?.name ?? transactionKindLabel[transaction.kind]} · ${formatDueLabel(transaction.date, today)}`
-        : `Agendado · ${formatDueLabel(transaction.date, today)}`,
-      date: transaction.date,
-      amount: transaction.amount,
+        ? `${transaction.categoria?.nome ?? transactionKindLabel[transaction.tipo]} · ${formatDueLabel(transaction.data, today)}`
+        : `Agendado · ${formatDueLabel(transaction.data, today)}`,
+      date: transaction.data,
+      amount: transaction.valor,
       to: paths.transactions,
     });
   }

@@ -59,7 +59,7 @@ export function BudgetPage() {
     try {
       if (editing) {
         await budgetService.update(editing.id, payload);
-        toast.success('Limite atualizado', editing.category.name);
+        toast.success('Limite atualizado', editing.category.nome);
       } else {
         await budgetService.create(payload);
         toast.success('Limite definido', 'O orçamento vale a partir deste mês.');
@@ -79,7 +79,7 @@ export function BudgetPage() {
 
     try {
       await budgetService.remove(removing.budget.id);
-      toast.success('Limite excluído', removing.budget.category.name);
+      toast.success('Limite excluído', removing.budget.category.nome);
       setRemoving(null);
       reload();
     } catch (deleteError) {
@@ -177,7 +177,7 @@ export function BudgetPage() {
                 label: 'Fora do orçamento',
                 value: (
                   <Amount
-                    value={overview.unplanned.reduce((total, item) => total + item.amount, 0)}
+                    value={overview.unplanned.reduce((total, item) => total + item.valor, 0)}
                     tone="muted"
                     countUp
                   />
@@ -252,14 +252,14 @@ export function BudgetPage() {
               <CardBody>
                 <ul className={styles.unplanned}>
                   {overview.unplanned.map((entry) => (
-                    <li key={entry.category.id} className={styles.unplannedItem}>
+                    <li key={entry.categoria.id} className={styles.unplannedItem}>
                       <span
                         className={styles.marker}
-                        style={{ backgroundColor: `var(--chart-${entry.category.colorToken})` }}
+                        style={{ backgroundColor: `var(--chart-${entry.categoria.tokenCor})` }}
                         aria-hidden="true"
                       />
-                      <span className={styles.unplannedName}>{entry.category.name}</span>
-                      <Amount value={entry.amount} size="sm" tone="muted" />
+                      <span className={styles.unplannedName}>{entry.categoria.nome}</span>
+                      <Amount value={entry.valor} size="sm" tone="muted" />
                     </li>
                   ))}
                 </ul>
@@ -290,7 +290,7 @@ export function BudgetPage() {
       >
         {removing ? (
           <>
-            <strong className={styles.confirmTitle}>{removing.budget.category.name}</strong>
+            <strong className={styles.confirmTitle}>{removing.budget.category.nome}</strong>
             <span className={styles.confirmMeta}>Limite mensal</span>
             <Amount value={removing.budget.limit} />
           </>

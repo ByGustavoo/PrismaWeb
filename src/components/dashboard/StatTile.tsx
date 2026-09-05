@@ -1,14 +1,14 @@
 import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Amount, DeltaIndicator } from '@/components/common';
-import type { Delta } from '@/types';
+import type { Variacao } from '@/types';
 import styles from './StatTile.module.css';
 
 interface StatTileProps {
   label: string;
   value: number;
   icon: LucideIcon;
-  delta?: Delta;
+  delta?: Variacao;
   footnote?: ReactNode;
 }
 

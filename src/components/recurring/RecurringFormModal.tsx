@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Amount } from '@/components/common';
 import { Button, DatePicker, Input, Modal, Select, Textarea } from '@/components/ui';
 import { monthlyOccurrences, recurrenceFrequencies, recurrenceLabel, recurringStatusLabel, recurringStatuses } from '@/constants/recurring';
-import type { Category, Option, PaymentSource, RecurrenceFrequency, RecurringExpense, RecurringPayload, RecurringStatus } from '@/types';
+import type { Categoria, Option, PaymentSource, RecurrenceFrequency, RecurringExpense, RecurringPayload, RecurringStatus } from '@/types';
 import { todayISO } from '@/utils/date';
 import { parseAmountInput, toAmountInput } from '@/utils/format';
 import styles from './RecurringForm.module.css';
@@ -11,7 +11,7 @@ interface RecurringFormModalProps {
   open: boolean;
   /** Presente apenas na edicao. */
   expense: RecurringExpense | null;
-  categories: Category[];
+  categories: Categoria[];
   sources: PaymentSource[];
   saving: boolean;
   onSubmit: (payload: RecurringPayload) => void;
@@ -96,7 +96,7 @@ export function RecurringFormModal({
   }, [open, expense]);
 
   const categoryOptions = useMemo<Option[]>(
-    () => categories.filter((item) => item.kind === 'DESPESA').map((item) => ({ value: item.id, label: item.name })),
+    () => categories.filter((item) => item.tipo === 'DESPESA').map((item) => ({ value: item.id, label: item.nome })),
     [categories],
   );
 

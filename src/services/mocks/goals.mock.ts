@@ -7,7 +7,7 @@ import type {
   GoalStatus,
   GoalTracking,
   GoalsSummary,
-  Trend,
+  Tendencia,
 } from '@/types';
 import { fold } from '@/utils/format';
 import { goals } from './data';
@@ -57,7 +57,7 @@ function insightOf(
   return current < average ? 'ABAIXO_DA_MEDIA' : 'ACIMA_DA_MEDIA';
 }
 
-function trendOf(change: number, initial: number): Trend {
+function trendOf(change: number, initial: number): Tendencia {
   if (initial <= 0) return 'ESTAVEL';
   if (Math.abs(change / initial) <= GOAL_STABLE_THRESHOLD) return 'ESTAVEL';
   return change > 0 ? 'ALTA' : 'BAIXA';

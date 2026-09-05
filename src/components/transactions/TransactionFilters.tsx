@@ -5,7 +5,7 @@ import { Button, DatePicker, Input, Select } from '@/components/ui';
 import { LOCALE } from '@/constants/app';
 import { transactionKindPluralLabel, transactionStatusLabel } from '@/constants/transactions';
 import { useIsCompact } from '@/hooks/useMediaQuery';
-import type { Option, Transaction } from '@/types';
+import type { Option, Lancamento } from '@/types';
 import { cn } from '@/utils/cn';
 import { ALL, hasActiveFilters, periodOptions } from './query';
 import type { TransactionQuery } from './query';
@@ -16,7 +16,7 @@ interface TransactionFiltersProps {
   onChange: (patch: Partial<TransactionQuery>) => void;
   onClear: () => void;
   /** Lista completa da tela: as opcoes saem dela, nunca de um cadastro fixo. */
-  source: Transaction[];
+  source: Lancamento[];
   /** Escondido nas telas que ja sao de um tipo so. */
   showKindFilter: boolean;
   /** Escondido em Transferencias, onde nenhum lancamento tem categoria. */
@@ -65,7 +65,7 @@ export function TransactionFilters({
   const categoryOptions = useMemo(
     () =>
       toOptions(
-        source.flatMap((item) => (item.category ? [[item.category.id, item.category.name] as [string, string]] : [])),
+        source.flatMap((item) => (item.categoria ? [[item.categoria.id, item.categoria.nome] as [string, string]] : [])),
         'Todas as categorias',
       ),
     [source],
@@ -75,8 +75,8 @@ export function TransactionFilters({
     () =>
       toOptions(
         source.flatMap((item) => {
-          const entries: Array<[string, string]> = [[item.accountId, item.accountName]];
-          if (item.toAccountId && item.toAccountName) entries.push([item.toAccountId, item.toAccountName]);
+          const entries: Array<[string, string]> = [[item.idOrigem, item.nomeOrigem]];
+          if (item.idContaDestino && item.nomeContaDestino) entries.push([item.idContaDestino, item.nomeContaDestino]);
           return entries;
         }),
         'Todas as contas',

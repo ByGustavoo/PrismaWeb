@@ -7,30 +7,30 @@ let sequence = recurringExpenses.length;
 function findIndexOrThrow(id: string): number {
   const index = recurringExpenses.findIndex((item) => item.id === id);
   if (index < 0) {
-    throw new ApiError('Despesa recorrente não encontrada.', 404, 'not_found');
+    throw new ApiError('Despesa recorrente não encontrada.', 404, 'nao_encontrado');
   }
   return index;
 }
 
 function resolve(payload: RecurringPayload): Omit<RecurringExpense, 'id'> {
   if (payload.description.trim().length < 2) {
-    throw new ApiError('Informe a descrição da despesa.', 422, 'validation_error');
+    throw new ApiError('Informe a descrição da despesa.', 422, 'erro_validacao');
   }
   if (!Number.isFinite(payload.amount) || payload.amount <= 0) {
-    throw new ApiError('Informe um valor maior que zero.', 422, 'validation_error');
+    throw new ApiError('Informe um valor maior que zero.', 422, 'erro_validacao');
   }
   if (!payload.nextDueDate) {
-    throw new ApiError('Informe a data do próximo vencimento.', 422, 'validation_error');
+    throw new ApiError('Informe a data do próximo vencimento.', 422, 'erro_validacao');
   }
 
   const source = findPaymentSource(payload.accountId);
   if (!source) {
-    throw new ApiError('Escolha a conta ou o cartão que paga esta despesa.', 422, 'validation_error');
+    throw new ApiError('Escolha a conta ou o cartão que paga esta despesa.', 422, 'erro_validacao');
   }
 
   const category = categories.find((item) => item.id === payload.categoryId) ?? null;
-  if (category && category.kind !== 'DESPESA') {
-    throw new ApiError('Escolha uma categoria de despesa.', 422, 'validation_error');
+  if (category && category.tipo !== 'DESPESA') {
+    throw new ApiError('Escolha uma categoria de despesa.', 422, 'erro_validacao');
   }
 
   return {

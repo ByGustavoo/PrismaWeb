@@ -1,7 +1,7 @@
 import { Area, AreaChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { ChartTooltip } from '@/components/charts';
 import { useChartPalette } from '@/hooks/useChartPalette';
-import type { GoalPriceEntry, Trend } from '@/types';
+import type { GoalPriceEntry, Tendencia } from '@/types';
 import { formatCompactCurrency, formatNumericDate } from '@/utils/format';
 import styles from './PriceHistoryChart.module.css';
 
@@ -9,7 +9,7 @@ interface PriceHistoryChartProps {
   /** Registros em ordem cronologica. */
   history: GoalPriceEntry[];
   averagePrice: number;
-  trend: Trend;
+  trend: Tendencia;
 }
 
 /** "2026-09-04" -> "04/09", o rotulo curto do eixo. */

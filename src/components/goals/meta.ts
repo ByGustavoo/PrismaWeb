@@ -1,6 +1,6 @@
 import type { AmountTone } from '@/components/common';
 import type { BadgeTone } from '@/components/ui';
-import type { GoalInsight, Trend } from '@/types';
+import type { GoalInsight, Tendencia } from '@/types';
 
 /**
  * Aqui a cor nao segue a direcao do numero, e sim a noticia para quem pretende
@@ -12,14 +12,14 @@ import type { GoalInsight, Trend } from '@/types';
  * digam a mesma coisa: nao existe seta para baixo em verde sem a palavra que a
  * explica.
  */
-export function priceTone(trend: Trend): AmountTone {
+export function priceTone(trend: Tendencia): AmountTone {
   if (trend === 'BAIXA') return 'positive';
   if (trend === 'ALTA') return 'negative';
   return 'muted';
 }
 
 /** Verbo da variacao, no passado: e o que ja aconteceu com o preco. */
-export const priceTrendLabel: Record<Trend, string> = {
+export const priceTrendLabel: Record<Tendencia, string> = {
   BAIXA: 'Baixou',
   ALTA: 'Subiu',
   ESTAVEL: 'Estável',

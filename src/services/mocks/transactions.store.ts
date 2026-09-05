@@ -1,5 +1,5 @@
 import { ApiError } from '@/api';
-import type { Transaction, TransactionPayload } from '@/types';
+import type { Lancamento, LancamentoPayload } from '@/types';
 import { categories, findPaymentSource, transactions } from './data';
 
 /**
@@ -22,7 +22,7 @@ function nextId(): string {
 function findIndexOrThrow(id: string): number {
   const index = transactions.findIndex((item) => item.id === id);
   if (index < 0) {
-    throw new ApiError('Lançamento não encontrado.', 404, 'not_found');
+    throw new ApiError('Lançamento não encontrado.', 404, 'nao_encontrado');
   }
   return index;
 }
@@ -31,59 +31,59 @@ function findIndexOrThrow(id: string): number {
  * Traduz o payload (so ids) no registro completo que a API devolveria, com
  * nome de conta e categoria ja resolvidos.
  */
-function resolve(payload: TransactionPayload): Omit<Transaction, 'id'> {
-  const source = findPaymentSource(payload.accountId);
+function resolve(payload: LancamentoPayload): Omit<Lancamento, 'id'> {
+  const source = findPaymentSource(payload.idOrigem);
   if (!source) {
-    throw new ApiError('A conta informada não existe.', 422, 'validation_error');
+    throw new ApiError('A conta informada não existe.', 422, 'erro_validacao');
   }
 
-  const destination = payload.toAccountId ? findPaymentSource(payload.toAccountId) : undefined;
+  const destination = payload.idContaDestino ? findPaymentSource(payload.idContaDestino) : undefined;
 
-  if (payload.kind === 'TRANSFERENCIA') {
+  if (payload.tipo === 'TRANSFERENCIA') {
     if (!destination) {
-      throw new ApiError('A conta de destino informada não existe.', 422, 'validation_error');
+      throw new ApiError('A conta de destino informada não existe.', 422, 'erro_validacao');
     }
     if (destination.id === source.id) {
-      throw new ApiError('A conta de destino precisa ser diferente da origem.', 422, 'validation_error');
+      throw new ApiError('A conta de destino precisa ser diferente da origem.', 422, 'erro_validacao');
     }
   }
 
   // Transferencia nao entra em receita nem em despesa, entao tambem nao tem categoria.
   const category =
-    payload.kind === 'TRANSFERENCIA'
+    payload.tipo === 'TRANSFERENCIA'
       ? null
-      : categories.find((item) => item.id === payload.categoryId) ?? null;
+      : categories.find((item) => item.id === payload.idCategoria) ?? null;
 
-  if (payload.kind !== 'TRANSFERENCIA' && !category) {
-    throw new ApiError('A categoria informada não existe.', 422, 'validation_error');
+  if (payload.tipo !== 'TRANSFERENCIA' && !category) {
+    throw new ApiError('A categoria informada não existe.', 422, 'erro_validacao');
   }
 
   return {
-    description: payload.description.trim(),
-    amount: payload.amount,
-    kind: payload.kind,
-    status: payload.status,
-    method: payload.method,
-    date: payload.date,
-    category,
-    accountId: source.id,
-    accountName: source.name,
-    ...(destination && payload.kind === 'TRANSFERENCIA'
-      ? { toAccountId: destination.id, toAccountName: destination.name }
+    descricao: payload.descricao.trim(),
+    valor: payload.valor,
+    tipo: payload.tipo,
+    situacao: payload.situacao,
+    forma: payload.forma,
+    data: payload.data,
+    categoria: category,
+    idOrigem: source.id,
+    nomeOrigem: source.name,
+    ...(destination && payload.tipo === 'TRANSFERENCIA'
+      ? { idContaDestino: destination.id, nomeContaDestino: destination.name }
       : {}),
-    ...(payload.notes?.trim() ? { notes: payload.notes.trim() } : {}),
+    ...(payload.observacoes?.trim() ? { observacoes: payload.observacoes.trim() } : {}),
   };
 }
 
-export function createTransaction(payload: TransactionPayload): Transaction {
-  const created: Transaction = { id: nextId(), ...resolve(payload) };
+export function createTransaction(payload: LancamentoPayload): Lancamento {
+  const created: Lancamento = { id: nextId(), ...resolve(payload) };
   transactions.unshift(created);
   return created;
 }
 
-export function updateTransaction(id: string, payload: TransactionPayload): Transaction {
+export function updateTransaction(id: string, payload: LancamentoPayload): Lancamento {
   const index = findIndexOrThrow(id);
-  const updated: Transaction = { id, ...resolve(payload) };
+  const updated: Lancamento = { id, ...resolve(payload) };
   transactions[index] = updated;
   return updated;
 }

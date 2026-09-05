@@ -2,21 +2,21 @@ import { ArrowDown, ArrowRight, ArrowUp, Trash2 } from 'lucide-react';
 import { Amount } from '@/components/common';
 import { Badge, Select } from '@/components/ui';
 import { transactionKindLabel, transactionStatusLabel } from '@/constants/transactions';
-import type { Option, Transaction } from '@/types';
+import type { Option, Lancamento } from '@/types';
 import { formatShortDate } from '@/utils/format';
 import { kindIcon, kindSign, kindTone, statusTone } from './meta';
 import type { SortDirection, SortField } from './query';
 import styles from './TransactionsList.module.css';
 
 interface TransactionsListProps {
-  transactions: Transaction[];
+  transactions: Lancamento[];
   sortField: SortField;
   sortDirection: SortDirection;
   onSort: (field: SortField) => void;
   /** Escondida em Transferencias, onde nenhum lancamento tem categoria. */
   showCategory: boolean;
-  onEdit: (transaction: Transaction) => void;
-  onDelete: (transaction: Transaction) => void;
+  onEdit: (transaction: Lancamento) => void;
+  onDelete: (transaction: Lancamento) => void;
 }
 
 const sortOptions: Option[] = [
@@ -70,62 +70,62 @@ export function TransactionsList({
 
       <ul className={styles.list}>
         {transactions.map((transaction) => {
-          const Icon = kindIcon[transaction.kind];
+          const Icon = kindIcon[transaction.tipo];
 
           return (
             <li key={transaction.id} className={styles.card}>
               <button type="button" className={styles.open} onClick={() => onEdit(transaction)}>
-                <span className="visually-hidden">Editar {transaction.description}</span>
+                <span className="visually-hidden">Editar {transaction.descricao}</span>
               </button>
 
               <div className={styles.content}>
                 <div className={styles.top}>
-                  <span className={`${styles.kindIcon} ${styles[transaction.kind]}`} aria-hidden="true">
+                  <span className={`${styles.kindIcon} ${styles[transaction.tipo]}`} aria-hidden="true">
                     <Icon size={15} strokeWidth={2} />
                   </span>
 
                   <span className={styles.text}>
-                    <span className={styles.description}>{transaction.description}</span>
+                    <span className={styles.description}>{transaction.descricao}</span>
                     <span className={styles.meta}>
-                      <span className="tabular">{formatShortDate(transaction.date)}</span>
+                      <span className="tabular">{formatShortDate(transaction.data)}</span>
                       <span className={styles.separator} aria-hidden="true">
                         ·
                       </span>
-                      {transaction.toAccountName ? (
+                      {transaction.nomeContaDestino ? (
                         <span className={styles.route}>
-                          {transaction.accountName}
+                          {transaction.nomeOrigem}
                           <ArrowRight size={12} strokeWidth={2} aria-hidden="true" />
-                          {transaction.toAccountName}
+                          {transaction.nomeContaDestino}
                         </span>
                       ) : (
-                        transaction.accountName
+                        transaction.nomeOrigem
                       )}
                     </span>
                   </span>
 
                   <Amount
-                    value={transaction.amount}
-                    tone={kindTone[transaction.kind]}
-                    sign={kindSign[transaction.kind]}
+                    value={transaction.valor}
+                    tone={kindTone[transaction.tipo]}
+                    sign={kindSign[transaction.tipo]}
                   />
                 </div>
 
-                {transaction.notes ? <p className={styles.notes}>{transaction.notes}</p> : null}
+                {transaction.observacoes ? <p className={styles.notes}>{transaction.observacoes}</p> : null}
 
                 <div className={styles.bottom}>
                   <span className={styles.tags}>
-                    {showCategory && transaction.category ? (
+                    {showCategory && transaction.categoria ? (
                       <span className={styles.category}>
                         <span
                           className={styles.categoryDot}
-                          style={{ backgroundColor: `var(--chart-${transaction.category.colorToken})` }}
+                          style={{ backgroundColor: `var(--chart-${transaction.categoria.tokenCor})` }}
                           aria-hidden="true"
                         />
-                        {transaction.category.name}
+                        {transaction.categoria.nome}
                       </span>
                     ) : null}
-                    <Badge tone={statusTone[transaction.status]} dot>
-                      {transactionStatusLabel[transaction.status]}
+                    <Badge tone={statusTone[transaction.situacao]} dot>
+                      {transactionStatusLabel[transaction.situacao]}
                     </Badge>
                     {/*
                       Receita e despesa ja se anunciam pelo "+" e pelo "-" do
@@ -133,15 +133,15 @@ export function TransactionsList({
                       uma segunda quebra. A transferencia, que sai sem sinal,
                       continua nomeada.
                     */}
-                    {transaction.kind === 'TRANSFERENCIA' ? (
-                      <span className={styles.kindLabel}>{transactionKindLabel[transaction.kind]}</span>
+                    {transaction.tipo === 'TRANSFERENCIA' ? (
+                      <span className={styles.kindLabel}>{transactionKindLabel[transaction.tipo]}</span>
                     ) : null}
                   </span>
 
                   <button
                     type="button"
                     className={styles.delete}
-                    aria-label={`Excluir ${transaction.description}`}
+                    aria-label={`Excluir ${transaction.descricao}`}
                     onClick={() => onDelete(transaction)}
                   >
                     <Trash2 size={16} strokeWidth={2} />

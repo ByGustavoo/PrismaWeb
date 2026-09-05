@@ -4,7 +4,7 @@
  */
 export const endpoints = {
   dashboard: {
-    summary: '/dashboard/summary',
+    resumo: '/dashboard/resumo',
   },
   transactions: {
     list: '/transactions',

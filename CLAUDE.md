@@ -68,11 +68,11 @@ Estas sao as invariantes do projeto. Quebra-las e o erro mais caro que se pode c
 
    ```ts
    export const dashboardService = {
-     getSummary(signal?: AbortSignal): Promise<DashboardSummary> {
+     getSummary(signal?: AbortSignal): Promise<ResumoDashboard> {
        if (env.useMocks) {
          return mockResponse(buildDashboardSummary(), signal);
        }
-       return httpClient.get<DashboardSummary>(endpoints.dashboard.summary, { signal });
+       return httpClient.get<ResumoDashboard>(endpoints.dashboard.resumo, { signal });
      },
    };
    ```
@@ -91,6 +91,16 @@ Estas sao as invariantes do projeto. Quebra-las e o erro mais caro que se pode c
 
 6. **Contratos de dominio em `src/types/finance.ts`.** Sao o contrato esperado do backend futuro;
    mudar um tipo la e uma decisao de API, nao um detalhe de tela.
+
+   **O contrato e escrito em portugues**, como o esquema: rota e query param em minusculas sem
+   acento (`/dashboard/resumo?de=&ate=`), campo de JSON em camelCase sem acento (`saldoAtual`,
+   `tokenCor`, `dataVencimento`) e valor de enum em MAIUSCULAS (`RECEITA`, `CARTAO_CREDITO`). O
+   banco continua em snake_case e a traducao acontece uma vez so, no mapeamento da entidade JPA.
+   Hoje estao migrados o resumo do dashboard, `Categoria` e `Lancamento` — os tres que o
+   `docs/api/pdf/01-dashboard-resumo.pdf` documenta. Os demais dominios seguem em ingles ate cada
+   um ganhar o seu documento: migrar sem documento e decidir no escuro o nome que o backend teria
+   de honrar depois. Ao migrar um dominio, lembre que `dataKey` do Recharts e string e nao passa
+   pelo compilador.
 
 7. **Nada de `<select>` nem de `<input type="date">` nativos.** O navegador desenha a lista do elemento nativo com as cores do
    sistema e ignora os tokens, o que deixa as opcoes ilegiveis no tema escuro. Campos de escolha
@@ -275,16 +285,16 @@ como pago seria incoerente, e os itens pendentes e agendados ja vem da lista esc
 janela de mesmo tamanho imediatamente anterior, no lugar dos percentuais fixos que existiam antes.
 O saldo de um mes passado e reconstruido a partir dos saldos de hoje, desfazendo o que entrou e
 saiu depois daquela data. Nessa conta a transferencia so pesa quando cruza a fronteira do total:
-o aporte na corretora, que fica fora de `includeInTotal`, reduz o saldo visivel, enquanto uma
+o aporte na corretora, que fica fora de `incluirNoTotal`, reduz o saldo visivel, enquanto uma
 transferencia entre duas contas do total nao muda nada.
 
-O contrato de escrita e `TransactionPayload`: o cliente manda ids (`accountId`, `categoryId`,
-`toAccountId`) e quem resolve nome de conta e de categoria e o servidor. O store tambem devolve
+O contrato de escrita e `LancamentoPayload`: o cliente manda ids (`idOrigem`, `idCategoria`,
+`idContaDestino`) e quem resolve nome de conta e de categoria e o servidor. O store tambem devolve
 `ApiError` nos casos invalidos, com o mesmo formato do `httpClient`, para que a tela ja trate erro
 como tratara contra a API real.
 
-**Transferencia nao e receita nem despesa.** Ela tem `category: null`, carrega `toAccountId` e fica
-fora do total do periodo (`netTotal`) e de `spendingByCategory`: o dinheiro so troca de conta e nao
+**Transferencia nao e receita nem despesa.** Ela tem `categoria: null`, carrega `idContaDestino` e
+fica fora do total do periodo (`netTotal`) e de `gastoPorCategoria`: o dinheiro so troca de conta e nao
 altera o patrimonio. Por isso a tela de Transferencias esconde a coluna e o filtro de categoria —
 seriam um traco em toda linha.
 

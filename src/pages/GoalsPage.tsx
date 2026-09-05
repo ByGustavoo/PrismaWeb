@@ -18,12 +18,12 @@ import { goalStatusToast } from '@/constants/goals';
 import { useAsyncData } from '@/hooks/useAsyncData';
 import { useToast } from '@/providers/ToastProvider';
 import { goalsService } from '@/services';
-import type { Goal, GoalPricePayload, GoalStatus, GoalTracking, Trend } from '@/types';
+import type { Goal, GoalPricePayload, GoalStatus, GoalTracking, Tendencia } from '@/types';
 import { formatPercent } from '@/utils/format';
 import styles from './GoalsPage.module.css';
 
 /** Direcao do conjunto: barateou, encareceu ou nao se moveu. */
-function totalTrend(change: number, base: number): Trend {
+function totalTrend(change: number, base: number): Tendencia {
   if (base <= 0 || Math.abs(change / base) <= 0.005) return 'ESTAVEL';
   return change > 0 ? 'ALTA' : 'BAIXA';
 }

@@ -6,7 +6,7 @@ import {
   transactionStatusLabel,
   transactionStatuses,
 } from '@/constants/transactions';
-import type { Category, Option, PaymentMethod, PaymentSource, Transaction, TransactionPayload, TransactionStatus } from '@/types';
+import type { Categoria, Option, FormaPagamento, PaymentSource, Lancamento, LancamentoPayload, SituacaoLancamento } from '@/types';
 import { todayISO } from '@/utils/date';
 import { parseAmountInput, toAmountInput } from '@/utils/format';
 import styles from './TransactionForm.module.css';
@@ -16,11 +16,11 @@ interface TransactionFormModalProps {
   /** Transferencia tem formulario proprio; aqui so entra receita ou despesa. */
   kind: 'RECEITA' | 'DESPESA';
   /** Presente apenas na edicao. */
-  transaction: Transaction | null;
-  categories: Category[];
+  transaction: Lancamento | null;
+  categories: Categoria[];
   sources: PaymentSource[];
   saving: boolean;
-  onSubmit: (payload: TransactionPayload) => void;
+  onSubmit: (payload: LancamentoPayload) => void;
   onClose: () => void;
 }
 
@@ -30,23 +30,23 @@ interface FormState {
   date: string;
   categoryId: string;
   accountId: string;
-  method: PaymentMethod;
-  status: TransactionStatus;
+  method: FormaPagamento;
+  status: SituacaoLancamento;
   notes: string;
 }
 
 type FormErrors = Partial<Record<keyof FormState, string>>;
 
-function initialState(transaction: Transaction | null): FormState {
+function initialState(transaction: Lancamento | null): FormState {
   return {
-    description: transaction?.description ?? '',
-    amount: transaction ? toAmountInput(transaction.amount) : '',
-    date: transaction?.date ?? todayISO(),
-    categoryId: transaction?.category?.id ?? '',
-    accountId: transaction?.accountId ?? '',
-    method: transaction?.method ?? 'CONTA',
-    status: transaction?.status ?? 'PAGO',
-    notes: transaction?.notes ?? '',
+    description: transaction?.descricao ?? '',
+    amount: transaction ? toAmountInput(transaction.valor) : '',
+    date: transaction?.data ?? todayISO(),
+    categoryId: transaction?.categoria?.id ?? '',
+    accountId: transaction?.idOrigem ?? '',
+    method: transaction?.forma ?? 'CONTA',
+    status: transaction?.situacao ?? 'PAGO',
+    notes: transaction?.observacoes ?? '',
   };
 }
 
@@ -110,7 +110,7 @@ export function TransactionFormModal({
   const isExpense = kind === 'DESPESA';
 
   const categoryOptions = useMemo<Option[]>(
-    () => categories.filter((item) => item.kind === kind).map((item) => ({ value: item.id, label: item.name })),
+    () => categories.filter((item) => item.tipo === kind).map((item) => ({ value: item.id, label: item.nome })),
     [categories, kind],
   );
 
@@ -146,15 +146,15 @@ export function TransactionFormModal({
     }
 
     onSubmit({
-      description: form.description,
-      amount: parseAmountInput(form.amount) ?? 0,
-      kind,
-      status: form.status,
-      method: form.method,
-      date: form.date,
-      categoryId: form.categoryId,
-      accountId: form.accountId,
-      notes: form.notes,
+      descricao: form.description,
+      valor: parseAmountInput(form.amount) ?? 0,
+      tipo: kind,
+      situacao: form.status,
+      forma: form.method,
+      data: form.date,
+      idCategoria: form.categoryId,
+      idOrigem: form.accountId,
+      observacoes: form.notes,
     });
   };
 
@@ -246,7 +246,7 @@ export function TransactionFormModal({
             label="Forma de pagamento"
             options={methodOptions}
             value={form.method}
-            onChange={(method) => set('method', method as PaymentMethod)}
+            onChange={(method) => set('method', method as FormaPagamento)}
           />
         ) : null}
 
@@ -254,7 +254,7 @@ export function TransactionFormModal({
           label="Situação"
           options={statusOptions}
           value={form.status}
-          onChange={(status) => set('status', status as TransactionStatus)}
+          onChange={(status) => set('status', status as SituacaoLancamento)}
           hint={form.status === 'PAGO' ? 'Já entrou ou saiu da conta.' : 'Ainda não afetou o saldo.'}
         />
 

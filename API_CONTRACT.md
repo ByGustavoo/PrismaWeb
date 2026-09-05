@@ -67,27 +67,27 @@ Toda resposta de erro deve ter este corpo:
 
 ```json
 {
-  "message": "Já existe uma conta com esse nome nessa instituição.",
-  "code": "conflict",
-  "errors": { "name": "duplicado" }
+  "mensagem": "Já existe uma conta com esse nome nessa instituição.",
+  "codigo": "conflito",
+  "erros": { "nome": "duplicado" }
 }
 ```
 
 | Campo | Obrigatório | Descrição |
 | --- | --- | --- |
-| `message` | sim | Frase em português, pronta para ser exibida ao usuário. **É este texto que aparece no toast da tela** — o frontend não traduz nem reescreve mensagem de erro do servidor. |
-| `code` | não | Código estável para tratamento programático. Sem ele, o cliente assume `http_error`. |
-| `errors` | não | Detalhamento livre (por exemplo, um mapa campo → problema). Fica disponível em `ApiError.details`; hoje nenhuma tela o consome. |
+| `mensagem` | sim | Frase em português, pronta para ser exibida ao usuário. **É este texto que aparece no toast da tela** — o frontend não traduz nem reescreve mensagem de erro do servidor. |
+| `codigo` | não | Código estável para tratamento programático. Sem ele, o cliente assume `erro_http`. |
+| `erros` | não | Detalhamento livre (por exemplo, um mapa campo → problema). Fica disponível em `ApiError.details`; hoje nenhuma tela o consome. |
 
 ### Status esperados
 
-| Status | `code` sugerido | Quando |
+| Status | `codigo` sugerido | Quando |
 | --- | --- | --- |
-| `400` | `bad_request` | Corpo malformado ou parâmetro impossível de interpretar. |
-| `404` | `not_found` | Id inexistente numa rota `/{id}`. |
-| `409` | `conflict` | A operação é válida mas conflita com o estado atual (duplicidade, exclusão de registro com histórico). |
-| `422` | `validation_error` | Corpo bem formado, mas com valor recusado pela regra de negócio. **É o status usado por toda validação deste contrato.** |
-| `500` | `server_error` | Falha inesperada. |
+| `400` | `requisicao_invalida` | Corpo malformado ou parâmetro impossível de interpretar. |
+| `404` | `nao_encontrado` | Id inexistente numa rota `/{id}`. |
+| `409` | `conflito` | A operação é válida mas conflita com o estado atual (duplicidade, exclusão de registro com histórico). |
+| `422` | `erro_validacao` | Corpo bem formado, mas com valor recusado pela regra de negócio. **É o status usado por toda validação deste contrato.** |
+| `500` | `erro_servidor` | Falha inesperada. |
 
 > **Sobre as mensagens.** As frases citadas em cada seção são as que o frontend já exibe hoje, vindas
 > da camada mockada. Reproduzi-las no backend mantém a experiência idêntica depois da integração.
@@ -108,15 +108,15 @@ quebra a tela.
 
 | Enum | Valores | Onde aparece |
 | --- | --- | --- |
-| `TransactionKind` | `RECEITA`, `DESPESA`, `TRANSFERENCIA` | Lançamentos |
-| `TransactionStatus` | `PAGO`, `PENDENTE`, `AGENDADO` | Lançamentos |
-| `PaymentMethod` | `CONTA`, `CARTAO_CREDITO`, `PIX`, `DINHEIRO` | Lançamentos |
-| `CategoryKind` | `RECEITA`, `DESPESA` | Categorias |
+| `TipoLancamento` | `RECEITA`, `DESPESA`, `TRANSFERENCIA` | Lançamentos |
+| `SituacaoLancamento` | `PAGO`, `PENDENTE`, `AGENDADO` | Lançamentos |
+| `FormaPagamento` | `CONTA`, `CARTAO_CREDITO`, `PIX`, `DINHEIRO` | Lançamentos |
+| `TipoCategoria` | `RECEITA`, `DESPESA` | Categorias |
 | `AccountType` | `CORRENTE`, `SALARIO`, `EMERGENCIA`, `OUTRA` | Contas |
 | `AccountStatus` | `ATIVO`, `INATIVO` | Contas |
 | `CardType` | `CREDITO`, `DEBITO`, `VALE_ALIMENTACAO`, `VALE_REFEICAO` | Cartões |
 | `CardStatus` | `ATIVO`, `INATIVO` | Cartões |
-| `InvoiceStatus` | `FUTURA`, `ABERTA`, `FECHADA`, `PAGA`, `VENCIDA` | Faturas |
+| `SituacaoFatura` | `FUTURA`, `ABERTA`, `FECHADA`, `PAGA`, `VENCIDA` | Faturas |
 | `InstallmentStatus` | `PAGA`, `ATUAL`, `FUTURA` | Parcelas |
 | `InvestmentClass` | `RENDA_FIXA`, `CDB`, `TESOURO`, `ACOES`, `ETF`, `FUNDOS`, `CRIPTO`, `OUTROS` | Investimentos |
 | `BudgetStatus` | `SEGURO`, `ALERTA`, `ESTOURADO` | Orçamento |
@@ -126,19 +126,19 @@ quebra a tela.
 | `GoalInsight` | `PRIMEIRO`, `MENOR`, `ABAIXO_DA_MEDIA`, `ACIMA_DA_MEDIA`, `MAIOR`, `ESTAVEL` | Metas |
 | `AlertKind` | `FATURA_VENCENDO`, `CONTA_VENCENDO`, `LANCAMENTO_AGENDADO`, `LIMITE_CARTAO` | Avisos |
 | `AlertSeverity` | `CRITICO`, `ATENCAO`, `INFO` | Avisos |
-| `Trend` | `ALTA`, `BAIXA`, `ESTAVEL` | Variações |
+| `Tendencia` | `ALTA`, `BAIXA`, `ESTAVEL` | Variações |
 
 ### Objetos reaproveitados
 
 ```jsonc
-// Delta — variação contra o período anterior
-{ "percentage": 12.4, "trend": "ALTA" }   // percentage em pontos percentuais
+// Variacao — variação contra o período anterior
+{ "percentual": 12.4, "tendencia": "ALTA" }   // percentual em pontos percentuais
 
-// Category
-{ "id": "cat-moradia", "name": "Moradia", "kind": "DESPESA", "colorToken": 1 }
+// Categoria
+{ "id": "cat-moradia", "nome": "Moradia", "tipo": "DESPESA", "tokenCor": 1 }
 ```
 
-`colorToken` é um inteiro de **1 a 6** que escolhe a cor da categoria nos gráficos. Ele é atributo
+`tokenCor` é um inteiro de **1 a 6** que escolhe a cor da categoria nos gráficos. Ele é atributo
 da categoria, não da posição dela num ranking: se saísse da ordem, a mesma categoria mudaria de cor
 entre uma carga e outra. Duas categorias podem repetir o token; a cor não é identificador.
 
@@ -146,81 +146,98 @@ entre uma carga e outra. Duas categorias podem repetir o token; a cor não é id
 
 ## Dashboard
 
-### `GET /dashboard/summary`
+### `GET /dashboard/resumo`
 
 Resumo consolidado da tela inicial. É o endpoint mais pesado do contrato: ele devolve, de uma vez,
 os totais do período, as variações contra o período anterior e as quatro séries dos gráficos.
+
+> Documento detalhado deste endpoint: `docs/api/pdf/01-dashboard-resumo.pdf`, com as regras de
+> cálculo e a origem de cada campo no esquema. Em caso de divergência, ele é a fonte.
 
 **Query**
 
 | Parâmetro | Tipo | Obrigatório | Descrição |
 | --- | --- | --- | --- |
-| `from` | `YYYY-MM` | não | Primeiro mês do recorte. |
-| `to` | `YYYY-MM` | não | Último mês do recorte, inclusivo. Igual a `from` num recorte de mês único. |
+| `de` | `YYYY-MM` | não | Primeiro mês do recorte. |
+| `ate` | `YYYY-MM` | não | Último mês do recorte, inclusivo. Igual a `de` num recorte de mês único. |
 
-Sem os dois parâmetros, o servidor responde pelo **mês corrente**.
+Sem os dois parâmetros, o servidor responde pelo **mês corrente**. Os dois andam juntos: enviar só
+um é `400 requisicao_invalida`.
 
-**Resposta `200` — `DashboardSummary`**
+**Resposta `200` — `ResumoDashboard`**
 
 ```jsonc
 {
-  "from": "2026-09",
-  "to": "2026-09",
-  "currentBalance": 32860.95,
-  "balanceDelta": { "percentage": 20.2, "trend": "ALTA" },
-  "monthIncome": 10545.50,
-  "incomeDelta": { "percentage": -41.4, "trend": "BAIXA" },
-  "monthExpense": 4717.22,
-  "expenseDelta": { "percentage": -53.8, "trend": "BAIXA" },
-  "investmentsTotal": 114442.25,
-  "investmentsDelta": { "percentage": 7.8, "trend": "ALTA" },
-  "currentInvoice": {
+  "de": "2026-09",
+  "ate": "2026-09",
+  "saldoAtual": 32860.95,
+  "variacaoSaldo": { "percentual": 20.2, "tendencia": "ALTA" },
+  "receitasMes": 10545.50,
+  "variacaoReceitas": { "percentual": -41.4, "tendencia": "BAIXA" },
+  "despesasMes": 4717.22,
+  "variacaoDespesas": { "percentual": -53.8, "tendencia": "BAIXA" },
+  "totalInvestido": 114442.25,
+  "variacaoInvestimentos": { "percentual": 7.8, "tendencia": "ALTA" },
+  "faturaAtual": {
     "total": 2680.10,
-    "cardName": "Nova Platinum",
-    "dueDate": "2026-10-08",
-    "status": "ABERTA"
+    "nomeCartao": "Nova Platinum",
+    "dataVencimento": "2026-10-08",
+    "situacao": "ABERTA"
   },
-  "balanceHistory": [{ "label": "Abr", "balance": 21980.44 }],
-  "cashflow": [{ "label": "Abr", "income": 13100.00, "expense": 8420.30 }],
-  "dailySpending": [{ "date": "2026-04-01", "amount": 0 }],
-  "spendingByCategory": [
-    { "category": { "id": "cat-moradia", "name": "Moradia", "kind": "DESPESA", "colorToken": 1 },
-      "amount": 2898.62, "share": 0.61 }
+  "historicoSaldo": [{ "rotulo": "Abr", "saldo": 21980.44 }],
+  "fluxoCaixa": [{ "rotulo": "Abr", "receitas": 13100.00, "despesas": 8420.30 }],
+  "gastoDiario": [{ "data": "2026-04-01", "valor": 0 }],
+  "gastoPorCategoria": [
+    { "categoria": { "id": "cat-moradia", "nome": "Moradia", "tipo": "DESPESA", "tokenCor": 1 },
+      "valor": 2898.62, "participacao": 0.61 }
   ],
-  "recentTransactions": []
+  "lancamentosRecentes": []
 }
 ```
 
 **Regras**
 
-- **`from` e `to` na resposta ecoam o recorte efetivamente usado.** O frontend rotula os números
+- **`de` e `ate` na resposta ecoam o recorte efetivamente usado.** O frontend rotula os números
   com o que voltou, não com o que pediu: durante a troca de período os valores na tela ainda são
   os do recorte anterior, e "Saldo no fim de Agosto de 2026" sobre o saldo de setembro seria falso.
 - **As variações comparam com a janela de mesmo tamanho imediatamente anterior.** Um recorte de
-  três meses compara com os três meses anteriores, não com o mês anterior.
-- **`currentBalance` é o saldo no fim do recorte**, não o saldo de hoje. Num mês passado, é o saldo
+  três meses compara com os três meses anteriores, não com o mês anterior. Sem base de comparação
+  não há variação: `percentual: 0` e `tendencia: "ESTAVEL"`, nunca uma divisão por zero. `ESTAVEL`
+  também responde por toda variação dentro de ±0,05%.
+- **A situação do lançamento não filtra nada.** `PAGO`, `PENDENTE` e `AGENDADO` entram igualmente
+  em `receitasMes`, `despesasMes`, `saldoAtual` e em todas as séries. O dashboard responde "quanto
+  este período movimenta", não "quanto já foi liquidado".
+- **`saldoAtual` é o saldo no fim do recorte**, não o saldo de hoje. Num mês passado, é o saldo
   reconstruído naquela data: parta dos saldos de hoje e desfaça o que entrou e saiu depois. Nessa
   reconstrução, a transferência só pesa quando cruza a fronteira do total — um aporte para uma
   conta com `includeInTotal: false` reduz o saldo visível, enquanto uma transferência entre duas
-  contas que somam no total não muda nada.
-- **A janela dos gráficos nem sempre é o período.** Num recorte de **mês único**, `balanceHistory`,
-  `cashflow` e `dailySpending` trazem **seis meses**: o mês pedido e os cinco anteriores. Um mês
+  contas que somam no total não muda nada. No mês corrente o corte é **hoje**, não o dia 31; num
+  mês futuro, some o que está agendado até lá.
+- **A janela dos gráficos nem sempre é o período.** Num recorte de **mês único**, `historicoSaldo`,
+  `fluxoCaixa` e `gastoDiario` trazem **seis meses**: o mês pedido e os cinco anteriores. Um mês
   sozinho não desenha linha nenhuma. Num recorte de vários meses, a janela é o próprio recorte.
-  Já `currentBalance`, `monthIncome`, `monthExpense` e `spendingByCategory` respeitam sempre o
-  recorte pedido.
-- **`label` é o mês abreviado com inicial maiúscula**: `Jan`, `Fev`, `Mar`… O frontend imprime a
-  string como veio.
-- **`dailySpending` traz todos os dias da janela dos gráficos**, do primeiro ao último, em ordem
-  crescente. Dia sem gasto vem com `amount: 0`, e **não** ausente: o calendário precisa desenhar a
-  casa vazia, e uma sequência de dias sem gasto é informação, não buraco na série.
-- **Transferência não entra em `monthIncome`, `monthExpense` nem `spendingByCategory`.** O dinheiro
+  Já `saldoAtual`, `receitasMes`, `despesasMes` e `gastoPorCategoria` respeitam sempre o recorte
+  pedido.
+- **`rotulo` é o mês abreviado em pt-BR, com inicial maiúscula e sem ponto**: `Jan`, `Fev`, `Set`…
+  O frontend imprime a string como veio.
+- **`gastoDiario` traz todos os dias da janela dos gráficos**, do primeiro ao último, em ordem
+  crescente — inclusive os dias do mês corrente que ainda não chegaram, zerados. Dia sem gasto vem
+  com `valor: 0`, e **não** ausente: o calendário precisa desenhar a casa vazia, e uma sequência de
+  dias sem gasto é informação, não buraco na série.
+- **Transferência não entra em `receitasMes`, `despesasMes` nem `gastoPorCategoria`.** O dinheiro
   só troca de conta.
-- `spendingByCategory` vem ordenado do maior gasto para o menor; `share` é fração de 0 a 1 sobre o
-  total de despesas do período.
-- `recentTransactions` são os **seis** lançamentos mais recentes do recorte, do mais novo ao mais
-  antigo; no empate de data, por descrição. Mesmo formato de `Transaction`.
-- `currentInvoice` descreve a fatura em aberto do cartão de crédito de maior fatura. Sem cartão de
-  crédito cadastrado, devolva `total: 0` e `cardName` vazio.
+- `gastoPorCategoria` vem ordenado do maior gasto para o menor; `participacao` é fração de 0 a 1
+  sobre o total de despesas do período.
+- `lancamentosRecentes` são os **seis** lançamentos mais recentes do recorte, por data decrescente;
+  no empate, por descrição crescente na collation de `pt-BR`. Mesmo formato de `Lancamento`.
+- `faturaAtual` é a fatura do mês de `ate`, não a maior de todo o recorte: entre as daquele mês,
+  prefira as de situação `ABERTA` e escolha a de maior valor; não havendo nenhuma aberta, a de
+  maior valor entre as do mês. Sem nenhum cartão movimentado no mês, devolva `total: 0`,
+  `nomeCartao: "Nenhum cartão"`, o último dia do mês seguinte como `dataVencimento` e situação
+  `PAGA` para um mês passado ou `ABERTA` para o corrente. O objeto nunca vem `null` e
+  `nomeCartao` nunca vem vazio — a tela concatena nome e vencimento sem nenhuma guarda.
+- Um recorte válido **sem nenhum lançamento não é erro**: responda `200` com os totais zerados e as
+  séries preenchidas com zeros.
 
 ---
 
@@ -232,19 +249,19 @@ Sem os dois parâmetros, o servidor responde pelo **mês corrente**.
 
 | Parâmetro | Tipo | Obrigatório | Descrição |
 | --- | --- | --- | --- |
-| `kind` | `CategoryKind` | não | Sem ele, devolve todas. |
+| `tipo` | `TipoCategoria` | não | Sem ele, devolve todas. |
 
-**Resposta `200` — `Category[]`**
+**Resposta `200` — `Categoria[]`**
 
 ```json
-[{ "id": "cat-moradia", "name": "Moradia", "kind": "DESPESA", "colorToken": 1 }]
+[{ "id": "cat-moradia", "nome": "Moradia", "tipo": "DESPESA", "tokenCor": 1 }]
 ```
 
 **Regras**
 
 - Receita e despesa **não compartilham categoria**: cada formulário oferece apenas as do seu lado.
-  O filtro por `kind` é o que sustenta isso.
-- Ordem alfabética por `name`.
+  O filtro por `tipo` é o que sustenta isso.
+- Ordem alfabética por `nome`.
 - Categoria é hoje um catálogo fixo do servidor. Não há CRUD de categoria no frontend — se um dia
   houver, ele entra como um domínio novo.
 
@@ -253,7 +270,7 @@ Sem os dois parâmetros, o servidor responde pelo **mês corrente**.
 ## Lançamentos (receitas, despesas e transferências)
 
 As três telas (`/lancamentos/receitas`, `/lancamentos/despesas`, `/lancamentos/transferencias`)
-usam **o mesmo endpoint**, mudando apenas o parâmetro `kind`. Não crie rotas separadas por tipo.
+usam **o mesmo endpoint**, mudando apenas o parâmetro `tipo`. Não crie rotas separadas por tipo.
 
 ### `GET /transactions`
 
@@ -261,81 +278,82 @@ usam **o mesmo endpoint**, mudando apenas o parâmetro `kind`. Não crie rotas s
 
 | Parâmetro | Tipo | Descrição |
 | --- | --- | --- |
-| `kind` | `TransactionKind` | Tipo do lançamento. |
-| `search` | `string` | Casa com descrição, nome da categoria, nome da conta de origem ou de destino. Comparação **sem diferenciar maiúscula nem acento**: quem digita `saude` espera achar `Saúde`. |
-| `from` | `YYYY-MM-DD` | Início do período, inclusivo. |
-| `to` | `YYYY-MM-DD` | Fim do período, inclusivo. |
-| `categoryId` | `string` | Id da categoria. |
-| `accountId` | `string` | Casa com a conta de **origem** ou, em transferências, também com a de **destino**. |
-| `status` | `TransactionStatus` | Situação. |
+| `tipo` | `TipoLancamento` | Tipo do lançamento. |
+| `busca` | `string` | Casa com descrição, nome da categoria, nome da conta de origem ou de destino. Comparação **sem diferenciar maiúscula nem acento**: quem digita `saude` espera achar `Saúde`. |
+| `de` | `YYYY-MM-DD` | Início do período, inclusivo. |
+| `ate` | `YYYY-MM-DD` | Fim do período, inclusivo. |
+| `idCategoria` | `string` | Id da categoria. |
+| `idOrigem` | `string` | Casa com a conta de **origem** ou, em transferências, também com a de **destino**. |
+| `situacao` | `SituacaoLancamento` | Situação. |
 
-> Hoje a tela envia apenas `kind` e refina busca, período, categoria, conta, situação e ordenação
+> Hoje a tela envia apenas `tipo` e refina busca, período, categoria, conta, situação e ordenação
 > em memória, para responder a cada tecla sem uma nova ida ao servidor. Os demais parâmetros
 > existem no contrato porque são o que a API vai receber quando a base crescer o bastante para a
 > filtragem voltar ao servidor — implemente-os desde já.
 
-**Resposta `200` — `Transaction[]`**, do mais recente para o mais antigo.
+**Resposta `200` — `Lancamento[]`**, do mais recente para o mais antigo.
 
 ```jsonc
 {
   "id": "tx-1",
-  "description": "Salário",
-  "amount": 9800.00,
-  "kind": "RECEITA",
-  "status": "PAGO",
-  "method": "CONTA",
-  "date": "2026-09-03",
-  "category": { "id": "cat-salario", "name": "Salário", "kind": "RECEITA", "colorToken": 2 },
-  "accountId": "acc-1",
-  "accountName": "Conta corrente",
-  "toAccountId": null,      // só em transferências
-  "toAccountName": null,    // só em transferências
-  "notes": "Crédito mensal da folha."
+  "descricao": "Salário",
+  "valor": 9800.00,
+  "tipo": "RECEITA",
+  "situacao": "PAGO",
+  "forma": "CONTA",
+  "data": "2026-09-03",
+  "categoria": { "id": "cat-salario", "nome": "Salário", "tipo": "RECEITA", "tokenCor": 2 },
+  "idOrigem": "acc-1",
+  "nomeOrigem": "Conta corrente",
+  "idContaDestino": null,     // só em transferências
+  "nomeContaDestino": null,   // só em transferências
+  "observacoes": "Crédito mensal da folha."
 }
 ```
 
 ### `POST /transactions` · `PUT /transactions/{id}`
 
-**Corpo — `TransactionPayload`**
+**Corpo — `LancamentoPayload`**
 
 ```jsonc
 {
-  "description": "Supermercado",
-  "amount": 728.90,
-  "kind": "DESPESA",
-  "status": "PAGO",
-  "method": "CARTAO_CREDITO",
-  "date": "2026-09-02",
-  "categoryId": "cat-alimentacao",  // obrigatório fora de transferência
-  "accountId": "card-1",
-  "toAccountId": null,              // obrigatório em transferência
-  "notes": "Compra do mês"
+  "descricao": "Supermercado",
+  "valor": 728.90,
+  "tipo": "DESPESA",
+  "situacao": "PAGO",
+  "forma": "CARTAO_CREDITO",
+  "data": "2026-09-02",
+  "idCategoria": "cat-alimentacao",  // obrigatório fora de transferência
+  "idOrigem": "card-1",
+  "idContaDestino": null,            // obrigatório em transferência
+  "observacoes": "Compra do mês"
 }
 ```
 
-**Resposta `201` (POST) / `200` (PUT) — `Transaction`**
+**Resposta `201` (POST) / `200` (PUT) — `Lancamento`**
 
 **Regras e validações**
 
-- **O cliente manda ids; o servidor resolve os nomes.** `accountName`, `toAccountName` e o objeto
-  `category` inteiro são preenchidos pelo backend a partir de `accountId`, `toAccountId` e
-  `categoryId`. O frontend nunca envia nome.
-- `accountId` pode apontar para uma **conta** ou para um **cartão**. Origem de dinheiro é um
-  conceito único no produto (veja `GET /accounts/sources`).
-- `amount` é sempre positivo.
+- **O cliente manda ids; o servidor resolve os nomes.** `nomeOrigem`, `nomeContaDestino` e o objeto
+  `categoria` inteiro são preenchidos pelo backend a partir de `idOrigem`, `idContaDestino` e
+  `idCategoria`. O frontend nunca envia nome.
+- `idOrigem` pode apontar para uma **conta** ou para um **cartão**. Origem de dinheiro é um
+  conceito único no produto (veja `GET /accounts/sources`), e no banco são duas chaves
+  estrangeiras (`id_conta` e `id_cartao`) reunidas num campo só pelo `COALESCE`.
+- `valor` é sempre positivo; a direção do dinheiro vem de `tipo`, nunca do sinal.
 - **Transferência tem regras próprias:**
-  - `category` **deve** vir `null` na resposta, e `categoryId` é ignorado na entrada;
-  - `toAccountId` é obrigatório;
+  - `categoria` **deve** vir `null` na resposta, e `idCategoria` é ignorado na entrada;
+  - `idContaDestino` é obrigatório;
   - a conta de destino precisa ser diferente da origem;
   - ela **não entra** em receita, despesa, resultado do período nem gasto por categoria.
-- Validações, todas `422 validation_error`:
+- Validações, todas `422 erro_validacao`:
 
   | Situação | Mensagem |
   | --- | --- |
-  | `accountId` inexistente | `A conta informada não existe.` |
-  | `toAccountId` inexistente (transferência) | `A conta de destino informada não existe.` |
+  | `idOrigem` inexistente | `A conta informada não existe.` |
+  | `idContaDestino` inexistente (transferência) | `A conta de destino informada não existe.` |
   | Destino igual à origem | `A conta de destino precisa ser diferente da origem.` |
-  | `categoryId` inexistente fora de transferência | `A categoria informada não existe.` |
+  | `idCategoria` inexistente fora de transferência | `A categoria informada não existe.` |
 
 - `PUT` com id inexistente: `404` — `Lançamento não encontrado.`
 
@@ -406,7 +424,7 @@ Saldo negativo é aceito: conta no vermelho existe.
 **Resposta `204`.**
 
 **Regra — excluir não apaga histórico.** Se a conta tiver qualquer lançamento (como origem **ou**
-como destino de transferência), responda `409 conflict` com a mensagem, no plural correto:
+como destino de transferência), responda `409 conflito` com a mensagem, no plural correto:
 
 > `Esta conta tem 42 lançamentos no histórico. Marque-a como inativa para tirá-la do saldo sem apagar o passado.`
 
@@ -478,7 +496,7 @@ precisa **limpar** esses campos, e não preservar o valor anterior.
 ### `DELETE /cards/{id}`
 
 **Resposta `204`.** Mesma regra das contas: cartão com lançamentos **ou** com compra parcelada
-responde `409 conflict`:
+responde `409 conflito`:
 
 > `Este cartão tem 18 registros no histórico. Marque-o como inativo para tirá-lo dos lançamentos sem apagar o passado.`
 
@@ -528,7 +546,7 @@ frontend nunca envia uma fatura.
       "description": "Supermercado",
       "date": "2026-09-02",
       "amount": 728.90,
-      "category": { "id": "cat-alimentacao", "name": "Alimentação", "kind": "DESPESA", "colorToken": 4 },
+      "category": { "id": "cat-alimentacao", "nome": "Alimentação", "tipo": "DESPESA", "tokenCor": 4 },
       "installment": { "number": 3, "total": 12, "purchaseId": "inst-2" }
     }
   ]
@@ -587,7 +605,7 @@ calculados**:
     "firstMonth": "2026-04",
     "cardId": "card-1",
     "cardName": "Nova Platinum",
-    "category": { "id": "cat-outros", "name": "Outros", "kind": "DESPESA", "colorToken": 6 },
+    "category": { "id": "cat-outros", "nome": "Outros", "tipo": "DESPESA", "tokenCor": 6 },
     "notes": null
   },
   "installmentAmount": 500.00,
@@ -674,7 +692,7 @@ Carteira consolidada — é o que a tela mostra.
   "currentValue": 114442.25,
   "profit": 8442.25,
   "profitability": 0.0796,                                  // fração
-  "valueDelta": { "percentage": 1.4, "trend": "ALTA" },
+  "valueDelta": { "percentual": 1.4, "tendencia": "ALTA" },
   "allocation": [
     { "assetClass": "TESOURO", "invested": 20000.00, "currentValue": 22480.15,
       "profit": 2480.15, "share": 0.196, "count": 2 }
@@ -753,7 +771,7 @@ preciso expor um `GET /budgets`.
   "items": [
     {
       "budget": { "id": "bud-1",
-                  "category": { "id": "cat-alimentacao", "name": "Alimentação", "kind": "DESPESA", "colorToken": 4 },
+                  "category": { "id": "cat-alimentacao", "nome": "Alimentação", "tipo": "DESPESA", "tokenCor": 4 },
                   "limit": 1400.00 },
       "spent": 1419.70,
       "remaining": -19.70,
@@ -763,8 +781,8 @@ preciso expor um `GET /budgets`.
     }
   ],
   "unplanned": [
-    { "category": { "id": "cat-outros", "name": "Outros", "kind": "DESPESA", "colorToken": 6 },
-      "amount": 398.90, "share": 0.09 }
+    { "categoria": { "id": "cat-outros", "nome": "Outros", "tipo": "DESPESA", "tokenCor": 6 },
+      "valor": 398.90, "participacao": 0.09 }
   ]
 }
 ```
@@ -826,7 +844,7 @@ Devolve a lista **já consolidada** — note que a resposta é um objeto, não u
       "id": "rec-1",
       "description": "Aluguel",
       "amount": 2450.00,
-      "category": { "id": "cat-moradia", "name": "Moradia", "kind": "DESPESA", "colorToken": 1 },
+      "category": { "id": "cat-moradia", "nome": "Moradia", "tipo": "DESPESA", "tokenCor": 1 },
       "frequency": "MENSAL",
       "nextDueDate": "2026-09-05",
       "accountId": "acc-1",
@@ -1101,16 +1119,16 @@ chave `YYYY-MM`. Todo atalho da tela termina hoje.
   "income": 9800.00,
   "expense": 4268.60,
   "net": 5531.40,
-  "incomeDelta": { "percentage": 206.3, "trend": "ALTA" },
-  "expenseDelta": { "percentage": 314.3, "trend": "ALTA" },
+  "incomeDelta": { "percentual": 206.3, "tendencia": "ALTA" },
+  "expenseDelta": { "percentual": 314.3, "tendencia": "ALTA" },
   "transactionCount": 7,
   "expenseByCategory": [],
   "incomeByCategory": [],
-  "cashflow": [{ "label": "01/09", "income": 0, "expense": 690.80 }],
+  "cashflow": [{ "rotulo": "01/09", "receitas": 0, "despesas": 690.80 }],
   "expenseBySource": [
     { "id": "acc-1", "name": "Conta corrente", "group": "CONTA", "amount": 2450.00, "share": 0.57 }
   ],
-  "balanceHistory": [{ "label": "01/09", "balance": 27329.55 }],
+  "balanceHistory": [{ "rotulo": "01/09", "saldo": 27329.55 }],
   "netWorth": [
     { "month": "2026-04", "label": "Abr", "accounts": 21980.44, "investments": 98120.44, "total": 120100.88 }
   ]
@@ -1187,11 +1205,11 @@ chave `YYYY-MM`. Todo atalho da tela termina hoje.
 
 | # | Método | URL | Resposta | Domínio |
 | --- | --- | --- | --- | --- |
-| 1 | `GET` | `/dashboard/summary?from&to` | `DashboardSummary` | Dashboard |
-| 2 | `GET` | `/categories?kind` | `Category[]` | Categorias |
-| 3 | `GET` | `/transactions?kind&search&from&to&categoryId&accountId&status` | `Transaction[]` | Lançamentos |
-| 4 | `POST` | `/transactions` | `Transaction` | Lançamentos |
-| 5 | `PUT` | `/transactions/{id}` | `Transaction` | Lançamentos |
+| 1 | `GET` | `/dashboard/resumo?de&ate` | `ResumoDashboard` | Dashboard |
+| 2 | `GET` | `/categories?kind` | `Categoria[]` | Categorias |
+| 3 | `GET` | `/transactions?kind&search&from&to&categoryId&accountId&status` | `Lancamento[]` | Lançamentos |
+| 4 | `POST` | `/transactions` | `Lancamento` | Lançamentos |
+| 5 | `PUT` | `/transactions/{id}` | `Lancamento` | Lançamentos |
 | 6 | `DELETE` | `/transactions/{id}` | `204` | Lançamentos |
 | 7 | `GET` | `/accounts` | `Account[]` | Contas |
 | 8 | `GET` | `/accounts/sources` | `PaymentSource[]` | Contas |

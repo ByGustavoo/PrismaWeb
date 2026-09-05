@@ -8,7 +8,7 @@ import type {
   Invoice,
   InvoiceDetail,
   InvoiceItem,
-  InvoiceStatus,
+  SituacaoFatura,
 } from '@/types';
 import { fromMonthKey, monthKeyRange, monthsBetween, shiftMonthKey, todayISO } from '@/utils/date';
 import { cards, currentMonth, installmentPurchases, transactions } from './data';
@@ -148,17 +148,17 @@ function purchaseItems(card: Card, monthKey: string): InvoiceItem[] {
   return transactions
     .filter(
       (item) =>
-        item.accountId === card.id &&
-        item.kind === 'DESPESA' &&
-        item.date > previousClosing &&
-        item.date <= closing,
+        item.idOrigem === card.id &&
+        item.tipo === 'DESPESA' &&
+        item.data > previousClosing &&
+        item.data <= closing,
     )
     .map((item) => ({
       id: `item-${item.id}`,
-      description: item.description,
-      date: item.date,
-      amount: item.amount,
-      category: item.category,
+      description: item.descricao,
+      date: item.data,
+      amount: item.valor,
+      category: item.categoria,
     }));
 }
 
@@ -201,7 +201,7 @@ function invoiceItems(card: Card, monthKey: string): InvoiceItem[] {
  * fatura vencida e tratada como paga — o que interessa exercitar na tela e a
  * distincao entre o ciclo aberto, o fechado a pagar e o encerrado.
  */
-function invoiceStatus(closingDate: string, dueDate: string, isOpenCycle: boolean): InvoiceStatus {
+function invoiceStatus(closingDate: string, dueDate: string, isOpenCycle: boolean): SituacaoFatura {
   const today = todayISO();
   if (closingDate >= today) return isOpenCycle ? 'ABERTA' : 'FUTURA';
   return dueDate >= today ? 'FECHADA' : 'PAGA';
