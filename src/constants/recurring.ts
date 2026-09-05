@@ -2,24 +2,24 @@ import type { BadgeTone } from '@/components/ui';
 import type { RecurrenceFrequency, RecurringStatus } from '@/types';
 
 export const recurrenceLabel: Record<RecurrenceFrequency, string> = {
-  weekly: 'Semanal',
-  biweekly: 'Quinzenal',
-  monthly: 'Mensal',
-  bimonthly: 'Bimestral',
-  quarterly: 'Trimestral',
-  semiannual: 'Semestral',
-  yearly: 'Anual',
+  SEMANAL: 'Semanal',
+  QUINZENAL: 'Quinzenal',
+  MENSAL: 'Mensal',
+  BIMESTRAL: 'Bimestral',
+  TRIMESTRAL: 'Trimestral',
+  SEMESTRAL: 'Semestral',
+  ANUAL: 'Anual',
 };
 
 /** Ordem do seletor: da recorrencia mais frequente para a mais espacada. */
 export const recurrenceFrequencies: RecurrenceFrequency[] = [
-  'weekly',
-  'biweekly',
-  'monthly',
-  'bimonthly',
-  'quarterly',
-  'semiannual',
-  'yearly',
+  'SEMANAL',
+  'QUINZENAL',
+  'MENSAL',
+  'BIMESTRAL',
+  'TRIMESTRAL',
+  'SEMESTRAL',
+  'ANUAL',
 ];
 
 /**
@@ -29,47 +29,47 @@ export const recurrenceFrequencies: RecurrenceFrequency[] = [
  * 12) —, e nao 4, que subestimaria o custo em quase um mes por ano.
  */
 export const monthlyOccurrences: Record<RecurrenceFrequency, number> = {
-  weekly: 4.3452,
-  biweekly: 2.1726,
-  monthly: 1,
-  bimonthly: 1 / 2,
-  quarterly: 1 / 3,
-  semiannual: 1 / 6,
-  yearly: 1 / 12,
+  SEMANAL: 4.3452,
+  QUINZENAL: 2.1726,
+  MENSAL: 1,
+  BIMESTRAL: 1 / 2,
+  TRIMESTRAL: 1 / 3,
+  SEMESTRAL: 1 / 6,
+  ANUAL: 1 / 12,
 };
 
 /** Dias entre uma ocorrencia e a seguinte; usado para projetar vencimentos. */
 export const recurrenceStepDays: Record<RecurrenceFrequency, number> = {
-  weekly: 7,
-  biweekly: 14,
-  monthly: 0,
-  bimonthly: 0,
-  quarterly: 0,
-  semiannual: 0,
-  yearly: 0,
+  SEMANAL: 7,
+  QUINZENAL: 14,
+  MENSAL: 0,
+  BIMESTRAL: 0,
+  TRIMESTRAL: 0,
+  SEMESTRAL: 0,
+  ANUAL: 0,
 };
 
 /** Meses entre uma ocorrencia e a seguinte; zero nas recorrencias em dias. */
 export const recurrenceStepMonths: Record<RecurrenceFrequency, number> = {
-  weekly: 0,
-  biweekly: 0,
-  monthly: 1,
-  bimonthly: 2,
-  quarterly: 3,
-  semiannual: 6,
-  yearly: 12,
+  SEMANAL: 0,
+  QUINZENAL: 0,
+  MENSAL: 1,
+  BIMESTRAL: 2,
+  TRIMESTRAL: 3,
+  SEMESTRAL: 6,
+  ANUAL: 12,
 };
 
 export const recurringStatusLabel: Record<RecurringStatus, string> = {
-  active: 'Ativa',
-  paused: 'Pausada',
+  ATIVO: 'Ativa',
+  PAUSADO: 'Pausada',
 };
 
-export const recurringStatuses: RecurringStatus[] = ['active', 'paused'];
+export const recurringStatuses: RecurringStatus[] = ['ATIVO', 'PAUSADO'];
 
 export const recurringStatusTone: Record<RecurringStatus, BadgeTone> = {
-  active: 'positive',
-  paused: 'neutral',
+  ATIVO: 'positive',
+  PAUSADO: 'neutral',
 };
 
 /**

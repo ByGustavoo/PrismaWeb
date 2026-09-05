@@ -36,9 +36,9 @@ function initialState(account: Account | null): FormState {
   return {
     name: account?.name ?? '',
     institution: account?.institution ?? '',
-    type: account?.type ?? 'checking',
+    type: account?.type ?? 'CORRENTE',
     balance: account ? toAmountInput(account.balance) : '',
-    status: account?.status ?? 'active',
+    status: account?.status ?? 'ATIVO',
     includeInTotal: account?.includeInTotal ?? true,
   };
 }
@@ -97,7 +97,7 @@ export function AccountFormModal({ open, account, saving, onSubmit, onClose }: A
     });
   };
 
-  const inactive = form.status === 'inactive';
+  const inactive = form.status === 'INATIVO';
 
   return (
     <Modal

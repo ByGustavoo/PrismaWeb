@@ -101,15 +101,15 @@ export function buildInstallmentPlan(purchase: InstallmentPurchase): Installment
       amount,
       // A parcela deixa de ser cobranca futura quando a fatura dela vence: e o
       // unico marco que o mock conhece, ja que nao ha registro de pagamento.
-      status: dueDate < today ? 'paid' : 'upcoming',
+      status: dueDate < today ? 'PAGA' : 'FUTURA',
     };
   });
 
   // A primeira ainda nao vencida e a que esta em curso; as demais seguem futuras.
-  const current = schedule.find((item) => item.status !== 'paid') ?? null;
-  if (current) current.status = 'current';
+  const current = schedule.find((item) => item.status !== 'PAGA') ?? null;
+  if (current) current.status = 'ATUAL';
 
-  const paid = schedule.filter((item) => item.status === 'paid');
+  const paid = schedule.filter((item) => item.status === 'PAGA');
   const paidAmount = money(paid.reduce((total, item) => total + item.amount, 0));
 
   return {
@@ -149,7 +149,7 @@ function purchaseItems(card: Card, monthKey: string): InvoiceItem[] {
     .filter(
       (item) =>
         item.accountId === card.id &&
-        item.kind === 'expense' &&
+        item.kind === 'DESPESA' &&
         item.date > previousClosing &&
         item.date <= closing,
     )
@@ -203,8 +203,8 @@ function invoiceItems(card: Card, monthKey: string): InvoiceItem[] {
  */
 function invoiceStatus(closingDate: string, dueDate: string, isOpenCycle: boolean): InvoiceStatus {
   const today = todayISO();
-  if (closingDate >= today) return isOpenCycle ? 'open' : 'future';
-  return dueDate >= today ? 'closed' : 'paid';
+  if (closingDate >= today) return isOpenCycle ? 'ABERTA' : 'FUTURA';
+  return dueDate >= today ? 'FECHADA' : 'PAGA';
 }
 
 /** Ate onde as faturas vao: o horizonte fixo ou a ultima parcela, o que for maior. */
@@ -235,10 +235,10 @@ function buildCardInvoices(card: Card): Invoice[] {
     // O ciclo aberto e o primeiro que ainda nao fechou; os seguintes sao previstos.
     const isOpenCycle = !openFound && closingDate >= todayISO();
     const status = invoiceStatus(closingDate, dueDate, isOpenCycle);
-    if (status === 'open') openFound = true;
+    if (status === 'ABERTA') openFound = true;
 
     // Fatura futura sem nada dentro nao existe: so polui a lista com zeros.
-    if (items.length === 0 && (status === 'future' || status === 'paid')) continue;
+    if (items.length === 0 && (status === 'FUTURA' || status === 'PAGA')) continue;
 
     // A anterior e a ultima que entrou na lista, e nao a do mes -1: um mes sem
     // compra nenhuma nao vira fatura, e comparar com um buraco nao diz nada.
@@ -306,7 +306,7 @@ export function installmentTotalIn(monthKey: string): number {
 export function usedLimitOf(cardId: string): number {
   return money(
     buildInvoices(cardId)
-      .filter((invoice) => invoice.status !== 'paid')
+      .filter((invoice) => invoice.status !== 'PAGA')
       .reduce((total, invoice) => total + invoice.total, 0),
   );
 }

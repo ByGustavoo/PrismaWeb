@@ -36,7 +36,7 @@ const classOptions: Option[] = investmentClasses.map((assetClass) => ({
 function initialState(investment: Investment | null): FormState {
   return {
     name: investment?.name ?? '',
-    assetClass: investment?.assetClass ?? 'fixed-income',
+    assetClass: investment?.assetClass ?? 'RENDA_FIXA',
     institution: investment?.institution ?? '',
     invested: investment ? toAmountInput(investment.invested) : '',
     currentValue: investment ? toAmountInput(investment.currentValue) : '',

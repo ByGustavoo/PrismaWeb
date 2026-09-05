@@ -27,7 +27,7 @@ export function BudgetPage() {
 
   const fetchData = useCallback(
     (signal: AbortSignal) =>
-      Promise.all([budgetService.getOverview(month, signal), categoriesService.list('expense', signal)]),
+      Promise.all([budgetService.getOverview(month, signal), categoriesService.list('DESPESA', signal)]),
     [month],
   );
 

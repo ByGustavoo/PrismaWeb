@@ -23,7 +23,7 @@ export function RecurringPage() {
     (signal: AbortSignal) =>
       Promise.all([
         recurringService.getSummary(signal),
-        categoriesService.list('expense', signal),
+        categoriesService.list('DESPESA', signal),
         accountsService.listSources(signal),
       ]),
     [],
@@ -36,8 +36,8 @@ export function RecurringPage() {
   const sources = useMemo(() => data?.[2] ?? [], [data]);
 
   const items = useMemo(() => summary?.items ?? [], [summary]);
-  const activeCount = useMemo(() => items.filter((item) => item.status === 'active').length, [items]);
-  const nextDue = useMemo(() => items.find((item) => item.status === 'active'), [items]);
+  const activeCount = useMemo(() => items.filter((item) => item.status === 'ATIVO').length, [items]);
+  const nextDue = useMemo(() => items.find((item) => item.status === 'ATIVO'), [items]);
 
   const formOpen = creating || editing !== null;
 
@@ -79,12 +79,12 @@ export function RecurringPage() {
 
   /** Pausar e retomar sem abrir o formulario: e a operacao mais comum da tela. */
   const handleToggle = async (expense: RecurringExpense) => {
-    const status = expense.status === 'active' ? 'paused' : 'active';
+    const status = expense.status === 'ATIVO' ? 'PAUSADO' : 'ATIVO';
     setSaving(true);
 
     try {
       await recurringService.update(expense.id, { ...toPayload(expense), status });
-      toast.success(status === 'paused' ? 'Despesa pausada' : 'Despesa retomada', expense.description);
+      toast.success(status === 'PAUSADO' ? 'Despesa pausada' : 'Despesa retomada', expense.description);
       reload();
     } catch (toggleError) {
       toast.error('Não foi possível alterar a despesa', toggleError instanceof Error ? toggleError.message : undefined);

@@ -15,7 +15,7 @@ function money(value: number): number {
 }
 
 function expensesOfMonth(monthKey: string): Transaction[] {
-  return transactions.filter((item) => item.kind === 'expense' && item.date.startsWith(monthKey));
+  return transactions.filter((item) => item.kind === 'DESPESA' && item.date.startsWith(monthKey));
 }
 
 /**
@@ -69,7 +69,7 @@ export function buildBudgetOverview(month: string = currentMonth): BudgetOvervie
   const spent = money(items.reduce((total, item) => total + item.spent, 0));
 
   const budgetedIds = new Set(budgets.map((item) => item.category.id));
-  const unplanned: CategorySpending[] = groupByCategory(expenses, 'expense').filter(
+  const unplanned: CategorySpending[] = groupByCategory(expenses, 'DESPESA').filter(
     (entry) => !budgetedIds.has(entry.category.id),
   );
 

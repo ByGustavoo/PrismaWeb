@@ -34,9 +34,9 @@ export const NEW_TRANSACTION_PARAM = 'novo';
 
 /** Valores aceitos em `?novo=`, na mesma grafia sem acento das rotas. */
 export const newTransactionValues = {
-  receita: 'income',
-  despesa: 'expense',
-  transferencia: 'transfer',
+  receita: 'RECEITA',
+  despesa: 'DESPESA',
+  transferencia: 'TRANSFERENCIA',
 } as const;
 
 /**

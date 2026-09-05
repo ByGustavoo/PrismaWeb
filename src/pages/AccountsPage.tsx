@@ -18,7 +18,7 @@ import styles from './AccountsPage.module.css';
  * tres so acrescentaria um trilho cinza a cada cartao.
  */
 function shareOf(account: Account, total: number): number | undefined {
-  if (total <= 0 || account.status !== 'active' || !account.includeInTotal) return undefined;
+  if (total <= 0 || account.status !== 'ATIVO' || !account.includeInTotal) return undefined;
   if (account.balance <= 0) return undefined;
   return account.balance / total;
 }
@@ -36,7 +36,7 @@ export function AccountsPage() {
   const accounts = useMemo(() => data ?? [], [data]);
 
   const summary = useMemo(() => {
-    const active = accounts.filter((account) => account.status === 'active');
+    const active = accounts.filter((account) => account.status === 'ATIVO');
     return {
       total: active.filter((account) => account.includeInTotal).reduce((sum, item) => sum + item.balance, 0),
       excluded: active.filter((account) => !account.includeInTotal).reduce((sum, item) => sum + item.balance, 0),

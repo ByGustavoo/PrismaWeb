@@ -16,14 +16,14 @@ import { accounts, transactions } from './data';
 export function includedAccountIds(): Set<string> {
   return new Set(
     accounts
-      .filter((account) => account.status === 'active' && account.includeInTotal)
+      .filter((account) => account.status === 'ATIVO' && account.includeInTotal)
       .map((account) => account.id),
   );
 }
 
 export function totalBalance(): number {
   return accounts
-    .filter((account) => account.status === 'active' && account.includeInTotal)
+    .filter((account) => account.status === 'ATIVO' && account.includeInTotal)
     .reduce((total, account) => total + account.balance, 0);
 }
 
@@ -36,8 +36,8 @@ export function totalBalance(): number {
  * entre duas contas do total nao muda nada.
  */
 export function balanceEffect(item: Transaction, included: Set<string>): number {
-  if (item.kind === 'income') return item.amount;
-  if (item.kind === 'expense') return -item.amount;
+  if (item.kind === 'RECEITA') return item.amount;
+  if (item.kind === 'DESPESA') return -item.amount;
 
   const leaves = included.has(item.accountId);
   const enters = item.toAccountId ? included.has(item.toAccountId) : false;

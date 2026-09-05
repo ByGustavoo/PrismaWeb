@@ -14,7 +14,7 @@ import styles from './TransactionForm.module.css';
 interface TransactionFormModalProps {
   open: boolean;
   /** Transferencia tem formulario proprio; aqui so entra receita ou despesa. */
-  kind: 'income' | 'expense';
+  kind: 'RECEITA' | 'DESPESA';
   /** Presente apenas na edicao. */
   transaction: Transaction | null;
   categories: Category[];
@@ -44,8 +44,8 @@ function initialState(transaction: Transaction | null): FormState {
     date: transaction?.date ?? todayISO(),
     categoryId: transaction?.category?.id ?? '',
     accountId: transaction?.accountId ?? '',
-    method: transaction?.method ?? 'account',
-    status: transaction?.status ?? 'paid',
+    method: transaction?.method ?? 'CONTA',
+    status: transaction?.status ?? 'PAGO',
     notes: transaction?.notes ?? '',
   };
 }
@@ -107,7 +107,7 @@ export function TransactionFormModal({
     setErrors({});
   }, [open, transaction]);
 
-  const isExpense = kind === 'expense';
+  const isExpense = kind === 'DESPESA';
 
   const categoryOptions = useMemo<Option[]>(
     () => categories.filter((item) => item.kind === kind).map((item) => ({ value: item.id, label: item.name })),
@@ -118,10 +118,10 @@ export function TransactionFormModal({
   const sourceOptions = useMemo<Option[]>(
     () =>
       sources
-        .filter((item) => (isExpense ? true : item.group === 'account'))
+        .filter((item) => (isExpense ? true : item.group === 'CONTA'))
         .map((item) => ({
           value: item.id,
-          label: item.group === 'card' ? `${item.name} · cartão` : item.name,
+          label: item.group === 'CARTAO' ? `${item.name} · cartão` : item.name,
         })),
     [sources, isExpense],
   );
@@ -255,7 +255,7 @@ export function TransactionFormModal({
           options={statusOptions}
           value={form.status}
           onChange={(status) => set('status', status as TransactionStatus)}
-          hint={form.status === 'paid' ? 'Já entrou ou saiu da conta.' : 'Ainda não afetou o saldo.'}
+          hint={form.status === 'PAGO' ? 'Já entrou ou saiu da conta.' : 'Ainda não afetou o saldo.'}
         />
 
         <Textarea

@@ -26,10 +26,10 @@ export function sumKind(list: Transaction[], kind: TransactionKind): number {
 
 /** Variacao percentual entre dois periodos. Sem base de comparacao nao ha variacao. */
 export function percentDelta(current: number, previous: number): Delta {
-  if (previous === 0) return { percentage: 0, trend: 'flat' };
+  if (previous === 0) return { percentage: 0, trend: 'ESTAVEL' };
 
   const percentage = ((current - previous) / previous) * 100;
-  return { percentage, trend: percentage > 0.05 ? 'up' : percentage < -0.05 ? 'down' : 'flat' };
+  return { percentage, trend: percentage > 0.05 ? 'ALTA' : percentage < -0.05 ? 'BAIXA' : 'ESTAVEL' };
 }
 
 /**

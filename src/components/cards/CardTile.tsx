@@ -43,9 +43,9 @@ export function CardTile({ card, invoice, accountBalance, onEdit, onDelete, onOp
         <span className={styles.nameRow}>
           <span className={styles.name}>{card.name}</span>
           <Badge>{cardTypeShortLabel[card.type]}</Badge>
-          {card.status === 'inactive' ? (
-            <Badge tone={cardStatusTone.inactive} dot>
-              {cardStatusLabel.inactive}
+          {card.status === 'INATIVO' ? (
+            <Badge tone={cardStatusTone.INATIVO} dot>
+              {cardStatusLabel.INATIVO}
             </Badge>
           ) : null}
         </span>

@@ -108,7 +108,7 @@ export function InstallmentFormModal({
   const cardOptions = useMemo<Option[]>(
     () =>
       creditCards
-        .filter((card) => card.status === 'active' || card.id === purchase?.cardId)
+        .filter((card) => card.status === 'ATIVO' || card.id === purchase?.cardId)
         .map((card) => ({ value: card.id, label: card.name })),
     [creditCards, purchase],
   );
@@ -116,7 +116,7 @@ export function InstallmentFormModal({
   const expenseCategoryOptions = useMemo<Option[]>(
     () =>
       categories
-        .filter((item) => item.kind === 'expense')
+        .filter((item) => item.kind === 'DESPESA')
         .map((item) => ({ value: item.id, label: item.name })),
     [categories],
   );

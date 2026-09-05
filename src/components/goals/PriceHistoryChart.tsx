@@ -62,7 +62,7 @@ function niceAxis(min: number, max: number): { domain: [number, number]; ticks: 
  */
 export function PriceHistoryChart({ history, averagePrice, trend }: PriceHistoryChartProps) {
   const palette = useChartPalette();
-  const color = trend === 'up' ? palette.series[2] : trend === 'down' ? palette.series[1] : palette.series[0];
+  const color = trend === 'ALTA' ? palette.series[2] : trend === 'BAIXA' ? palette.series[1] : palette.series[0];
 
   const data = history.map((entry) => ({
     label: dayLabel(entry.date),

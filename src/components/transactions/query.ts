@@ -154,8 +154,8 @@ export function applyQuery(list: Transaction[], query: TransactionQuery): Transa
  */
 export function netTotal(list: Transaction[]): number {
   return list.reduce((sum, item) => {
-    if (item.kind === 'income') return sum + item.amount;
-    if (item.kind === 'expense') return sum - item.amount;
+    if (item.kind === 'RECEITA') return sum + item.amount;
+    if (item.kind === 'DESPESA') return sum - item.amount;
     return sum;
   }, 0);
 }

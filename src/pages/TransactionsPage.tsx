@@ -45,7 +45,7 @@ interface TransactionsPageProps {
 }
 
 /** Qual formulario abrir quando a tela mostra todos os tipos. */
-type FormMode = 'income' | 'expense' | 'transfer';
+type FormMode = 'RECEITA' | 'DESPESA' | 'TRANSFERENCIA';
 
 export function TransactionsPage({ kind, title, description }: TransactionsPageProps) {
   const [query, setQuery] = useState<TransactionQuery>(emptyQuery);
@@ -232,13 +232,13 @@ export function TransactionsPage({ kind, title, description }: TransactionsPageP
             </Button>
           ) : (
             <>
-              <Button variant="secondary" size="sm" icon={Plus} onClick={() => openCreate('income')}>
+              <Button variant="secondary" size="sm" icon={Plus} onClick={() => openCreate('RECEITA')}>
                 Receita
               </Button>
-              <Button variant="secondary" size="sm" icon={Plus} onClick={() => openCreate('expense')}>
+              <Button variant="secondary" size="sm" icon={Plus} onClick={() => openCreate('DESPESA')}>
                 Despesa
               </Button>
-              <Button size="sm" icon={Plus} onClick={() => openCreate('transfer')}>
+              <Button size="sm" icon={Plus} onClick={() => openCreate('TRANSFERENCIA')}>
                 Transferência
               </Button>
             </>
@@ -254,7 +254,7 @@ export function TransactionsPage({ kind, title, description }: TransactionsPageP
             onClear={clearFilters}
             source={source}
             showKindFilter={!kind}
-            showCategoryFilter={kind !== 'transfer'}
+            showCategoryFilter={kind !== 'TRANSFERENCIA'}
           />
 
           <div className={styles.summary}>
@@ -266,7 +266,7 @@ export function TransactionsPage({ kind, title, description }: TransactionsPageP
               {/* Onde so uma das duas formas cabe, escolher entre elas nao existe. */}
               {isCompact ? null : <ViewToggle value={preferredView} onChange={setPreferredView} />}
             </div>
-            {kind === 'transfer' ? (
+            {kind === 'TRANSFERENCIA' ? (
               <span className={styles.summaryLabel}>Transferências não entram no resultado do período</span>
             ) : (
               <span className={styles.summaryTotal}>
@@ -304,7 +304,7 @@ export function TransactionsPage({ kind, title, description }: TransactionsPageP
                   Limpar filtros
                 </Button>
               ) : (
-                <Button icon={Plus} onClick={() => openCreate(kind ?? 'expense')}>
+                <Button icon={Plus} onClick={() => openCreate(kind ?? 'DESPESA')}>
                   Novo lançamento
                 </Button>
               )
@@ -316,7 +316,7 @@ export function TransactionsPage({ kind, title, description }: TransactionsPageP
             sortField={query.sortField}
             sortDirection={query.sortDirection}
             onSort={handleSort}
-            showCategory={kind !== 'transfer'}
+            showCategory={kind !== 'TRANSFERENCIA'}
             onEdit={openEdit}
             onDelete={setRemoving}
           />
@@ -326,7 +326,7 @@ export function TransactionsPage({ kind, title, description }: TransactionsPageP
             sortField={query.sortField}
             sortDirection={query.sortDirection}
             onSort={handleSort}
-            showCategory={kind !== 'transfer'}
+            showCategory={kind !== 'TRANSFERENCIA'}
             onEdit={openEdit}
             onDelete={setRemoving}
           />
@@ -334,8 +334,8 @@ export function TransactionsPage({ kind, title, description }: TransactionsPageP
       </Card>
 
       <TransactionFormModal
-        open={formMode === 'income' || formMode === 'expense'}
-        kind={formMode === 'income' ? 'income' : 'expense'}
+        open={formMode === 'RECEITA' || formMode === 'DESPESA'}
+        kind={formMode === 'RECEITA' ? 'RECEITA' : 'DESPESA'}
         transaction={editing}
         categories={categories}
         sources={sources}
@@ -345,7 +345,7 @@ export function TransactionsPage({ kind, title, description }: TransactionsPageP
       />
 
       <TransferFormModal
-        open={formMode === 'transfer'}
+        open={formMode === 'TRANSFERENCIA'}
         transaction={editing}
         sources={sources}
         saving={saving}
@@ -368,7 +368,7 @@ export function TransactionsPage({ kind, title, description }: TransactionsPageP
             <span className={styles.confirmMeta}>
               {transactionKindLabel[removing.kind]} · {formatFullDate(removing.date)} · {removing.accountName}
             </span>
-            <Amount value={removing.amount} tone={removing.kind === 'expense' ? 'negative' : 'default'} />
+            <Amount value={removing.amount} tone={removing.kind === 'DESPESA' ? 'negative' : 'default'} />
           </>
         ) : null}
       </ConfirmDialog>

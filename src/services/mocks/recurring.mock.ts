@@ -62,7 +62,7 @@ export function occurrencesIn(item: RecurringExpense, monthKey: string): string[
 export function recurringTotalIn(monthKey: string): number {
   return money(
     recurringExpenses
-      .filter((item) => item.status === 'active')
+      .filter((item) => item.status === 'ATIVO')
       .reduce((total, item) => total + item.amount * occurrencesIn(item, monthKey).length, 0),
   );
 }
@@ -71,7 +71,7 @@ export function recurringTotalIn(monthKey: string): number {
 export function recurringMonthlyCost(): number {
   return money(
     recurringExpenses
-      .filter((item) => item.status === 'active')
+      .filter((item) => item.status === 'ATIVO')
       .reduce((total, item) => total + item.amount * monthlyOccurrences[item.frequency], 0),
   );
 }
@@ -82,7 +82,7 @@ export function buildRecurringSummary(): RecurringSummary {
   // Ativas primeiro e, entre elas, a que vence antes: a lista abre no que
   // precisa de dinheiro em caixa nos proximos dias.
   const items = [...recurringExpenses].sort((a, b) => {
-    const paused = Number(a.status === 'paused') - Number(b.status === 'paused');
+    const paused = Number(a.status === 'PAUSADO') - Number(b.status === 'PAUSADO');
     if (paused !== 0) return paused;
     return a.nextDueDate.localeCompare(b.nextDueDate);
   });
@@ -90,7 +90,7 @@ export function buildRecurringSummary(): RecurringSummary {
   const monthlyCost = recurringMonthlyCost();
 
   const dueSoon = items.filter((item) => {
-    if (item.status !== 'active') return false;
+    if (item.status !== 'ATIVO') return false;
     const days = daysBetween(today, item.nextDueDate);
     return days >= 0 && days <= RECURRING_DUE_SOON_DAYS;
   });

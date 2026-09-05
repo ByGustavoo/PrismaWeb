@@ -39,14 +39,14 @@ const marketWave = [
  * corresponde ao produto que ele representa.
  */
 const classVolatility: Record<InvestmentClass, number> = {
-  'fixed-income': 0.06,
-  cdb: 0.04,
-  treasury: 0.35,
-  stocks: 1,
-  etf: 0.85,
-  funds: 0.6,
-  crypto: 2.4,
-  other: 0.2,
+  'RENDA_FIXA': 0.06,
+  CDB: 0.04,
+  TESOURO: 0.35,
+  ACOES: 1,
+  ETF: 0.85,
+  FUNDOS: 0.6,
+  CRIPTO: 2.4,
+  OUTROS: 0.2,
 };
 
 /** Rentabilidade acumulada da posicao ate hoje: 0.082 e 8,2%. */

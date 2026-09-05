@@ -26,7 +26,7 @@ export function SourceBreakdown({ data }: SourceBreakdownProps) {
         ) : (
           <ul className={styles.list}>
             {data.map((entry) => {
-              const Icon = entry.group === 'card' ? CreditCard : Wallet;
+              const Icon = entry.group === 'CARTAO' ? CreditCard : Wallet;
 
               return (
                 <li key={entry.id} className={styles.row}>

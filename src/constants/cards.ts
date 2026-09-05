@@ -1,33 +1,33 @@
 import type { Card, CardStatus, CardType, InstallmentStatus, InvoiceStatus } from '@/types';
 
 export const cardTypeLabel: Record<CardType, string> = {
-  credit: 'Cartão de crédito',
-  debit: 'Cartão de débito',
-  'food-voucher': 'Vale-alimentação',
-  'meal-voucher': 'Vale-refeição',
+  CREDITO: 'Cartão de crédito',
+  DEBITO: 'Cartão de débito',
+  'VALE_ALIMENTACAO': 'Vale-alimentação',
+  'VALE_REFEICAO': 'Vale-refeição',
 };
 
 /** Rotulo curto, para caber num badge ao lado do nome do cartao. */
 export const cardTypeShortLabel: Record<CardType, string> = {
-  credit: 'Crédito',
-  debit: 'Débito',
-  'food-voucher': 'Alimentação',
-  'meal-voucher': 'Refeição',
+  CREDITO: 'Crédito',
+  DEBITO: 'Débito',
+  'VALE_ALIMENTACAO': 'Alimentação',
+  'VALE_REFEICAO': 'Refeição',
 };
 
 /** Ordem em que os tipos aparecem no formulario. */
-export const cardTypes: CardType[] = ['credit', 'debit', 'food-voucher', 'meal-voucher'];
+export const cardTypes: CardType[] = ['CREDITO', 'DEBITO', 'VALE_ALIMENTACAO', 'VALE_REFEICAO'];
 
 export const cardStatusLabel: Record<CardStatus, string> = {
-  active: 'Ativo',
-  inactive: 'Inativo',
+  ATIVO: 'Ativo',
+  INATIVO: 'Inativo',
 };
 
-export const cardStatuses: CardStatus[] = ['active', 'inactive'];
+export const cardStatuses: CardStatus[] = ['ATIVO', 'INATIVO'];
 
 /** Cartao de credito com os campos que so ele tem, ja garantidos pelo tipo. */
 export type CreditCard = Card & {
-  type: 'credit';
+  type: 'CREDITO';
   limit: number;
   closingDay: number;
   dueDay: number;
@@ -40,7 +40,7 @@ export type CreditCard = Card & {
  */
 export function isCreditCard(card: Card): card is CreditCard {
   return (
-    card.type === 'credit' &&
+    card.type === 'CREDITO' &&
     typeof card.limit === 'number' &&
     typeof card.closingDay === 'number' &&
     typeof card.dueDay === 'number'
@@ -49,7 +49,7 @@ export function isCreditCard(card: Card): card is CreditCard {
 
 /** Vale carrega saldo proprio; credito e debito, nao. */
 export function isVoucherCard(card: Card): boolean {
-  return card.type === 'food-voucher' || card.type === 'meal-voucher';
+  return card.type === 'VALE_ALIMENTACAO' || card.type === 'VALE_REFEICAO';
 }
 
 /**
@@ -61,17 +61,17 @@ export const CARD_LIMIT_WARNING_RATIO = 0.7;
 export const CARD_LIMIT_CRITICAL_RATIO = 0.9;
 
 export const invoiceStatusLabel: Record<InvoiceStatus, string> = {
-  future: 'Prevista',
-  open: 'Aberta',
-  closed: 'Fechada',
-  paid: 'Paga',
-  overdue: 'Vencida',
+  FUTURA: 'Prevista',
+  ABERTA: 'Aberta',
+  FECHADA: 'Fechada',
+  PAGA: 'Paga',
+  VENCIDA: 'Vencida',
 };
 
 export const installmentStatusLabel: Record<InstallmentStatus, string> = {
-  paid: 'Paga',
-  current: 'Atual',
-  upcoming: 'A vencer',
+  PAGA: 'Paga',
+  ATUAL: 'Atual',
+  FUTURA: 'A vencer',
 };
 
 /**

@@ -102,39 +102,40 @@ após 15 s) e `network_error` (status `0`, quando o servidor não responde).
 
 ## Enums do domínio
 
-Todos os enums viajam como **string minúscula com hífen**, exatamente como listado. O frontend
-indexa objetos por esses valores; um valor fora da lista quebra a tela.
+Todos os enums viajam como **string maiúscula sem acento**, com sublinhado no lugar do hífen — a
+mesma grafia gravada no banco. O frontend indexa objetos por esses valores; um valor fora da lista
+quebra a tela.
 
 | Enum | Valores | Onde aparece |
 | --- | --- | --- |
-| `TransactionKind` | `income`, `expense`, `transfer` | Lançamentos |
-| `TransactionStatus` | `paid`, `pending`, `scheduled` | Lançamentos |
-| `PaymentMethod` | `account`, `credit-card`, `pix`, `cash` | Lançamentos |
-| `CategoryKind` | `income`, `expense` | Categorias |
-| `AccountType` | `checking`, `salary`, `emergency`, `other` | Contas |
-| `AccountStatus` | `active`, `inactive` | Contas |
-| `CardType` | `credit`, `debit`, `food-voucher`, `meal-voucher` | Cartões |
-| `CardStatus` | `active`, `inactive` | Cartões |
-| `InvoiceStatus` | `future`, `open`, `closed`, `paid`, `overdue` | Faturas |
-| `InstallmentStatus` | `paid`, `current`, `upcoming` | Parcelas |
-| `InvestmentClass` | `fixed-income`, `cdb`, `treasury`, `stocks`, `etf`, `funds`, `crypto`, `other` | Investimentos |
-| `BudgetStatus` | `safe`, `warning`, `exceeded` | Orçamento |
-| `RecurrenceFrequency` | `weekly`, `biweekly`, `monthly`, `bimonthly`, `quarterly`, `semiannual`, `yearly` | Recorrentes |
-| `RecurringStatus` | `active`, `paused` | Recorrentes |
-| `GoalStatus` | `tracking`, `purchased`, `cancelled` | Metas |
-| `GoalInsight` | `first`, `lowest`, `below-average`, `above-average`, `highest`, `stable` | Metas |
-| `AlertKind` | `invoice-due`, `bill-due`, `scheduled`, `card-limit` | Avisos |
-| `AlertSeverity` | `critical`, `attention`, `info` | Avisos |
-| `Trend` | `up`, `down`, `flat` | Variações |
+| `TransactionKind` | `RECEITA`, `DESPESA`, `TRANSFERENCIA` | Lançamentos |
+| `TransactionStatus` | `PAGO`, `PENDENTE`, `AGENDADO` | Lançamentos |
+| `PaymentMethod` | `CONTA`, `CARTAO_CREDITO`, `PIX`, `DINHEIRO` | Lançamentos |
+| `CategoryKind` | `RECEITA`, `DESPESA` | Categorias |
+| `AccountType` | `CORRENTE`, `SALARIO`, `EMERGENCIA`, `OUTRA` | Contas |
+| `AccountStatus` | `ATIVO`, `INATIVO` | Contas |
+| `CardType` | `CREDITO`, `DEBITO`, `VALE_ALIMENTACAO`, `VALE_REFEICAO` | Cartões |
+| `CardStatus` | `ATIVO`, `INATIVO` | Cartões |
+| `InvoiceStatus` | `FUTURA`, `ABERTA`, `FECHADA`, `PAGA`, `VENCIDA` | Faturas |
+| `InstallmentStatus` | `PAGA`, `ATUAL`, `FUTURA` | Parcelas |
+| `InvestmentClass` | `RENDA_FIXA`, `CDB`, `TESOURO`, `ACOES`, `ETF`, `FUNDOS`, `CRIPTO`, `OUTROS` | Investimentos |
+| `BudgetStatus` | `SEGURO`, `ALERTA`, `ESTOURADO` | Orçamento |
+| `RecurrenceFrequency` | `SEMANAL`, `QUINZENAL`, `MENSAL`, `BIMESTRAL`, `TRIMESTRAL`, `SEMESTRAL`, `ANUAL` | Recorrentes |
+| `RecurringStatus` | `ATIVO`, `PAUSADO` | Recorrentes |
+| `GoalStatus` | `ACOMPANHANDO`, `COMPRADA`, `CANCELADA` | Metas |
+| `GoalInsight` | `PRIMEIRO`, `MENOR`, `ABAIXO_DA_MEDIA`, `ACIMA_DA_MEDIA`, `MAIOR`, `ESTAVEL` | Metas |
+| `AlertKind` | `FATURA_VENCENDO`, `CONTA_VENCENDO`, `LANCAMENTO_AGENDADO`, `LIMITE_CARTAO` | Avisos |
+| `AlertSeverity` | `CRITICO`, `ATENCAO`, `INFO` | Avisos |
+| `Trend` | `ALTA`, `BAIXA`, `ESTAVEL` | Variações |
 
 ### Objetos reaproveitados
 
 ```jsonc
 // Delta — variação contra o período anterior
-{ "percentage": 12.4, "trend": "up" }   // percentage em pontos percentuais
+{ "percentage": 12.4, "trend": "ALTA" }   // percentage em pontos percentuais
 
 // Category
-{ "id": "cat-moradia", "name": "Moradia", "kind": "expense", "colorToken": 1 }
+{ "id": "cat-moradia", "name": "Moradia", "kind": "DESPESA", "colorToken": 1 }
 ```
 
 `colorToken` é um inteiro de **1 a 6** que escolhe a cor da categoria nos gráficos. Ele é atributo
@@ -166,24 +167,24 @@ Sem os dois parâmetros, o servidor responde pelo **mês corrente**.
   "from": "2026-09",
   "to": "2026-09",
   "currentBalance": 32860.95,
-  "balanceDelta": { "percentage": 20.2, "trend": "up" },
+  "balanceDelta": { "percentage": 20.2, "trend": "ALTA" },
   "monthIncome": 10545.50,
-  "incomeDelta": { "percentage": -41.4, "trend": "down" },
+  "incomeDelta": { "percentage": -41.4, "trend": "BAIXA" },
   "monthExpense": 4717.22,
-  "expenseDelta": { "percentage": -53.8, "trend": "down" },
+  "expenseDelta": { "percentage": -53.8, "trend": "BAIXA" },
   "investmentsTotal": 114442.25,
-  "investmentsDelta": { "percentage": 7.8, "trend": "up" },
+  "investmentsDelta": { "percentage": 7.8, "trend": "ALTA" },
   "currentInvoice": {
     "total": 2680.10,
     "cardName": "Nova Platinum",
     "dueDate": "2026-10-08",
-    "status": "open"
+    "status": "ABERTA"
   },
   "balanceHistory": [{ "label": "Abr", "balance": 21980.44 }],
   "cashflow": [{ "label": "Abr", "income": 13100.00, "expense": 8420.30 }],
   "dailySpending": [{ "date": "2026-04-01", "amount": 0 }],
   "spendingByCategory": [
-    { "category": { "id": "cat-moradia", "name": "Moradia", "kind": "expense", "colorToken": 1 },
+    { "category": { "id": "cat-moradia", "name": "Moradia", "kind": "DESPESA", "colorToken": 1 },
       "amount": 2898.62, "share": 0.61 }
   ],
   "recentTransactions": []
@@ -236,7 +237,7 @@ Sem os dois parâmetros, o servidor responde pelo **mês corrente**.
 **Resposta `200` — `Category[]`**
 
 ```json
-[{ "id": "cat-moradia", "name": "Moradia", "kind": "expense", "colorToken": 1 }]
+[{ "id": "cat-moradia", "name": "Moradia", "kind": "DESPESA", "colorToken": 1 }]
 ```
 
 **Regras**
@@ -280,11 +281,11 @@ usam **o mesmo endpoint**, mudando apenas o parâmetro `kind`. Não crie rotas s
   "id": "tx-1",
   "description": "Salário",
   "amount": 9800.00,
-  "kind": "income",
-  "status": "paid",
-  "method": "account",
+  "kind": "RECEITA",
+  "status": "PAGO",
+  "method": "CONTA",
   "date": "2026-09-03",
-  "category": { "id": "cat-salario", "name": "Salário", "kind": "income", "colorToken": 2 },
+  "category": { "id": "cat-salario", "name": "Salário", "kind": "RECEITA", "colorToken": 2 },
   "accountId": "acc-1",
   "accountName": "Conta corrente",
   "toAccountId": null,      // só em transferências
@@ -301,9 +302,9 @@ usam **o mesmo endpoint**, mudando apenas o parâmetro `kind`. Não crie rotas s
 {
   "description": "Supermercado",
   "amount": 728.90,
-  "kind": "expense",
-  "status": "paid",
-  "method": "credit-card",
+  "kind": "DESPESA",
+  "status": "PAGO",
+  "method": "CARTAO_CREDITO",
   "date": "2026-09-02",
   "categoryId": "cat-alimentacao",  // obrigatório fora de transferência
   "accountId": "card-1",
@@ -355,9 +356,9 @@ usam **o mesmo endpoint**, mudando apenas o parâmetro `kind`. Não crie rotas s
   "id": "acc-1",
   "name": "Conta corrente",
   "institution": "Banco Nova",
-  "type": "checking",
+  "type": "CORRENTE",
   "balance": 12480.35,
-  "status": "active",
+  "status": "ATIVO",
   "includeInTotal": true
 }
 ```
@@ -369,8 +370,8 @@ Contas e cartões na mesma lista, do jeito que os seletores de lançamento preci
 **Resposta `200` — `PaymentSource[]`**
 
 ```json
-[{ "id": "acc-1", "name": "Conta corrente", "group": "account" },
- { "id": "card-1", "name": "Nova Platinum", "group": "card" }]
+[{ "id": "acc-1", "name": "Conta corrente", "group": "CONTA" },
+ { "id": "card-1", "name": "Nova Platinum", "group": "CARTAO" }]
 ```
 
 **Regras**
@@ -425,8 +426,8 @@ Conta inativa sai do saldo total e dos seletores, mas o passado continua legíve
   "id": "card-1",
   "name": "Nova Platinum",
   "institution": "Banco Nova",
-  "type": "credit",
-  "status": "active",
+  "type": "CREDITO",
+  "status": "ATIVO",
   "brand": "Mastercard",       // opcional
   "lastDigits": "4417",        // opcional, exatamente 4 dígitos
   "limit": 20000.00,           // crédito
@@ -505,7 +506,7 @@ frontend nunca envia uma fatura.
   "cardName": "Nova Platinum",
   "month": "2026-09",
   "total": 3385.16,
-  "status": "open",
+  "status": "ABERTA",
   "closingDate": "2026-09-28",
   "dueDate": "2026-10-08",
   "itemCount": 12,
@@ -527,7 +528,7 @@ frontend nunca envia uma fatura.
       "description": "Supermercado",
       "date": "2026-09-02",
       "amount": 728.90,
-      "category": { "id": "cat-alimentacao", "name": "Alimentação", "kind": "expense", "colorToken": 4 },
+      "category": { "id": "cat-alimentacao", "name": "Alimentação", "kind": "DESPESA", "colorToken": 4 },
       "installment": { "number": 3, "total": 12, "purchaseId": "inst-2" }
     }
   ]
@@ -546,18 +547,18 @@ recente para o mais antigo. Id inexistente: `404` — `Fatura não encontrada.`
 3. O **vencimento** cai no mês seguinte ao fechamento quando `dueDay <= closingDay`; caso
    contrário, no mesmo mês.
 4. `status` é derivado da data de hoje:
-   - `future` — o ciclo ainda nem começou (a fatura só existe porque há parcelas comprometidas);
-   - `open` — o ciclo está em andamento e ainda aceita compras;
-   - `closed` — o ciclo fechou e o vencimento ainda não chegou;
-   - `overdue` — passou do vencimento;
-   - `paid` — quitada.
+   - `FUTURA` — o ciclo ainda nem começou (a fatura só existe porque há parcelas comprometidas);
+   - `ABERTA` — o ciclo está em andamento e ainda aceita compras;
+   - `FECHADA` — o ciclo fechou e o vencimento ainda não chegou;
+   - `VENCIDA` — passou do vencimento;
+   - `PAGA` — quitada.
 5. `previousTotal` é o total da fatura anterior **do mesmo cartão**, quando existe. Nem sempre é o
    mês imediatamente anterior: um mês sem nenhuma compra não gera fatura.
 6. Um mês sem compras e sem parcelas **não gera fatura** — não devolva fatura de total zero.
 
 > **Fora de escopo hoje:** não há pagamento de fatura nem registro de quitação. O frontend trata a
 > fatura vencida como paga. Se o backend passar a controlar quitação, o campo `status` já suporta
-> `paid` e nada mais precisa mudar no contrato.
+> `PAGA` e nada mais precisa mudar no contrato.
 
 ---
 
@@ -586,7 +587,7 @@ calculados**:
     "firstMonth": "2026-04",
     "cardId": "card-1",
     "cardName": "Nova Platinum",
-    "category": { "id": "cat-outros", "name": "Outros", "kind": "expense", "colorToken": 6 },
+    "category": { "id": "cat-outros", "name": "Outros", "kind": "DESPESA", "colorToken": 6 },
     "notes": null
   },
   "installmentAmount": 500.00,
@@ -594,9 +595,9 @@ calculados**:
   "remainingCount": 6,
   "paidAmount": 3000.00,
   "remainingAmount": 3000.00,
-  "current": { "number": 7, "month": "2026-10", "dueDate": "2026-11-08", "amount": 500.00, "status": "current" },
+  "current": { "number": 7, "month": "2026-10", "dueDate": "2026-11-08", "amount": 500.00, "status": "ATUAL" },
   "schedule": [
-    { "number": 1, "month": "2026-04", "dueDate": "2026-05-08", "amount": 500.00, "status": "paid" }
+    { "number": 1, "month": "2026-04", "dueDate": "2026-05-08", "amount": 500.00, "status": "PAGO" }
   ]
 }
 ```
@@ -632,8 +633,8 @@ calculados**:
 - **A última parcela absorve a sobra.** As primeiras levam o valor arredondado para baixo em duas
   casas; a última recebe a diferença, para a soma fechar **exatamente** com `totalAmount`. Por isso
   `installmentAmount` é o valor típico, e uma parcela do `schedule` pode diferir dele.
-- `status` de cada parcela sai da comparação do `dueDate` com hoje: `paid` no passado, `current` na
-  vigente, `upcoming` no futuro.
+- `status` de cada parcela sai da comparação do `dueDate` com hoje: `PAGA` no passado, `ATUAL` na
+  vigente, `FUTURA` no futuro.
 - `current` vem `null` quando a compra já foi quitada.
 - Uma compra cadastrada agora precisa aparecer **na fatura, no `used` do cartão e no cronograma**
   sem nenhum ajuste manual.
@@ -652,7 +653,7 @@ Lista crua, usada pelo formulário de edição.
 {
   "id": "inv-1",
   "name": "Tesouro Selic 2029",
-  "assetClass": "treasury",
+  "assetClass": "TESOURO",
   "institution": "Meridiano Investimentos",
   "invested": 20000.00,
   "currentValue": 22480.15,
@@ -673,9 +674,9 @@ Carteira consolidada — é o que a tela mostra.
   "currentValue": 114442.25,
   "profit": 8442.25,
   "profitability": 0.0796,                                  // fração
-  "valueDelta": { "percentage": 1.4, "trend": "up" },
+  "valueDelta": { "percentage": 1.4, "trend": "ALTA" },
   "allocation": [
-    { "assetClass": "treasury", "invested": 20000.00, "currentValue": 22480.15,
+    { "assetClass": "TESOURO", "invested": 20000.00, "currentValue": 22480.15,
       "profit": 2480.15, "share": 0.196, "count": 2 }
   ],
   "history": [
@@ -752,17 +753,17 @@ preciso expor um `GET /budgets`.
   "items": [
     {
       "budget": { "id": "bud-1",
-                  "category": { "id": "cat-alimentacao", "name": "Alimentação", "kind": "expense", "colorToken": 4 },
+                  "category": { "id": "cat-alimentacao", "name": "Alimentação", "kind": "DESPESA", "colorToken": 4 },
                   "limit": 1400.00 },
       "spent": 1419.70,
       "remaining": -19.70,
       "ratio": 1.014,
       "projected": 0,
-      "status": "exceeded"
+      "status": "ESTOURADO"
     }
   ],
   "unplanned": [
-    { "category": { "id": "cat-outros", "name": "Outros", "kind": "expense", "colorToken": 6 },
+    { "category": { "id": "cat-outros", "name": "Outros", "kind": "DESPESA", "colorToken": 6 },
       "amount": 398.90, "share": 0.09 }
   ]
 }
@@ -776,7 +777,7 @@ preciso expor um `GET /budgets`.
   sim, é apurado por mês.
 - `ratio` é fração e **passa de 1 no estouro** — não o limite a 1.
 - `remaining` fica **negativo** quando estourou.
-- `status` sai do `ratio`: `safe` abaixo de 0,8, `warning` de 0,8 (inclusive) a 1, `exceeded` de 1
+- `status` sai do `ratio`: `SEGURO` abaixo de 0,8, `ALERTA` de 0,8 (inclusive) a 1, `ESTOURADO` de 1
   (inclusive) em diante. A faixa de atenção começa em 80% porque é o ponto em que ainda dá para
   mudar de ideia — avisar em 95% é avisar quando o mês já acabou.
 - **`projected` tem piso.** Ele é onde o gasto chega no fim do mês mantido o ritmo atual, mas só é
@@ -825,12 +826,12 @@ Devolve a lista **já consolidada** — note que a resposta é um objeto, não u
       "id": "rec-1",
       "description": "Aluguel",
       "amount": 2450.00,
-      "category": { "id": "cat-moradia", "name": "Moradia", "kind": "expense", "colorToken": 1 },
-      "frequency": "monthly",
+      "category": { "id": "cat-moradia", "name": "Moradia", "kind": "DESPESA", "colorToken": 1 },
+      "frequency": "MENSAL",
       "nextDueDate": "2026-09-05",
       "accountId": "acc-1",
       "accountName": "Conta corrente",
-      "status": "active",
+      "status": "ATIVO",
       "notes": null
     }
   ],
@@ -869,7 +870,7 @@ servidor; `accountId` pode ser conta **ou** cartão.
 | `categoryId` que não seja de despesa | `422` | `Escolha uma categoria de despesa.` |
 | Id inexistente | `404` | `Despesa recorrente não encontrada.` |
 
-**Pausar é o `PUT` com `status: "paused"`** — não há endpoint próprio. A tela envia o mesmo payload
+**Pausar é o `PUT` com `status: "PAUSADO"`** — não há endpoint próprio. A tela envia o mesmo payload
 com o status trocado.
 
 ---
@@ -904,7 +905,7 @@ carrega preço e o registro tem rota própria.
         "name": "Notebook Dell Inspiron 15",
         "url": "https://dell.com/…",
         "imageUrl": null,
-        "status": "tracking",
+        "status": "ACOMPANHANDO",
         "notes": null,
         "createdAt": "2026-05-02",
         "history": [
@@ -920,11 +921,11 @@ carrega preço e o registro tem rota própria.
         "averagePrice": 4380.50,
         "change": 200.00,
         "changePercentage": 4.65,
-        "trend": "up",
+        "trend": "ALTA",
         "savings": 121.00,
         "lastUpdate": "2026-08-31",
         "entryCount": 5,
-        "insight": "above-average"
+        "insight": "ACIMA_DA_MEDIA"
       }
     }
   ],
@@ -945,17 +946,17 @@ carrega preço e o registro tem rota própria.
   - `initialPrice` é o preço do **primeiro** registro; é a referência de toda a variação;
   - `change` = `currentPrice − initialPrice`; `changePercentage` é ponto percentual sobre o inicial;
   - `savings` = `highestPrice − currentPrice`, **nunca negativo**;
-  - `trend` é `flat` quando a variação fica dentro de **0,5%** do preço inicial;
+  - `trend` é `ESTAVEL` quando a variação fica dentro de **0,5%** do preço inicial;
   - `entryCount` é o tamanho do histórico.
 - **`insight` é a leitura do momento**, e o texto de cada caso vive no frontend — a API devolve só o
   código. A regra de escolha, na ordem:
-  1. `first` quando `entryCount < 2`. **Uma meta com um registro só não tem variação**: afirmar
+  1. `PRIMEIRO` quando `entryCount < 2`. **Uma meta com um registro só não tem variação**: afirmar
      estabilidade sobre uma única observação seria falso.
-  2. `stable` quando a faixa inteira (`highestPrice − lowestPrice`) é menor que um centavo.
+  2. `ESTAVEL` quando a faixa inteira (`highestPrice − lowestPrice`) é menor que um centavo.
   3. Calcule a posição do preço atual dentro da faixa,
-     `(currentPrice − lowestPrice) / (highestPrice − lowestPrice)`: até **0,05** é `lowest`, a
-     partir de **0,95** é `highest`.
-  4. Fora dos extremos, compare com `averagePrice`: `below-average` ou `above-average`.
+     `(currentPrice − lowestPrice) / (highestPrice − lowestPrice)`: até **0,05** é `MENOR`, a
+     partir de **0,95** é `MAIOR`.
+  4. Fora dos extremos, compare com `averagePrice`: `ABAIXO_DA_MEDIA` ou `ACIMA_DA_MEDIA`.
 
   A média sozinha não bastaria: numa série que desceu de 900 para 750 e voltou a 780, "abaixo da
   média" é verdade e ainda assim esconde que o fundo foi bem mais baixo. Por isso a posição na faixa
@@ -1100,14 +1101,14 @@ chave `YYYY-MM`. Todo atalho da tela termina hoje.
   "income": 9800.00,
   "expense": 4268.60,
   "net": 5531.40,
-  "incomeDelta": { "percentage": 206.3, "trend": "up" },
-  "expenseDelta": { "percentage": 314.3, "trend": "up" },
+  "incomeDelta": { "percentage": 206.3, "trend": "ALTA" },
+  "expenseDelta": { "percentage": 314.3, "trend": "ALTA" },
   "transactionCount": 7,
   "expenseByCategory": [],
   "incomeByCategory": [],
   "cashflow": [{ "label": "01/09", "income": 0, "expense": 690.80 }],
   "expenseBySource": [
-    { "id": "acc-1", "name": "Conta corrente", "group": "account", "amount": 2450.00, "share": 0.57 }
+    { "id": "acc-1", "name": "Conta corrente", "group": "CONTA", "amount": 2450.00, "share": 0.57 }
   ],
   "balanceHistory": [{ "label": "01/09", "balance": 27329.55 }],
   "netWorth": [
@@ -1154,8 +1155,8 @@ chave `YYYY-MM`. Todo atalho da tela termina hoje.
 ```jsonc
 {
   "id": "alert-invoice-card-1",
-  "kind": "invoice-due",
-  "severity": "attention",
+  "kind": "FATURA_VENCENDO",
+  "severity": "ATENCAO",
   "title": "Fatura Nova Platinum",
   "description": "Fatura vence em 4 dias",
   "date": "2026-09-08",
@@ -1167,17 +1168,17 @@ chave `YYYY-MM`. Todo atalho da tela termina hoje.
 **Regras**
 
 - **Os avisos são derivados, não cadastrados.** Eles saem dos mesmos dados que abastecem as telas:
-  - `invoice-due` — faturas a vencer;
-  - `bill-due` — lançamentos pendentes dentro de 15 dias;
-  - `scheduled` — lançamentos agendados dentro de 15 dias;
-  - `card-limit` — cartões acima de **70%** do limite comprometido.
-- `severity` gradua a urgência: `critical` para o que vence hoje ou já venceu — e, no caso do
-  limite, para o cartão acima de **90%** —, `attention` para o que está próximo, `info` para o resto.
-  O ponto no sino do header conta apenas o que **não** é `info`.
+  - `FATURA_VENCENDO` — faturas a vencer;
+  - `CONTA_VENCENDO` — lançamentos pendentes dentro de 15 dias;
+  - `LANCAMENTO_AGENDADO` — lançamentos agendados dentro de 15 dias;
+  - `LIMITE_CARTAO` — cartões acima de **70%** do limite comprometido.
+- `severity` gradua a urgência: `CRITICO` para o que vence hoje ou já venceu — e, no caso do
+  limite, para o cartão acima de **90%** —, `ATENCAO` para o que está próximo, `INFO` para o resto.
+  O ponto no sino do header conta apenas o que **não** é `INFO`.
 - `to` é uma rota do frontend (`/faturas`, `/lancamentos`, `/cartoes`). O backend precisa conhecer
   esses caminhos ou deixar o campo ausente — sem ele, o aviso vira uma linha não clicável, e a tela
   continua funcionando.
-- Ordem: por severidade (`critical`, `attention`, `info`) e, dentro de cada nível, por data
+- Ordem: por severidade (`CRITICO`, `ATENCAO`, `INFO`) e, dentro de cada nível, por data
   crescente.
 
 ---
@@ -1247,7 +1248,7 @@ API gerada automaticamente a partir das tabelas.
 | Distribuição, rentabilidade e evolução da carteira | `/investments/portfolio` | A curva de aportes se apoia em `startDate`. |
 | Consumo e projeção de ritmo do orçamento | `/budgets/overview` | Projeção só a partir do décimo dia do mês. |
 | Custo mensal equivalente das recorrentes | `/recurring-expenses` | A anual entra dividida por doze; a semanal, multiplicada por 4,3452. |
-| Análise e insight de uma meta | `/goals` | Posição na faixa antes da média; `first` quando há um registro só. |
+| Análise e insight de uma meta | `/goals` | Posição na faixa antes da média; `PRIMEIRO` quando há um registro só. |
 | Projeção de saldo | `/forecast` | O gasto variável é um resto: média menos recorrentes menos parcelas. |
 | Agrupamento em baldes | `/reports/summary` | Dia, semana ou mês conforme a duração do recorte. |
 | Derivação dos avisos | `/alerts` | Faturas a vencer, lançamentos próximos e cartões acima de 70% do limite. |

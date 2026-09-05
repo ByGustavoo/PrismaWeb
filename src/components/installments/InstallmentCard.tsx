@@ -161,7 +161,7 @@ export function InstallmentCard({ plan, onEdit, onDelete }: InstallmentCardProps
       */}
       <ul id={scheduleId} className={styles.schedule} hidden={!expanded}>
         {plan.schedule.map((installment) => {
-          const paid = installment.status === 'paid';
+          const paid = installment.status === 'PAGA';
 
           return (
             <li
@@ -169,7 +169,7 @@ export function InstallmentCard({ plan, onEdit, onDelete }: InstallmentCardProps
               className={cn(
                 styles.installment,
                 paid && styles.installmentPaid,
-                installment.status === 'current' && styles.installmentCurrent,
+                installment.status === 'ATUAL' && styles.installmentCurrent,
               )}
             >
               <span className={`${styles.number} tabular`}>
@@ -190,14 +190,14 @@ export function InstallmentCard({ plan, onEdit, onDelete }: InstallmentCardProps
                 simbolo, e nao apenas cor.
               */}
               <span className={styles.installmentStatus}>
-                {installment.status === 'current' ? (
-                  <Badge tone={installmentStatusTone.current} dot>
-                    {installmentStatusLabel.current}
+                {installment.status === 'ATUAL' ? (
+                  <Badge tone={installmentStatusTone.ATUAL} dot>
+                    {installmentStatusLabel.ATUAL}
                   </Badge>
                 ) : paid ? (
                   <span className={styles.paidMark}>
                     <Check size={14} strokeWidth={2.5} aria-hidden="true" />
-                    <span className={styles.paidLabel}>{installmentStatusLabel.paid}</span>
+                    <span className={styles.paidLabel}>{installmentStatusLabel.PAGA}</span>
                   </span>
                 ) : null}
               </span>

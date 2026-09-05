@@ -43,8 +43,8 @@ function initialState(card: Card | null): FormState {
   return {
     name: card?.name ?? '',
     institution: card?.institution ?? '',
-    type: card?.type ?? 'credit',
-    status: card?.status ?? 'active',
+    type: card?.type ?? 'CREDITO',
+    status: card?.status ?? 'ATIVO',
     brand: card?.brand ?? '',
     lastDigits: card?.lastDigits ?? '',
     limit: typeof card?.limit === 'number' ? toAmountInput(card.limit) : '',
@@ -82,7 +82,7 @@ function validate(form: FormState): FormErrors {
     errors.lastDigits = 'Informe exatamente 4 números!';
   }
 
-  if (form.type === 'credit') {
+  if (form.type === 'CREDITO') {
     const limit = parseAmountInput(form.limit);
     if (limit === undefined) {
       errors.limit = 'Informe o limite do cartão!';
@@ -97,11 +97,11 @@ function validate(form: FormState): FormErrors {
     }
   }
 
-  if (form.type === 'debit' && !form.accountId) {
+  if (form.type === 'DEBITO' && !form.accountId) {
     errors.accountId = 'Escolha a conta que o cartão acessa!';
   }
 
-  if (form.type === 'food-voucher' || form.type === 'meal-voucher') {
+  if (form.type === 'VALE_ALIMENTACAO' || form.type === 'VALE_REFEICAO') {
     const balance = parseAmountInput(form.balance);
     if (balance === undefined) {
       errors.balance = 'Informe o saldo do cartão!';
@@ -128,7 +128,7 @@ export function CardFormModal({ open, card, accounts, saving, onSubmit, onClose 
   const accountOptions = useMemo<Option[]>(
     () =>
       accounts
-        .filter((account) => account.status === 'active' || account.id === card?.accountId)
+        .filter((account) => account.status === 'ATIVO' || account.id === card?.accountId)
         .map((account) => ({ value: account.id, label: `${account.name} · ${account.institution}` })),
     [accounts, card],
   );
@@ -158,23 +158,23 @@ export function CardFormModal({ open, card, accounts, saving, onSubmit, onClose 
       status: form.status,
       brand: form.brand.trim() || undefined,
       lastDigits: form.lastDigits.trim() || undefined,
-      ...(form.type === 'credit'
+      ...(form.type === 'CREDITO'
         ? {
             limit: parseAmountInput(form.limit),
             closingDay: parseDay(form.closingDay),
             dueDay: parseDay(form.dueDay),
           }
         : {}),
-      ...(form.type === 'debit' ? { accountId: form.accountId } : {}),
-      ...(form.type === 'food-voucher' || form.type === 'meal-voucher'
+      ...(form.type === 'DEBITO' ? { accountId: form.accountId } : {}),
+      ...(form.type === 'VALE_ALIMENTACAO' || form.type === 'VALE_REFEICAO'
         ? { balance: parseAmountInput(form.balance) }
         : {}),
     });
   };
 
-  const isCredit = form.type === 'credit';
-  const isDebit = form.type === 'debit';
-  const isVoucher = form.type === 'food-voucher' || form.type === 'meal-voucher';
+  const isCredit = form.type === 'CREDITO';
+  const isDebit = form.type === 'DEBITO';
+  const isVoucher = form.type === 'VALE_ALIMENTACAO' || form.type === 'VALE_REFEICAO';
 
   return (
     <Modal
@@ -319,7 +319,7 @@ export function CardFormModal({ open, card, accounts, saving, onSubmit, onClose 
           value={form.status}
           onChange={(status) => set('status', status as CardStatus)}
           hint={
-            form.status === 'inactive'
+            form.status === 'INATIVO'
               ? 'Sai dos novos lançamentos; o histórico e as faturas continuam.'
               : 'Disponível para novos lançamentos.'
           }

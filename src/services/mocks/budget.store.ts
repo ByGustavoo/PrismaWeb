@@ -23,7 +23,7 @@ function resolve(payload: BudgetPayload, currentId?: string): Omit<Budget, 'id'>
   if (!category) {
     throw new ApiError('Escolha a categoria do orçamento.', 422, 'validation_error');
   }
-  if (category.kind !== 'expense') {
+  if (category.kind !== 'DESPESA') {
     throw new ApiError('Só categorias de despesa aceitam orçamento.', 422, 'validation_error');
   }
   if (!Number.isFinite(payload.limit) || payload.limit <= 0) {

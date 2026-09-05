@@ -58,7 +58,7 @@ function resolve(payload: AccountPayload): Omit<Account, 'id'> {
     balance: payload.balance,
     status: payload.status,
     // Conta inativa nunca soma: ela sai do patrimonio junto com a inativacao.
-    includeInTotal: payload.status === 'active' && payload.includeInTotal,
+    includeInTotal: payload.status === 'ATIVO' && payload.includeInTotal,
   };
 }
 

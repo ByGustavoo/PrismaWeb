@@ -37,7 +37,7 @@ export function GoalCard({ tracking, index, onOpen, onRegisterPrice, onDelete }:
   const { goal, analysis } = tracking;
   const [imageBroken, setImageBroken] = useState(false);
   const host = goal.url ? hostOf(goal.url) : null;
-  const archived = goal.status !== 'tracking';
+  const archived = goal.status !== 'ACOMPANHANDO';
 
   return (
     <li className={`${styles.card} ${archived ? styles.archived : ''} list-item-in`} style={{ '--i': index } as CSSProperties}>
@@ -123,7 +123,7 @@ export function GoalCard({ tracking, index, onOpen, onRegisterPrice, onDelete }:
         </p>
 
         <div className={styles.bottom}>
-          <Badge tone={goalStatusTone[goal.status]} dot={goal.status === 'tracking'}>
+          <Badge tone={goalStatusTone[goal.status]} dot={goal.status === 'ACOMPANHANDO'}>
             {goalStatusLabel[goal.status]}
           </Badge>
 

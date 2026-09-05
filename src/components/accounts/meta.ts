@@ -9,10 +9,10 @@ import type { AccountStatus, AccountType } from '@/types';
  * futura precisam desenhar a mesma conta do mesmo jeito.
  */
 export const accountTypeIcon: Record<AccountType, LucideIcon> = {
-  checking: Landmark,
-  salary: Banknote,
-  emergency: PiggyBank,
-  other: Wallet,
+  CORRENTE: Landmark,
+  SALARIO: Banknote,
+  EMERGENCIA: PiggyBank,
+  OUTRA: Wallet,
 };
 
 /**
@@ -20,6 +20,6 @@ export const accountTypeIcon: Record<AccountType, LucideIcon> = {
  * e uma decisao ja tomada por quem encerrou a conta.
  */
 export const accountStatusTone: Record<AccountStatus, BadgeTone> = {
-  active: 'positive',
-  inactive: 'neutral',
+  ATIVO: 'positive',
+  INATIVO: 'neutral',
 };

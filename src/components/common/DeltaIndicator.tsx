@@ -16,8 +16,8 @@ export interface DeltaIndicatorProps {
  * dizia outra.
  */
 export function DeltaIndicator({ delta, caption }: DeltaIndicatorProps) {
-  const Icon = delta.trend === 'up' ? ArrowUpRight : delta.trend === 'down' ? ArrowDownRight : Minus;
-  const tone = delta.trend === 'flat' ? 'flat' : delta.trend === 'up' ? 'good' : 'bad';
+  const Icon = delta.trend === 'ALTA' ? ArrowUpRight : delta.trend === 'BAIXA' ? ArrowDownRight : Minus;
+  const tone = delta.trend === 'ESTAVEL' ? 'flat' : delta.trend === 'ALTA' ? 'good' : 'bad';
 
   return (
     <span className={cn(styles.delta, styles[tone])}>

@@ -20,7 +20,7 @@ interface RecurringCardProps {
  * aqui, e obriga-la a passar pelo formulario inteiro seria desproporcional.
  */
 export function RecurringCard({ expense, onEdit, onToggle, onDelete }: RecurringCardProps) {
-  const paused = expense.status === 'paused';
+  const paused = expense.status === 'PAUSADO';
   const days = daysBetween(todayISO(), expense.nextDueDate);
   const dueSoon = !paused && days >= 0 && days <= RECURRING_DUE_SOON_DAYS;
 

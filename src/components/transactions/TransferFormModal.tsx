@@ -37,7 +37,7 @@ function initialState(transaction: Transaction | null): FormState {
     amount: transaction ? toAmountInput(transaction.amount) : '',
     date: transaction?.date ?? todayISO(),
     description: transaction?.description ?? '',
-    status: transaction?.status ?? 'paid',
+    status: transaction?.status ?? 'PAGO',
     notes: transaction?.notes ?? '',
   };
 }
@@ -101,7 +101,7 @@ export function TransferFormModal({
   const accountOptions = useMemo<Option[]>(
     () =>
       sources
-        .filter((item) => item.group === 'account')
+        .filter((item) => item.group === 'CONTA')
         .map((item) => ({ value: item.id, label: item.name })),
     [sources],
   );
@@ -138,9 +138,9 @@ export function TransferFormModal({
     onSubmit({
       description: form.description,
       amount: parseAmountInput(form.amount) ?? 0,
-      kind: 'transfer',
+      kind: 'TRANSFERENCIA',
       status: form.status,
-      method: 'account',
+      method: 'CONTA',
       date: form.date,
       accountId: form.accountId,
       toAccountId: form.toAccountId,
@@ -233,7 +233,7 @@ export function TransferFormModal({
           options={statusOptions}
           value={form.status}
           onChange={(status) => set('status', status as TransactionStatus)}
-          hint={form.status === 'paid' ? 'A transferência já foi feita.' : 'Ainda não saiu da conta de origem.'}
+          hint={form.status === 'PAGO' ? 'A transferência já foi feita.' : 'Ainda não saiu da conta de origem.'}
         />
 
         <Textarea

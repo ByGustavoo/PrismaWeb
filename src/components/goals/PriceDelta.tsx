@@ -22,9 +22,9 @@ interface PriceDeltaProps {
  * de a cor aqui seguir a noticia, e nao a direcao do numero.
  */
 export function PriceDelta({ change, percentage, trend, size = 'md', className }: PriceDeltaProps) {
-  const Icon = trend === 'down' ? ArrowDownRight : trend === 'up' ? ArrowUpRight : Minus;
+  const Icon = trend === 'BAIXA' ? ArrowDownRight : trend === 'ALTA' ? ArrowUpRight : Minus;
 
-  if (trend === 'flat') {
+  if (trend === 'ESTAVEL') {
     return (
       <span className={cn(styles.delta, styles[trend], styles[size], className)}>
         <Icon size={size === 'sm' ? 13 : 15} strokeWidth={2.25} aria-hidden="true" />

@@ -1,13 +1,13 @@
 import type { Delta, ID, Trend } from './common';
 
-export type TransactionKind = 'income' | 'expense' | 'transfer';
+export type TransactionKind = 'RECEITA' | 'DESPESA' | 'TRANSFERENCIA';
 
-export type TransactionStatus = 'paid' | 'pending' | 'scheduled';
+export type TransactionStatus = 'PAGO' | 'PENDENTE' | 'AGENDADO';
 
-export type PaymentMethod = 'account' | 'credit-card' | 'pix' | 'cash';
+export type PaymentMethod = 'CONTA' | 'CARTAO_CREDITO' | 'PIX' | 'DINHEIRO';
 
 /** Receita e despesa nao compartilham categoria: cada formulario oferece so as do seu lado. */
-export type CategoryKind = 'income' | 'expense';
+export type CategoryKind = 'RECEITA' | 'DESPESA';
 
 export interface Category {
   id: ID;
@@ -59,21 +59,21 @@ export interface TransactionPayload {
 export interface PaymentSource {
   id: ID;
   name: string;
-  group: 'account' | 'card';
+  group: 'CONTA' | 'CARTAO';
 }
 
 /* -------------------------------------------------------------------------- */
 /* Contas                                                                     */
 /* -------------------------------------------------------------------------- */
 
-export type AccountType = 'checking' | 'salary' | 'emergency' | 'other';
+export type AccountType = 'CORRENTE' | 'SALARIO' | 'EMERGENCIA' | 'OUTRA';
 
 /**
  * Conta inativa continua no cadastro e no historico, mas sai do saldo total e
  * deixa de ser oferecida em lancamentos novos. E a alternativa a exclusao para
  * quem encerrou uma conta que ainda tem passado.
  */
-export type AccountStatus = 'active' | 'inactive';
+export type AccountStatus = 'ATIVO' | 'INATIVO';
 
 export interface Account {
   id: ID;
@@ -99,9 +99,9 @@ export interface AccountPayload {
 /* Cartoes                                                                    */
 /* -------------------------------------------------------------------------- */
 
-export type CardType = 'credit' | 'debit' | 'food-voucher' | 'meal-voucher';
+export type CardType = 'CREDITO' | 'DEBITO' | 'VALE_ALIMENTACAO' | 'VALE_REFEICAO';
 
-export type CardStatus = 'active' | 'inactive';
+export type CardStatus = 'ATIVO' | 'INATIVO';
 
 /**
  * Um cadastro para os quatro tipos de cartao. Os campos especificos sao
@@ -158,7 +158,7 @@ export interface CardPayload {
  * parcelas ja estao comprometidas. `open` e o ciclo em andamento, que continua
  * aceitando compras.
  */
-export type InvoiceStatus = 'future' | 'open' | 'closed' | 'paid' | 'overdue';
+export type InvoiceStatus = 'FUTURA' | 'ABERTA' | 'FECHADA' | 'PAGA' | 'VENCIDA';
 
 export interface Invoice {
   id: ID;
@@ -204,7 +204,7 @@ export interface InvoiceDetail extends Invoice {
 /* Compras parceladas                                                         */
 /* -------------------------------------------------------------------------- */
 
-export type InstallmentStatus = 'paid' | 'current' | 'upcoming';
+export type InstallmentStatus = 'PAGA' | 'ATUAL' | 'FUTURA';
 
 export interface Installment {
   /** Comeca em 1. */
@@ -263,14 +263,14 @@ export interface InstallmentPayload {
 /* -------------------------------------------------------------------------- */
 
 export type InvestmentClass =
-  | 'fixed-income'
-  | 'cdb'
-  | 'treasury'
-  | 'stocks'
-  | 'etf'
-  | 'funds'
-  | 'crypto'
-  | 'other';
+  | 'RENDA_FIXA'
+  | 'CDB'
+  | 'TESOURO'
+  | 'ACOES'
+  | 'ETF'
+  | 'FUNDOS'
+  | 'CRIPTO'
+  | 'OUTROS';
 
 export interface Investment {
   id: ID;
@@ -369,9 +369,9 @@ export interface DailySpending {
   amount: number;
 }
 
-export type AlertKind = 'invoice-due' | 'bill-due' | 'scheduled' | 'card-limit';
+export type AlertKind = 'FATURA_VENCENDO' | 'CONTA_VENCENDO' | 'LANCAMENTO_AGENDADO' | 'LIMITE_CARTAO';
 
-export type AlertSeverity = 'critical' | 'attention' | 'info';
+export type AlertSeverity = 'CRITICO' | 'ATENCAO' | 'INFO';
 
 export interface Alert {
   id: ID;
@@ -423,7 +423,7 @@ export interface DashboardSummary {
  * do limite. As faixas ficam em `constants/budget.ts`, junto das que pintam a
  * barra, para que cor e rotulo nunca discordem.
  */
-export type BudgetStatus = 'safe' | 'warning' | 'exceeded';
+export type BudgetStatus = 'SEGURO' | 'ALERTA' | 'ESTOURADO';
 
 /**
  * Limite mensal de uma categoria de despesa. O orcamento e recorrente: vale
@@ -482,16 +482,16 @@ export interface BudgetOverview {
 /* -------------------------------------------------------------------------- */
 
 export type RecurrenceFrequency =
-  | 'weekly'
-  | 'biweekly'
-  | 'monthly'
-  | 'bimonthly'
-  | 'quarterly'
-  | 'semiannual'
-  | 'yearly';
+  | 'SEMANAL'
+  | 'QUINZENAL'
+  | 'MENSAL'
+  | 'BIMESTRAL'
+  | 'TRIMESTRAL'
+  | 'SEMESTRAL'
+  | 'ANUAL';
 
 /** Pausada continua no cadastro, mas sai do custo mensal e da previsao. */
-export type RecurringStatus = 'active' | 'paused';
+export type RecurringStatus = 'ATIVO' | 'PAUSADO';
 
 export interface RecurringExpense {
   id: ID;
@@ -583,7 +583,7 @@ export interface ReportRange {
 export interface SourceSpending {
   id: ID;
   name: string;
-  group: 'account' | 'card';
+  group: 'CONTA' | 'CARTAO';
   amount: number;
   /** Participacao no total de despesas do recorte (0 a 1). */
   share: number;
@@ -633,7 +633,7 @@ export interface ReportSummary {
  * `cancelled` saem do acompanhamento mas continuam no cadastro: o historico ja
  * registrado e o que responde se a compra aconteceu no momento certo.
  */
-export type GoalStatus = 'tracking' | 'purchased' | 'cancelled';
+export type GoalStatus = 'ACOMPANHANDO' | 'COMPRADA' | 'CANCELADA';
 
 /**
  * Um preco consultado num dia. O registro nunca substitui o anterior — e a
@@ -701,7 +701,7 @@ export interface GoalPricePayload {
  * fica em `constants/goals.ts`: a analise e conta de servidor, a frase e
  * interface.
  */
-export type GoalInsight = 'first' | 'lowest' | 'below-average' | 'above-average' | 'highest' | 'stable';
+export type GoalInsight = 'PRIMEIRO' | 'MENOR' | 'ABAIXO_DA_MEDIA' | 'ACIMA_DA_MEDIA' | 'MAIOR' | 'ESTAVEL';
 
 export interface GoalAnalysis {
   /** Preco do primeiro registro; e a referencia de toda a variacao. */

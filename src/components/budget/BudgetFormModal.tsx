@@ -57,7 +57,7 @@ export function BudgetFormModal({
   const categoryOptions = useMemo<Option[]>(
     () =>
       categories
-        .filter((item) => item.kind === 'expense')
+        .filter((item) => item.kind === 'DESPESA')
         .filter((item) => !usedCategoryIds.includes(item.id) || item.id === budget?.category.id)
         .map((item) => ({ value: item.id, label: item.name })),
     [categories, usedCategoryIds, budget],

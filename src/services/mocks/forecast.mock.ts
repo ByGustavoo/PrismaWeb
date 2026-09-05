@@ -35,8 +35,8 @@ function average(values: number[]): number {
 export function buildForecastSummary(months: number = FORECAST_MONTHS): ForecastSummary {
   const baseline = baselineMonths();
 
-  const averageIncome = money(average(baseline.map((month) => sumKind(ofMonth(month), 'income'))));
-  const averageExpense = average(baseline.map((month) => sumKind(ofMonth(month), 'expense')));
+  const averageIncome = money(average(baseline.map((month) => sumKind(ofMonth(month), 'RECEITA'))));
+  const averageExpense = average(baseline.map((month) => sumKind(ofMonth(month), 'DESPESA')));
   const averageInstallments = average(baseline.map((month) => installmentTotalIn(month)));
   const averageRecurring = average(baseline.map((month) => recurringTotalIn(month)));
 

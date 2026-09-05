@@ -5,15 +5,15 @@ import { CARD_LIMIT_CRITICAL_RATIO, CARD_LIMIT_WARNING_RATIO } from '@/constants
 import type { CardStatus, CardType, InstallmentStatus, InvoiceStatus } from '@/types';
 
 export const cardTypeIcon: Record<CardType, LucideIcon> = {
-  credit: CreditCard,
-  debit: WalletCards,
-  'food-voucher': ShoppingBasket,
-  'meal-voucher': Utensils,
+  CREDITO: CreditCard,
+  DEBITO: WalletCards,
+  'VALE_ALIMENTACAO': ShoppingBasket,
+  'VALE_REFEICAO': Utensils,
 };
 
 export const cardStatusTone: Record<CardStatus, BadgeTone> = {
-  active: 'positive',
-  inactive: 'neutral',
+  ATIVO: 'positive',
+  INATIVO: 'neutral',
 };
 
 /**
@@ -32,15 +32,15 @@ export function limitTone(ratio: number): ProgressTone {
  * pagamento a fazer, e a vencida e o unico caso vermelho.
  */
 export const invoiceStatusTone: Record<InvoiceStatus, BadgeTone> = {
-  future: 'neutral',
-  open: 'accent',
-  closed: 'warning',
-  paid: 'positive',
-  overdue: 'negative',
+  FUTURA: 'neutral',
+  ABERTA: 'accent',
+  FECHADA: 'warning',
+  PAGA: 'positive',
+  VENCIDA: 'negative',
 };
 
 export const installmentStatusTone: Record<InstallmentStatus, BadgeTone> = {
-  paid: 'positive',
-  current: 'accent',
-  upcoming: 'neutral',
+  PAGA: 'positive',
+  ATUAL: 'accent',
+  FUTURA: 'neutral',
 };

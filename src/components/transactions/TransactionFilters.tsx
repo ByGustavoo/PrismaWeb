@@ -25,16 +25,16 @@ interface TransactionFiltersProps {
 
 const kindOptions: Option[] = [
   { value: ALL, label: 'Todos os tipos' },
-  { value: 'income', label: transactionKindPluralLabel.income },
-  { value: 'expense', label: transactionKindPluralLabel.expense },
-  { value: 'transfer', label: transactionKindPluralLabel.transfer },
+  { value: 'RECEITA', label: transactionKindPluralLabel.RECEITA },
+  { value: 'DESPESA', label: transactionKindPluralLabel.DESPESA },
+  { value: 'TRANSFERENCIA', label: transactionKindPluralLabel.TRANSFERENCIA },
 ];
 
 const statusOptions: Option[] = [
   { value: ALL, label: 'Todas as situações' },
-  { value: 'paid', label: transactionStatusLabel.paid },
-  { value: 'pending', label: transactionStatusLabel.pending },
-  { value: 'scheduled', label: transactionStatusLabel.scheduled },
+  { value: 'PAGO', label: transactionStatusLabel.PAGO },
+  { value: 'PENDENTE', label: transactionStatusLabel.PENDENTE },
+  { value: 'AGENDADO', label: transactionStatusLabel.AGENDADO },
 ];
 
 /** Quantos filtros (fora a busca) estao restringindo a lista agora. */

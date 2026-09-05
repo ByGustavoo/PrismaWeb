@@ -26,7 +26,7 @@ interface AccountCardProps {
  */
 export function AccountCard({ account, share, onEdit, onDelete }: AccountCardProps) {
   const Icon = accountTypeIcon[account.type];
-  const inactive = account.status === 'inactive';
+  const inactive = account.status === 'INATIVO';
 
   return (
     <li className={styles.card}>

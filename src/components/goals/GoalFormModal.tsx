@@ -43,7 +43,7 @@ function initialState(goal: Goal | null): FormState {
     imageUrl: goal?.imageUrl ?? '',
     price: '',
     date: todayISO(),
-    status: goal?.status ?? 'tracking',
+    status: goal?.status ?? 'ACOMPANHANDO',
     notes: goal?.notes ?? '',
   };
 }

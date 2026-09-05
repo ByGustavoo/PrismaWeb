@@ -24,8 +24,8 @@ import styles from './GoalsPage.module.css';
 
 /** Direcao do conjunto: barateou, encareceu ou nao se moveu. */
 function totalTrend(change: number, base: number): Trend {
-  if (base <= 0 || Math.abs(change / base) <= 0.005) return 'flat';
-  return change > 0 ? 'up' : 'down';
+  if (base <= 0 || Math.abs(change / base) <= 0.005) return 'ESTAVEL';
+  return change > 0 ? 'ALTA' : 'BAIXA';
 }
 
 export function GoalsPage() {
@@ -218,7 +218,7 @@ export function GoalsPage() {
                     <span className={`${styles.percent} tabular`}>{formatPercent(Math.abs(changePercent))}</span>
                   </span>
                 ),
-                hint: trend === 'up' ? 'A lista ficou mais cara' : trend === 'down' ? 'A lista ficou mais barata' : 'A lista não mudou de preço',
+                hint: trend === 'ALTA' ? 'A lista ficou mais cara' : trend === 'BAIXA' ? 'A lista ficou mais barata' : 'A lista não mudou de preço',
               },
               {
                 label: 'Abaixo do maior preço',

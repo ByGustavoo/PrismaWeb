@@ -2,13 +2,13 @@ import type { BadgeTone } from '@/components/ui';
 import type { GoalInsight, GoalStatus, Option } from '@/types';
 
 export const goalStatusLabel: Record<GoalStatus, string> = {
-  tracking: 'Em acompanhamento',
-  purchased: 'Comprado',
-  cancelled: 'Cancelado',
+  ACOMPANHANDO: 'Em acompanhamento',
+  COMPRADA: 'Comprado',
+  CANCELADA: 'Cancelado',
 };
 
 /** Ordem do seletor e dos filtros: a meta viva primeiro, o arquivo depois. */
-export const goalStatuses: GoalStatus[] = ['tracking', 'purchased', 'cancelled'];
+export const goalStatuses: GoalStatus[] = ['ACOMPANHANDO', 'COMPRADA', 'CANCELADA'];
 
 /**
  * O acento fica no acompanhamento, que e o estado que pede atencao. Comprado
@@ -16,9 +16,9 @@ export const goalStatuses: GoalStatus[] = ['tracking', 'purchased', 'cancelled']
  * lista.
  */
 export const goalStatusTone: Record<GoalStatus, BadgeTone> = {
-  tracking: 'accent',
-  purchased: 'positive',
-  cancelled: 'neutral',
+  ACOMPANHANDO: 'accent',
+  COMPRADA: 'positive',
+  CANCELADA: 'neutral',
 };
 
 export const goalStatusOptions: Option[] = goalStatuses.map((status) => ({
@@ -32,9 +32,9 @@ export const goalStatusOptions: Option[] = goalStatuses.map((status) => ({
  * "Meta marcada como " + rotulo produzia "marcada como comprado".
  */
 export const goalStatusToast: Record<GoalStatus, string> = {
-  tracking: 'Meta de volta em acompanhamento',
-  purchased: 'Meta marcada como comprada',
-  cancelled: 'Meta cancelada',
+  ACOMPANHANDO: 'Meta de volta em acompanhamento',
+  COMPRADA: 'Meta marcada como comprada',
+  CANCELADA: 'Meta cancelada',
 };
 
 /**
@@ -43,13 +43,13 @@ export const goalStatusToast: Record<GoalStatus, string> = {
  * traduzir a tela nao pode exigir mexer na API.
  */
 export const goalInsightText: Record<GoalInsight, string> = {
-  first:
+  PRIMEIRO:
     'Só há um preço registrado. Consulte o produto de novo em alguns dias para ter com o que comparar.',
-  lowest: 'É o menor preço já registrado. Se a compra estava no plano, este é o melhor momento até agora.',
-  'below-average': 'O preço atual está abaixo da média registrada.',
-  'above-average': 'O preço atual está acima da média registrada.',
-  highest: 'O preço atual está próximo do maior valor já registrado. Vale esperar mais uma consulta.',
-  stable: 'O preço não se moveu desde o primeiro registro.',
+  MENOR: 'É o menor preço já registrado. Se a compra estava no plano, este é o melhor momento até agora.',
+  ABAIXO_DA_MEDIA: 'O preço atual está abaixo da média registrada.',
+  ACIMA_DA_MEDIA: 'O preço atual está acima da média registrada.',
+  MAIOR: 'O preço atual está próximo do maior valor já registrado. Vale esperar mais uma consulta.',
+  ESTAVEL: 'O preço não se moveu desde o primeiro registro.',
 };
 
 /**

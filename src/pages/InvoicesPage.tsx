@@ -95,11 +95,11 @@ export function InvoicesPage() {
    * faturas do mesmo cartao lado a lado sem explicar por que sao duas.
    */
   const groups = useMemo(() => {
-    const toPay = invoices.filter((item) => item.status === 'closed' || item.status === 'overdue');
-    const current = invoices.filter((item) => item.status === 'open');
-    const upcoming = invoices.filter((item) => item.status === 'future');
+    const toPay = invoices.filter((item) => item.status === 'FECHADA' || item.status === 'VENCIDA');
+    const current = invoices.filter((item) => item.status === 'ABERTA');
+    const upcoming = invoices.filter((item) => item.status === 'FUTURA');
     // Mais recente primeiro: o passado se le de tras para frente.
-    const past = invoices.filter((item) => item.status === 'paid').slice().reverse();
+    const past = invoices.filter((item) => item.status === 'PAGA').slice().reverse();
 
     return { toPay, current, upcoming, past };
   }, [invoices]);

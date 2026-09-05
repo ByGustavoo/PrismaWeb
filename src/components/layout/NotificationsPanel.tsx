@@ -13,16 +13,16 @@ import { formatShortDate } from '@/utils/format';
 import styles from './NotificationsPanel.module.css';
 
 const kindIcon: Record<AlertKind, LucideIcon> = {
-  'invoice-due': Receipt,
-  'bill-due': TriangleAlert,
-  scheduled: CalendarClock,
-  'card-limit': CreditCard,
+  FATURA_VENCENDO: Receipt,
+  CONTA_VENCENDO: TriangleAlert,
+  LANCAMENTO_AGENDADO: CalendarClock,
+  LIMITE_CARTAO: CreditCard,
 };
 
 const severityClass: Record<AlertSeverity, string> = {
-  critical: 'critical',
-  attention: 'attention',
-  info: 'info',
+  CRITICO: 'critical',
+  ATENCAO: 'attention',
+  INFO: 'info',
 };
 
 interface NotificationsPanelProps {
@@ -44,7 +44,7 @@ export function NotificationsPanel({ open, onClose, onCountChange }: Notificatio
   const { data, loading, error } = useAsyncData(fetchAlerts);
 
   const alerts = data ?? [];
-  const urgentCount = alerts.filter((alert) => alert.severity !== 'info').length;
+  const urgentCount = alerts.filter((alert) => alert.severity !== 'INFO').length;
 
   useEffect(() => {
     onCountChange(urgentCount);

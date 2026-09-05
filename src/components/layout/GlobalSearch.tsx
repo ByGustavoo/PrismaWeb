@@ -83,9 +83,9 @@ function buildResults(catalog: Catalog, term: string): SearchResult[] {
       key: `account-${item.id}`,
       group: 'account',
       label: item.name,
-      hint: item.group === 'card' ? 'Cartão de crédito' : 'Conta',
+      hint: item.group === 'CARTAO' ? 'Cartão de crédito' : 'Conta',
       to: `${paths.transactions}?${ACCOUNT_PARAM}=${item.id}`,
-      icon: item.group === 'card' ? CreditCard : Wallet,
+      icon: item.group === 'CARTAO' ? CreditCard : Wallet,
     }));
 
   return [...transactionResults, ...categoryResults, ...accountResults];

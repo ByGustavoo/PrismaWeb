@@ -10,9 +10,9 @@ import type { TransactionKind, TransactionStatus } from '@/types';
  */
 
 export const kindIcon: Record<TransactionKind, LucideIcon> = {
-  income: ArrowUpRight,
-  expense: ArrowDownLeft,
-  transfer: Repeat,
+  RECEITA: ArrowUpRight,
+  DESPESA: ArrowDownLeft,
+  TRANSFERENCIA: Repeat,
 };
 
 /**
@@ -20,15 +20,15 @@ export const kindIcon: Record<TransactionKind, LucideIcon> = {
  * pintar de verde ou vermelho mentiria sobre o efeito no saldo.
  */
 export const kindTone: Record<TransactionKind, AmountTone> = {
-  income: 'positive',
-  expense: 'negative',
-  transfer: 'muted',
+  RECEITA: 'positive',
+  DESPESA: 'negative',
+  TRANSFERENCIA: 'muted',
 };
 
 export const kindSign: Record<TransactionKind, 'plus' | 'minus' | 'none'> = {
-  income: 'plus',
-  expense: 'minus',
-  transfer: 'none',
+  RECEITA: 'plus',
+  DESPESA: 'minus',
+  TRANSFERENCIA: 'none',
 };
 
 /*
@@ -37,7 +37,7 @@ export const kindSign: Record<TransactionKind, 'plus' | 'minus' | 'none'> = {
  * para que a leitura nao dependa so da cor.
  */
 export const statusTone: Record<TransactionStatus, BadgeTone> = {
-  paid: 'positive',
-  pending: 'warning',
-  scheduled: 'accent',
+  PAGO: 'positive',
+  PENDENTE: 'warning',
+  AGENDADO: 'accent',
 };

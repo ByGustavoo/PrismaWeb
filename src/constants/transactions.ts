@@ -6,32 +6,32 @@ import type { PaymentMethod, TransactionKind, TransactionStatus } from '@/types'
  * formas diferentes em telas diferentes.
  */
 export const transactionStatusLabel: Record<TransactionStatus, string> = {
-  paid: 'Concluído',
-  pending: 'Pendente',
-  scheduled: 'Agendado',
+  PAGO: 'Concluído',
+  PENDENTE: 'Pendente',
+  AGENDADO: 'Agendado',
 };
 
 export const transactionKindLabel: Record<TransactionKind, string> = {
-  income: 'Receita',
-  expense: 'Despesa',
-  transfer: 'Transferência',
+  RECEITA: 'Receita',
+  DESPESA: 'Despesa',
+  TRANSFERENCIA: 'Transferência',
 };
 
 /** Rotulo no plural, usado nos filtros e nos titulos de tela. */
 export const transactionKindPluralLabel: Record<TransactionKind, string> = {
-  income: 'Receitas',
-  expense: 'Despesas',
-  transfer: 'Transferências',
+  RECEITA: 'Receitas',
+  DESPESA: 'Despesas',
+  TRANSFERENCIA: 'Transferências',
 };
 
 export const paymentMethodLabel: Record<PaymentMethod, string> = {
-  account: 'Débito em conta',
-  'credit-card': 'Cartão de crédito',
-  pix: 'Pix',
-  cash: 'Dinheiro',
+  CONTA: 'Débito em conta',
+  'CARTAO_CREDITO': 'Cartão de crédito',
+  PIX: 'Pix',
+  DINHEIRO: 'Dinheiro',
 };
 
 /** Ordem em que as formas de pagamento aparecem no formulario. */
-export const paymentMethods: PaymentMethod[] = ['account', 'pix', 'credit-card', 'cash'];
+export const paymentMethods: PaymentMethod[] = ['CONTA', 'PIX', 'CARTAO_CREDITO', 'DINHEIRO'];
 
-export const transactionStatuses: TransactionStatus[] = ['paid', 'pending', 'scheduled'];
+export const transactionStatuses: TransactionStatus[] = ['PAGO', 'PENDENTE', 'AGENDADO'];

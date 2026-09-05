@@ -8,14 +8,14 @@ import type { InvestmentClass } from '@/types';
  * formas diferentes.
  */
 export const investmentClassLabel: Record<InvestmentClass, string> = {
-  'fixed-income': 'Renda fixa',
-  cdb: 'CDB',
-  treasury: 'Tesouro',
-  stocks: 'Ações',
-  etf: 'ETFs',
-  funds: 'Fundos',
-  crypto: 'Criptomoedas',
-  other: 'Outros',
+  'RENDA_FIXA': 'Renda fixa',
+  CDB: 'CDB',
+  TESOURO: 'Tesouro',
+  ACOES: 'Ações',
+  ETF: 'ETFs',
+  FUNDOS: 'Fundos',
+  CRIPTO: 'Criptomoedas',
+  OUTROS: 'Outros',
 };
 
 /**
@@ -24,14 +24,14 @@ export const investmentClassLabel: Record<InvestmentClass, string> = {
  * separaria CDB de Tesouro, que quem investe le como vizinhos.
  */
 export const investmentClasses: InvestmentClass[] = [
-  'fixed-income',
-  'cdb',
-  'treasury',
-  'stocks',
-  'etf',
-  'funds',
-  'crypto',
-  'other',
+  'RENDA_FIXA',
+  'CDB',
+  'TESOURO',
+  'ACOES',
+  'ETF',
+  'FUNDOS',
+  'CRIPTO',
+  'OUTROS',
 ];
 
 /**
@@ -40,25 +40,25 @@ export const investmentClasses: InvestmentClass[] = [
  * fatias, a mesma classe mudaria de cor ao ganhar ou perder participacao.
  */
 export const investmentClassColor: Record<InvestmentClass, number> = {
-  'fixed-income': 1,
-  cdb: 6,
-  treasury: 5,
-  stocks: 2,
-  etf: 8,
-  funds: 4,
-  crypto: 3,
-  other: 7,
+  'RENDA_FIXA': 1,
+  CDB: 6,
+  TESOURO: 5,
+  ACOES: 2,
+  ETF: 8,
+  FUNDOS: 4,
+  CRIPTO: 3,
+  OUTROS: 7,
 };
 
 export const investmentClassIcon: Record<InvestmentClass, LucideIcon> = {
-  'fixed-income': PiggyBank,
-  cdb: Landmark,
-  treasury: Building2,
-  stocks: CandlestickChart,
-  etf: LineChart,
-  funds: Boxes,
-  crypto: Bitcoin,
-  other: Coins,
+  'RENDA_FIXA': PiggyBank,
+  CDB: Landmark,
+  TESOURO: Building2,
+  ACOES: CandlestickChart,
+  ETF: LineChart,
+  FUNDOS: Boxes,
+  CRIPTO: Bitcoin,
+  OUTROS: Coins,
 };
 
 /**

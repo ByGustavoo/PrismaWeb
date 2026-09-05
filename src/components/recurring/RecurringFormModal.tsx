@@ -46,10 +46,10 @@ function initialState(expense: RecurringExpense | null): FormState {
     description: expense?.description ?? '',
     amount: expense ? toAmountInput(expense.amount) : '',
     categoryId: expense?.category?.id ?? '',
-    frequency: expense?.frequency ?? 'monthly',
+    frequency: expense?.frequency ?? 'MENSAL',
     nextDueDate: expense?.nextDueDate ?? todayISO(),
     accountId: expense?.accountId ?? '',
-    status: expense?.status ?? 'active',
+    status: expense?.status ?? 'ATIVO',
     notes: expense?.notes ?? '',
   };
 }
@@ -96,7 +96,7 @@ export function RecurringFormModal({
   }, [open, expense]);
 
   const categoryOptions = useMemo<Option[]>(
-    () => categories.filter((item) => item.kind === 'expense').map((item) => ({ value: item.id, label: item.name })),
+    () => categories.filter((item) => item.kind === 'DESPESA').map((item) => ({ value: item.id, label: item.name })),
     [categories],
   );
 
@@ -104,7 +104,7 @@ export function RecurringFormModal({
     () =>
       sources.map((source) => ({
         value: source.id,
-        label: source.group === 'card' ? `${source.name} (cartão)` : source.name,
+        label: source.group === 'CARTAO' ? `${source.name} (cartão)` : source.name,
       })),
     [sources],
   );
@@ -244,7 +244,7 @@ export function RecurringFormModal({
           O custo mensal equivalente e a conta que o usuario nao faz de cabeca:
           um seguro anual de R$ 2.340 pesa R$ 195 por mes no orcamento.
         */}
-        {monthlyEquivalent !== undefined && form.frequency !== 'monthly' ? (
+        {monthlyEquivalent !== undefined && form.frequency !== 'MENSAL' ? (
           <p className={styles.preview}>
             <strong className={styles.previewValue}>
               <Amount value={monthlyEquivalent} size="md" />

@@ -41,7 +41,7 @@ export function CardsPage() {
   const currentInvoices = useMemo(() => {
     const map = new Map<string, Invoice>();
     for (const invoice of invoices) {
-      if (invoice.status !== 'open' && invoice.status !== 'closed') continue;
+      if (invoice.status !== 'ABERTA' && invoice.status !== 'FECHADA') continue;
       const existing = map.get(invoice.cardId);
       if (!existing || invoice.dueDate < existing.dueDate) map.set(invoice.cardId, invoice);
     }
@@ -49,7 +49,7 @@ export function CardsPage() {
   }, [invoices]);
 
   const creditCards = useMemo(() => cards.filter(isCreditCard), [cards]);
-  const otherCards = useMemo(() => cards.filter((card) => card.type !== 'credit'), [cards]);
+  const otherCards = useMemo(() => cards.filter((card) => card.type !== 'CREDITO'), [cards]);
 
   const summary = useMemo(() => {
     const limit = creditCards.reduce((sum, card) => sum + card.limit, 0);

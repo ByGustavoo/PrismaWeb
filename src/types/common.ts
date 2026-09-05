@@ -7,7 +7,7 @@ export interface Option<T extends string = string> {
   label: string;
 }
 
-export type Trend = 'up' | 'down' | 'flat';
+export type Trend = 'ALTA' | 'BAIXA' | 'ESTAVEL';
 
 export interface Delta {
   /** Variacao percentual em relacao ao periodo anterior. */

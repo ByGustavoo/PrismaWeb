@@ -39,7 +39,7 @@ export function InstallmentsPage() {
       Promise.all([
         cardsService.listInstallments(undefined, signal),
         cardsService.list(signal),
-        categoriesService.list('expense', signal),
+        categoriesService.list('DESPESA', signal),
       ]),
     [],
   );

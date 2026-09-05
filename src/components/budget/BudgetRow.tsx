@@ -21,7 +21,7 @@ interface BudgetRowProps {
  */
 export function BudgetRow({ usage, showProjection, onEdit, onDelete }: BudgetRowProps) {
   const { budget, spent, remaining, ratio, projected, status } = usage;
-  const exceeded = status === 'exceeded';
+  const exceeded = status === 'ESTOURADO';
 
   return (
     <li className={styles.row}>

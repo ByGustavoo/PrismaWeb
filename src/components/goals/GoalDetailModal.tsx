@@ -92,7 +92,7 @@ export function GoalDetailModal({
   if (!tracking) return null;
 
   const { goal, analysis } = tracking;
-  const archived = goal.status !== 'tracking';
+  const archived = goal.status !== 'ACOMPANHANDO';
 
   const handleRegister = async () => {
     const price = parseAmountInput(form.price);
@@ -159,7 +159,7 @@ export function GoalDetailModal({
           )}
         </div>
 
-        <Badge tone={goalStatusTone[goal.status]} dot={goal.status === 'tracking'}>
+        <Badge tone={goalStatusTone[goal.status]} dot={goal.status === 'ACOMPANHANDO'}>
           {goalStatusLabel[goal.status]}
         </Badge>
       </header>
@@ -292,7 +292,7 @@ export function GoalDetailModal({
                   size="sm"
                   change={change}
                   percentage={percentage}
-                  trend={change > 0 ? 'up' : change < 0 ? 'down' : 'flat'}
+                  trend={change > 0 ? 'ALTA' : change < 0 ? 'BAIXA' : 'ESTAVEL'}
                 />
               )}
             </li>
@@ -310,15 +310,15 @@ export function GoalDetailModal({
 
         <span className={styles.statusActions}>
           {archived ? (
-            <Button variant="secondary" size="sm" icon={RotateCcw} disabled={saving} onClick={() => onStatusChange(tracking, 'tracking')}>
+            <Button variant="secondary" size="sm" icon={RotateCcw} disabled={saving} onClick={() => onStatusChange(tracking, 'ACOMPANHANDO')}>
               Voltar a acompanhar
             </Button>
           ) : (
             <>
-              <Button variant="secondary" size="sm" icon={Check} disabled={saving} onClick={() => onStatusChange(tracking, 'purchased')}>
+              <Button variant="secondary" size="sm" icon={Check} disabled={saving} onClick={() => onStatusChange(tracking, 'COMPRADA')}>
                 Marcar como comprado
               </Button>
-              <Button variant="ghost" size="sm" icon={X} disabled={saving} onClick={() => onStatusChange(tracking, 'cancelled')}>
+              <Button variant="ghost" size="sm" icon={X} disabled={saving} onClick={() => onStatusChange(tracking, 'CANCELADA')}>
                 Cancelar meta
               </Button>
             </>

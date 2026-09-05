@@ -39,21 +39,21 @@ export function AppRoutes() {
         <Route
           path={paths.income}
           element={
-            <TransactionsPage key="income" kind="income" title="Receitas" description="Entradas registradas no período" />
+            <TransactionsPage key="RECEITA" kind="RECEITA" title="Receitas" description="Entradas registradas no período" />
           }
         />
         <Route
           path={paths.expenses}
           element={
-            <TransactionsPage key="expense" kind="expense" title="Despesas" description="Saídas registradas no período" />
+            <TransactionsPage key="DESPESA" kind="DESPESA" title="Despesas" description="Saídas registradas no período" />
           }
         />
         <Route
           path={paths.transfers}
           element={
             <TransactionsPage
-              key="transfer"
-              kind="transfer"
+              key="TRANSFERENCIA"
+              kind="TRANSFERENCIA"
               title="Transferências"
               description="Movimentações entre suas próprias contas"
             />

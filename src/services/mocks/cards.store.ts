@@ -65,7 +65,7 @@ function resolveCard(payload: CardPayload): Omit<Card, 'id'> {
     throw new ApiError('Os últimos dígitos precisam ser quatro números.', 422, 'validation_error');
   }
 
-  if (payload.type === 'credit') {
+  if (payload.type === 'CREDITO') {
     if (typeof payload.limit !== 'number' || !Number.isFinite(payload.limit) || payload.limit <= 0) {
       throw new ApiError('Informe o limite do cartão.', 422, 'validation_error');
     }
@@ -78,7 +78,7 @@ function resolveCard(payload: CardPayload): Omit<Card, 'id'> {
     };
   }
 
-  if (payload.type === 'debit') {
+  if (payload.type === 'DEBITO') {
     const account = accounts.find((item) => item.id === payload.accountId);
     if (!account) {
       throw new ApiError('Escolha a conta vinculada ao cartão de débito.', 422, 'validation_error');
@@ -160,7 +160,7 @@ function resolvePurchase(payload: InstallmentPayload): Omit<InstallmentPurchase,
   if (!card) {
     throw new ApiError('O cartão informado não existe.', 422, 'validation_error');
   }
-  if (card.type !== 'credit') {
+  if (card.type !== 'CREDITO') {
     throw new ApiError('Só cartões de crédito aceitam compras parceladas.', 422, 'validation_error');
   }
 

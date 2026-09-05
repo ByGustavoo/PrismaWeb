@@ -97,7 +97,7 @@ function buckets(range: ReportRange): Array<{ label: string; from: string; to: s
 function buildCashflow(range: ReportRange): CashflowPoint[] {
   return buckets(range).map((bucket) => {
     const list = transactions.filter((item) => item.date >= bucket.from && item.date <= bucket.to);
-    return { label: bucket.label, income: sumKind(list, 'income'), expense: sumKind(list, 'expense') };
+    return { label: bucket.label, income: sumKind(list, 'RECEITA'), expense: sumKind(list, 'DESPESA') };
   });
 }
 
@@ -111,7 +111,7 @@ function buildBalanceHistory(range: ReportRange): BalancePoint[] {
  * conta e entra em outra, entao contaria como gasto de uma conta que nao gastou.
  */
 function buildBySource(list: Transaction[]): SourceSpending[] {
-  const expenses = list.filter((item) => item.kind === 'expense');
+  const expenses = list.filter((item) => item.kind === 'DESPESA');
   const total = expenses.reduce((sum, item) => sum + item.amount, 0);
   const grouped = new Map<string, SourceSpending>();
 
@@ -127,7 +127,7 @@ function buildBySource(list: Transaction[]): SourceSpending[] {
       name: item.accountName,
       // Os ids de cartao sao prefixados no cadastro; e o que distingue a compra
       // no cartao do debito em conta sem uma segunda consulta.
-      group: item.accountId.startsWith('card-') ? 'card' : 'account',
+      group: item.accountId.startsWith('card-') ? 'CARTAO' : 'CONTA',
       amount: item.amount,
       share: 0,
     });
@@ -169,8 +169,8 @@ export function buildReportSummary(range: ReportRange): ReportSummary {
   const current = inRange(range);
   const comparison = inRange(previousRange(range));
 
-  const income = money(sumKind(current, 'income'));
-  const expense = money(sumKind(current, 'expense'));
+  const income = money(sumKind(current, 'RECEITA'));
+  const expense = money(sumKind(current, 'DESPESA'));
 
   return {
     from: range.from,
@@ -178,11 +178,11 @@ export function buildReportSummary(range: ReportRange): ReportSummary {
     income,
     expense,
     net: money(income - expense),
-    incomeDelta: percentDelta(income, sumKind(comparison, 'income')),
-    expenseDelta: percentDelta(expense, sumKind(comparison, 'expense')),
-    transactionCount: current.filter((item) => item.kind !== 'transfer').length,
-    expenseByCategory: groupByCategory(current, 'expense'),
-    incomeByCategory: groupByCategory(current, 'income'),
+    incomeDelta: percentDelta(income, sumKind(comparison, 'RECEITA')),
+    expenseDelta: percentDelta(expense, sumKind(comparison, 'DESPESA')),
+    transactionCount: current.filter((item) => item.kind !== 'TRANSFERENCIA').length,
+    expenseByCategory: groupByCategory(current, 'DESPESA'),
+    incomeByCategory: groupByCategory(current, 'RECEITA'),
     cashflow: buildCashflow(range),
     expenseBySource: buildBySource(current),
     balanceHistory: buildBalanceHistory(range),

@@ -45,22 +45,22 @@ function insightOf(
 ): GoalInsight {
   // Com um preco so nao ha o que comparar: dizer "nao se moveu" afirmaria uma
   // estabilidade que ninguem chegou a observar.
-  if (entryCount < 2) return 'first';
+  if (entryCount < 2) return 'PRIMEIRO';
 
   const span = highest - lowest;
-  if (span < 0.01) return 'stable';
+  if (span < 0.01) return 'ESTAVEL';
 
   const position = (current - lowest) / span;
-  if (position <= GOAL_EXTREME_TOLERANCE) return 'lowest';
-  if (position >= 1 - GOAL_EXTREME_TOLERANCE) return 'highest';
+  if (position <= GOAL_EXTREME_TOLERANCE) return 'MENOR';
+  if (position >= 1 - GOAL_EXTREME_TOLERANCE) return 'MAIOR';
 
-  return current < average ? 'below-average' : 'above-average';
+  return current < average ? 'ABAIXO_DA_MEDIA' : 'ACIMA_DA_MEDIA';
 }
 
 function trendOf(change: number, initial: number): Trend {
-  if (initial <= 0) return 'flat';
-  if (Math.abs(change / initial) <= GOAL_STABLE_THRESHOLD) return 'flat';
-  return change > 0 ? 'up' : 'down';
+  if (initial <= 0) return 'ESTAVEL';
+  if (Math.abs(change / initial) <= GOAL_STABLE_THRESHOLD) return 'ESTAVEL';
+  return change > 0 ? 'ALTA' : 'BAIXA';
 }
 
 export function analyzeGoal(goal: Goal): GoalAnalysis {
@@ -79,11 +79,11 @@ export function analyzeGoal(goal: Goal): GoalAnalysis {
       averagePrice: 0,
       change: 0,
       changePercentage: 0,
-      trend: 'flat',
+      trend: 'ESTAVEL',
       savings: 0,
       lastUpdate: goal.createdAt,
       entryCount: 0,
-      insight: 'stable',
+      insight: 'ESTAVEL',
     };
   }
 
@@ -143,14 +143,14 @@ export function buildGoalsSummary(filters: GoalFilters = {}): GoalsSummary {
     // Atualizada mais recentemente primeiro: a tela abre no que acabou de mudar.
     .sort((a, b) => b.analysis.lastUpdate.localeCompare(a.analysis.lastUpdate));
 
-  const tracking = items.filter((item) => item.goal.status === 'tracking');
+  const tracking = items.filter((item) => item.goal.status === 'ACOMPANHANDO');
   const currentTotal = money(tracking.reduce((total, item) => total + item.analysis.currentPrice, 0));
   const initialTotal = money(tracking.reduce((total, item) => total + item.analysis.initialPrice, 0));
 
   return {
     items,
     trackingCount: tracking.length,
-    purchasedCount: items.filter((item) => item.goal.status === 'purchased').length,
+    purchasedCount: items.filter((item) => item.goal.status === 'COMPRADA').length,
     currentTotal,
     initialTotal,
     totalChange: money(currentTotal - initialTotal),

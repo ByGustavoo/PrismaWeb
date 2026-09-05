@@ -13,16 +13,16 @@ import type { GoalInsight, Trend } from '@/types';
  * explica.
  */
 export function priceTone(trend: Trend): AmountTone {
-  if (trend === 'down') return 'positive';
-  if (trend === 'up') return 'negative';
+  if (trend === 'BAIXA') return 'positive';
+  if (trend === 'ALTA') return 'negative';
   return 'muted';
 }
 
 /** Verbo da variacao, no passado: e o que ja aconteceu com o preco. */
 export const priceTrendLabel: Record<Trend, string> = {
-  down: 'Baixou',
-  up: 'Subiu',
-  flat: 'Estável',
+  BAIXA: 'Baixou',
+  ALTA: 'Subiu',
+  ESTAVEL: 'Estável',
 };
 
 /**
@@ -30,10 +30,10 @@ export const priceTrendLabel: Record<Trend, string> = {
  * media" pintado de verde daria a cada consulta o peso de uma decisao.
  */
 export const insightTone: Record<GoalInsight, BadgeTone> = {
-  first: 'neutral',
-  lowest: 'positive',
-  'below-average': 'neutral',
-  'above-average': 'neutral',
-  highest: 'warning',
-  stable: 'neutral',
+  PRIMEIRO: 'neutral',
+  MENOR: 'positive',
+  ABAIXO_DA_MEDIA: 'neutral',
+  ACIMA_DA_MEDIA: 'neutral',
+  MAIOR: 'warning',
+  ESTAVEL: 'neutral',
 };

@@ -133,7 +133,7 @@ export function TransactionsList({
                       uma segunda quebra. A transferencia, que sai sem sinal,
                       continua nomeada.
                     */}
-                    {transaction.kind === 'transfer' ? (
+                    {transaction.kind === 'TRANSFERENCIA' ? (
                       <span className={styles.kindLabel}>{transactionKindLabel[transaction.kind]}</span>
                     ) : null}
                   </span>

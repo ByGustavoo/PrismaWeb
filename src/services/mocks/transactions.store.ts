@@ -39,7 +39,7 @@ function resolve(payload: TransactionPayload): Omit<Transaction, 'id'> {
 
   const destination = payload.toAccountId ? findPaymentSource(payload.toAccountId) : undefined;
 
-  if (payload.kind === 'transfer') {
+  if (payload.kind === 'TRANSFERENCIA') {
     if (!destination) {
       throw new ApiError('A conta de destino informada não existe.', 422, 'validation_error');
     }
@@ -50,11 +50,11 @@ function resolve(payload: TransactionPayload): Omit<Transaction, 'id'> {
 
   // Transferencia nao entra em receita nem em despesa, entao tambem nao tem categoria.
   const category =
-    payload.kind === 'transfer'
+    payload.kind === 'TRANSFERENCIA'
       ? null
       : categories.find((item) => item.id === payload.categoryId) ?? null;
 
-  if (payload.kind !== 'transfer' && !category) {
+  if (payload.kind !== 'TRANSFERENCIA' && !category) {
     throw new ApiError('A categoria informada não existe.', 422, 'validation_error');
   }
 
@@ -68,7 +68,7 @@ function resolve(payload: TransactionPayload): Omit<Transaction, 'id'> {
     category,
     accountId: source.id,
     accountName: source.name,
-    ...(destination && payload.kind === 'transfer'
+    ...(destination && payload.kind === 'TRANSFERENCIA'
       ? { toAccountId: destination.id, toAccountName: destination.name }
       : {}),
     ...(payload.notes?.trim() ? { notes: payload.notes.trim() } : {}),

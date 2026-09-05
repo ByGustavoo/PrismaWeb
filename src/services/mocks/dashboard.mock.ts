@@ -77,7 +77,7 @@ function buildDailySpending(window: string[]): DailySpending[] {
   const totals = new Map<string, number>();
 
   for (const item of transactions) {
-    if (item.kind !== 'expense') continue;
+    if (item.kind !== 'DESPESA') continue;
     const month = item.date.slice(0, 7);
     if (month < first || month > last) continue;
     totals.set(item.date, (totals.get(item.date) ?? 0) + item.amount);
@@ -97,7 +97,7 @@ function buildDailySpending(window: string[]): DailySpending[] {
 function buildCashflow(window: string[]): CashflowPoint[] {
   return window.map((key) => {
     const list = ofMonth(key);
-    return { label: shortMonthLabel(key), income: sumKind(list, 'income'), expense: sumKind(list, 'expense') };
+    return { label: shortMonthLabel(key), income: sumKind(list, 'RECEITA'), expense: sumKind(list, 'DESPESA') };
   });
 }
 
@@ -112,7 +112,7 @@ function buildBalanceHistory(window: string[]): BalancePoint[] {
  */
 function buildInvoice(monthKey: string): DashboardSummary['currentInvoice'] {
   const monthly = buildInvoices().filter((invoice) => invoice.month === monthKey);
-  const open = monthly.filter((invoice) => invoice.status === 'open');
+  const open = monthly.filter((invoice) => invoice.status === 'ABERTA');
   const chosen = [...(open.length > 0 ? open : monthly)].sort((a, b) => b.total - a.total)[0];
 
   if (chosen) {
@@ -129,7 +129,7 @@ function buildInvoice(monthKey: string): DashboardSummary['currentInvoice'] {
     total: 0,
     cardName: 'Nenhum cartão',
     dueDate: monthKeyRange(shiftMonthKey(monthKey, 1)).to,
-    status: monthKey < currentMonth ? 'paid' : 'open',
+    status: monthKey < currentMonth ? 'PAGA' : 'ABERTA',
   };
 }
 
@@ -141,8 +141,8 @@ export function buildDashboardSummary(
   const current = inPeriod(period);
   const comparison = inPeriod(previous);
 
-  const monthIncome = sumKind(current, 'income');
-  const monthExpense = sumKind(current, 'expense');
+  const monthIncome = sumKind(current, 'RECEITA');
+  const monthExpense = sumKind(current, 'DESPESA');
   const currentBalance = balanceAt(monthClosingDate(period.to));
 
   const investmentsTotal = investments.reduce((total, item) => total + item.currentValue, 0);
@@ -160,16 +160,16 @@ export function buildDashboardSummary(
     currentBalance,
     balanceDelta: percentDelta(currentBalance, balanceAt(monthClosingDate(previous.to))),
     monthIncome,
-    incomeDelta: percentDelta(monthIncome, sumKind(comparison, 'income')),
+    incomeDelta: percentDelta(monthIncome, sumKind(comparison, 'RECEITA')),
     monthExpense,
-    expenseDelta: percentDelta(monthExpense, sumKind(comparison, 'expense')),
+    expenseDelta: percentDelta(monthExpense, sumKind(comparison, 'DESPESA')),
     investmentsTotal,
     investmentsDelta: percentDelta(investmentsTotal, investedTotal),
     currentInvoice: buildInvoice(period.to),
     balanceHistory: buildBalanceHistory(window),
     cashflow: buildCashflow(window),
     dailySpending: buildDailySpending(window),
-    spendingByCategory: groupByCategory(current, 'expense'),
+    spendingByCategory: groupByCategory(current, 'DESPESA'),
     recentTransactions,
   };
 }

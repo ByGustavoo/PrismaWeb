@@ -11,9 +11,9 @@ import { transactions } from './data';
 const HORIZON_DAYS = 15;
 
 function severityByDays(days: number): Alert['severity'] {
-  if (days <= 2) return 'critical';
-  if (days <= 7) return 'attention';
-  return 'info';
+  if (days <= 2) return 'CRITICO';
+  if (days <= 7) return 'ATENCAO';
+  return 'INFO';
 }
 
 
@@ -28,14 +28,14 @@ export function buildAlerts(): Alert[] {
 
   // Faturas em aberto ou fechadas dentro do horizonte.
   for (const invoice of buildInvoices()) {
-    if (invoice.status === 'paid' || invoice.status === 'future') continue;
+    if (invoice.status === 'PAGA' || invoice.status === 'FUTURA') continue;
     const days = daysBetween(today, invoice.dueDate);
     if (days > HORIZON_DAYS) continue;
 
     alerts.push({
       id: `alert-invoice-${invoice.id}`,
-      kind: 'invoice-due',
-      severity: days < 0 ? 'critical' : severityByDays(days),
+      kind: 'FATURA_VENCENDO',
+      severity: days < 0 ? 'CRITICO' : severityByDays(days),
       title: `Fatura ${invoice.cardName}`,
       description: `Fatura ${formatDueLabel(invoice.dueDate, today)}`,
       date: invoice.dueDate,
@@ -46,15 +46,15 @@ export function buildAlerts(): Alert[] {
 
   // Contas pendentes e lancamentos agendados.
   for (const transaction of transactions) {
-    if (transaction.status === 'paid') continue;
+    if (transaction.status === 'PAGO') continue;
     const days = daysBetween(today, transaction.date);
     if (days > HORIZON_DAYS) continue;
 
-    const pending = transaction.status === 'pending';
+    const pending = transaction.status === 'PENDENTE';
     alerts.push({
       id: `alert-tx-${transaction.id}`,
-      kind: pending ? 'bill-due' : 'scheduled',
-      severity: pending ? severityByDays(days) : 'info',
+      kind: pending ? 'CONTA_VENCENDO' : 'LANCAMENTO_AGENDADO',
+      severity: pending ? severityByDays(days) : 'INFO',
       title: transaction.description,
       description: pending
         ? `${transaction.category?.name ?? transactionKindLabel[transaction.kind]} · ${formatDueLabel(transaction.date, today)}`
@@ -69,8 +69,8 @@ export function buildAlerts(): Alert[] {
   for (const { card, used, ratio } of cardsNearLimit()) {
     alerts.push({
       id: `alert-card-${card.id}`,
-      kind: 'card-limit',
-      severity: ratio >= CARD_LIMIT_CRITICAL_RATIO ? 'critical' : 'attention',
+      kind: 'LIMITE_CARTAO',
+      severity: ratio >= CARD_LIMIT_CRITICAL_RATIO ? 'CRITICO' : 'ATENCAO',
       title: `${card.name} perto do limite`,
       description: `${Math.round(ratio * 100)}% do limite utilizado`,
       date: today,
@@ -80,6 +80,6 @@ export function buildAlerts(): Alert[] {
   }
 
   // Mais urgente primeiro; dentro da mesma urgencia, o que vence antes.
-  const order: Record<Alert['severity'], number> = { critical: 0, attention: 1, info: 2 };
+  const order: Record<Alert['severity'], number> = { CRITICO: 0, ATENCAO: 1, INFO: 2 };
   return alerts.sort((a, b) => order[a.severity] - order[b.severity] || a.date.localeCompare(b.date));
 }

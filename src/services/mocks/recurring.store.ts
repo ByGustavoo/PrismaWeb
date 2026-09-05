@@ -29,7 +29,7 @@ function resolve(payload: RecurringPayload): Omit<RecurringExpense, 'id'> {
   }
 
   const category = categories.find((item) => item.id === payload.categoryId) ?? null;
-  if (category && category.kind !== 'expense') {
+  if (category && category.kind !== 'DESPESA') {
     throw new ApiError('Escolha uma categoria de despesa.', 422, 'validation_error');
   }
 
