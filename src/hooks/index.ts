@@ -6,6 +6,8 @@ export type { CountUp } from './useCountUp';
 export { useLocalStorage } from './useLocalStorage';
 export { useLockBodyScroll } from './useLockBodyScroll';
 export { useChartPalette } from './useChartPalette';
+export { useFormValidation } from './useFormValidation';
+export type { FieldErrors, FormValidation } from './useFormValidation';
 export type { ChartPalette } from './useChartPalette';
 export { useTheme } from '@/providers/ThemeProvider';
 export { useToast } from '@/providers/ToastProvider';

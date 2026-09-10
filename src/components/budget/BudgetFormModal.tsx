@@ -1,7 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button, Input, Modal, Select } from '@/components/ui';
+import { useFormValidation } from '@/hooks/useFormValidation';
+import type { FieldErrors } from '@/hooks/useFormValidation';
 import type { Budget, BudgetPayload, Categoria, Option } from '@/types';
 import { parseAmountInput, toAmountInput } from '@/utils/format';
+import { amountError } from '@/utils/validation';
 import styles from './BudgetForm.module.css';
 
 interface BudgetFormModalProps {
@@ -21,12 +24,21 @@ interface FormState {
   limit: string;
 }
 
-type FormErrors = Partial<Record<keyof FormState, string>>;
-
 function initialState(budget: Budget | null): FormState {
   return {
     categoryId: budget?.category.id ?? '',
     limit: budget ? toAmountInput(budget.limit) : '',
+  };
+}
+
+function validate(form: FormState): FieldErrors<FormState> {
+  return {
+    categoryId: form.categoryId ? undefined : 'Escolha a categoria que receberá o limite!',
+    limit: amountError(form.limit, {
+      subject: 'O limite mensal',
+      missing: 'Informe o limite mensal!',
+      sign: 'positive',
+    }),
   };
 }
 
@@ -40,14 +52,13 @@ export function BudgetFormModal({
   onClose,
 }: BudgetFormModalProps) {
   const [form, setForm] = useState<FormState>(() => initialState(budget));
-  const [errors, setErrors] = useState<FormErrors>({});
-  const formRef = useRef<HTMLFormElement>(null);
+  const { errors, formRef, touch, submit, reset } = useFormValidation(form, validate);
 
   useEffect(() => {
     if (!open) return;
     setForm(initialState(budget));
-    setErrors({});
-  }, [open, budget]);
+    reset();
+  }, [open, budget, reset]);
 
   /*
    * Uma categoria tem no maximo um limite, entao as ja orcadas nem aparecem: e
@@ -65,27 +76,11 @@ export function BudgetFormModal({
 
   const set = <K extends keyof FormState>(field: K, value: FormState[K]) => {
     setForm((current) => ({ ...current, [field]: value }));
-    setErrors((current) => (current[field] ? { ...current, [field]: undefined } : current));
   };
 
   const handleSubmit = () => {
-    const limit = parseAmountInput(form.limit);
-    const found: FormErrors = {};
-
-    if (!form.categoryId) found.categoryId = 'Escolha a categoria que receberá o limite!';
-    if (limit === undefined) found.limit = 'Informe o limite mensal!';
-    else if (limit <= 0) found.limit = 'O limite precisa ser maior que zero!';
-
-    setErrors(found);
-
-    if (Object.values(found).some(Boolean)) {
-      requestAnimationFrame(() => {
-        formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
-      });
-      return;
-    }
-
-    onSubmit({ categoryId: form.categoryId, limit: limit ?? 0 });
+    if (!submit()) return;
+    onSubmit({ categoryId: form.categoryId, limit: parseAmountInput(form.limit) ?? 0 });
   };
 
   return (
@@ -137,6 +132,7 @@ export function BudgetFormModal({
           placeholder="0,00"
           value={form.limit}
           onChange={(event) => set('limit', event.target.value)}
+          onBlur={() => touch('limit')}
           error={errors.limit}
         />
 

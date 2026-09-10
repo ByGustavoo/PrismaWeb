@@ -1,5 +1,7 @@
 import { ApiError } from '@/api';
+import { textLimits } from '@/constants/validation';
 import type { Lancamento, LancamentoPayload } from '@/types';
+import { fitsAmountColumn } from '@/utils/validation';
 import { categories, findPaymentSource, transactions } from './data';
 
 /**
@@ -32,6 +34,26 @@ function findIndexOrThrow(id: string): number {
  * nome de conta e categoria ja resolvidos.
  */
 function resolve(payload: LancamentoPayload): Omit<Lancamento, 'id'> {
+  if (payload.descricao.trim().length < 2) {
+    throw new ApiError('Informe a descrição do lançamento.', 422, 'erro_validacao');
+  }
+  if (payload.descricao.trim().length > textLimits.description) {
+    throw new ApiError(
+      `A descrição do lançamento pode ter no máximo ${textLimits.description} caracteres.`,
+      422,
+      'erro_validacao',
+    );
+  }
+  if (!fitsAmountColumn(payload.valor) || payload.valor <= 0) {
+    throw new ApiError('Informe um valor maior que zero.', 422, 'erro_validacao');
+  }
+  if (!payload.data) {
+    throw new ApiError('Informe a data do lançamento.', 422, 'erro_validacao');
+  }
+  if ((payload.observacoes?.trim().length ?? 0) > textLimits.notes) {
+    throw new ApiError(`A observação pode ter no máximo ${textLimits.notes} caracteres.`, 422, 'erro_validacao');
+  }
+
   const source = findPaymentSource(payload.idOrigem);
   if (!source) {
     throw new ApiError('A conta informada não existe.', 422, 'erro_validacao');

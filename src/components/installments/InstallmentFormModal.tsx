@@ -1,11 +1,15 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Amount } from '@/components/common';
 import { Button, DatePicker, Input, Modal, Select, Textarea } from '@/components/ui';
 import { installmentCounts, isCreditCard } from '@/constants/cards';
 import type { CreditCard } from '@/constants/cards';
+import { textLimits } from '@/constants/validation';
+import { useFormValidation } from '@/hooks/useFormValidation';
+import type { FieldErrors } from '@/hooks/useFormValidation';
 import type { Card, Categoria, InstallmentPayload, InstallmentPurchase, Option } from '@/types';
 import { shiftMonthKey, todayISO } from '@/utils/date';
 import { capitalize, formatMonthLabel, formatShortMonth, parseAmountInput, toAmountInput } from '@/utils/format';
+import { amountError, textError } from '@/utils/validation';
 import styles from './InstallmentForm.module.css';
 
 interface InstallmentFormModalProps {
@@ -30,7 +34,7 @@ interface FormState {
   notes: string;
 }
 
-type FormErrors = Partial<Record<keyof FormState, string>>;
+const limits = { description: textLimits.description, notes: textLimits.notes };
 
 const countOptions: Option[] = installmentCounts.map((count) => ({
   value: String(count),
@@ -62,18 +66,21 @@ function defaultFirstMonth(card: CreditCard | undefined, purchaseDate: string): 
   return day <= card.closingDay ? month : shiftMonthKey(month, 1);
 }
 
-function validate(form: FormState): FormErrors {
-  const errors: FormErrors = {};
-  const total = parseAmountInput(form.totalAmount);
+function validate(form: FormState): FieldErrors<FormState> {
+  const errors: FieldErrors<FormState> = {
+    description: textError(form.description, {
+      subject: 'A descrição da compra',
+      missing: 'Informe a descrição da compra!',
+      max: textLimits.description,
+    }),
+    totalAmount: amountError(form.totalAmount, {
+      subject: 'O valor total da compra',
+      missing: 'Informe o valor total da compra!',
+      sign: 'positive',
+    }),
+    notes: textError(form.notes, { subject: 'A observação', max: textLimits.notes }),
+  };
 
-  if (form.description.trim().length < 2) {
-    errors.description = 'Informe uma descrição com pelo menos 2 caracteres!';
-  }
-  if (total === undefined) {
-    errors.totalAmount = 'Informe o valor total da compra!';
-  } else if (total <= 0) {
-    errors.totalAmount = 'O valor precisa ser maior que zero!';
-  }
   if (!form.cardId) {
     errors.cardId = 'Escolha o cartão de crédito da compra!';
   }
@@ -94,14 +101,13 @@ export function InstallmentFormModal({
   onClose,
 }: InstallmentFormModalProps) {
   const [form, setForm] = useState<FormState>(() => initialState(purchase));
-  const [errors, setErrors] = useState<FormErrors>({});
-  const formRef = useRef<HTMLFormElement>(null);
+  const { errors, formRef, touch, submit, reset } = useFormValidation(form, validate, { limits });
 
   useEffect(() => {
     if (!open) return;
     setForm(initialState(purchase));
-    setErrors({});
-  }, [open, purchase]);
+    reset();
+  }, [open, purchase, reset]);
 
   const creditCards = useMemo(() => cards.filter(isCreditCard), [cards]);
 
@@ -148,19 +154,10 @@ export function InstallmentFormModal({
 
   const set = <K extends keyof FormState>(field: K, value: FormState[K]) => {
     setForm((current) => ({ ...current, [field]: value }));
-    setErrors((current) => (current[field] ? { ...current, [field]: undefined } : current));
   };
 
   const handleSubmit = () => {
-    const found = validate(form);
-    setErrors(found);
-
-    if (Object.values(found).some(Boolean)) {
-      requestAnimationFrame(() => {
-        formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
-      });
-      return;
-    }
+    if (!submit()) return;
 
     onSubmit({
       description: form.description,
@@ -208,6 +205,8 @@ export function InstallmentFormModal({
           placeholder="Notebook, geladeira, passagens..."
           value={form.description}
           onChange={(event) => set('description', event.target.value)}
+          onBlur={() => touch('description')}
+          characterLimit={textLimits.description}
           error={errors.description}
           autoFocus
         />
@@ -220,6 +219,7 @@ export function InstallmentFormModal({
           placeholder="0,00"
           value={form.totalAmount}
           onChange={(event) => set('totalAmount', event.target.value)}
+          onBlur={() => touch('totalAmount')}
           error={errors.totalAmount}
           hint="O valor cheio da compra, não o da parcela."
         />
@@ -279,6 +279,9 @@ export function InstallmentFormModal({
           placeholder="Opcional: detalhes que ajudam a lembrar desta compra."
           value={form.notes}
           onChange={(event) => set('notes', event.target.value)}
+          onBlur={() => touch('notes')}
+          characterLimit={textLimits.notes}
+          error={errors.notes}
         />
 
         {/*

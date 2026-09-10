@@ -1,8 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, Input, Modal, Select, Switch } from '@/components/ui';
 import { accountStatusLabel, accountStatuses, accountTypeLabel, accountTypes } from '@/constants/accounts';
+import { textLimits } from '@/constants/validation';
+import { useFormValidation } from '@/hooks/useFormValidation';
+import type { FieldErrors } from '@/hooks/useFormValidation';
 import type { Account, AccountPayload, AccountStatus, AccountType, Option } from '@/types';
 import { parseAmountInput, toAmountInput } from '@/utils/format';
+import { amountError, textError } from '@/utils/validation';
 import styles from './AccountForm.module.css';
 
 interface AccountFormModalProps {
@@ -23,7 +27,7 @@ interface FormState {
   includeInTotal: boolean;
 }
 
-type FormErrors = Partial<Record<keyof FormState, string>>;
+const limits = { name: textLimits.accountName, institution: textLimits.institution };
 
 const typeOptions: Option[] = accountTypes.map((type) => ({ value: type, label: accountTypeLabel[type] }));
 
@@ -43,49 +47,44 @@ function initialState(account: Account | null): FormState {
   };
 }
 
-function validate(form: FormState): FormErrors {
-  const errors: FormErrors = {};
-
-  if (form.name.trim().length < 2) {
-    errors.name = 'Informe um nome com pelo menos 2 caracteres!';
-  }
-  if (form.institution.trim().length < 2) {
-    errors.institution = 'Informe o banco ou a instituição da conta!';
-  }
-  if (parseAmountInput(form.balance) === undefined) {
-    errors.balance = 'Informe o saldo atual da conta!';
-  }
-
-  return errors;
+function validate(form: FormState): FieldErrors<FormState> {
+  return {
+    name: textError(form.name, {
+      subject: 'O nome da conta',
+      missing: 'Informe o nome da conta!',
+      max: textLimits.accountName,
+    }),
+    institution: textError(form.institution, {
+      subject: 'O nome da instituição',
+      missing: 'Informe o banco ou a instituição da conta!',
+      max: textLimits.institution,
+    }),
+    // Conta no cheque especial existe: o saldo aceita valor negativo.
+    balance: amountError(form.balance, {
+      subject: 'O saldo atual',
+      missing: 'Informe o saldo atual da conta!',
+      sign: 'any',
+    }),
+  };
 }
 
 export function AccountFormModal({ open, account, saving, onSubmit, onClose }: AccountFormModalProps) {
   const [form, setForm] = useState<FormState>(() => initialState(account));
-  const [errors, setErrors] = useState<FormErrors>({});
-  const formRef = useRef<HTMLFormElement>(null);
+  const { errors, formRef, touch, submit, reset } = useFormValidation(form, validate, { limits });
 
   // Cada abertura comeca do zero (ou do registro em edicao), sem resto da anterior.
   useEffect(() => {
     if (!open) return;
     setForm(initialState(account));
-    setErrors({});
-  }, [open, account]);
+    reset();
+  }, [open, account, reset]);
 
   const set = <K extends keyof FormState>(field: K, value: FormState[K]) => {
     setForm((current) => ({ ...current, [field]: value }));
-    setErrors((current) => (current[field] ? { ...current, [field]: undefined } : current));
   };
 
   const handleSubmit = () => {
-    const found = validate(form);
-    setErrors(found);
-
-    if (Object.values(found).some(Boolean)) {
-      requestAnimationFrame(() => {
-        formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
-      });
-      return;
-    }
+    if (!submit()) return;
 
     onSubmit({
       name: form.name,
@@ -137,6 +136,8 @@ export function AccountFormModal({ open, account, saving, onSubmit, onClose }: A
           placeholder="Conta corrente, Reserva de emergência..."
           value={form.name}
           onChange={(event) => set('name', event.target.value)}
+          onBlur={() => touch('name')}
+          characterLimit={textLimits.accountName}
           error={errors.name}
           autoFocus
         />
@@ -147,6 +148,8 @@ export function AccountFormModal({ open, account, saving, onSubmit, onClose }: A
           placeholder="Banco, corretora ou carteira"
           value={form.institution}
           onChange={(event) => set('institution', event.target.value)}
+          onBlur={() => touch('institution')}
+          characterLimit={textLimits.institution}
           error={errors.institution}
         />
 
@@ -166,6 +169,7 @@ export function AccountFormModal({ open, account, saving, onSubmit, onClose }: A
           placeholder="0,00"
           value={form.balance}
           onChange={(event) => set('balance', event.target.value)}
+          onBlur={() => touch('balance')}
           error={errors.balance}
           hint="Aceita valor negativo, para conta no cheque especial."
         />

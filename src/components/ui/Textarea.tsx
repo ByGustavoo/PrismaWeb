@@ -1,21 +1,41 @@
 import { forwardRef, useId } from 'react';
 import type { TextareaHTMLAttributes } from 'react';
+import { CHARACTER_COUNTER_THRESHOLD } from '@/constants/validation';
 import { cn } from '@/utils/cn';
+import { textLength } from '@/utils/validation';
 import styles from './Field.module.css';
 
 export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
   hint?: string;
   error?: string;
+  /** Limite de caracteres; mesmo comportamento do `characterLimit` do `Input`. */
+  characterLimit?: number;
 }
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function Textarea(
-  { label, hint, error, className, id, rows = 3, required, ...rest },
+  { label, hint, error, characterLimit, className, id, rows = 3, required, ...rest },
   ref,
 ) {
   const generatedId = useId();
   const fieldId = id ?? generatedId;
   const describedBy = error ? `${fieldId}-error` : hint ? `${fieldId}-hint` : undefined;
+
+  const length = typeof rest.value === 'string' ? textLength(rest.value) : 0;
+  const counter =
+    characterLimit !== undefined && length >= characterLimit * CHARACTER_COUNTER_THRESHOLD
+      ? { length, limit: characterLimit, over: length > characterLimit }
+      : null;
+
+  const message = error ? (
+    <p className={styles.error} id={`${fieldId}-error`}>
+      {error}
+    </p>
+  ) : hint ? (
+    <p className={styles.hint} id={`${fieldId}-hint`}>
+      {hint}
+    </p>
+  ) : null;
 
   return (
     <div className={cn(styles.field, className)}>
@@ -43,15 +63,17 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
         />
       </div>
 
-      {error ? (
-        <p className={styles.error} id={`${fieldId}-error`}>
-          {error}
-        </p>
-      ) : hint ? (
-        <p className={styles.hint} id={`${fieldId}-hint`}>
-          {hint}
-        </p>
-      ) : null}
+      {counter ? (
+        <div className={styles.foot}>
+          {message}
+          {/* Quem usa leitor de tela recebe o excesso pela mensagem de erro do campo. */}
+          <span className={cn(styles.counter, counter.over && styles.counterOver, 'tabular')} aria-hidden="true">
+            {counter.length}/{counter.limit}
+          </span>
+        </div>
+      ) : (
+        message
+      )}
     </div>
   );
 });

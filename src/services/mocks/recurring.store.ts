@@ -1,5 +1,7 @@
 import { ApiError } from '@/api';
+import { textLimits } from '@/constants/validation';
 import type { RecurringExpense, RecurringPayload } from '@/types';
+import { fitsAmountColumn } from '@/utils/validation';
 import { categories, findPaymentSource, recurringExpenses } from './data';
 
 let sequence = recurringExpenses.length;
@@ -16,8 +18,14 @@ function resolve(payload: RecurringPayload): Omit<RecurringExpense, 'id'> {
   if (payload.description.trim().length < 2) {
     throw new ApiError('Informe a descrição da despesa.', 422, 'erro_validacao');
   }
-  if (!Number.isFinite(payload.amount) || payload.amount <= 0) {
+  if (payload.description.trim().length > textLimits.description) {
+    throw new ApiError(`A descrição da despesa pode ter no máximo ${textLimits.description} caracteres.`, 422, 'erro_validacao');
+  }
+  if (!fitsAmountColumn(payload.amount) || payload.amount <= 0) {
     throw new ApiError('Informe um valor maior que zero.', 422, 'erro_validacao');
+  }
+  if ((payload.notes?.trim().length ?? 0) > textLimits.notes) {
+    throw new ApiError(`A observação pode ter no máximo ${textLimits.notes} caracteres.`, 422, 'erro_validacao');
   }
   if (!payload.nextDueDate) {
     throw new ApiError('Informe a data do próximo vencimento.', 422, 'erro_validacao');

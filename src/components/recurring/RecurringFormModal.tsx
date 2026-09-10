@@ -1,10 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Amount } from '@/components/common';
 import { Button, DatePicker, Input, Modal, Select, Textarea } from '@/components/ui';
 import { monthlyOccurrences, recurrenceFrequencies, recurrenceLabel, recurringStatusLabel, recurringStatuses } from '@/constants/recurring';
+import { textLimits } from '@/constants/validation';
+import { useFormValidation } from '@/hooks/useFormValidation';
+import type { FieldErrors } from '@/hooks/useFormValidation';
 import type { Categoria, Option, PaymentSource, RecurrenceFrequency, RecurringExpense, RecurringPayload, RecurringStatus } from '@/types';
 import { todayISO } from '@/utils/date';
 import { parseAmountInput, toAmountInput } from '@/utils/format';
+import { amountError, textError } from '@/utils/validation';
 import styles from './RecurringForm.module.css';
 
 interface RecurringFormModalProps {
@@ -29,7 +33,7 @@ interface FormState {
   notes: string;
 }
 
-type FormErrors = Partial<Record<keyof FormState, string>>;
+const limits = { description: textLimits.description, notes: textLimits.notes };
 
 const frequencyOptions: Option[] = recurrenceFrequencies.map((frequency) => ({
   value: frequency,
@@ -54,18 +58,21 @@ function initialState(expense: RecurringExpense | null): FormState {
   };
 }
 
-function validate(form: FormState): FormErrors {
-  const errors: FormErrors = {};
-  const amount = parseAmountInput(form.amount);
+function validate(form: FormState): FieldErrors<FormState> {
+  const errors: FieldErrors<FormState> = {
+    description: textError(form.description, {
+      subject: 'A descrição da despesa',
+      missing: 'Informe a descrição da despesa!',
+      max: textLimits.description,
+    }),
+    amount: amountError(form.amount, {
+      subject: 'O valor da despesa',
+      missing: 'Informe o valor da despesa!',
+      sign: 'positive',
+    }),
+    notes: textError(form.notes, { subject: 'A observação', max: textLimits.notes }),
+  };
 
-  if (form.description.trim().length < 2) {
-    errors.description = 'Informe uma descrição com pelo menos 2 caracteres!';
-  }
-  if (amount === undefined) {
-    errors.amount = 'Informe o valor da despesa!';
-  } else if (amount <= 0) {
-    errors.amount = 'O valor precisa ser maior que zero!';
-  }
   if (!form.nextDueDate) {
     errors.nextDueDate = 'Informe a data do próximo vencimento!';
   }
@@ -86,14 +93,13 @@ export function RecurringFormModal({
   onClose,
 }: RecurringFormModalProps) {
   const [form, setForm] = useState<FormState>(() => initialState(expense));
-  const [errors, setErrors] = useState<FormErrors>({});
-  const formRef = useRef<HTMLFormElement>(null);
+  const { errors, formRef, touch, submit, reset } = useFormValidation(form, validate, { limits });
 
   useEffect(() => {
     if (!open) return;
     setForm(initialState(expense));
-    setErrors({});
-  }, [open, expense]);
+    reset();
+  }, [open, expense, reset]);
 
   const categoryOptions = useMemo<Option[]>(
     () => categories.filter((item) => item.tipo === 'DESPESA').map((item) => ({ value: item.id, label: item.nome })),
@@ -114,19 +120,10 @@ export function RecurringFormModal({
 
   const set = <K extends keyof FormState>(field: K, value: FormState[K]) => {
     setForm((current) => ({ ...current, [field]: value }));
-    setErrors((current) => (current[field] ? { ...current, [field]: undefined } : current));
   };
 
   const handleSubmit = () => {
-    const found = validate(form);
-    setErrors(found);
-
-    if (Object.values(found).some(Boolean)) {
-      requestAnimationFrame(() => {
-        formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
-      });
-      return;
-    }
+    if (!submit()) return;
 
     onSubmit({
       description: form.description,
@@ -174,6 +171,8 @@ export function RecurringFormModal({
           placeholder="Aluguel, internet, assinatura..."
           value={form.description}
           onChange={(event) => set('description', event.target.value)}
+          onBlur={() => touch('description')}
+          characterLimit={textLimits.description}
           error={errors.description}
           autoFocus
         />
@@ -186,6 +185,7 @@ export function RecurringFormModal({
           placeholder="0,00"
           value={form.amount}
           onChange={(event) => set('amount', event.target.value)}
+          onBlur={() => touch('amount')}
           error={errors.amount}
         />
 
@@ -238,6 +238,9 @@ export function RecurringFormModal({
           placeholder="Opcional: reajuste, número do contrato ou o que ajudar a lembrar."
           value={form.notes}
           onChange={(event) => set('notes', event.target.value)}
+          onBlur={() => touch('notes')}
+          characterLimit={textLimits.notes}
+          error={errors.notes}
         />
 
         {/*

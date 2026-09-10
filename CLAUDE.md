@@ -154,8 +154,9 @@ src/
 │   ├── reports/   ReportRangePicker, SourceBreakdown, BalanceTrendChart, NetWorthChart
 │   └── charts/    ChartTooltip
 ├── constants/     env, app, navigation, transactions, accounts, cards, investments, budget,
-│                  recurring, goals, forecast, reports
-├── hooks/         useAsyncData, useMediaQuery, useLocalStorage, useLockBodyScroll, useChartPalette
+│                  recurring, goals, forecast, reports, validation
+├── hooks/         useAsyncData, useMediaQuery, useLocalStorage, useLockBodyScroll, useChartPalette,
+│                  useFormValidation
 ├── layouts/       AppLayout (sidebar + header + conteudo)
 ├── pages/         Dashboard, Lancamentos, Contas, Cartoes, Faturas, Parcelamentos,
 │                  Investimentos, Orcamento, Recorrentes, Previsao, Metas, Relatorios,
@@ -170,7 +171,7 @@ src/
 │                  goals.mock, forecast.mock, reports.mock, alerts.mock, mockResponse
 ├── styles/        tokens.css, global.css
 ├── types/         common, finance
-└── utils/         cn, date, format
+└── utils/         cn, date, format, validation
 ```
 
 Cada pasta de componentes tem um `index.ts` de barril — ao criar um componente novo, exporte-o la.
@@ -643,6 +644,32 @@ lista com tres fundos coloridos vira ruido. O ponto no sino conta apenas os avis
   colunas estreitas demais para nome da classe e valor na mesma linha.
 - `prefers-reduced-motion` e respeitado globalmente — nao adicione animacao sem cobrir esse caso.
 
+## Validacao de formulario
+
+Todo formulario passa por `useFormValidation` (`hooks/`), com as regras de `utils/validation.ts`
+(`textError`, `amountError`) e os limites de `constants/validation.ts`.
+
+- **Os limites sao os do banco, num lugar so.** `textLimits` repete o tamanho das colunas VARCHAR e
+  `AMOUNT_MAX_*` o `NUMERIC(14,2)`. Formulario, store e `API_CONTRACT.md` usam a mesma regra: um
+  formulario que aceita mais que a coluna so revela o limite com um `500`, depois de tudo preenchido.
+  Campo novo com limite entra em `textLimits` e nas tres camadas no mesmo trabalho. A excecao e a
+  observacao: a coluna e `TEXT`, e os 500 caracteres de `textLimits.notes` sao regra de produto.
+- **Quando o erro aparece e decisao, nao acaso.** Durante a primeira digitacao, nada; ao sair de um
+  campo preenchido e invalido, o erro aparece; dali em diante ele acompanha cada tecla e some assim que
+  o valor fica valido. Campo obrigatorio vazio so e cobrado no envio — senao o foco automatico no
+  primeiro campo pintaria de vermelho quem apenas clicou num seletor. A excecao e passar do limite de
+  caracteres, que acusa na hora: cada letra a mais e trabalho que vai ser apagado.
+- **Os erros sao recalculados dos valores a cada render**; o hook guarda so quais campos ja podem
+  mostrar o seu. Guardar a mensagem em estado fazia o erro sumir na primeira tecla, com o valor ainda
+  errado. Por isso, depois de um envio que deu certo sem fechar o formulario (o registro de preco da
+  meta), chame `reset()` junto com a limpeza dos campos.
+- **Texto livre nao usa `maxLength`.** Ele corta o fim de um texto colado sem avisar. O `Input` recebe
+  `characterLimit` e mostra um contador a partir de 80% do limite; `maxLength` fica so nos campos de
+  formato fixo, como dia do mes e ultimos 4 digitos.
+- **Valor em dinheiro nao passa pelo `Number` cru.** `parseAmountInput` confere o formato antes:
+  `Number` aceitaria "1e5" e "0x10", e "1.500" num campo em reais e mil e quinhentos, nao um e meio.
+  Quem digita "12abc" le "precisa ser um número", nunca "informe o valor", que soaria como campo vazio.
+
 ## Alvos de toque e campos
 
 Os tokens `--control-height`, `--control-height-sm`, `--control-font` e `--tap-size` mudam de
@@ -658,7 +685,9 @@ num layout deslocado que precisa desfazer a mao.
   a sidebar inteira e leva ao `<main id="conteudo">`.
 - `Modal` prende o Tab dentro do painel e devolve o foco a quem o abriu. O elemento que abriu e
   lido **no render**, nao num efeito: quando `open` vira true o React ainda nao aplicou o
-  `autoFocus` do primeiro campo, e depois disso `document.activeElement` ja seria o campo.
+  `autoFocus` do primeiro campo, e depois disso `document.activeElement` ja seria o campo. O foco so
+  volta quando o painel ja saiu do DOM: o `StrictMode` ensaia desmontar os efeitos de um modal que
+  nasce aberto, e devolver o foco nesse ensaio o tirava do campo escolhido (o preco da meta).
 - Formulario de lancamento marca campo obrigatorio no rotulo e, ao reprovar, leva o foco ao
   primeiro `[aria-invalid="true"]` em vez de so pintar as mensagens.
 - Contraste, foco visivel e navegacao por teclado sao requisito, nao acabamento.

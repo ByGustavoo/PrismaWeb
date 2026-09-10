@@ -1,9 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, DatePicker, Input, Modal, Select, Textarea } from '@/components/ui';
 import { goalStatusOptions } from '@/constants/goals';
+import { textLimits } from '@/constants/validation';
+import { useFormValidation } from '@/hooks/useFormValidation';
+import type { FieldErrors } from '@/hooks/useFormValidation';
 import type { Goal, GoalPayload, GoalStatus, GoalUpdatePayload } from '@/types';
 import { todayISO } from '@/utils/date';
 import { parseAmountInput } from '@/utils/format';
+import { amountError, textError } from '@/utils/validation';
 import styles from './GoalForm.module.css';
 
 /**
@@ -34,7 +38,12 @@ interface FormState {
   notes: string;
 }
 
-type FormErrors = Partial<Record<keyof FormState, string>>;
+const limits = {
+  name: textLimits.goalName,
+  url: textLimits.link,
+  imageUrl: textLimits.link,
+  notes: textLimits.notes,
+};
 
 function initialState(goal: Goal | null): FormState {
   return {
@@ -48,33 +57,38 @@ function initialState(goal: Goal | null): FormState {
   };
 }
 
-/** Endereco que o navegador consegue abrir; um "www.loja.com" solto nao abre. */
-function isLink(value: string): boolean {
-  return /^https?:\/\/\S+$/i.test(value.trim());
+/** Link opcional: vazio passa; preenchido, precisa ser algo que o navegador abra. */
+function linkError(value: string, subject: string): string | undefined {
+  const trimmed = value.trim();
+  const tooLong = textError(value, { subject, max: textLimits.link });
+
+  if (!trimmed || tooLong) return tooLong;
+  // Um "www.loja.com" solto nao abre; um link com espaco no meio foi colado pela metade.
+  if (/\s/.test(trimmed)) return `${subject} não pode ter espaços!`;
+  if (!/^https?:\/\/\S+$/i.test(trimmed)) return `${subject} precisa começar com http:// ou https://!`;
+  return undefined;
 }
 
-function validate(form: FormState, editing: boolean): FormErrors {
-  const errors: FormErrors = {};
-
-  if (form.name.trim().length < 2) {
-    errors.name = 'Informe um nome com pelo menos 2 caracteres!';
-  }
-  if (form.url.trim() && !isLink(form.url)) {
-    errors.url = 'O link precisa começar com http:// ou https://!';
-  }
-  if (form.imageUrl.trim() && !isLink(form.imageUrl)) {
-    errors.imageUrl = 'O endereço da imagem precisa começar com http:// ou https://!';
-  }
+function validate(form: FormState, editing: boolean): FieldErrors<FormState> {
+  const errors: FieldErrors<FormState> = {
+    name: textError(form.name, {
+      subject: 'O nome do produto',
+      missing: 'Informe o nome do produto!',
+      max: textLimits.goalName,
+    }),
+    url: linkError(form.url, 'O link do produto'),
+    imageUrl: linkError(form.imageUrl, 'O endereço da imagem'),
+    notes: textError(form.notes, { subject: 'A observação', max: textLimits.notes }),
+  };
 
   // Preco e data so existem no cadastro: ver o comentario de GoalFormResult.
   if (editing) return errors;
 
-  const price = parseAmountInput(form.price);
-  if (price === undefined) {
-    errors.price = 'Informe o preço que você viu!';
-  } else if (price <= 0) {
-    errors.price = 'O preço precisa ser maior que zero!';
-  }
+  errors.price = amountError(form.price, {
+    subject: 'O preço inicial',
+    missing: 'Informe o preço que você viu!',
+    sign: 'positive',
+  });
 
   if (!form.date) {
     errors.date = 'Informe a data do registro!';
@@ -87,31 +101,25 @@ function validate(form: FormState, editing: boolean): FormErrors {
 
 export function GoalFormModal({ open, goal, saving, onSubmit, onClose }: GoalFormModalProps) {
   const [form, setForm] = useState<FormState>(() => initialState(goal));
-  const [errors, setErrors] = useState<FormErrors>({});
-  const formRef = useRef<HTMLFormElement>(null);
   const editing = goal !== null;
+  const { errors, formRef, touch, submit, reset } = useFormValidation(
+    form,
+    (values) => validate(values, editing),
+    { limits },
+  );
 
   useEffect(() => {
     if (!open) return;
     setForm(initialState(goal));
-    setErrors({});
-  }, [open, goal]);
+    reset();
+  }, [open, goal, reset]);
 
   const set = <K extends keyof FormState>(field: K, value: FormState[K]) => {
     setForm((current) => ({ ...current, [field]: value }));
-    setErrors((current) => (current[field] ? { ...current, [field]: undefined } : current));
   };
 
   const handleSubmit = () => {
-    const found = validate(form, editing);
-    setErrors(found);
-
-    if (Object.values(found).some(Boolean)) {
-      requestAnimationFrame(() => {
-        formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
-      });
-      return;
-    }
+    if (!submit()) return;
 
     const shared = {
       name: form.name,
@@ -166,6 +174,8 @@ export function GoalFormModal({ open, goal, saving, onSubmit, onClose }: GoalFor
           placeholder="Tênis Nike Pegasus 41, cadeira ergonômica..."
           value={form.name}
           onChange={(event) => set('name', event.target.value)}
+          onBlur={() => touch('name')}
+          characterLimit={textLimits.goalName}
           error={errors.name}
           autoFocus
         />
@@ -178,6 +188,8 @@ export function GoalFormModal({ open, goal, saving, onSubmit, onClose }: GoalFor
           placeholder="https://loja.com.br/produto"
           value={form.url}
           onChange={(event) => set('url', event.target.value)}
+          onBlur={() => touch('url')}
+          characterLimit={textLimits.link}
           error={errors.url}
           hint="Opcional. É por ele que a meta abre a página quando você for consultar o preço."
         />
@@ -192,6 +204,7 @@ export function GoalFormModal({ open, goal, saving, onSubmit, onClose }: GoalFor
               placeholder="0,00"
               value={form.price}
               onChange={(event) => set('price', event.target.value)}
+              onBlur={() => touch('price')}
               error={errors.price}
               hint="Quanto o produto custa hoje."
             />
@@ -223,6 +236,8 @@ export function GoalFormModal({ open, goal, saving, onSubmit, onClose }: GoalFor
           placeholder="https://loja.com.br/foto.jpg"
           value={form.imageUrl}
           onChange={(event) => set('imageUrl', event.target.value)}
+          onBlur={() => touch('imageUrl')}
+          characterLimit={textLimits.link}
           error={errors.imageUrl}
           hint="Opcional. Sem ela, a meta usa um marcador."
         />
@@ -233,6 +248,9 @@ export function GoalFormModal({ open, goal, saving, onSubmit, onClose }: GoalFor
           placeholder="Opcional: o modelo exato, a cor, o preço que você considera justo."
           value={form.notes}
           onChange={(event) => set('notes', event.target.value)}
+          onBlur={() => touch('notes')}
+          characterLimit={textLimits.notes}
+          error={errors.notes}
         />
 
         {editing ? (

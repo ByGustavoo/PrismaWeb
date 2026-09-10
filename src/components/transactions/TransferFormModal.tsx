@@ -1,11 +1,15 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ArrowDown } from 'lucide-react';
 import { Button, DatePicker, Input, Modal, Select, Textarea } from '@/components/ui';
 import { transactionStatusLabel, transactionStatuses } from '@/constants/transactions';
+import { textLimits } from '@/constants/validation';
+import { useFormValidation } from '@/hooks/useFormValidation';
+import type { FieldErrors } from '@/hooks/useFormValidation';
 import type { Option, PaymentSource, Lancamento, LancamentoPayload, SituacaoLancamento } from '@/types';
 import { cn } from '@/utils/cn';
 import { todayISO } from '@/utils/date';
 import { parseAmountInput, toAmountInput } from '@/utils/format';
+import { amountError, textError } from '@/utils/validation';
 import styles from './TransactionForm.module.css';
 
 interface TransferFormModalProps {
@@ -28,7 +32,7 @@ interface FormState {
   notes: string;
 }
 
-type FormErrors = Partial<Record<keyof FormState, string>>;
+const limits = { description: textLimits.description, notes: textLimits.notes };
 
 function initialState(transaction: Lancamento | null): FormState {
   return {
@@ -42,9 +46,20 @@ function initialState(transaction: Lancamento | null): FormState {
   };
 }
 
-function validate(form: FormState): FormErrors {
-  const errors: FormErrors = {};
-  const amount = parseAmountInput(form.amount);
+function validate(form: FormState): FieldErrors<FormState> {
+  const errors: FieldErrors<FormState> = {
+    amount: amountError(form.amount, {
+      subject: 'O valor da transferência',
+      missing: 'Informe o valor da transferência!',
+      sign: 'positive',
+    }),
+    description: textError(form.description, {
+      subject: 'A descrição da transferência',
+      missing: 'Informe a descrição da transferência!',
+      max: textLimits.description,
+    }),
+    notes: textError(form.notes, { subject: 'A observação', max: textLimits.notes }),
+  };
 
   if (!form.accountId) {
     errors.accountId = 'Escolha a conta de origem!';
@@ -52,18 +67,10 @@ function validate(form: FormState): FormErrors {
   if (!form.toAccountId) {
     errors.toAccountId = 'Escolha a conta de destino!';
   } else if (form.toAccountId === form.accountId) {
-    errors.toAccountId = 'O destino precisa ser diferente da origem!';
-  }
-  if (amount === undefined) {
-    errors.amount = 'Informe o valor da transferência!';
-  } else if (amount <= 0) {
-    errors.amount = 'O valor precisa ser maior que zero!';
+    errors.toAccountId = 'A conta de destino precisa ser diferente da origem!';
   }
   if (!form.date) {
     errors.date = 'Informe a data da transferência!';
-  }
-  if (form.description.trim().length < 2) {
-    errors.description = 'Informe uma descrição com pelo menos 2 caracteres!';
   }
 
   return errors;
@@ -88,14 +95,13 @@ export function TransferFormModal({
   onClose,
 }: TransferFormModalProps) {
   const [form, setForm] = useState<FormState>(() => initialState(transaction));
-  const [errors, setErrors] = useState<FormErrors>({});
-  const formRef = useRef<HTMLFormElement>(null);
+  const { errors, formRef, touch, submit, reset } = useFormValidation(form, validate, { limits });
 
   useEffect(() => {
     if (!open) return;
     setForm(initialState(transaction));
-    setErrors({});
-  }, [open, transaction]);
+    reset();
+  }, [open, transaction, reset]);
 
   // Cartao nao e conta propria: nao aparece nem na origem nem no destino.
   const accountOptions = useMemo<Option[]>(
@@ -113,7 +119,6 @@ export function TransferFormModal({
 
   const set = <K extends keyof FormState>(field: K, value: FormState[K]) => {
     setForm((current) => ({ ...current, [field]: value }));
-    setErrors((current) => (current[field] ? { ...current, [field]: undefined } : current));
   };
 
   const handleOriginChange = (accountId: string) => {
@@ -123,17 +128,7 @@ export function TransferFormModal({
   };
 
   const handleSubmit = () => {
-    const found = validate(form);
-    setErrors(found);
-
-    if (Object.values(found).some(Boolean)) {
-      // O foco vai para o primeiro campo com erro em vez de deixar o usuario
-      // caçar qual deles reprovou.
-      requestAnimationFrame(() => {
-        formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
-      });
-      return;
-    }
+    if (!submit()) return;
 
     onSubmit({
       descricao: form.description,
@@ -208,6 +203,7 @@ export function TransferFormModal({
           placeholder="0,00"
           value={form.amount}
           onChange={(event) => set('amount', event.target.value)}
+          onBlur={() => touch('amount')}
           error={errors.amount}
         />
 
@@ -225,6 +221,8 @@ export function TransferFormModal({
           placeholder="Aporte na reserva, sobra da carteira..."
           value={form.description}
           onChange={(event) => set('description', event.target.value)}
+          onBlur={() => touch('description')}
+          characterLimit={textLimits.description}
           error={errors.description}
         />
 
@@ -242,6 +240,9 @@ export function TransferFormModal({
           placeholder="Opcional: detalhes que ajudam a lembrar desta transferência."
           value={form.notes}
           onChange={(event) => set('notes', event.target.value)}
+          onBlur={() => touch('notes')}
+          characterLimit={textLimits.notes}
+          error={errors.notes}
         />
 
         <p className={styles.legend}>* Campos obrigatórios.</p>

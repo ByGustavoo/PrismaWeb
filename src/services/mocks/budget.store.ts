@@ -1,5 +1,6 @@
 import { ApiError } from '@/api';
 import type { Budget, BudgetPayload } from '@/types';
+import { fitsAmountColumn } from '@/utils/validation';
 import { budgets, categories } from './data';
 
 let sequence = budgets.length;
@@ -26,7 +27,7 @@ function resolve(payload: BudgetPayload, currentId?: string): Omit<Budget, 'id'>
   if (category.tipo !== 'DESPESA') {
     throw new ApiError('Só categorias de despesa aceitam orçamento.', 422, 'erro_validacao');
   }
-  if (!Number.isFinite(payload.limit) || payload.limit <= 0) {
+  if (!fitsAmountColumn(payload.limit) || payload.limit <= 0) {
     throw new ApiError('Informe um limite maior que zero.', 422, 'erro_validacao');
   }
 

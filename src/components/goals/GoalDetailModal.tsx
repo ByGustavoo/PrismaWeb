@@ -4,10 +4,14 @@ import { Check, ExternalLink, Pencil, RotateCcw, Trash2, X } from 'lucide-react'
 import { Amount } from '@/components/common';
 import { Badge, Button, DatePicker, Input, Modal } from '@/components/ui';
 import { goalInsightText, goalStatusLabel, goalStatusTone } from '@/constants/goals';
-import type { GoalPricePayload, GoalStatus, GoalTracking } from '@/types';
+import { textLimits } from '@/constants/validation';
+import { useFormValidation } from '@/hooks/useFormValidation';
+import type { FieldErrors } from '@/hooks/useFormValidation';
+import type { Goal, GoalPricePayload, GoalStatus, GoalTracking } from '@/types';
 import { cn } from '@/utils/cn';
 import { todayISO } from '@/utils/date';
 import { formatNumericDate, formatPercent, parseAmountInput } from '@/utils/format';
+import { amountError, textError } from '@/utils/validation';
 import { PriceDelta } from './PriceDelta';
 import { PriceHistoryChart } from './PriceHistoryChart';
 import { insightTone } from './meta';
@@ -33,7 +37,39 @@ interface PriceForm {
   note: string;
 }
 
-const emptyPriceForm: PriceForm = { price: '', date: todayISO(), note: '' };
+/* Funcao, e nao constante: com o app aberto de um dia para o outro, "hoje" muda. */
+function emptyPriceForm(): PriceForm {
+  return { price: '', date: todayISO(), note: '' };
+}
+
+/** As regras do registro de preco no servidor, conferidas antes do envio. */
+function validatePrice(form: PriceForm, goal: Goal): FieldErrors<PriceForm> {
+  const errors: FieldErrors<PriceForm> = {
+    price: amountError(form.price, {
+      subject: 'O preço',
+      missing: 'Informe o preço que você consultou!',
+      sign: 'positive',
+    }),
+    note: textError(form.note, { subject: 'A observação', max: textLimits.notes }),
+  };
+
+  if (!form.date) {
+    errors.date = 'Informe a data da consulta!';
+  } else if (form.date > todayISO()) {
+    errors.date = 'A data da consulta não pode estar no futuro!';
+  } else if (form.date < goal.createdAt) {
+    // Um registro anterior ao primeiro trocaria o "preco inicial", base de toda a variacao.
+    errors.date = `A data da consulta não pode ser anterior ao primeiro preço, de ${formatNumericDate(goal.createdAt)}!`;
+  }
+
+  // Mesmo preco na mesma data e clique repetido, nao consulta nova.
+  const price = parseAmountInput(form.price);
+  if (!errors.price && !errors.date && goal.history.some((entry) => entry.date === form.date && entry.price === price)) {
+    errors.price = 'Esse preço já está registrado nessa data!';
+  }
+
+  return errors;
+}
 
 /**
  * O historico de uma meta: a analise, a curva, o formulario de registro e a
@@ -56,16 +92,20 @@ export function GoalDetailModal({
   onAddPrice,
 }: GoalDetailModalProps) {
   const [form, setForm] = useState<PriceForm>(emptyPriceForm);
-  const [error, setError] = useState<string | undefined>(undefined);
   const priceRef = useRef<HTMLInputElement>(null);
+  const { errors, formRef, touch, submit, reset } = useFormValidation(
+    form,
+    (values) => (tracking ? validatePrice(values, tracking.goal) : {}),
+    { limits: { note: textLimits.notes } },
+  );
 
   const goalId = tracking?.goal.id ?? null;
 
   useEffect(() => {
     if (!goalId) return;
-    setForm(emptyPriceForm);
-    setError(undefined);
-  }, [goalId]);
+    setForm(emptyPriceForm());
+    reset();
+  }, [goalId, reset]);
 
   useEffect(() => {
     if (!goalId || !focusPriceForm) return;
@@ -95,31 +135,19 @@ export function GoalDetailModal({
   const archived = goal.status !== 'ACOMPANHANDO';
 
   const handleRegister = async () => {
-    const price = parseAmountInput(form.price);
-
-    if (price === undefined || price <= 0) {
-      setError('Informe um preço maior que zero!');
-      priceRef.current?.focus();
-      return;
-    }
-    if (!form.date) {
-      setError('Informe a data da consulta!');
-      return;
-    }
-    if (form.date > todayISO()) {
-      setError('A data da consulta não pode estar no futuro!');
-      return;
-    }
-
-    setError(undefined);
+    if (!submit()) return;
 
     const ok = await onAddPrice(tracking, {
-      price,
+      price: parseAmountInput(form.price) ?? 0,
       date: form.date,
       ...(form.note.trim() ? { note: form.note.trim() } : {}),
     });
 
-    if (ok) setForm({ ...emptyPriceForm, date: todayISO() });
+    // Limpo o campo, a validacao volta ao zero: senao o preco vazio seria cobrado na hora.
+    if (ok) {
+      setForm(emptyPriceForm());
+      reset();
+    }
   };
 
   return (
@@ -232,28 +260,39 @@ export function GoalDetailModal({
           Consultou de novo? Anote o valor. O preço anterior continua no histórico — é o que permite comparar.
         </p>
 
-        <div className={styles.registerFields}>
+        {/* Um formulario de verdade: o Enter no campo de preco registra, como em qualquer outro. */}
+        <form
+          ref={formRef}
+          className={styles.registerFields}
+          noValidate
+          onSubmit={(event) => {
+            event.preventDefault();
+            void handleRegister();
+          }}
+        >
           <Input
             ref={priceRef}
             className={styles.price}
+            required
             label="Preço"
             prefix="R$"
             inputMode="decimal"
             placeholder="0,00"
             value={form.price}
-            onChange={(event) => {
-              setForm((current) => ({ ...current, price: event.target.value }));
-              if (error) setError(undefined);
-            }}
-            {...(error ? { error } : {})}
+            onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))}
+            onBlur={() => touch('price')}
+            error={errors.price}
           />
 
           <DatePicker
             className={styles.date}
+            required
             label="Data"
+            min={goal.createdAt}
             max={todayISO()}
             value={form.date}
             onChange={(date) => setForm((current) => ({ ...current, date }))}
+            error={errors.date}
           />
 
           <Input
@@ -262,12 +301,15 @@ export function GoalDetailModal({
             placeholder="Cupom, frete grátis, loja..."
             value={form.note}
             onChange={(event) => setForm((current) => ({ ...current, note: event.target.value }))}
+            onBlur={() => touch('note')}
+            characterLimit={textLimits.notes}
+            error={errors.note}
           />
 
-          <Button className={styles.registerButton} loading={saving} onClick={handleRegister}>
+          <Button type="submit" className={styles.registerButton} loading={saving}>
             Registrar
           </Button>
-        </div>
+        </form>
       </section>
 
       <section className={styles.historySection} aria-labelledby="goal-history-title">

@@ -48,6 +48,7 @@ A fonte de verdade dos tipos é [`src/types/finance.ts`](src/types/finance.ts) e
 | Data | String ISO `YYYY-MM-DD`, sem hora e sem fuso. Representa um dia civil, não um instante — o backend deve usar `LocalDate`, nunca `Instant` ou `ZonedDateTime`. |
 | Mês | String `YYYY-MM` (por exemplo `2026-09`). Usado onde a granularidade é o mês: faturas, parcelas, orçamento, previsão e evolução do patrimônio. `YearMonth` no Java. |
 | Dinheiro | `number` JSON com duas casas decimais, sempre **positivo**. A direção do dinheiro vem do campo `kind`, nunca do sinal. Use `BigDecimal` com escala 2 no backend e serialize como número, não como string. |
+| Limites de entrada | Todo valor em dinheiro recebido cabe em `NUMERIC(14,2)`: até 12 dígitos inteiros e 2 casas decimais. Fora disso, `422` com a mesma mensagem que a seção do endpoint dá ao campo — nunca arredondar em silêncio nem deixar o banco responder `500`. Texto é gravado sem espaços nas bordas, e o mínimo e o máximo de caracteres valem sobre o texto já aparado; o máximo de cada campo é o tamanho da coluna e aparece na tabela de validações de cada seção. Observação é a exceção: a coluna é `TEXT`, e o limite de **500 caracteres** é regra de produto, validada na aplicação. |
 | Percentual | `number` em pontos percentuais: `8.2` significa 8,2%. **Exceção:** `share`, `ratio` e `profitability` são frações de 0 a 1. Cada campo abaixo diz qual dos dois é. |
 | Identificador | `string`. O frontend nunca faz aritmética com id, então UUID, id numérico serializado como texto ou slug funcionam igualmente. |
 | Ordenação | Sempre definida pelo servidor; o frontend não reordena o que chega da API (ele reordena só o que já está em memória, por escolha do usuário). Cada endpoint diz sua ordem. |
@@ -350,6 +351,11 @@ usam **o mesmo endpoint**, mudando apenas o parâmetro `tipo`. Não crie rotas s
 
   | Situação | Mensagem |
   | --- | --- |
+  | `descricao` com menos de 2 caracteres | `Informe a descrição do lançamento.` |
+  | `descricao` com mais de 160 caracteres | `A descrição do lançamento pode ter no máximo 160 caracteres.` |
+  | `valor` ≤ 0 | `Informe um valor maior que zero.` |
+  | `data` ausente | `Informe a data do lançamento.` |
+  | `observacoes` com mais de 500 caracteres | `A observação pode ter no máximo 500 caracteres.` |
   | `idOrigem` inexistente | `A conta informada não existe.` |
   | `idContaDestino` inexistente (transferência) | `A conta de destino informada não existe.` |
   | Destino igual à origem | `A conta de destino precisa ser diferente da origem.` |
@@ -412,7 +418,9 @@ Todos obrigatórios.
 | Situação | Status | Mensagem |
 | --- | --- | --- |
 | `name` com menos de 2 caracteres | `422` | `Informe o nome da conta.` |
-| `institution` vazia | `422` | `Informe a instituição da conta.` |
+| `name` com mais de 80 caracteres | `422` | `O nome da conta pode ter no máximo 80 caracteres.` |
+| `institution` com menos de 2 caracteres | `422` | `Informe a instituição da conta.` |
+| `institution` com mais de 80 caracteres | `422` | `O nome da instituição pode ter no máximo 80 caracteres.` |
 | `balance` não numérico | `422` | `Informe um saldo válido.` |
 | Mesmo `name` na mesma `institution` | `409` | `Já existe uma conta com esse nome nessa instituição.` |
 | Id inexistente (`PUT`) | `404` | `Conta não encontrada.` |
@@ -484,7 +492,10 @@ precisa **limpar** esses campos, e não preservar o valor anterior.
 | Situação | Status | Mensagem |
 | --- | --- | --- |
 | `name` com menos de 2 caracteres | `422` | `Informe o nome do cartão.` |
-| `institution` vazia | `422` | `Informe a instituição do cartão.` |
+| `name` com mais de 80 caracteres | `422` | `O nome do cartão pode ter no máximo 80 caracteres.` |
+| `institution` com menos de 2 caracteres | `422` | `Informe a instituição do cartão.` |
+| `institution` com mais de 80 caracteres | `422` | `O nome da instituição pode ter no máximo 80 caracteres.` |
+| `brand` com mais de 40 caracteres | `422` | `A bandeira pode ter no máximo 40 caracteres.` |
 | `lastDigits` presente e diferente de 4 dígitos | `422` | `Os últimos dígitos precisam ser quatro números.` |
 | Crédito sem `limit` ou com limite ≤ 0 | `422` | `Informe o limite do cartão.` |
 | Crédito com `closingDay` fora de 1–31 | `422` | `Informe um dia de fechamento entre 1 e 31.` |
@@ -632,6 +643,8 @@ calculados**:
 | Situação | Status | Mensagem |
 | --- | --- | --- |
 | `description` com menos de 2 caracteres | `422` | `Informe a descrição da compra.` |
+| `description` com mais de 160 caracteres | `422` | `A descrição da compra pode ter no máximo 160 caracteres.` |
+| `notes` com mais de 500 caracteres | `422` | `A observação pode ter no máximo 500 caracteres.` |
 | `totalAmount` ≤ 0 | `422` | `Informe o valor total da compra.` |
 | `count` fora de 2–48 | `422` | `O parcelamento precisa ter de 2 a 48 parcelas.` |
 | `firstMonth` ausente ou fora de `YYYY-MM` | `422` | `Informe o mês da primeira parcela.` |
@@ -728,9 +741,12 @@ Carteira consolidada — é o que a tela mostra.
 | Situação | Status | Mensagem |
 | --- | --- | --- |
 | `name` com menos de 2 caracteres | `422` | `Informe o nome do investimento.` |
-| `institution` vazia | `422` | `Informe a instituição onde o dinheiro está aplicado.` |
+| `name` com mais de 120 caracteres | `422` | `O nome do investimento pode ter no máximo 120 caracteres.` |
+| `institution` com menos de 2 caracteres | `422` | `Informe a instituição onde o dinheiro está aplicado.` |
+| `institution` com mais de 80 caracteres | `422` | `O nome da instituição pode ter no máximo 80 caracteres.` |
 | `invested` ≤ 0 | `422` | `Informe quanto já foi aportado.` |
 | `currentValue` < 0 | `422` | `Informe quanto a posição vale hoje.` |
+| `notes` com mais de 500 caracteres | `422` | `A observação pode ter no máximo 500 caracteres.` |
 | `startDate` ausente | `422` | `Informe a data do primeiro aporte.` |
 | `startDate` no futuro | `422` | `A data do primeiro aporte não pode estar no futuro.` |
 | Id inexistente | `404` | `Investimento não encontrado.` |
@@ -882,6 +898,8 @@ servidor; `accountId` pode ser conta **ou** cartão.
 | Situação | Status | Mensagem |
 | --- | --- | --- |
 | `description` com menos de 2 caracteres | `422` | `Informe a descrição da despesa.` |
+| `description` com mais de 160 caracteres | `422` | `A descrição da despesa pode ter no máximo 160 caracteres.` |
+| `notes` com mais de 500 caracteres | `422` | `A observação pode ter no máximo 500 caracteres.` |
 | `amount` ≤ 0 | `422` | `Informe um valor maior que zero.` |
 | `nextDueDate` ausente | `422` | `Informe a data do próximo vencimento.` |
 | `accountId` inexistente | `422` | `Escolha a conta ou o cartão que paga esta despesa.` |
@@ -1023,8 +1041,12 @@ domínio, e a tela já pede confirmação.
 | Situação | Status | Mensagem |
 | --- | --- | --- |
 | `name` com menos de 2 caracteres | `422` | `Informe o nome do produto.` |
+| `name` com mais de 120 caracteres | `422` | `O nome do produto pode ter no máximo 120 caracteres.` |
 | `url` que não comece com `http://` ou `https://` | `422` | `Informe um link do produto começando com http:// ou https://.` |
+| `url` com mais de 2048 caracteres | `422` | `O link do produto pode ter no máximo 2048 caracteres.` |
 | `imageUrl` que não comece com `http://` ou `https://` | `422` | `Informe um link da imagem começando com http:// ou https://.` |
+| `imageUrl` com mais de 2048 caracteres | `422` | `O link da imagem pode ter no máximo 2048 caracteres.` |
+| `notes` (meta) ou `note` (registro de preço) com mais de 500 caracteres | `422` | `A observação pode ter no máximo 500 caracteres.` |
 | `price` ≤ 0 ou não numérico | `422` | `Informe um preço maior que zero.` |
 | `date` ausente | `422` | `Informe a data do registro.` |
 | `date` no futuro | `422` | `A data do registro não pode estar no futuro.` |

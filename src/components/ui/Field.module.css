@@ -101,3 +101,27 @@
   font-size: var(--fs-xs);
   color: var(--negative);
 }
+
+/* Mensagem a esquerda e contador de caracteres a direita, na mesma linha. */
+.foot {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.foot > p {
+  flex: 1;
+  min-width: 0;
+}
+
+.counter {
+  flex-shrink: 0;
+  margin-left: auto;
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+
+.counterOver {
+  color: var(--negative);
+  font-weight: 500;
+}

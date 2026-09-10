@@ -194,20 +194,31 @@ export function initials(name: string): string {
     .join('');
 }
 
+/** "1.234,56", "1234,56" e "1.234": virgula decimal, ponto so em grupos de milhar. */
+const BRAZILIAN_AMOUNT = /^-?(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d+)?$/;
+/** "1200.50": numero cru colado de outro lugar, com ponto decimal. */
+const DOT_DECIMAL_AMOUNT = /^-?\d+\.\d+$/;
+
 /**
  * Le o valor digitado num campo de moeda. Aceita tanto "1.200,50" quanto
  * "1200.50": o usuario digita do jeito brasileiro, mas colar um numero cru
  * tambem precisa funcionar.
+ *
+ * O formato e conferido por expressao, e nao entregue direto ao `Number`: ele
+ * aceitaria "1e5" e "0x10" como cem mil e dezesseis. E o ponto seguido de tres
+ * digitos e milhar — quem digita "1.500" num campo em reais quer mil e
+ * quinhentos, nao um real e meio.
  */
 export function parseAmountInput(raw: string): number | undefined {
   const trimmed = raw.trim();
-  if (!trimmed) return undefined;
 
-  // Com virgula, o ponto e separador de milhar; sem virgula, o ponto e decimal.
-  const normalized = trimmed.includes(',') ? trimmed.replace(/\./g, '').replace(',', '.') : trimmed;
-  const parsed = Number(normalized);
-
-  return Number.isFinite(parsed) ? parsed : undefined;
+  if (BRAZILIAN_AMOUNT.test(trimmed)) {
+    return Number(trimmed.replace(/\./g, '').replace(',', '.'));
+  }
+  if (DOT_DECIMAL_AMOUNT.test(trimmed)) {
+    return Number(trimmed);
+  }
+  return undefined;
 }
 
 /** Numero -> texto do campo de moeda, sem simbolo: 1200.5 -> "1.200,50". */

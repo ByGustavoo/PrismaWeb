@@ -1,6 +1,8 @@
 import { ApiError } from '@/api';
+import { textLimits } from '@/constants/validation';
 import type { Card, CardPayload, InstallmentPayload, InstallmentPurchase } from '@/types';
 import { isMonthKey } from '@/utils/date';
+import { fitsAmountColumn } from '@/utils/validation';
 import { accounts, cards, categories, installmentPurchases, transactions } from './data';
 
 /**
@@ -58,15 +60,24 @@ function resolveCard(payload: CardPayload): Omit<Card, 'id'> {
   if (payload.name.trim().length < 2) {
     throw new ApiError('Informe o nome do cartão.', 422, 'erro_validacao');
   }
+  if (payload.name.trim().length > textLimits.cardName) {
+    throw new ApiError(`O nome do cartão pode ter no máximo ${textLimits.cardName} caracteres.`, 422, 'erro_validacao');
+  }
   if (payload.institution.trim().length < 2) {
     throw new ApiError('Informe a instituição do cartão.', 422, 'erro_validacao');
+  }
+  if (payload.institution.trim().length > textLimits.institution) {
+    throw new ApiError(`O nome da instituição pode ter no máximo ${textLimits.institution} caracteres.`, 422, 'erro_validacao');
+  }
+  if ((payload.brand?.trim().length ?? 0) > textLimits.cardBrand) {
+    throw new ApiError(`A bandeira pode ter no máximo ${textLimits.cardBrand} caracteres.`, 422, 'erro_validacao');
   }
   if (payload.lastDigits && !/^\d{4}$/.test(payload.lastDigits.trim())) {
     throw new ApiError('Os últimos dígitos precisam ser quatro números.', 422, 'erro_validacao');
   }
 
   if (payload.type === 'CREDITO') {
-    if (typeof payload.limit !== 'number' || !Number.isFinite(payload.limit) || payload.limit <= 0) {
+    if (typeof payload.limit !== 'number' || !fitsAmountColumn(payload.limit) || payload.limit <= 0) {
       throw new ApiError('Informe o limite do cartão.', 422, 'erro_validacao');
     }
 
@@ -87,7 +98,7 @@ function resolveCard(payload: CardPayload): Omit<Card, 'id'> {
   }
 
   const balance = payload.balance ?? 0;
-  if (!Number.isFinite(balance) || balance < 0) {
+  if (!fitsAmountColumn(balance) || balance < 0) {
     throw new ApiError('Informe um saldo válido para o cartão.', 422, 'erro_validacao');
   }
   return { ...base, balance };
@@ -146,8 +157,14 @@ function resolvePurchase(payload: InstallmentPayload): Omit<InstallmentPurchase,
   if (payload.description.trim().length < 2) {
     throw new ApiError('Informe a descrição da compra.', 422, 'erro_validacao');
   }
-  if (!Number.isFinite(payload.totalAmount) || payload.totalAmount <= 0) {
+  if (payload.description.trim().length > textLimits.description) {
+    throw new ApiError(`A descrição da compra pode ter no máximo ${textLimits.description} caracteres.`, 422, 'erro_validacao');
+  }
+  if (!fitsAmountColumn(payload.totalAmount) || payload.totalAmount <= 0) {
     throw new ApiError('Informe o valor total da compra.', 422, 'erro_validacao');
+  }
+  if ((payload.notes?.trim().length ?? 0) > textLimits.notes) {
+    throw new ApiError(`A observação pode ter no máximo ${textLimits.notes} caracteres.`, 422, 'erro_validacao');
   }
   if (!Number.isInteger(payload.count) || payload.count < 2 || payload.count > 48) {
     throw new ApiError('O parcelamento precisa ter de 2 a 48 parcelas.', 422, 'erro_validacao');

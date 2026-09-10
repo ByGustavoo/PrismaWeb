@@ -1,6 +1,8 @@
 import { ApiError } from '@/api';
+import { textLimits } from '@/constants/validation';
 import type { Investment, InvestmentPayload } from '@/types';
 import { todayISO } from '@/utils/date';
+import { fitsAmountColumn } from '@/utils/validation';
 import { investments } from './data';
 
 /**
@@ -23,14 +25,27 @@ function resolve(payload: InvestmentPayload): Omit<Investment, 'id'> {
   if (payload.name.trim().length < 2) {
     throw new ApiError('Informe o nome do investimento.', 422, 'erro_validacao');
   }
+  if (payload.name.trim().length > textLimits.investmentName) {
+    throw new ApiError(
+      `O nome do investimento pode ter no máximo ${textLimits.investmentName} caracteres.`,
+      422,
+      'erro_validacao',
+    );
+  }
   if (payload.institution.trim().length < 2) {
     throw new ApiError('Informe a instituição onde o dinheiro está aplicado.', 422, 'erro_validacao');
   }
-  if (!Number.isFinite(payload.invested) || payload.invested <= 0) {
+  if (payload.institution.trim().length > textLimits.institution) {
+    throw new ApiError(`O nome da instituição pode ter no máximo ${textLimits.institution} caracteres.`, 422, 'erro_validacao');
+  }
+  if (!fitsAmountColumn(payload.invested) || payload.invested <= 0) {
     throw new ApiError('Informe quanto já foi aportado.', 422, 'erro_validacao');
   }
-  if (!Number.isFinite(payload.currentValue) || payload.currentValue < 0) {
+  if (!fitsAmountColumn(payload.currentValue) || payload.currentValue < 0) {
     throw new ApiError('Informe quanto a posição vale hoje.', 422, 'erro_validacao');
+  }
+  if ((payload.notes?.trim().length ?? 0) > textLimits.notes) {
+    throw new ApiError(`A observação pode ter no máximo ${textLimits.notes} caracteres.`, 422, 'erro_validacao');
   }
   if (!payload.startDate) {
     throw new ApiError('Informe a data do primeiro aporte.', 422, 'erro_validacao');

@@ -1,5 +1,7 @@
 import { ApiError } from '@/api';
+import { textLimits } from '@/constants/validation';
 import type { Account, AccountPayload } from '@/types';
+import { fitsAmountColumn } from '@/utils/validation';
 import { accounts, transactions } from './data';
 
 /**
@@ -27,10 +29,16 @@ function validate(payload: AccountPayload, id?: string): void {
   if (payload.name.trim().length < 2) {
     throw new ApiError('Informe o nome da conta.', 422, 'erro_validacao');
   }
+  if (payload.name.trim().length > textLimits.accountName) {
+    throw new ApiError(`O nome da conta pode ter no máximo ${textLimits.accountName} caracteres.`, 422, 'erro_validacao');
+  }
   if (payload.institution.trim().length < 2) {
     throw new ApiError('Informe a instituição da conta.', 422, 'erro_validacao');
   }
-  if (!Number.isFinite(payload.balance)) {
+  if (payload.institution.trim().length > textLimits.institution) {
+    throw new ApiError(`O nome da instituição pode ter no máximo ${textLimits.institution} caracteres.`, 422, 'erro_validacao');
+  }
+  if (!fitsAmountColumn(payload.balance)) {
     throw new ApiError('Informe um saldo válido.', 422, 'erro_validacao');
   }
 

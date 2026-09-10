@@ -56,6 +56,15 @@ export function Modal({ open, onClose, title, description, size = 'md', footer, 
     if (panel && !panel.contains(document.activeElement)) panel.focus();
 
     return () => {
+      /*
+       * Em desenvolvimento, o StrictMode ensaia desmontar e remontar os efeitos
+       * de um modal que ja nasce aberto (o detalhe da meta), sem tirar o painel
+       * do DOM. Devolver o foco nesse ensaio o levaria ao botao de origem, e a
+       * remontagem, sem encontra-lo no painel, o puxaria para o proprio painel —
+       * tirando-o do campo que o formulario escolheu. No fechamento de verdade o
+       * painel ja saiu do DOM quando esta limpeza roda, e so entao o foco volta.
+       */
+      if (panel?.isConnected) return;
       openerRef.current?.focus?.();
       openerRef.current = null;
     };

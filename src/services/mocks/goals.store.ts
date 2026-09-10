@@ -1,6 +1,8 @@
 import { ApiError } from '@/api';
+import { textLimits } from '@/constants/validation';
 import type { Goal, GoalPayload, GoalPriceEntry, GoalPricePayload, GoalUpdatePayload } from '@/types';
 import { todayISO } from '@/utils/date';
+import { fitsAmountColumn } from '@/utils/validation';
 import { goals } from './data';
 
 /**
@@ -35,14 +37,28 @@ function assertLink(value: string | undefined, field: string): string | undefine
   const trimmed = value?.trim();
   if (!trimmed) return undefined;
 
+  if (trimmed.length > textLimits.link) {
+    throw new ApiError(`O ${field} pode ter no máximo ${textLimits.link} caracteres.`, 422, 'erro_validacao');
+  }
   if (!/^https?:\/\/\S+$/i.test(trimmed)) {
     throw new ApiError(`Informe um ${field} começando com http:// ou https://.`, 422, 'erro_validacao');
   }
   return trimmed;
 }
 
+function assertName(value: string): string {
+  const name = value.trim();
+  if (name.length < 2) {
+    throw new ApiError('Informe o nome do produto.', 422, 'erro_validacao');
+  }
+  if (name.length > textLimits.goalName) {
+    throw new ApiError(`O nome do produto pode ter no máximo ${textLimits.goalName} caracteres.`, 422, 'erro_validacao');
+  }
+  return name;
+}
+
 function assertPrice(value: number): number {
-  if (!Number.isFinite(value) || value <= 0) {
+  if (!fitsAmountColumn(value) || value <= 0) {
     throw new ApiError('Informe um preço maior que zero.', 422, 'erro_validacao');
   }
   return value;
@@ -60,27 +76,32 @@ function assertDate(value: string): string {
   return value;
 }
 
+/** Observacao e opcional; quando vem, cabe no limite do produto. */
+function assertNoteLength(value: string | undefined): void {
+  if ((value?.trim().length ?? 0) > textLimits.notes) {
+    throw new ApiError(`A observação pode ter no máximo ${textLimits.notes} caracteres.`, 422, 'erro_validacao');
+  }
+}
+
 function nextPriceId(): string {
   priceSequence += 1;
   return `gp-${priceSequence}`;
 }
 
 export function createGoal(payload: GoalPayload): Goal {
-  if (payload.name.trim().length < 2) {
-    throw new ApiError('Informe o nome do produto.', 422, 'erro_validacao');
-  }
-
+  const name = assertName(payload.name);
   const price = assertPrice(payload.price);
   const date = assertDate(payload.date || todayISO());
   const url = assertLink(payload.url, 'link do produto');
   const imageUrl = assertLink(payload.imageUrl, 'link da imagem');
+  assertNoteLength(payload.notes);
 
   goalSequence += 1;
 
   const entry: GoalPriceEntry = { id: nextPriceId(), date, price };
   const created: Goal = {
     id: `goal-${goalSequence}`,
-    name: payload.name.trim(),
+    name,
     status: payload.status,
     createdAt: date,
     history: [entry],
@@ -98,16 +119,14 @@ export function updateGoal(id: string, payload: GoalUpdatePayload): Goal {
   const index = findIndexOrThrow(id);
   const current = findOrThrow(id);
 
-  if (payload.name.trim().length < 2) {
-    throw new ApiError('Informe o nome do produto.', 422, 'erro_validacao');
-  }
-
+  const name = assertName(payload.name);
   const url = assertLink(payload.url, 'link do produto');
   const imageUrl = assertLink(payload.imageUrl, 'link da imagem');
+  assertNoteLength(payload.notes);
 
   const updated: Goal = {
     id: current.id,
-    name: payload.name.trim(),
+    name,
     status: payload.status,
     createdAt: current.createdAt,
     history: current.history,
@@ -124,6 +143,7 @@ export function addGoalPrice(id: string, payload: GoalPricePayload): Goal {
   const goal = findOrThrow(id);
   const price = assertPrice(payload.price);
   const date = assertDate(payload.date || todayISO());
+  assertNoteLength(payload.note);
 
   // Um registro anterior ao primeiro trocaria silenciosamente o "preco
   // inicial", que e a referencia de toda a variacao mostrada na tela.

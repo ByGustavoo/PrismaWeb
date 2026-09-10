@@ -1,8 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button, Input, Modal, Select } from '@/components/ui';
 import { cardStatusLabel, cardStatuses, cardTypeLabel, cardTypes } from '@/constants/cards';
+import { textLimits } from '@/constants/validation';
+import { useFormValidation } from '@/hooks/useFormValidation';
+import type { FieldErrors } from '@/hooks/useFormValidation';
 import type { Account, Card, CardPayload, CardStatus, CardType, Option } from '@/types';
 import { parseAmountInput, toAmountInput } from '@/utils/format';
+import { amountError, textError } from '@/utils/validation';
 import styles from './CardForm.module.css';
 
 interface CardFormModalProps {
@@ -30,7 +34,11 @@ interface FormState {
   balance: string;
 }
 
-type FormErrors = Partial<Record<keyof FormState, string>>;
+const limits = {
+  name: textLimits.cardName,
+  institution: textLimits.institution,
+  brand: textLimits.cardBrand,
+};
 
 const typeOptions: Option[] = cardTypes.map((type) => ({ value: type, label: cardTypeLabel[type] }));
 
@@ -61,40 +69,39 @@ function parseDay(raw: string): number | undefined {
   return Number.isInteger(parsed) && parsed >= 1 && parsed <= 31 ? parsed : undefined;
 }
 
-/*
- * Dois campos de dia lado a lado repetindo a mesma frase nao dizem qual deles
- * ficou em branco; a faixa valida so ajuda quando ha um numero para corrigir.
- */
-function dayMessage(raw: string, field: string): string {
-  return raw.trim() ? 'Informe um dia entre 1 e 31!' : `Informe o ${field}!`;
+/* Os dois campos de dia ficam lado a lado: a mensagem precisa dizer qual deles falhou. */
+function dayError(raw: string, field: string): string | undefined {
+  if (!raw.trim()) return `Informe o ${field}!`;
+  return parseDay(raw) === undefined ? `O ${field} precisa estar entre 1 e 31!` : undefined;
 }
 
-function validate(form: FormState): FormErrors {
-  const errors: FormErrors = {};
+function validate(form: FormState): FieldErrors<FormState> {
+  const errors: FieldErrors<FormState> = {
+    name: textError(form.name, {
+      subject: 'O nome do cartão',
+      missing: 'Informe o nome do cartão!',
+      max: textLimits.cardName,
+    }),
+    institution: textError(form.institution, {
+      subject: 'O nome da instituição',
+      missing: 'Informe o banco ou a operadora do cartão!',
+      max: textLimits.institution,
+    }),
+    brand: textError(form.brand, { subject: 'A bandeira', max: textLimits.cardBrand }),
+  };
 
-  if (form.name.trim().length < 2) {
-    errors.name = 'Informe um nome com pelo menos 2 caracteres!';
-  }
-  if (form.institution.trim().length < 2) {
-    errors.institution = 'Informe o banco ou a operadora do cartão!';
-  }
   if (form.lastDigits.trim() && !/^\d{4}$/.test(form.lastDigits.trim())) {
-    errors.lastDigits = 'Informe exatamente 4 números!';
+    errors.lastDigits = 'Os últimos dígitos precisam ser 4 números!';
   }
 
   if (form.type === 'CREDITO') {
-    const limit = parseAmountInput(form.limit);
-    if (limit === undefined) {
-      errors.limit = 'Informe o limite do cartão!';
-    } else if (limit <= 0) {
-      errors.limit = 'O limite precisa ser maior que zero!';
-    }
-    if (parseDay(form.closingDay) === undefined) {
-      errors.closingDay = dayMessage(form.closingDay, 'dia de fechamento');
-    }
-    if (parseDay(form.dueDay) === undefined) {
-      errors.dueDay = dayMessage(form.dueDay, 'dia de vencimento');
-    }
+    errors.limit = amountError(form.limit, {
+      subject: 'O limite do cartão',
+      missing: 'Informe o limite do cartão!',
+      sign: 'positive',
+    });
+    errors.closingDay = dayError(form.closingDay, 'dia de fechamento');
+    errors.dueDay = dayError(form.dueDay, 'dia de vencimento');
   }
 
   if (form.type === 'DEBITO' && !form.accountId) {
@@ -102,12 +109,11 @@ function validate(form: FormState): FormErrors {
   }
 
   if (form.type === 'VALE_ALIMENTACAO' || form.type === 'VALE_REFEICAO') {
-    const balance = parseAmountInput(form.balance);
-    if (balance === undefined) {
-      errors.balance = 'Informe o saldo do cartão!';
-    } else if (balance < 0) {
-      errors.balance = 'O saldo não pode ser negativo!';
-    }
+    errors.balance = amountError(form.balance, {
+      subject: 'O saldo do cartão',
+      missing: 'Informe o saldo do cartão!',
+      sign: 'non-negative',
+    });
   }
 
   return errors;
@@ -115,14 +121,13 @@ function validate(form: FormState): FormErrors {
 
 export function CardFormModal({ open, card, accounts, saving, onSubmit, onClose }: CardFormModalProps) {
   const [form, setForm] = useState<FormState>(() => initialState(card));
-  const [errors, setErrors] = useState<FormErrors>({});
-  const formRef = useRef<HTMLFormElement>(null);
+  const { errors, formRef, touch, submit, reset } = useFormValidation(form, validate, { limits });
 
   useEffect(() => {
     if (!open) return;
     setForm(initialState(card));
-    setErrors({});
-  }, [open, card]);
+    reset();
+  }, [open, card, reset]);
 
   // Cartao de debito acessa uma conta de verdade; uma conta encerrada nao serve.
   const accountOptions = useMemo<Option[]>(
@@ -135,19 +140,10 @@ export function CardFormModal({ open, card, accounts, saving, onSubmit, onClose 
 
   const set = <K extends keyof FormState>(field: K, value: FormState[K]) => {
     setForm((current) => ({ ...current, [field]: value }));
-    setErrors((current) => (current[field] ? { ...current, [field]: undefined } : current));
   };
 
   const handleSubmit = () => {
-    const found = validate(form);
-    setErrors(found);
-
-    if (Object.values(found).some(Boolean)) {
-      requestAnimationFrame(() => {
-        formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
-      });
-      return;
-    }
+    if (!submit()) return;
 
     // So vao os campos do tipo escolhido: o cadastro guarda o cartao, nao o
     // rascunho de um tipo que o usuario chegou a selecionar e trocou depois.
@@ -210,6 +206,8 @@ export function CardFormModal({ open, card, accounts, saving, onSubmit, onClose 
           placeholder="Como você chama este cartão"
           value={form.name}
           onChange={(event) => set('name', event.target.value)}
+          onBlur={() => touch('name')}
+          characterLimit={textLimits.cardName}
           error={errors.name}
           autoFocus
         />
@@ -228,6 +226,8 @@ export function CardFormModal({ open, card, accounts, saving, onSubmit, onClose 
           placeholder="Banco ou operadora"
           value={form.institution}
           onChange={(event) => set('institution', event.target.value)}
+          onBlur={() => touch('institution')}
+          characterLimit={textLimits.institution}
           error={errors.institution}
         />
 
@@ -241,6 +241,7 @@ export function CardFormModal({ open, card, accounts, saving, onSubmit, onClose 
               placeholder="0,00"
               value={form.limit}
               onChange={(event) => set('limit', event.target.value)}
+              onBlur={() => touch('limit')}
               error={errors.limit}
             />
 
@@ -253,6 +254,7 @@ export function CardFormModal({ open, card, accounts, saving, onSubmit, onClose 
                 placeholder="28"
                 value={form.closingDay}
                 onChange={(event) => set('closingDay', event.target.value)}
+                onBlur={() => touch('closingDay')}
                 error={errors.closingDay}
               />
               <Input
@@ -263,6 +265,7 @@ export function CardFormModal({ open, card, accounts, saving, onSubmit, onClose 
                 placeholder="8"
                 value={form.dueDay}
                 onChange={(event) => set('dueDay', event.target.value)}
+                onBlur={() => touch('dueDay')}
                 error={errors.dueDay}
               />
             </div>
@@ -291,6 +294,7 @@ export function CardFormModal({ open, card, accounts, saving, onSubmit, onClose 
             placeholder="0,00"
             value={form.balance}
             onChange={(event) => set('balance', event.target.value)}
+            onBlur={() => touch('balance')}
             error={errors.balance}
           />
         ) : null}
@@ -300,6 +304,9 @@ export function CardFormModal({ open, card, accounts, saving, onSubmit, onClose 
           placeholder="Visa, Mastercard, Elo..."
           value={form.brand}
           onChange={(event) => set('brand', event.target.value)}
+          onBlur={() => touch('brand')}
+          characterLimit={textLimits.cardBrand}
+          error={errors.brand}
         />
 
         <Input
@@ -309,6 +316,7 @@ export function CardFormModal({ open, card, accounts, saving, onSubmit, onClose 
           placeholder="0000"
           value={form.lastDigits}
           onChange={(event) => set('lastDigits', event.target.value)}
+          onBlur={() => touch('lastDigits')}
           error={errors.lastDigits}
           hint="Ajuda a distinguir dois cartões do mesmo banco."
         />

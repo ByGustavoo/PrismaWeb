@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button, DatePicker, Input, Modal, Select, Textarea } from '@/components/ui';
 import {
   paymentMethodLabel,
@@ -6,9 +6,13 @@ import {
   transactionStatusLabel,
   transactionStatuses,
 } from '@/constants/transactions';
+import { textLimits } from '@/constants/validation';
+import { useFormValidation } from '@/hooks/useFormValidation';
+import type { FieldErrors } from '@/hooks/useFormValidation';
 import type { Categoria, Option, FormaPagamento, PaymentSource, Lancamento, LancamentoPayload, SituacaoLancamento } from '@/types';
 import { todayISO } from '@/utils/date';
 import { parseAmountInput, toAmountInput } from '@/utils/format';
+import { amountError, textError } from '@/utils/validation';
 import styles from './TransactionForm.module.css';
 
 interface TransactionFormModalProps {
@@ -35,7 +39,7 @@ interface FormState {
   notes: string;
 }
 
-type FormErrors = Partial<Record<keyof FormState, string>>;
+const limits = { description: textLimits.description, notes: textLimits.notes };
 
 function initialState(transaction: Lancamento | null): FormState {
   return {
@@ -50,19 +54,22 @@ function initialState(transaction: Lancamento | null): FormState {
   };
 }
 
-function validate(form: FormState, isExpense: boolean): FormErrors {
-  const errors: FormErrors = {};
-  const amount = parseAmountInput(form.amount);
+function validate(form: FormState, isExpense: boolean): FieldErrors<FormState> {
   const noun = isExpense ? 'despesa' : 'receita';
+  const errors: FieldErrors<FormState> = {
+    description: textError(form.description, {
+      subject: `A descrição da ${noun}`,
+      missing: `Informe a descrição da ${noun}!`,
+      max: textLimits.description,
+    }),
+    amount: amountError(form.amount, {
+      subject: `O valor da ${noun}`,
+      missing: `Informe o valor da ${noun}!`,
+      sign: 'positive',
+    }),
+    notes: textError(form.notes, { subject: 'A observação', max: textLimits.notes }),
+  };
 
-  if (form.description.trim().length < 2) {
-    errors.description = 'Informe uma descrição com pelo menos 2 caracteres!';
-  }
-  if (amount === undefined) {
-    errors.amount = `Informe o valor da ${noun}!`;
-  } else if (amount <= 0) {
-    errors.amount = 'O valor precisa ser maior que zero!';
-  }
   if (!form.date) {
     errors.date = `Informe a data da ${noun}!`;
   }
@@ -97,17 +104,19 @@ export function TransactionFormModal({
   onClose,
 }: TransactionFormModalProps) {
   const [form, setForm] = useState<FormState>(() => initialState(transaction));
-  const [errors, setErrors] = useState<FormErrors>({});
-  const formRef = useRef<HTMLFormElement>(null);
+  const isExpense = kind === 'DESPESA';
+  const { errors, formRef, touch, submit, reset } = useFormValidation(
+    form,
+    (values) => validate(values, isExpense),
+    { limits },
+  );
 
   // Cada abertura comeca do zero (ou do registro em edicao), sem resto da anterior.
   useEffect(() => {
     if (!open) return;
     setForm(initialState(transaction));
-    setErrors({});
-  }, [open, transaction]);
-
-  const isExpense = kind === 'DESPESA';
+    reset();
+  }, [open, transaction, reset]);
 
   const categoryOptions = useMemo<Option[]>(
     () => categories.filter((item) => item.tipo === kind).map((item) => ({ value: item.id, label: item.nome })),
@@ -128,22 +137,10 @@ export function TransactionFormModal({
 
   const set = <K extends keyof FormState>(field: K, value: FormState[K]) => {
     setForm((current) => ({ ...current, [field]: value }));
-    // O erro some assim que o campo e corrigido, nao so no proximo envio.
-    setErrors((current) => (current[field] ? { ...current, [field]: undefined } : current));
   };
 
   const handleSubmit = () => {
-    const found = validate(form, isExpense);
-    setErrors(found);
-
-    if (Object.values(found).some(Boolean)) {
-      // Sem isso o formulario so pinta os erros e deixa o usuario procurar qual
-      // campo falhou — pior ainda quando o primeiro esta fora da area visivel.
-      requestAnimationFrame(() => {
-        formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
-      });
-      return;
-    }
+    if (!submit()) return;
 
     onSubmit({
       descricao: form.description,
@@ -198,6 +195,8 @@ export function TransactionFormModal({
           placeholder={isExpense ? 'Conta de luz, mercado, aluguel...' : 'Salário, freelance, reembolso...'}
           value={form.description}
           onChange={(event) => set('description', event.target.value)}
+          onBlur={() => touch('description')}
+          characterLimit={textLimits.description}
           error={errors.description}
           autoFocus
         />
@@ -210,6 +209,7 @@ export function TransactionFormModal({
           placeholder="0,00"
           value={form.amount}
           onChange={(event) => set('amount', event.target.value)}
+          onBlur={() => touch('amount')}
           error={errors.amount}
         />
 
@@ -264,6 +264,9 @@ export function TransactionFormModal({
           placeholder="Opcional: detalhes que ajudam a lembrar deste lançamento."
           value={form.notes}
           onChange={(event) => set('notes', event.target.value)}
+          onBlur={() => touch('notes')}
+          characterLimit={textLimits.notes}
+          error={errors.notes}
         />
 
         <p className={styles.legend}>* Campos obrigatórios.</p>
