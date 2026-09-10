@@ -9,11 +9,6 @@ interface SourceBreakdownProps {
   data: SourceSpending[];
 }
 
-/**
- * De onde saiu o dinheiro no periodo. Cada origem tem sua barra medida contra a
- * maior, e nao contra o total: com uma conta respondendo por 70% do gasto, as
- * demais virariam tracinhos indistinguiveis numa escala absoluta.
- */
 export function SourceBreakdown({ data }: SourceBreakdownProps) {
   const largest = data[0]?.share ?? 1;
 

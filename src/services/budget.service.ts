@@ -4,7 +4,6 @@ import type { Budget, BudgetOverview, BudgetPayload, ID } from '@/types';
 import { buildBudgetOverview, createBudget, deleteBudget, mockResponse, updateBudget } from './mocks';
 
 export const budgetService = {
-  /** `month` no formato YYYY-MM; sem ele, o mes corrente. */
   getOverview(month?: string, signal?: AbortSignal): Promise<BudgetOverview> {
     if (env.useMocks) return mockResponse(buildBudgetOverview(month), signal);
     return httpClient.get<BudgetOverview>(endpoints.budgets.overview, {

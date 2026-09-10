@@ -1,7 +1,3 @@
-/*
- * Duas colunas: os campos curtos (instituicao, tipo, saldo, situacao) formam
- * pares e os que atravessam a largura ficam com `.full`.
- */
 .form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -13,7 +9,6 @@
   grid-column: 1 / -1;
 }
 
-/* Explica o asterisco dos rotulos: sozinho ele e convencao, nao instrucao. */
 .legend {
   grid-column: 1 / -1;
   margin: 0;

@@ -4,11 +4,6 @@
   gap: var(--space-5);
 }
 
-/*
- * `auto-fill` com largura minima em vez de um numero fixo de colunas: uma conta
- * tem pouco conteudo, e travar tres por linha deixaria cartoes largos e vazios
- * em telas grandes.
- */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(288px, 1fr));

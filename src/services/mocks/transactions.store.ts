@@ -4,16 +4,6 @@ import type { Lancamento, LancamentoPayload } from '@/types';
 import { fitsAmountColumn } from '@/utils/validation';
 import { categories, findPaymentSource, transactions } from './data';
 
-/**
- * Escrita da camada de mock. Guarda os lancamentos em memoria enquanto nao
- * existe backend: o estado vive so ate o reload da pagina, o que basta para
- * exercitar cadastro, edicao e exclusao com os mesmos erros da API real.
- *
- * Quando o backend Java entrar, este arquivo sai inteiro e nada muda nas telas:
- * quem chama e apenas `transactions.service.ts`.
- */
-
-/** Continua a numeracao da semente para nao repetir id. */
 let sequence = transactions.length;
 
 function nextId(): string {
@@ -29,10 +19,6 @@ function findIndexOrThrow(id: string): number {
   return index;
 }
 
-/**
- * Traduz o payload (so ids) no registro completo que a API devolveria, com
- * nome de conta e categoria ja resolvidos.
- */
 function resolve(payload: LancamentoPayload): Omit<Lancamento, 'id'> {
   if (payload.descricao.trim().length < 2) {
     throw new ApiError('Informe a descrição do lançamento.', 422, 'erro_validacao');
@@ -70,7 +56,6 @@ function resolve(payload: LancamentoPayload): Omit<Lancamento, 'id'> {
     }
   }
 
-  // Transferencia nao entra em receita nem em despesa, entao tambem nao tem categoria.
   const category =
     payload.tipo === 'TRANSFERENCIA'
       ? null

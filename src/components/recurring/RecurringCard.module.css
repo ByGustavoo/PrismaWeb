@@ -15,7 +15,6 @@
   box-shadow: var(--shadow-accent);
 }
 
-/* Cobre o cartao e abre a edicao; pausar e excluir voltam a receber ponteiro. */
 .open {
   position: absolute;
   inset: 0;
@@ -73,7 +72,6 @@
   flex-shrink: 0;
 }
 
-/* Espacamento proprio: um espaco de texto encolhe junto do tracking da fonte. */
 .separator {
   margin-inline: 5px;
   color: var(--text-subtle);
@@ -133,11 +131,6 @@
   color: var(--text-subtle);
 }
 
-/*
- * Vencimento dentro da janela de atencao. E a mesma faixa que alimenta a lista
- * de "vence em breve" do topo, entao a cor aqui nunca aparece sem o numero de
- * la corresponder.
- */
 .dueSoon {
   color: var(--warning);
   font-weight: 500;

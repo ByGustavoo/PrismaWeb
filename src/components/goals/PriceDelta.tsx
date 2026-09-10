@@ -7,20 +7,13 @@ import { priceTone, priceTrendLabel } from './meta';
 import styles from './PriceDelta.module.css';
 
 interface PriceDeltaProps {
-  /** Diferenca em reais; o sinal decide o texto, o valor sai em modulo. */
   change: number;
-  /** Variacao percentual sobre o preco de referencia. */
   percentage: number;
   trend: Tendencia;
   size?: 'sm' | 'md';
   className?: string;
 }
 
-/**
- * Quanto o preco andou, em reais e em porcentagem. Seta, palavra e cor contam a
- * mesma historia — ver o comentario de `priceTone` em `meta.ts` para o porque
- * de a cor aqui seguir a noticia, e nao a direcao do numero.
- */
 export function PriceDelta({ change, percentage, trend, size = 'md', className }: PriceDeltaProps) {
   const Icon = trend === 'BAIXA' ? ArrowDownRight : trend === 'ALTA' ? ArrowUpRight : Minus;
 

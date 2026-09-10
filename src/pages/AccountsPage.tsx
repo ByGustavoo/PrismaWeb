@@ -11,12 +11,6 @@ import { accountsService } from '@/services';
 import type { Account, AccountPayload } from '@/types';
 import styles from './AccountsPage.module.css';
 
-/**
- * Fatia da conta no saldo total. So tem fatia quem entra na conta desse total e
- * esta com saldo positivo: uma conta inativa, uma marcada para nao somar ou uma
- * no cheque especial nao ocupam um pedaco do bolo — mostrar uma barra vazia nas
- * tres so acrescentaria um trilho cinza a cada cartao.
- */
 function shareOf(account: Account, total: number): number | undefined {
   if (total <= 0 || account.status !== 'ATIVO' || !account.includeInTotal) return undefined;
   if (account.balance <= 0) return undefined;
@@ -85,8 +79,6 @@ export function AccountsPage() {
       setRemoving(null);
       reload();
     } catch (deleteError) {
-      // Conta com historico nao e apagavel: o servico explica o porque e sugere
-      // inativar, entao a mensagem dele vale mais que um texto generico aqui.
       toast.error(
         'Não foi possível excluir a conta',
         deleteError instanceof Error ? deleteError.message : undefined,
@@ -109,13 +101,6 @@ export function AccountsPage() {
         }
       />
 
-      {/*
-        O esqueleto e so da primeira carga. Depois de cadastrar, editar ou trocar
-        o filtro, os numeros anteriores ficam na tela ate os novos chegarem:
-        apagar a tela a cada gravacao piscava o conteudo inteiro e, pior,
-        remontava a faixa de resumo — o que faria a contagem de entrada
-        (`Amount countUp`) recomecar do zero a cada salvamento.
-      */}
       {loading && !data ? (
         <div className={styles.stack} aria-busy="true">
           <Card padding="none">

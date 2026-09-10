@@ -10,12 +10,6 @@ interface PortfolioChartProps {
   data: PortfolioPoint[];
 }
 
-/**
- * Evolucao do patrimonio contra o total aportado. As duas series juntas sao o
- * ponto: a area sozinha mostra o dinheiro crescendo sem dizer quanto disso foi
- * aporte e quanto foi rendimento — a distancia entre a linha e a area e a
- * resposta, e ela se le sem nenhum numero.
- */
 export function PortfolioChart({ data }: PortfolioChartProps) {
   const palette = useChartPalette();
 
@@ -66,10 +60,6 @@ export function PortfolioChart({ data }: PortfolioChartProps) {
               fill="url(#prisma-portfolio)"
               activeDot={{ r: 4, strokeWidth: 0 }}
             />
-            {/*
-              Tracejada de proposito: o aporte e a referencia contra a qual se le
-              o patrimonio, nao uma segunda medida de mesmo peso.
-            */}
             <Line
               type="monotone"
               dataKey="invested"

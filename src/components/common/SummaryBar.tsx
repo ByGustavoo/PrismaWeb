@@ -4,7 +4,6 @@ import styles from './SummaryBar.module.css';
 
 export interface SummaryItem {
   label: string;
-  /** Ja pronto para a tela: um `Amount`, uma contagem, um texto curto. */
   value: ReactNode;
   hint?: string;
 }
@@ -14,12 +13,6 @@ export interface SummaryBarProps {
   className?: string;
 }
 
-/**
- * Faixa de numeros no topo de uma tela de cadastro. E uma alternativa
- * deliberada a uma fileira de cards: tres ou quatro figuras que respondem "como
- * estou" nao precisam de uma moldura cada uma, e uma tela que abre com quatro
- * caixas antes da lista empurra o conteudo de verdade para baixo da dobra.
- */
 export function SummaryBar({ items, className }: SummaryBarProps) {
   return (
     <dl className={cn(styles.bar, className)}>

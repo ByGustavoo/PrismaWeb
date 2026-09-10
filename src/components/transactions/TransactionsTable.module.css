@@ -1,4 +1,3 @@
-/* Oito colunas nao cabem em telas estreitas: abaixo disso o container rola. */
 .table {
   min-width: 1000px;
 }
@@ -32,11 +31,6 @@
   opacity: 1;
 }
 
-/*
- * Ocupa a celula toda para que o alvo do teclado coincida com o que o ponteiro
- * ja acerta na linha. Sem moldura propria: quem desenha o estado de hover e a
- * linha, e um segundo retangulo aqui competiria com ela.
- */
 .descriptionButton {
   display: block;
   width: 100%;
@@ -51,7 +45,6 @@
   font-weight: 500;
 }
 
-/* Observacao como segunda linha discreta: contexto sem roubar a descricao. */
 .notes {
   display: block;
   margin-top: 2px;
@@ -85,7 +78,6 @@
   flex-shrink: 0;
 }
 
-/* Origem -> destino de uma transferencia, sempre na mesma linha. */
 .route {
   display: inline-flex;
   align-items: center;
@@ -130,10 +122,6 @@
   gap: var(--space-1);
 }
 
-/*
- * Excluir so fica vermelho no hover: em repouso, uma coluna inteira de icones
- * vermelhos dominaria a tabela.
- */
 .delete:hover {
   color: var(--negative);
 }

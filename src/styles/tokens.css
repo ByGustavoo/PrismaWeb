@@ -1,11 +1,4 @@
-/*
- * Design tokens da aplicacao.
- * Toda cor, espacamento e tipografia usada nos componentes vem daqui.
- * Nenhum componente deve declarar hex diretamente.
- */
-
 :root {
-  /* --- Tipografia ------------------------------------------------------ */
   --font-ui: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-figure: 'Archivo', ui-sans-serif, system-ui, sans-serif;
 
@@ -25,7 +18,6 @@
   --tracking-tight: -0.02em;
   --tracking-figure: -0.03em;
 
-  /* --- Espacamento (base 4px) ------------------------------------------ */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -37,60 +29,34 @@
   --space-12: 3rem;
   --space-16: 4rem;
 
-  /* --- Raios (hierarquia proposital, nao um valor unico) --------------- */
   --radius-xs: 4px;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-pill: 999px;
 
-  /* --- Layout ---------------------------------------------------------- */
   --sidebar-width: 264px;
   --sidebar-width-collapsed: 76px;
   --header-height: 68px;
   --content-max: 1440px;
 
-  /* --- Controles ------------------------------------------------------- */
-  /*
-   * Altura e corpo de um campo, e lado minimo de um alvo de toque. No ponteiro
-   * fino o app e denso de proposito; no ponteiro grosso os tres crescem no
-   * bloco logo abaixo dos temas. O corpo do campo importa alem da leitura: com
-   * menos de 16px o Safari no iOS aplica zoom na pagina ao focar um input.
-   */
   --control-height: 38px;
   --control-height-sm: 32px;
   --control-font: var(--fs-base);
   --tap-size: 34px;
 
-  /* --- Movimento ------------------------------------------------------- */
-  /*
-   * `--ease-spring` passa um pouco do alvo antes de assentar. E o unico easing
-   * com ultrapassagem do projeto, reservado a quatro movimentos: entrada de item
-   * de lista, entrada de popover (Select, avisos, periodo), curso do Switch e
-   * rolagem de algarismo do `Amount`. Sao os casos em que algo fisico chega a um
-   * lugar. Cor, borda, sombra e giro de seta continuam em `--ease-out`, sem
-   * repique — um indicador nao precisa de peso.
-   */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-spring: cubic-bezier(0.34, 1.42, 0.54, 1);
   --duration-fast: 120ms;
   --duration-base: 200ms;
   --duration-slow: 420ms;
-  /* Intervalo entre um item e o seguinte numa entrada escalonada. */
   --stagger-step: 32ms;
 
-  /* --- Marca (constante nos dois temas) --------------------------------- */
   --brand-surface: #16181d;
   --brand-ray: #ffffff;
   --brand-facet: #6e9dff;
   --brand-facet-shade: #3f63c9;
 
-  /* --- Camadas --------------------------------------------------------- */
-  /*
-   * O popover fica acima do modal de proposito: um Select dentro de um
-   * formulario em modal renderiza a lista num portal no body, e ela precisa
-   * flutuar sobre o painel. So o toast passa por cima.
-   */
   --z-header: 30;
   --z-sidebar: 40;
   --z-overlay: 50;
@@ -99,11 +65,6 @@
   --z-toast: 70;
 }
 
-/*
- * Ponteiro grosso: campo e alvo de toque crescem. 44px e a referencia do iOS e
- * o piso confortavel para qualquer acao relevante no celular; 16px no campo
- * evita o zoom automatico do Safari ao focar.
- */
 @media (pointer: coarse) {
   :root {
     --control-height: 44px;
@@ -113,18 +74,6 @@
   }
 }
 
-/*
- * --chart-2 e --chart-3 sao parentes de --positive e --negative, mas nao os
- * mesmos valores: texto precisa de 4.5:1 e acaba escuro, enquanto barra e area
- * sao objeto grafico (3:1) e podem ser mais claras e saturadas. Manter os dois
- * pares separados e o que deixa o numero legivel e a barra viva.
- */
-
-/* --- Tema claro -------------------------------------------------------- */
-/*
- * Cinzas neutros, como no tema escuro: a base nao puxa para nenhuma matiz e a
- * cor fica por conta do acento e dos estados semanticos.
- */
 :root,
 [data-theme='light'] {
   color-scheme: light;
@@ -154,14 +103,6 @@
   --negative-soft: #fde4e1;
   --negative-contrast: #ffffff;
   --warning: #8a6000;
-  /*
-   * O ambar como objeto grafico: mesma matiz e mesma saturacao do `--warning`,
-   * sete pontos de luminosidade acima — o mesmo degrau que separa `--negative`
-   * de `--chart-3`. Existe porque o ocre de texto, escuro o bastante para 4.5:1,
-   * numa barra grossa deixa de parecer ambar e passa a parecer marrom. Vermelho
-   * e verde escurecem sem perder identidade; amarelo, nao. Fica em 3.95:1 sobre
-   * a superficie, acima dos 3:1 que objeto grafico pede.
-   */
   --warning-graphic: #ab7600;
   --warning-soft: #fbeed4;
   --neutral-soft: #eceef2;
@@ -179,21 +120,9 @@
   --chart-4: #8a6000;
   --chart-5: #6b5bd2;
   --chart-6: #3f8fa8;
-  /*
-   * A serie foi de seis para oito por causa da distribuicao da carteira: sao
-   * oito classes de ativo, e repetir uma cor deixaria duas fatias vizinhas
-   * indistinguiveis. As duas novas ocupam as matizes que faltavam na roda —
-   * magenta e oliva — para nenhuma encostar nas seis anteriores.
-   */
   --chart-7: #a8367f;
   --chart-8: #5f7d1f;
 
-  /*
-   * Escala de calor do calendario de gastos. Comeca no cinza de superficie —
-   * dia sem gasto ainda e um dia, nao um buraco — e sobe ate --negative, a cor
-   * que o produto ja usa para dinheiro que sai. Os degraus sao objeto grafico,
-   * entao o requisito e distinguir um nivel do vizinho, nao 4.5:1 de texto.
-   */
   --heat-0: #eceef2;
   --heat-1: #fbd8d2;
   --heat-2: #f4a294;
@@ -201,13 +130,6 @@
   --heat-4: #c92a12;
 }
 
-/* --- Tema escuro ------------------------------------------------------- */
-/*
- * Cinzas neutros, sem desvio de matiz, para fundo, superficies e bordas. A cor
- * fica reservada ao acento e aos estados semanticos, que assim se destacam
- * sobre uma base neutra. As superficies sobem junto com a elevacao:
- * canvas < surface < surface-raised < surface-muted.
- */
 [data-theme='dark'] {
   color-scheme: dark;
 
@@ -236,8 +158,6 @@
   --negative-soft: #351a1a;
   --negative-contrast: #2a0e09;
   --warning: #e8b44a;
-  /* No escuro os dois coincidem: a cor de texto ja e clara, e clarea-la mais
-     so tiraria saturacao sem ganhar nada. */
   --warning-graphic: #e8b44a;
   --warning-soft: #322612;
   --neutral-soft: #26272c;

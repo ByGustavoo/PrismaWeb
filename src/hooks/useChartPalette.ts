@@ -10,11 +10,6 @@ export interface ChartPalette {
   series: string[];
 }
 
-/**
- * Recharts escreve as cores como atributos de SVG, onde `var(--token)` nao e
- * resolvido de forma confiavel. Este hook le os tokens do tema e devolve os
- * valores ja calculados, recalculando sempre que o tema muda.
- */
 export function useChartPalette(): ChartPalette {
   const { theme } = useTheme();
 

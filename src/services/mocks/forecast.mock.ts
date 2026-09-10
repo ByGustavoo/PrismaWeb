@@ -7,13 +7,6 @@ import { installmentTotalIn } from './cards.mock';
 import { currentMonth, transactions } from './data';
 import { recurringTotalIn } from './recurring.mock';
 
-/**
- * A projecao comeca no mes que vem, e nao no corrente, de proposito. Metade do
- * mes atual ja aconteceu: somar o realizado com o previsto na mesma linha
- * produziria um numero que nao e nem um nem outro, e o dashboard ja responde
- * pelo mes em curso. O saldo de partida, esse sim, e o de hoje.
- */
-
 function money(value: number): number {
   return Math.round(value * 100) / 100;
 }
@@ -22,7 +15,6 @@ function ofMonth(monthKey: string): Lancamento[] {
   return transactions.filter((item) => item.data.startsWith(monthKey));
 }
 
-/** Meses fechados que servem de base para as medias. */
 function baselineMonths(): string[] {
   return Array.from({ length: FORECAST_BASELINE_MONTHS }, (_, index) => shiftMonthKey(currentMonth, -(index + 1)));
 }
@@ -40,12 +32,6 @@ export function buildForecastSummary(months: number = FORECAST_MONTHS): Forecast
   const averageInstallments = average(baseline.map((month) => installmentTotalIn(month)));
   const averageRecurring = average(baseline.map((month) => recurringTotalIn(month)));
 
-  /*
-   * O gasto variavel e o que sobra da media depois de tirar o que ja e contado
-   * linha a linha. Sem esse desconto, aluguel e parcelas apareceriam duas vezes
-   * — uma na sua propria linha, outra dentro da media — e a previsao ficaria
-   * pessimista o suficiente para nao servir para nada.
-   */
   const variable = money(Math.max(averageExpense - averageRecurring - averageInstallments, 0));
 
   const startingBalance = balanceAt(todayISO());

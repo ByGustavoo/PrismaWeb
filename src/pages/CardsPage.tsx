@@ -37,7 +37,6 @@ export function CardsPage() {
   const invoices = useMemo(() => data?.[1] ?? [], [data]);
   const accounts = useMemo(() => data?.[2] ?? [], [data]);
 
-  /** Fatura em curso de cada cartao: a aberta, ou a fechada ainda a pagar. */
   const currentInvoices = useMemo(() => {
     const map = new Map<string, Invoice>();
     for (const invoice of invoices) {
@@ -108,11 +107,8 @@ export function CardsPage() {
     }
   };
 
-  /* O cartao escolhido viaja como parametro transitorio; a tela de faturas o le
-     e limpa a URL, como fazem os atalhos da busca global. */
   const openInvoices = (card: CardModel) => navigate(`${paths.invoices}?${CARD_PARAM}=${card.id}`);
 
-  /* O saldo da conta vinculada da ao cartao de debito o numero que ele nao tem. */
   const accountBalances = new Map(accounts.map((account) => [account.id, account.balance]));
 
   const renderTile = (card: CardModel) => (
@@ -139,13 +135,6 @@ export function CardsPage() {
         }
       />
 
-      {/*
-        O esqueleto e so da primeira carga. Depois de cadastrar, editar ou trocar
-        o filtro, os numeros anteriores ficam na tela ate os novos chegarem:
-        apagar a tela a cada gravacao piscava o conteudo inteiro e, pior,
-        remontava a faixa de resumo — o que faria a contagem de entrada
-        (`Amount countUp`) recomecar do zero a cada salvamento.
-      */}
       {loading && !data ? (
         <div className={styles.stack} aria-busy="true">
           <Card padding="none">
@@ -214,11 +203,6 @@ export function CardsPage() {
           {otherCards.length > 0 ? (
             <section className={styles.section}>
               <h2 className={styles.sectionTitle}>Débito e vales</h2>
-              {/*
-                Separados porque o conteudo e outro: sem limite, sem fechamento e
-                sem fatura, eles ficariam com tres quartos do cartao vazios se
-                dividissem a mesma grade dos de credito.
-              */}
               <ul className={styles.grid}>{otherCards.map(renderTile)}</ul>
             </section>
           ) : null}

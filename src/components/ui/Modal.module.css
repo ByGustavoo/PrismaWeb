@@ -63,11 +63,6 @@
   overflow-y: auto;
 }
 
-/*
- * Sem fundo proprio: o painel inteiro fica de uma cor so. O botao secundario se
- * destaca por usar --surface, que e mais escuro que o --surface-raised do
- * painel, e nao por uma faixa mais clara no rodape.
- */
 .footer {
   display: flex;
   justify-content: flex-end;
@@ -76,10 +71,6 @@
   border-top: 1px solid var(--border);
 }
 
-/*
- * No celular o painel encosta na base: o rodape com as acoes fica ao alcance do
- * polegar, e os botoes dividem a largura em vez de ficarem espremidos no canto.
- */
 @media (max-width: 599px) {
   .overlay {
     align-items: flex-end;

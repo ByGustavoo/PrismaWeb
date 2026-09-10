@@ -24,11 +24,6 @@ import {
   updateInstallmentPurchase,
 } from './mocks';
 
-/**
- * Cartoes, faturas e compras parceladas. Faturas e cronogramas de parcelas sao
- * leitura calculada — o cliente nunca as cria — entao o service so expoe escrita
- * para o cadastro de cartao e o de compra parcelada.
- */
 export const cardsService = {
   list(signal?: AbortSignal): Promise<Card[]> {
     if (env.useMocks) return mockResponse(buildCards(), signal);
@@ -53,7 +48,6 @@ export const cardsService = {
     return httpClient.delete<void>(endpoints.cards.byId(id), { ...(signal ? { signal } : {}) });
   },
 
-  /** Sem `cardId` devolve as faturas de todos os cartoes de credito. */
   listInvoices(cardId?: ID, signal?: AbortSignal): Promise<Invoice[]> {
     if (env.useMocks) return mockResponse(buildInvoices(cardId), signal);
     return httpClient.get<Invoice[]>(endpoints.invoices.list, {
@@ -62,7 +56,6 @@ export const cardsService = {
     });
   },
 
-  /** Fatura com as compras dentro dela. */
   getInvoice(id: ID, signal?: AbortSignal): Promise<InvoiceDetail> {
     if (env.useMocks) {
       const detail = buildInvoiceDetail(id);
@@ -72,7 +65,6 @@ export const cardsService = {
     return httpClient.get<InvoiceDetail>(endpoints.invoices.byId(id), { ...(signal ? { signal } : {}) });
   },
 
-  /** Compras parceladas ja com o cronograma e os totais calculados. */
   listInstallments(cardId?: ID, signal?: AbortSignal): Promise<InstallmentPlan[]> {
     if (env.useMocks) return mockResponse(buildInstallmentPlans(cardId), signal);
     return httpClient.get<InstallmentPlan[]>(endpoints.installments.list, {

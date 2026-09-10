@@ -1,4 +1,3 @@
-/* Empurra "Excluir" para a esquerda do rodape, longe das acoes que se repetem. */
 .footerStart {
   margin-right: auto;
 }
@@ -28,7 +27,6 @@
   color: var(--text-muted);
 }
 
-/* Ocupa o lugar do grafico numa meta que ainda so tem um preco anotado. */
 .chartHint {
   display: flex;
   align-items: center;
@@ -42,11 +40,6 @@
   color: var(--text-muted);
 }
 
-/*
- * A conclusao da analise. O fundo e sempre a superficie sutil; o que muda com o
- * tom e o ponto a esquerda — tres retangulos coloridos dentro de um modal ja
- * cheio de numeros virariam ruido.
- */
 .insight {
   display: flex;
   align-items: flex-start;
@@ -81,11 +74,6 @@
   background-color: var(--text-subtle);
 }
 
-/*
- * Seis figuras em grade fluida. `auto-fit` com largura minima em vez de tres
- * colunas fixas: no painel estreito do celular elas caem para duas sem que
- * "Abaixo do maior preço" precise quebrar no meio.
- */
 .analysis {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -134,10 +122,6 @@
   border-radius: var(--radius-sm);
 }
 
-/*
- * Preco, data e observacao numa linha, com o botao no fim. O preco tem a maior
- * fatia porque e o campo que sempre se preenche; a observacao encolhe primeiro.
- */
 .registerFields {
   display: grid;
   grid-template-columns: minmax(120px, 0.9fr) minmax(140px, 1fr) minmax(0, 1.4fr) auto;
@@ -146,7 +130,6 @@
   margin-top: var(--space-4);
 }
 
-/* Alinha o botao pela base dos campos, e nao pelo topo do rotulo deles. */
 .registerButton {
   margin-top: 25px;
 }

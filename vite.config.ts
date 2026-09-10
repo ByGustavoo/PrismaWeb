@@ -15,7 +15,6 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        // Separa as dependencias pesadas do codigo da aplicacao.
         manualChunks: {
           react: ['react', 'react-dom', 'react-router-dom'],
           charts: ['recharts'],

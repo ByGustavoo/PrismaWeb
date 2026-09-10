@@ -4,12 +4,6 @@
   gap: var(--space-3);
 }
 
-/* --- Ordenacao --------------------------------------------------------- */
-/*
- * Sem cabecalho de tabela, a ordenacao precisa de um controle proprio: sem ele
- * o celular perderia um recurso que o desktop tem.
- */
-
 .sortBar {
   display: flex;
   align-items: center;
@@ -49,8 +43,6 @@
   color: var(--text);
 }
 
-/* --- Cartoes ----------------------------------------------------------- */
-
 .list {
   display: flex;
   flex-direction: column;
@@ -73,11 +65,6 @@
   border-color: var(--border-strong);
 }
 
-/*
- * Botao que cobre o cartao: abre a edicao de qualquer ponto. Fica atras do
- * conteudo, que nao recebe ponteiro, e so o excluir volta a receber — assim a
- * acao destrutiva continua exigindo um toque proprio.
- */
 .open {
   position: absolute;
   inset: 0;
@@ -147,17 +134,11 @@
   color: var(--text-muted);
 }
 
-/* Espacamento proprio em vez de espaco no texto, que encolhe junto do tracking. */
 .separator {
   margin-inline: 5px;
   color: var(--text-subtle);
 }
 
-/*
- * Origem -> destino de uma transferencia. Corre como texto comum, e nao como
- * flex: em cartao estreito um flex quebrava cada conta numa linha propria e o
- * cartao crescia tres linhas so para dizer de onde para onde o dinheiro foi.
- */
 .route {
   display: inline;
 }
@@ -205,7 +186,6 @@
   border-radius: var(--radius-pill);
 }
 
-/* O tipo ja aparece no icone e no sinal do valor: aqui e so reforco textual. */
 .kindLabel {
   color: var(--text-subtle);
 }

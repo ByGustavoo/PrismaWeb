@@ -4,12 +4,6 @@ import type { Account, AccountPayload } from '@/types';
 import { fitsAmountColumn } from '@/utils/validation';
 import { accounts, transactions } from './data';
 
-/**
- * Escrita do cadastro de contas. Mesmo contrato do backend futuro: o cliente
- * manda o payload, o servidor devolve o registro completo ou um `ApiError` com
- * a mesma forma que o `httpClient` produz.
- */
-
 let sequence = accounts.length;
 
 function nextId(): string {
@@ -42,8 +36,6 @@ function validate(payload: AccountPayload, id?: string): void {
     throw new ApiError('Informe um saldo válido.', 422, 'erro_validacao');
   }
 
-  // Duas contas com o mesmo nome na mesma instituicao sao indistinguiveis nos
-  // seletores de lancamento, que mostram so o nome.
   const name = payload.name.trim().toLowerCase();
   const institution = payload.institution.trim().toLowerCase();
   const duplicated = accounts.some(
@@ -65,7 +57,6 @@ function resolve(payload: AccountPayload): Omit<Account, 'id'> {
     type: payload.type,
     balance: payload.balance,
     status: payload.status,
-    // Conta inativa nunca soma: ela sai do patrimonio junto com a inativacao.
     includeInTotal: payload.status === 'ATIVO' && payload.includeInTotal,
   };
 }
@@ -84,7 +75,6 @@ export function updateAccount(id: string, payload: AccountPayload): Account {
   const updated: Account = { id, ...resolve(payload) };
   accounts[index] = updated;
 
-  // O nome da conta esta desnormalizado nos lancamentos, como viria da API.
   for (const item of transactions) {
     if (item.idOrigem === id) item.nomeOrigem = updated.name;
     if (item.idContaDestino === id) item.nomeContaDestino = updated.name;
@@ -93,11 +83,6 @@ export function updateAccount(id: string, payload: AccountPayload): Account {
   return updated;
 }
 
-/**
- * Excluir uma conta com historico apagaria a origem de lancamentos que continuam
- * na lista. Quem encerrou a conta marca como inativa: ela sai do saldo total e
- * dos seletores, e o passado permanece legivel.
- */
 export function deleteAccount(id: string): void {
   const index = findIndexOrThrow(id);
   const linked = transactions.filter((item) => item.idOrigem === id || item.idContaDestino === id).length;

@@ -1,5 +1,3 @@
-/* --- Fatura em destaque ------------------------------------------------- */
-
 .highlight {
   display: flex;
   flex-direction: column;
@@ -73,13 +71,6 @@
   color: var(--text-muted);
 }
 
-/* --- Linha compacta ----------------------------------------------------- */
-
-/*
- * A linha inteira e o alvo. As colunas sao `auto` a partir das datas para que o
- * valor e a situacao fiquem alinhados entre linhas — com `1fr` em todas, um mes
- * de nome longo deslocaria a coluna de valores da linha inteira.
- */
 .row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto auto 16px;
@@ -138,11 +129,6 @@
   color: var(--text-subtle);
 }
 
-/*
- * Abaixo de 900px as cinco colunas nao cabem: a linha vira duas, com identidade
- * e valor em cima e datas e situacao embaixo. A alternativa seria rolar de lado
- * ate o valor, que e justamente o dado que se procura.
- */
 @media (max-width: 899px) {
   .row {
     grid-template-columns: minmax(0, 1fr) auto;
@@ -164,11 +150,6 @@
   }
 }
 
-/*
- * Comparacao com a fatura anterior. A seta diz a direcao e a cor fica neutra: o
- * verde e o vermelho do DeltaIndicator contam uma historia de "melhor/pior" que
- * nao se aplica a uma conta a pagar.
- */
 .compare {
   display: inline-flex;
   align-items: center;

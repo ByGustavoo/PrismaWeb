@@ -16,21 +16,12 @@ export const cardStatusTone: Record<CardStatus, BadgeTone> = {
   INATIVO: 'neutral',
 };
 
-/**
- * Cor da barra de limite. Usa as mesmas faixas do aviso do sino, entao a barra
- * so fica ambar quando existe um aviso correspondente no painel.
- */
 export function limitTone(ratio: number): ProgressTone {
   if (ratio >= CARD_LIMIT_CRITICAL_RATIO) return 'negative';
   if (ratio >= CARD_LIMIT_WARNING_RATIO) return 'warning';
   return 'accent';
 }
 
-/**
- * Fatura prevista fica neutra: ela ainda nao pede nada de ninguem. A aberta usa
- * o acento por ser a que esta em curso, a fechada pede atencao porque tem
- * pagamento a fazer, e a vencida e o unico caso vermelho.
- */
 export const invoiceStatusTone: Record<SituacaoFatura, BadgeTone> = {
   FUTURA: 'neutral',
   ABERTA: 'accent',

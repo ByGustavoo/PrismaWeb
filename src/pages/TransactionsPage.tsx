@@ -38,13 +38,11 @@ import { formatFullDate } from '@/utils/format';
 import styles from './TransactionsPage.module.css';
 
 interface TransactionsPageProps {
-  /** Ausente na tela "Lançamentos", que mostra todos os tipos. */
   kind?: TipoLancamento;
   title: string;
   description: string;
 }
 
-/** Qual formulario abrir quando a tela mostra todos os tipos. */
 type FormMode = 'RECEITA' | 'DESPESA' | 'TRANSFERENCIA';
 
 export function TransactionsPage({ kind, title, description }: TransactionsPageProps) {
@@ -56,23 +54,13 @@ export function TransactionsPage({ kind, title, description }: TransactionsPageP
   const [saving, setSaving] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const toast = useToast();
-  // A tabela de oito colunas so cabe no desktop; abaixo disso a lista vira cartoes.
   const isCompact = useIsCompact();
   const [preferredView, setPreferredView] = useLocalStorage<TransactionsView>(
     TRANSACTIONS_VIEW_STORAGE_KEY,
     'table',
   );
-  /*
-   * A largura tem a ultima palavra: onde a tabela nao cabe, preferir tabela
-   * devolveria uma tela que rola 1000px de lado ate o valor. A escolha fica
-   * guardada e volta a valer assim que houver espaco para ela.
-   */
   const view = isCompact ? 'cards' : preferredView;
 
-  // A URL e o canal de entrada da tela: `?novo=despesa` abre o cadastro,
-  // `?editar=<id>` abre a edicao e `?busca`, `?categoria` e `?conta` chegam da
-  // busca do header ja como filtro. Os parametros saem da URL assim que sao
-  // lidos, para que voltar no historico nao reabra nem refiltre nada.
   useEffect(() => {
     const requestedForm = searchParams.get(NEW_TRANSACTION_PARAM);
     const requestedEdit = searchParams.get(EDIT_TRANSACTION_PARAM);
@@ -93,8 +81,6 @@ export function TransactionsPage({ kind, title, description }: TransactionsPageP
 
     if (requestedEdit) setPendingEditId(requestedEdit);
 
-    // Cada chegada da busca e uma consulta nova: um filtro que sobrou da
-    // navegacao anterior estreitaria o resultado que o usuario acabou de pedir.
     if (search || categoryId || accountId) {
       setQuery((current) => ({
         ...emptyQuery,
@@ -123,7 +109,6 @@ export function TransactionsPage({ kind, title, description }: TransactionsPageP
   const { data, loading, error, reload } = useAsyncData(fetchTransactions, [kind]);
   const { data: catalog } = useAsyncData(fetchCatalog);
 
-  // A edicao pedida pela URL so pode abrir depois que a lista chega do service.
   useEffect(() => {
     if (!pendingEditId || !data) return;
 
@@ -149,12 +134,10 @@ export function TransactionsPage({ kind, title, description }: TransactionsPageP
   const clearFilters = () =>
     setQuery((current) => ({
       ...emptyQuery,
-      // Ordenacao e preferencia de leitura, nao filtro: sobrevive ao "Limpar".
       sortField: current.sortField,
       sortDirection: current.sortDirection,
     }));
 
-  /** Reclicar a mesma coluna inverte; trocar de coluna assume a direcao natural dela. */
   const handleSort = (field: SortField) =>
     setQuery((current) =>
       current.sortField === field
@@ -263,7 +246,6 @@ export function TransactionsPage({ kind, title, description }: TransactionsPageP
                 {transactions.length} {transactions.length === 1 ? 'lançamento' : 'lançamentos'}
               </span>
 
-              {/* Onde so uma das duas formas cabe, escolher entre elas nao existe. */}
               {isCompact ? null : <ViewToggle value={preferredView} onChange={setPreferredView} />}
             </div>
             {kind === 'TRANSFERENCIA' ? (

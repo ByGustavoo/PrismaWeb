@@ -24,11 +24,6 @@
   stroke-linejoin: round;
 }
 
-/*
- * O ponto final marca onde a serie esta agora. Ele ganha um anel da cor da
- * superficie para nao se confundir com o proprio traco quando a curva volta
- * sobre si mesma.
- */
 .head {
   fill: currentColor;
   stroke: var(--surface);

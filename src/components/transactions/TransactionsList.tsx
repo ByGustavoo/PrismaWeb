@@ -13,7 +13,6 @@ interface TransactionsListProps {
   sortField: SortField;
   sortDirection: SortDirection;
   onSort: (field: SortField) => void;
-  /** Escondida em Transferencias, onde nenhum lancamento tem categoria. */
   showCategory: boolean;
   onEdit: (transaction: Lancamento) => void;
   onDelete: (transaction: Lancamento) => void;
@@ -25,15 +24,6 @@ const sortOptions: Option[] = [
   { value: 'amount', label: 'Valor' },
 ];
 
-/**
- * A mesma lista de lancamentos em cartoes, para as larguras em que a tabela de
- * oito colunas nao cabe. Rolar 1000px de lado para chegar ao valor — o dado
- * mais importante de cada linha — nao e leitura, e busca.
- *
- * Cada cartao inteiro abre a edicao: o botao que cobre a area fica atras do
- * conteudo, e so o excluir sobe acima dele, para que a acao destrutiva continue
- * exigindo um toque proprio.
- */
 export function TransactionsList({
   transactions,
   sortField,
@@ -127,12 +117,6 @@ export function TransactionsList({
                     <Badge tone={statusTone[transaction.situacao]} dot>
                       {transactionStatusLabel[transaction.situacao]}
                     </Badge>
-                    {/*
-                      Receita e despesa ja se anunciam pelo "+" e pelo "-" do
-                      valor; escrever o tipo de novo so empurrava a linha para
-                      uma segunda quebra. A transferencia, que sai sem sinal,
-                      continua nomeada.
-                    */}
                     {transaction.tipo === 'TRANSFERENCIA' ? (
                       <span className={styles.kindLabel}>{transactionKindLabel[transaction.tipo]}</span>
                     ) : null}

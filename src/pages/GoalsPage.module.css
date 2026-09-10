@@ -10,10 +10,6 @@
   gap: var(--space-4);
 }
 
-/*
- * `auto-fill` com largura minima em vez de um numero fixo de colunas: quem
- * decide quando vale quebrar e o conteudo do cartao, nao a tela.
- */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(324px, 1fr));
@@ -23,7 +19,6 @@
   list-style: none;
 }
 
-/* A contagem de metas e o unico numero da faixa que nao e dinheiro. */
 .count {
   font-family: var(--font-figure);
   font-size: var(--fs-xl);

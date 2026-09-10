@@ -11,16 +11,10 @@ import { capitalize, formatFullDate, formatMonthLabel, formatShortDate } from '@
 import styles from './InvoiceDetailModal.module.css';
 
 interface InvoiceDetailModalProps {
-  /** A fatura escolhida na lista; `null` mantem o modal fechado. */
   invoice: Invoice | null;
   onClose: () => void;
 }
 
-/**
- * As compras de uma fatura. O cabecalho vem do resumo que a lista ja tem, entao
- * ele aparece cheio no primeiro quadro; so os itens esperam a resposta. Assim o
- * modal nunca abre como uma caixa vazia carregando.
- */
 export function InvoiceDetailModal({ invoice, onClose }: InvoiceDetailModalProps) {
   const invoiceId = invoice?.id ?? null;
 

@@ -16,21 +16,9 @@ function itemsLabel(count: number): string {
   return `${count} ${count === 1 ? 'compra' : 'compras'}`;
 }
 
-/**
- * A fatura do ciclo em curso, em destaque. Ela e a unica que pede uma decisao
- * agora, entao ganha o valor grande, as duas datas por extenso e a distancia ate
- * o vencimento em palavras — uma data sozinha obriga quem le a fazer a conta.
- */
 export function InvoiceHighlight({ invoice, onOpen }: InvoiceEntryProps) {
   const empty = invoice.itemCount === 0;
 
-  /*
-   * A primeira pergunta diante de uma fatura nao e "quanto", e "quanto a mais".
-   * A diferenca vai em reais, e nao em porcentagem: o que se paga a mais e um
-   * valor, nao uma taxa. Fica em cinza de proposito — pintar de verde uma fatura
-   * que subiu inverteria o sentido, e pintar de vermelho uma seta para baixo
-   * repetiria a contradicao que o DeltaIndicator existe para evitar.
-   */
   const previous = invoice.previousTotal;
   const difference = previous !== undefined && previous > 0 ? invoice.total - previous : undefined;
   const changed = difference !== undefined && Math.abs(difference) >= 0.01;
@@ -89,11 +77,6 @@ export function InvoiceHighlight({ invoice, onOpen }: InvoiceEntryProps) {
   );
 }
 
-/**
- * Fatura futura ou ja encerrada. Sao muitas linhas e nenhuma exige acao, entao
- * elas ficam compactas: mes, cartao, as duas datas em forma curta, o valor e a
- * situacao. A linha inteira e um botao, para abrir as compras num toque.
- */
 export function InvoiceRow({ invoice, onOpen }: InvoiceEntryProps) {
   return (
     <li>

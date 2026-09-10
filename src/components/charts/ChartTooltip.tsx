@@ -4,7 +4,6 @@ import { Amount } from '@/components/common';
 import styles from './ChartTooltip.module.css';
 
 type ChartTooltipProps = TooltipProps<ValueType, NameType> & {
-  /** So para series que nao sao dinheiro; sem ele o valor sai como moeda. */
   formatValue?: (value: number) => string;
 };
 

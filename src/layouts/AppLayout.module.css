@@ -22,7 +22,6 @@
   padding: var(--space-8) var(--space-6) var(--space-12);
 }
 
-/* Alvo do link de salto: recebe foco por programa, sem desenhar anel. */
 .content:focus {
   outline: none;
 }

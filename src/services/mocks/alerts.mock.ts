@@ -7,7 +7,6 @@ import { formatDueLabel } from '@/utils/format';
 import { buildInvoices, cardsNearLimit } from './cards.mock';
 import { transactions } from './data';
 
-/** Janela de antecedencia dos avisos de vencimento. */
 const HORIZON_DAYS = 15;
 
 function severityByDays(days: number): Alert['severity'] {
@@ -17,16 +16,10 @@ function severityByDays(days: number): Alert['severity'] {
 }
 
 
-/**
- * Os avisos nao sao uma lista fixa: saem dos mesmos mocks que alimentam as
- * telas. Assim a lista muda junto com os dados e o painel ja exercita o formato
- * que o backend vai precisar devolver.
- */
 export function buildAlerts(): Alert[] {
   const today = todayISO();
   const alerts: Alert[] = [];
 
-  // Faturas em aberto ou fechadas dentro do horizonte.
   for (const invoice of buildInvoices()) {
     if (invoice.status === 'PAGA' || invoice.status === 'FUTURA') continue;
     const days = daysBetween(today, invoice.dueDate);
@@ -44,7 +37,6 @@ export function buildAlerts(): Alert[] {
     });
   }
 
-  // Contas pendentes e lancamentos agendados.
   for (const transaction of transactions) {
     if (transaction.situacao === 'PAGO') continue;
     const days = daysBetween(today, transaction.data);
@@ -65,7 +57,6 @@ export function buildAlerts(): Alert[] {
     });
   }
 
-  // Cartoes perto do limite.
   for (const { card, used, ratio } of cardsNearLimit()) {
     alerts.push({
       id: `alert-card-${card.id}`,
@@ -79,7 +70,6 @@ export function buildAlerts(): Alert[] {
     });
   }
 
-  // Mais urgente primeiro; dentro da mesma urgencia, o que vence antes.
   const order: Record<Alert['severity'], number> = { CRITICO: 0, ATENCAO: 1, INFO: 2 };
   return alerts.sort((a, b) => order[a.severity] - order[b.severity] || a.date.localeCompare(b.date));
 }

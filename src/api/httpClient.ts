@@ -26,10 +26,6 @@ function buildUrl(path: string, query?: Record<string, QueryValue>): string {
   return url.toString();
 }
 
-/**
- * Token de autenticacao. Hoje devolve null; quando o backend Spring Security
- * entrar, basta ler daqui (storage, cookie ou contexto de auth).
- */
 function getAuthToken(): string | null {
   return null;
 }
@@ -45,7 +41,6 @@ async function parseError(response: Response): Promise<ApiError> {
     code = body.codigo ?? code;
     details = body.erros;
   } catch {
-    // resposta sem corpo JSON: mantem a mensagem padrao
   }
 
   return new ApiError(message, response.status, code, details);

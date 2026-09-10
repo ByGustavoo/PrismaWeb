@@ -18,8 +18,6 @@
   align-items: stretch;
 }
 
-/* --- Marca ------------------------------------------------------------- */
-
 .brand {
   display: flex;
   align-items: center;
@@ -76,8 +74,6 @@
   border-radius: var(--radius-xs);
   color: var(--text-muted);
 }
-
-/* --- Navegacao --------------------------------------------------------- */
 
 .nav {
   flex: 1;
@@ -190,8 +186,6 @@
   font-weight: 500;
 }
 
-/* --- Rodape ------------------------------------------------------------ */
-
 .footer {
   display: flex;
   align-items: center;
@@ -276,20 +270,11 @@
   flex-direction: column;
 }
 
-/* --- Scrim (mobile) ---------------------------------------------------- */
-
 .scrim {
   display: none;
 }
 
-/* --- Responsivo -------------------------------------------------------- */
-
 @media (max-width: 1099px) {
-  /*
-   * Fechado, o drawer fica fora da tela — e precisa ficar tambem fora do fluxo
-   * de foco, senao o Tab a partir do header entra num menu invisivel. A
-   * visibilidade so muda ao fim do deslize, para nao cortar a animacao.
-   */
   .sidebar {
     position: fixed;
     inset-block: 0;

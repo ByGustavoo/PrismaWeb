@@ -11,7 +11,6 @@
   color: var(--text-muted);
 }
 
-/* Ver Field.module.css: reforco visual, a semantica vem de aria-required. */
 .required {
   margin-left: 2px;
   color: var(--negative);
@@ -35,11 +34,6 @@
     box-shadow var(--duration-fast) var(--ease-out);
 }
 
-/*
- * Duas alturas, as mesmas do Button: `md` para formulario e `sm` para a linha de
- * acoes de um cabecalho, onde um campo mais alto que o botao vizinho denuncia
- * que os dois vieram de lugares diferentes.
- */
 .md {
   height: var(--control-height);
   font-size: var(--control-font);
@@ -118,10 +112,6 @@
   color: var(--accent);
 }
 
-/*
- * A lista mora num portal no body, entao posiciona por coordenadas fixas
- * calculadas a partir do gatilho (ver Select.tsx). Nao ha ancora relativa aqui.
- */
 .menu {
   position: fixed;
   z-index: var(--z-popover);

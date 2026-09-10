@@ -14,14 +14,6 @@ interface ReportRangePickerProps {
   onRangeChange: (range: ReportRange) => void;
 }
 
-/**
- * Filtro de periodo da tela. Os seis recortes ficam a vista como botoes: eles
- * sao a acao principal desta tela — nao ha nada para cadastrar aqui —, e
- * escondidos num seletor cada troca custaria dois cliques em vez de um.
- *
- * Abaixo de 900px a fileira nao cabe sem apertar os rotulos, e ai o mesmo
- * conjunto vira um `Select`: a escolha continua inteira, so muda a forma.
- */
 export function ReportRangePicker({ value, range, onSelect, onRangeChange }: ReportRangePickerProps) {
   const compact = useIsCompact();
   const today = todayISO();
@@ -55,11 +47,6 @@ export function ReportRangePicker({ value, range, onSelect, onRangeChange }: Rep
         </div>
       )}
 
-      {/*
-        As duas datas so aparecem no recorte proprio. Fixas na linha, elas
-        ficariam desabilitadas na maior parte do tempo — um controle presente
-        que nao responde e pior que um ausente.
-      */}
       {value === 'custom' ? (
         <div className={styles.dates}>
           <DatePicker

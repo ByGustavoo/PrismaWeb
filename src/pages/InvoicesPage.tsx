@@ -14,18 +14,10 @@ import { monthKeyFromOffset, monthsBetween } from '@/utils/date';
 import { capitalize, formatDueLabel } from '@/utils/format';
 import styles from './InvoicesPage.module.css';
 
-/** Valor do filtro para "sem restricao de cartao". */
 const ALL_CARDS = 'all';
 
-/** Sem restricao de meses num bloco de faturas. */
 const ALL_MONTHS = 'all';
 
-/**
- * Janela de meses de cada bloco. Com dois cartoes, o historico e a projecao
- * passam de vinte linhas somadas — mais do que se le de uma vez, e a maioria
- * delas nem e o que se veio procurar. Tres meses cobre o que interessa no dia a
- * dia, e "Todas" continua a um clique.
- */
 const upcomingRangeOptions: Option[] = [
   { value: '3', label: 'Próximos 3 meses' },
   { value: '6', label: 'Próximos 6 meses' },
@@ -38,7 +30,6 @@ const pastRangeOptions: Option[] = [
   { value: ALL_MONTHS, label: 'Todas as anteriores' },
 ];
 
-/** Distancia em meses entre a fatura e o mes corrente, em qualquer direcao. */
 function withinRange(month: string, thisMonth: string, range: string): boolean {
   if (range === ALL_MONTHS) return true;
   return Math.abs(monthsBetween(thisMonth, month) - 1) <= Number(range);
@@ -55,8 +46,6 @@ export function InvoicesPage() {
   const [openInvoice, setOpenInvoice] = useState<Invoice | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Chegando da tela de cartoes, o cartao vem na URL. O parametro sai assim que
-  // e lido, como os da busca global: voltar no historico nao deve refiltrar.
   useEffect(() => {
     const requested = searchParams.get(CARD_PARAM);
     if (!requested) return;
@@ -88,17 +77,10 @@ export function InvoicesPage() {
     [allInvoices, cardId],
   );
 
-  /*
-   * A fatura ja fechada e a que esta em aberto sao coisas diferentes e ficam em
-   * blocos diferentes: a fechada exige pagamento numa data, enquanto a aberta
-   * ainda esta acumulando compras. Junta-las sob "Fatura atual" colocava duas
-   * faturas do mesmo cartao lado a lado sem explicar por que sao duas.
-   */
   const groups = useMemo(() => {
     const toPay = invoices.filter((item) => item.status === 'FECHADA' || item.status === 'VENCIDA');
     const current = invoices.filter((item) => item.status === 'ABERTA');
     const upcoming = invoices.filter((item) => item.status === 'FUTURA');
-    // Mais recente primeiro: o passado se le de tras para frente.
     const past = invoices.filter((item) => item.status === 'PAGA').slice().reverse();
 
     return { toPay, current, upcoming, past };
@@ -118,11 +100,6 @@ export function InvoicesPage() {
     };
   }, [groups]);
 
-  /*
-   * A janela de meses recorta so o que a lista mostra. O total do bloco segue o
-   * recorte — um "Total" ao lado de uma lista filtrada precisa somar o que esta
-   * a vista —, e o numero cheio do futuro continua na faixa do topo.
-   */
   const thisMonth = monthKeyFromOffset(0);
 
   const visibleUpcoming = useMemo(
@@ -141,8 +118,6 @@ export function InvoicesPage() {
         title="Faturas"
         description="O ciclo em aberto, o que ainda vem e o que já foi pago"
         actions={
-          // O filtro de cartao vale para a tela inteira, entao fica na linha de
-          // acoes do cabecalho; os seletores de mes de cada bloco ficam no bloco.
           !loading && !error && creditCards.length > 1 ? (
             <Select
               className={styles.filter}
@@ -158,13 +133,6 @@ export function InvoicesPage() {
         }
       />
 
-      {/*
-        O esqueleto e so da primeira carga. Depois de cadastrar, editar ou trocar
-        o filtro, os numeros anteriores ficam na tela ate os novos chegarem:
-        apagar a tela a cada gravacao piscava o conteudo inteiro e, pior,
-        remontava a faixa de resumo — o que faria a contagem de entrada
-        (`Amount countUp`) recomecar do zero a cada salvamento.
-      */}
       {loading && !data ? (
         <div className={styles.stack} aria-busy="true">
           <Card padding="none">

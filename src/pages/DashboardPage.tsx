@@ -20,11 +20,9 @@ import { capitalize, formatFullDate, formatMonthLabel, formatPeriodLabel, format
 import styles from './DashboardPage.module.css';
 
 export function DashboardPage() {
-  // O periodo vem do seletor no header, pelo PeriodProvider.
   const { period } = usePeriod();
   const { from, to } = period;
   const thisMonth = monthKeyFromOffset(0);
-  // Onde o header nao comporta o seletor, ele desce para os controles da tela.
   const isMobile = useIsMobile();
 
   const fetchSummary = useCallback(
@@ -33,13 +31,6 @@ export function DashboardPage() {
   );
   const { data, loading, error, reload } = useAsyncData(fetchSummary, [from, to]);
 
-  /*
-   * Atualizar sem trocar o periodo devolve exatamente os mesmos numeros, entao
-   * nada muda na tela e o clique parece nao ter surtido efeito — o spinner de
-   * 16px no canto e pouco para responder a uma acao pedida de proposito. O
-   * aviso confirma que a consulta aconteceu e diz quando. So o pedido explicito
-   * gera aviso: a troca de periodo se explica sozinha pelos numeros novos.
-   */
   const toast = useToast();
   const refreshRequested = useRef(false);
 
@@ -51,23 +42,12 @@ export function DashboardPage() {
   useEffect(() => {
     if (loading || !refreshRequested.current) return;
     refreshRequested.current = false;
-    // O erro ja toma a tela inteira; um aviso em cima dele seria redundante.
     if (error) return;
     toast.success('Dados atualizados', `Última consulta às ${formatTime()}`);
   }, [loading, error, toast]);
 
-  // Fora do mes corrente, "atual" e "recente" deixam de ser verdade nos rotulos,
-  // e num recorte de varios meses "do mes" tambem deixa.
   const periodLabel = formatPeriodLabel(from, to);
 
-  /*
-   * Os rotulos do conteudo seguem o periodo dos dados na tela, nao o que acabou
-   * de ser escolhido no seletor. Enquanto a nova carga nao chega, os numeros
-   * ainda sao os do recorte anterior — e "Saldo no fim de Agosto de 2026" sobre
-   * o saldo de setembro seria uma frase falsa por meio segundo. O titulo da
-   * pagina e a excecao: ele fica ao lado do botao que gira, e serve justamente
-   * de eco da escolha.
-   */
   const shownFrom = data?.de ?? from;
   const shownTo = data?.ate ?? to;
   const isCurrentMonth = shownFrom === thisMonth && shownTo === thisMonth;
@@ -82,8 +62,6 @@ export function DashboardPage() {
         actions={
           <>
             {isMobile ? <PeriodSwitcher /> : null}
-            {/* O rotulo muda junto com o spinner: so o giro de um icone pequeno
-                no canto da tela passa despercebido. */}
             <Button variant="secondary" size="sm" icon={RefreshCw} onClick={handleRefresh} loading={loading}>
               {loading ? 'Atualizando' : 'Atualizar'}
             </Button>
@@ -106,14 +84,6 @@ export function DashboardPage() {
       ) : !data ? (
         <DashboardSkeleton />
       ) : (
-        /*
-         * O esqueleto e so da primeira carga. Trocar de periodo mantem os numeros
-         * anteriores na tela enquanto os novos vem: apagar o dashboard inteiro por
-         * meio segundo a cada clique na seta custava mais atencao do que informava,
-         * e desmontava os valores no exato momento em que eles deveriam rolar de um
-         * numero ao outro. O spinner de "Atualizar" e o `aria-busy` dizem que ainda
-         * esta carregando.
-         */
         <div className={`${styles.grid} refreshing`} aria-busy={loading}>
           <BalancePanel
             label={isCurrentMonth ? 'Saldo atual' : `Saldo no fim de ${capitalize(formatMonthLabel(shownTo))}`}
@@ -167,7 +137,6 @@ export function DashboardPage() {
             <CategoryBreakdown data={data.gastoPorCategoria} periodNoun={periodNoun} />
           </div>
 
-          {/* Mesma janela do grafico de entradas e saidas, e pelo mesmo motivo. */}
           <SpendingCalendar
             days={data.gastoDiario}
             description={

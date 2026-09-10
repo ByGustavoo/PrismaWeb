@@ -4,24 +4,12 @@ import { capitalize, formatMonthLabel } from '@/utils/format';
 import styles from './MonthNavigator.module.css';
 
 interface MonthNavigatorProps {
-  /** Mes exibido, YYYY-MM. */
   month: string;
   onChange: (month: string) => void;
-  /** Ultimo mes navegavel, inclusive. */
   max: string;
-  /** Primeiro mes navegavel, inclusive. */
   min: string;
 }
 
-/**
- * Navegacao mes a mes. Duas setas em vez de uma lista: o orcamento se consulta
- * em sequencia — "e no mes passado?" — e um seletor com doze opcoes pediria
- * dois cliques para responder a pergunta mais comum da tela.
- *
- * O rotulo tem largura fixa para que as setas nao se desloquem entre "Maio" e
- * "Setembro": um alvo que se move sob o cursor obriga a mirar de novo a cada
- * clique.
- */
 export function MonthNavigator({ month, onChange, max, min }: MonthNavigatorProps) {
   const previous = shiftMonthKey(month, -1);
   const next = shiftMonthKey(month, 1);

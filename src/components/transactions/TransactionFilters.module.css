@@ -4,7 +4,6 @@
   gap: var(--space-3);
 }
 
-/* Linha da busca no celular, onde ela nao cabe no header. */
 .searchRow {
   display: flex;
   align-items: center;
@@ -12,10 +11,6 @@
   flex-wrap: wrap;
 }
 
-/*
- * Base de 180px: com "Filtros" e "Limpar" ao lado, sem ela o campo encolhia ate
- * caber tres letras. Assim ele desce inteiro para a propria linha antes disso.
- */
 .search {
   flex: 1 1 180px;
   min-width: 0;
@@ -26,7 +21,6 @@
   flex-shrink: 0;
 }
 
-/* Quantos filtros estao restringindo a lista, para nao precisar abrir e conferir. */
 .count {
   display: grid;
   place-items: center;
@@ -40,13 +34,6 @@
   font-weight: 600;
 }
 
-/*
- * Grade em vez de linha flexivel. Com `flex: 1 1 0` os cinco filtros dividiam a
- * largura em partes iguais e as duas maiores opcoes — "Todas as categorias" e
- * "Todas as situacoes" — chegavam cortadas. Aqui a coluna nunca fica abaixo de
- * 200px: quando nao cabem cinco, sobram quatro e o resto desce, em vez de todas
- * encolherem ate o texto sumir.
- */
 .controls {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

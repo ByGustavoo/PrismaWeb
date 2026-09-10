@@ -77,7 +77,6 @@ export function RecurringPage() {
     }
   };
 
-  /** Pausar e retomar sem abrir o formulario: e a operacao mais comum da tela. */
   const handleToggle = async (expense: RecurringExpense) => {
     const status = expense.status === 'ATIVO' ? 'PAUSADO' : 'ATIVO';
     setSaving(true);
@@ -122,7 +121,6 @@ export function RecurringPage() {
         }
       />
 
-      {/* O esqueleto e so da primeira carga; pausar ou editar mantem a lista na tela. */}
       {loading && !data ? (
         <div className={styles.stack} aria-busy="true">
           <Card padding="none">
@@ -190,11 +188,6 @@ export function RecurringPage() {
             ]}
           />
 
-          {/*
-            O bloco de vencimentos proximos existe porque a lista inteira ja e
-            ordenada por data: sem ele, saber "o que vence nesta semana" exigiria
-            ler data por data ate encontrar a fronteira.
-          */}
           {summary.dueSoon.length > 0 ? (
             <div className={styles.dueSoon} role="status">
               <span className={styles.dueSoonTitle}>

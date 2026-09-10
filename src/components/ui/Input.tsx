@@ -11,13 +11,7 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   hint?: string;
   error?: string;
   icon?: LucideIcon;
-  /** Texto fixo antes do campo, como o "R$" de um valor. */
   prefix?: string;
-  /**
-   * Limite de caracteres. Nao corta a digitacao como o `maxLength` — um texto
-   * colado perderia o fim sem aviso —: perto do limite aparece um contador, e
-   * quem valida o excesso e o formulario.
-   */
   characterLimit?: number;
 }
 
@@ -79,7 +73,6 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       {counter ? (
         <div className={styles.foot}>
           {message}
-          {/* Quem usa leitor de tela recebe o excesso pela mensagem de erro do campo. */}
           <span className={cn(styles.counter, counter.over && styles.counterOver, 'tabular')} aria-hidden="true">
             {counter.length}/{counter.limit}
           </span>

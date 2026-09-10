@@ -29,41 +29,17 @@ export function Modal({ open, onClose, title, description, size = 'md', footer, 
 
   useLockBodyScroll(open);
 
-  /*
-   * Quem abriu o modal precisa reaver o foco ao fechar: sem isso o Tab recomeca
-   * do topo da pagina e o usuario perde o lugar em que estava.
-   *
-   * A leitura acontece no render, e nao num efeito, de proposito: quando `open`
-   * vira true o React ainda nao montou o painel nem aplicou o autoFocus do
-   * primeiro campo, entao este e o ultimo instante em que activeElement ainda e
-   * o botao que disparou a abertura.
-   */
   if (open && openerRef.current === null) {
     openerRef.current = document.activeElement as HTMLElement | null;
   }
 
-  /*
-   * O foco entra e sai num efeito que depende so de `open`. Juntar isso ao
-   * efeito do teclado — que precisa do `onClose` atual — faria o par
-   * guardar/devolver rodar a cada renderizacao do pai.
-   */
   useEffect(() => {
     if (!open) return;
 
-    // So assume o foco se nada dentro do painel ja o tiver: um campo com
-    // autoFocus deve continuar sendo o ponto de partida do formulario.
     const panel = panelRef.current;
     if (panel && !panel.contains(document.activeElement)) panel.focus();
 
     return () => {
-      /*
-       * Em desenvolvimento, o StrictMode ensaia desmontar e remontar os efeitos
-       * de um modal que ja nasce aberto (o detalhe da meta), sem tirar o painel
-       * do DOM. Devolver o foco nesse ensaio o levaria ao botao de origem, e a
-       * remontagem, sem encontra-lo no painel, o puxaria para o proprio painel —
-       * tirando-o do campo que o formulario escolheu. No fechamento de verdade o
-       * painel ja saiu do DOM quando esta limpeza roda, e so entao o foco volta.
-       */
       if (panel?.isConnected) return;
       openerRef.current?.focus?.();
       openerRef.current = null;
@@ -81,8 +57,6 @@ export function Modal({ open, onClose, title, description, size = 'md', footer, 
 
       if (event.key !== 'Tab') return;
 
-      // Sem esta trava o Tab sai do painel e passeia pela pagina de tras, que
-      // esta visualmente coberta e nao deveria receber foco.
       const panel = panelRef.current;
       if (!panel) return;
 

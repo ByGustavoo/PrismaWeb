@@ -11,33 +11,15 @@ import { monthsBetween, shiftMonthKey } from '@/utils/date';
 import { percentDelta, shortMonthLabel } from './aggregate';
 import { currentMonth, investments } from './data';
 
-/**
- * A carteira nao guarda historico: ela guarda o que cada posicao custou, o que
- * ela vale hoje e desde quando existe. A curva de evolucao nasce dai — e nao de
- * uma serie escrita a mao — para que cadastrar uma posicao agora mude o grafico
- * na mesma hora, como acontecera contra o backend.
- */
-
 function money(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-/**
- * Oscilacao do mercado mes a mes, do atual para tras. E uma lista fixa pelo
- * mesmo motivo do historico de lancamentos: a curva precisa balancar, mas nao
- * pode mudar a cada recarregamento. O primeiro valor e 1 de proposito — o mes
- * corrente tem de fechar exatamente no valor cadastrado da posicao.
- */
 const marketWave = [
   1, 0.986, 1.017, 0.973, 1.024, 0.991, 1.012, 0.968, 1.021, 0.988, 1.009, 0.977, 1.015, 0.994,
   1.006, 0.982, 1.019, 0.99,
 ];
 
-/**
- * Quanto cada classe sente a oscilacao. Um CDB nao balanca como uma cripto, e
- * desenhar as duas com a mesma amplitude seria desenhar um grafico que nao
- * corresponde ao produto que ele representa.
- */
 const classVolatility: Record<InvestmentClass, number> = {
   'RENDA_FIXA': 0.06,
   CDB: 0.04,
@@ -49,17 +31,10 @@ const classVolatility: Record<InvestmentClass, number> = {
   OUTROS: 0.2,
 };
 
-/** Rentabilidade acumulada da posicao ate hoje: 0.082 e 8,2%. */
 function profitabilityOf(item: Investment): number {
   return item.invested > 0 ? (item.currentValue - item.invested) / item.invested : 0;
 }
 
-/**
- * Quanto da posicao ja existia no mes indicado. Os aportes sao distribuidos
- * linearmente entre o primeiro deles e hoje: sem uma serie de aportes real, e a
- * suposicao mais honesta — e a unica que faz a curva chegar em hoje valendo
- * exatamente o que o cadastro diz.
- */
 function progressOf(item: Investment, monthKey: string): number {
   const start = item.startDate.slice(0, 7);
   if (monthKey < start) return 0;
@@ -76,12 +51,9 @@ function valueOf(item: Investment, monthKey: string, offset: number): number {
   const wave = marketWave[offset] ?? 1;
   const swing = 1 + (wave - 1) * (classVolatility[item.assetClass] ?? 0.5);
 
-  // O ganho acompanha o tempo em carteira: no primeiro mes a posicao vale o
-  // aportado, e a rentabilidade so aparece inteira no mes corrente.
   return item.invested * progress * (1 + profitabilityOf(item) * progress) * swing;
 }
 
-/** Patrimonio da carteira inteira no fim de um mes. */
 export function portfolioValueAt(monthKey: string): number {
   const offset = monthsBetween(monthKey, currentMonth) - 1;
   return money(investments.reduce((total, item) => total + valueOf(item, monthKey, Math.max(offset, 0)), 0));
@@ -117,7 +89,6 @@ function buildAllocation(total: number): InvestmentAllocation[] {
         count: items.length,
       };
     })
-    // Classe sem posicao nenhuma nao vira fatia de zero por cento na rosca.
     .filter((entry) => entry.count > 0)
     .sort((a, b) => b.currentValue - a.currentValue);
 }

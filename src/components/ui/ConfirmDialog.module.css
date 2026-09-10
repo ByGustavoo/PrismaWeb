@@ -1,7 +1,3 @@
-/*
- * Resumo do que sera excluido. Fica num bloco de superficie mais baixa que o
- * painel para ler como citacao do registro, e nao como mais um paragrafo.
- */
 .detail {
   display: flex;
   flex-direction: column;

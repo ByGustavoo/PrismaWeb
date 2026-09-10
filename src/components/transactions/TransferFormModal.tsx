@@ -14,7 +14,6 @@ import styles from './TransactionForm.module.css';
 
 interface TransferFormModalProps {
   open: boolean;
-  /** Presente apenas na edicao. */
   transaction: Lancamento | null;
   sources: PaymentSource[];
   saving: boolean;
@@ -81,11 +80,6 @@ const statusOptions: Option[] = transactionStatuses.map((status) => ({
   label: transactionStatusLabel[status],
 }));
 
-/**
- * Movimentacao entre contas do proprio usuario. Nao vira receita nem despesa:
- * o dinheiro so troca de lugar, entao o registro nao tem categoria e fica fora
- * do resultado do periodo.
- */
 export function TransferFormModal({
   open,
   transaction,
@@ -103,7 +97,6 @@ export function TransferFormModal({
     reset();
   }, [open, transaction, reset]);
 
-  // Cartao nao e conta propria: nao aparece nem na origem nem no destino.
   const accountOptions = useMemo<Option[]>(
     () =>
       sources
@@ -123,7 +116,6 @@ export function TransferFormModal({
 
   const handleOriginChange = (accountId: string) => {
     set('accountId', accountId);
-    // A origem escolhida nao pode continuar valendo como destino.
     if (form.toAccountId === accountId) set('toAccountId', '');
   };
 
@@ -170,7 +162,6 @@ export function TransferFormModal({
           handleSubmit();
         }}
       >
-        {/* Origem e destino empilhados com a seta entre eles: o sentido fica explicito. */}
         <div className={cn(styles.full, styles.route)}>
           <Select
             required

@@ -5,10 +5,6 @@
   flex-wrap: wrap;
 }
 
-/*
- * Fileira de botoes numa moldura unica: eles sao alternativas de uma mesma
- * escolha, e separa-los com espaco os faria parecer seis acoes independentes.
- */
 .segments {
   display: inline-flex;
   align-items: center;
@@ -37,10 +33,6 @@
   color: var(--text);
 }
 
-/*
- * O escolhido usa o acento cheio, e nao so peso de fonte: numa fileira de seis
- * rotulos curtos, negrito sozinho nao se distingue a distancia de leitura.
- */
 .segment[aria-pressed='true'] {
   background-color: var(--accent);
   color: var(--accent-contrast);

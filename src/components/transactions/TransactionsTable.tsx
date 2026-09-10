@@ -13,7 +13,6 @@ interface TransactionsTableProps {
   sortField: SortField;
   sortDirection: SortDirection;
   onSort: (field: SortField) => void;
-  /** Escondida em Transferencias, onde a coluna seria um traco em toda linha. */
   showCategory: boolean;
   onEdit: (transaction: Lancamento) => void;
   onDelete: (transaction: Lancamento) => void;
@@ -28,10 +27,6 @@ interface SortableHeaderProps {
   onSort: (field: SortField) => void;
 }
 
-/**
- * Cabecalho que ordena. A seta so aparece colorida na coluna ativa; nas outras
- * fica em cinza claro, sinalizando que sao clicaveis sem competir com a atual.
- */
 function SortableHeader({ field, label, numeric = false, active, direction, onSort }: SortableHeaderProps) {
   const Icon = !active ? ArrowUpDown : direction === 'asc' ? ChevronUp : ChevronDown;
 
@@ -101,12 +96,6 @@ export function TransactionsTable({
               <Tr key={transaction.id} interactive onClick={() => onEdit(transaction)}>
                 <Td className={`${styles.muted} tabular`}>{formatShortDate(transaction.data)}</Td>
 
-                {/*
-                  A descricao e um botao de verdade. A linha inteira continua
-                  clicavel para o ponteiro, mas esse atalho e so do mouse: sem um
-                  alvo focavel, chegar a edicao pelo teclado dependia de achar o
-                  lapis no fim da linha.
-                */}
                 <Td onClick={(event) => event.stopPropagation()}>
                   <button
                     type="button"
@@ -169,7 +158,6 @@ export function TransactionsTable({
                   </Badge>
                 </Td>
 
-                {/* O clique nos botoes nao pode disparar tambem a edicao da linha. */}
                 <Td numeric onClick={(event) => event.stopPropagation()}>
                   <div className={styles.actions}>
                     <Button

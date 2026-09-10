@@ -14,11 +14,6 @@ interface RecurringCardProps {
   onDelete: (expense: RecurringExpense) => void;
 }
 
-/**
- * Uma despesa fixa do cadastro. Alem de editar e excluir, o cartao traz pausar
- * e retomar: suspender uma assinatura por dois meses e a operacao mais comum
- * aqui, e obriga-la a passar pelo formulario inteiro seria desproporcional.
- */
 export function RecurringCard({ expense, onEdit, onToggle, onDelete }: RecurringCardProps) {
   const paused = expense.status === 'PAUSADO';
   const days = daysBetween(todayISO(), expense.nextDueDate);

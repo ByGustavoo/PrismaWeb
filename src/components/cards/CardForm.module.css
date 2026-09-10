@@ -1,9 +1,3 @@
-/*
- * Duas colunas para os campos curtos; os que precisam da largura toda levam
- * `.full`. Fechamento e vencimento andam sempre juntos, entao ocupam uma celula
- * so, dividida em duas — separa-los deixaria um deles orfao ao lado de um campo
- * que nao tem relacao com datas de fatura.
- */
 .form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -22,7 +16,6 @@
   align-items: start;
 }
 
-/* Explica o asterisco dos rotulos: sozinho ele e convencao, nao instrucao. */
 .legend {
   grid-column: 1 / -1;
   margin: 0;

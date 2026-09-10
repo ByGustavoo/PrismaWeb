@@ -12,11 +12,6 @@ function money(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-/**
- * Proxima ocorrencia depois de `dateISO`. As recorrencias em meses preservam o
- * dia do mes e caem no ultimo dia quando ele nao existe — dia 31 em fevereiro
- * vira 28, como fazem os debitos automaticos. As em dias so somam dias.
- */
 export function nextOccurrence(dateISO: string, frequency: RecurrenceFrequency): string {
   const days = recurrenceStepDays[frequency];
   if (days > 0) return toISODate(addDays(fromISODate(dateISO), days));
@@ -29,20 +24,12 @@ export function nextOccurrence(dateISO: string, frequency: RecurrenceFrequency):
   return toISODate(new Date(target.getFullYear(), target.getMonth(), Math.min(day, lastDay)));
 }
 
-/**
- * Datas em que a recorrencia cai dentro do mes. Uma semanal aparece quatro ou
- * cinco vezes; uma anual, em um mes por ano e em nenhum outro. E o que faz a
- * previsao somar o seguro do carro so no mes em que ele vence, em vez de diluir
- * um doze avos por todos os meses da projecao.
- */
 export function occurrencesIn(item: RecurringExpense, monthKey: string): string[] {
   const { from, to } = monthKeyRange(monthKey);
   const dates: string[] = [];
 
   let cursor = item.nextDueDate;
 
-  // Recorrencia cadastrada com vencimento a frente do mes pedido nao acontece
-  // nele; a que ficou para tras avanca ate alcancar a janela.
   let guard = 0;
   while (cursor < from && guard < 400) {
     cursor = nextOccurrence(cursor, item.frequency);
@@ -58,7 +45,6 @@ export function occurrencesIn(item: RecurringExpense, monthKey: string): string[
   return dates;
 }
 
-/** Quanto as recorrentes ativas somam no mes indicado. */
 export function recurringTotalIn(monthKey: string): number {
   return money(
     recurringExpenses
@@ -67,7 +53,6 @@ export function recurringTotalIn(monthKey: string): number {
   );
 }
 
-/** Custo mensal equivalente das ativas, com cada recorrencia normalizada. */
 export function recurringMonthlyCost(): number {
   return money(
     recurringExpenses
@@ -79,8 +64,6 @@ export function recurringMonthlyCost(): number {
 export function buildRecurringSummary(): RecurringSummary {
   const today = todayISO();
 
-  // Ativas primeiro e, entre elas, a que vence antes: a lista abre no que
-  // precisa de dinheiro em caixa nos proximos dias.
   const items = [...recurringExpenses].sort((a, b) => {
     const paused = Number(a.status === 'PAUSADO') - Number(b.status === 'PAUSADO');
     if (paused !== 0) return paused;

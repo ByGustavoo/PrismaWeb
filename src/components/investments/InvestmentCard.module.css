@@ -15,7 +15,6 @@
   box-shadow: var(--shadow-accent);
 }
 
-/* Cobre o cartao e abre a edicao de qualquer ponto; ver o comentario no TSX. */
 .open {
   position: absolute;
   inset: 0;
@@ -45,11 +44,6 @@
   gap: var(--space-3);
 }
 
-/*
- * O quadrado do icone carrega a cor da classe, e nao o cinza das outras telas:
- * e o mesmo codigo de cor da rosca, entao a lista abaixo dela continua legivel
- * como continuacao do grafico.
- */
 .iconBox {
   display: grid;
   place-items: center;
@@ -78,7 +72,6 @@
   color: var(--text-muted);
 }
 
-/* Espacamento proprio: um espaco de texto encolhe junto do tracking da fonte. */
 .separator {
   margin-inline: 5px;
   color: var(--text-subtle);
@@ -104,11 +97,6 @@
   color: var(--negative);
 }
 
-/*
- * Valor e resultado lado a lado: sao a pergunta dupla que se faz a uma posicao
- * — quanto vale e se esta ganhando. Empilhados, o segundo cairia abaixo da
- * dobra do cartao em telas estreitas.
- */
 .figures {
   display: flex;
   align-items: flex-end;
@@ -161,7 +149,6 @@
   color: var(--text-subtle);
 }
 
-/* Dentro de uma frase, o valor acompanha o tamanho do texto ao redor. */
 .inline {
   display: inline-flex;
 }

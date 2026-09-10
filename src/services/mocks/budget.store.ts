@@ -13,11 +13,6 @@ function findIndexOrThrow(id: string): number {
   return index;
 }
 
-/**
- * Uma categoria tem no maximo um limite. Dois limites para a mesma categoria
- * fariam a barra de consumo depender de qual deles a tela leu primeiro, e a
- * soma dos orcamentos contaria o mesmo gasto duas vezes.
- */
 function resolve(payload: BudgetPayload, currentId?: string): Omit<Budget, 'id'> {
   const category = categories.find((item) => item.id === payload.categoryId);
 

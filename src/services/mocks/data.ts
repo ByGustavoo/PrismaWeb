@@ -12,27 +12,17 @@ import type {
 } from '@/types';
 import { addDays, monthKeyFromOffset, toISODate } from '@/utils/date';
 
-/* -------------------------------------------------------------------------- */
-/* Helpers de data                                                            */
-/* -------------------------------------------------------------------------- */
-
 const today = new Date();
 
-/** Data ISO (YYYY-MM-DD) a N dias atras. */
 function daysAgo(amount: number): string {
   return toISODate(addDays(today, -amount));
 }
 
-/** Dia fixo de um mes deslocado a partir de hoje: ("-2", 12) -> "2026-07-12". */
 function dayOfMonth(offset: number, day: number): string {
   return `${monthKeyFromOffset(offset)}-${String(day).padStart(2, '0')}`;
 }
 
 export const currentMonth = monthKeyFromOffset(0);
-
-/* -------------------------------------------------------------------------- */
-/* Categorias                                                                 */
-/* -------------------------------------------------------------------------- */
 
 export const category = {
   moradia: { id: 'cat-moradia', nome: 'Moradia', tipo: 'DESPESA', tokenCor: 1 },
@@ -50,15 +40,6 @@ export const category = {
 
 export const categories: Categoria[] = Object.values(category);
 
-/* -------------------------------------------------------------------------- */
-/* Contas, cartoes e faturas                                                  */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Cadastro de contas. Os arrays desta secao sao mutaveis de proposito: enquanto
- * nao houver backend, as stores de escrita criam, editam e removem itens aqui, e
- * todas as telas leem da mesma fonte.
- */
 export const accounts: Account[] = [
   {
     id: 'acc-1',
@@ -116,12 +97,6 @@ export const accounts: Account[] = [
   },
 ];
 
-/**
- * Cadastro unico dos quatro tipos de cartao. O limite comprometido (`used`) nao
- * fica aqui: ele sai da soma das faturas em aberto e das parcelas ainda por
- * vencer, calculada em `cards.mock.ts` — guardar o numero a mao deixaria a barra
- * de limite mentindo assim que uma compra parcelada fosse cadastrada.
- */
 export const cards: Card[] = [
   {
     id: 'card-1',
@@ -178,16 +153,6 @@ export const cards: Card[] = [
   },
 ];
 
-/**
- * Tudo que pode pagar ou receber um lancamento. Contas e cartoes vivem em
- * cadastros separados, mas o formulario de despesa escolhe entre os dois, entao
- * a lista unificada nasce aqui e nao dentro da tela.
- *
- * E funcao, e nao array: uma conta cadastrada agora precisa aparecer no proximo
- * lancamento sem recarregar a pagina. O cartao de debito fica de fora porque ele
- * e apenas o meio de acessar a conta — a conta ja esta na lista, e oferecer os
- * dois faria a mesma despesa ter dois lugares possiveis.
- */
 export function listPaymentSources(): PaymentSource[] {
   return [
     ...accounts
@@ -199,10 +164,6 @@ export function listPaymentSources(): PaymentSource[] {
   ];
 }
 
-/**
- * Busca por id sem filtrar por situacao: um lancamento antigo pode apontar para
- * uma conta ja inativa, e edita-lo nao pode falhar por causa disso.
- */
 export function findPaymentSource(id: string): PaymentSource | undefined {
   const account = accounts.find((item) => item.id === id);
   if (account) return { id: account.id, name: account.name, group: 'CONTA' };
@@ -211,16 +172,6 @@ export function findPaymentSource(id: string): PaymentSource | undefined {
   return card ? { id: card.id, name: card.name, group: 'CARTAO' } : undefined;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Compras parceladas                                                         */
-/* -------------------------------------------------------------------------- */
-
-/**
- * As parcelas nao sao lancamentos: elas vivem so aqui e entram nas faturas pelo
- * calculo de `cards.mock.ts`. Guardar doze copias de cada compra em
- * `transactions` deixaria a listagem de lancamentos ilegivel e o total do
- * periodo errado, ja que quem sai da conta e a fatura, nao a parcela.
- */
 export const installmentPurchases: InstallmentPurchase[] = [
   {
     id: 'ip-1',
@@ -280,19 +231,6 @@ export const installmentPurchases: InstallmentPurchase[] = [
   },
 ];
 
-/* -------------------------------------------------------------------------- */
-/* Investimentos                                                              */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Carteira de investimentos. Como os demais cadastros desta secao, o array e
- * mutavel: `investments.store.ts` cria, edita e remove posicoes aqui, e a
- * evolucao do patrimonio em `investments.mock.ts` e recalculada a partir dele.
- *
- * `startDate` nao e enfeite: e dela que sai a idade da posicao, e a idade e o
- * que distribui os aportes ao longo do historico. Sem ela, a curva de evolucao
- * teria de supor que tudo entrou no mesmo dia.
- */
 export const investments: Investment[] = [
   {
     id: 'inv-1',
@@ -370,20 +308,6 @@ export const investments: Investment[] = [
   },
 ];
 
-/* -------------------------------------------------------------------------- */
-/* Orcamento                                                                  */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Limites mensais por categoria. O orcamento e recorrente e nao tem mes: vale
- * de um mes para o outro ate ser alterado. Guardar uma linha por mes obrigaria
- * quem planeja a redigitar o mesmo numero doze vezes por ano, e deixaria todo
- * mes seguinte comecando sem orcamento nenhum.
- *
- * Educacao e outras despesas ficam de proposito sem limite: e o que faz a tela
- * mostrar o bloco de gasto fora do orcamento, sem o qual a soma dos limites
- * seria lida como o gasto total do mes — e nem todo mundo orca tudo.
- */
 export const budgets: Budget[] = [
   { id: 'bud-1', category: category.moradia, limit: 4600 },
   { id: 'bud-2', category: category.alimentacao, limit: 1400 },
@@ -392,23 +316,10 @@ export const budgets: Budget[] = [
   { id: 'bud-5', category: category.lazer, limit: 1000 },
 ];
 
-/* -------------------------------------------------------------------------- */
-/* Despesas recorrentes                                                       */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Proxima ocorrencia do dia `day`: ainda neste mes se ele nao passou, no mes
- * seguinte se ja passou. E o mesmo criterio que o cadastro sugere ao usuario.
- */
 function nextDueOn(day: number): string {
   return dayOfMonth(today.getDate() <= day ? 0 : 1, day);
 }
 
-/**
- * As recorrentes nao sao lancamentos, e sim o compromisso que os gera. Elas
- * alimentam a previsao dos proximos meses; o lancamento de cada mes continua
- * nascendo em `transactions`, como qualquer outra despesa ja paga.
- */
 export const recurringExpenses: RecurringExpense[] = [
   {
     id: 'rec-1',
@@ -514,19 +425,6 @@ export const recurringExpenses: RecurringExpense[] = [
   },
 ];
 
-/* -------------------------------------------------------------------------- */
-/* Metas e desejos                                                            */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Cada meta nasce com o historico completo, e nao com um preco solto: o menor
- * preco, a media e a curva de evolucao so existem porque a serie inteira esta
- * guardada. As datas sao relativas a hoje pelo mesmo motivo das outras
- * sementes — um mock com data fixa envelhece e passa a mostrar uma tela morta.
- *
- * A amostra cobre de proposito os cinco casos que a analise sabe ler: preco no
- * fundo da faixa, abaixo da media, acima da media, colado no topo e estavel.
- */
 export const goals: Goal[] = [
   {
     id: 'goal-1',
@@ -620,15 +518,6 @@ export const goals: Goal[] = [
   },
 ];
 
-/* -------------------------------------------------------------------------- */
-/* Lancamentos                                                                */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Semente da lista de lancamentos. O array e mutavel de proposito: enquanto nao
- * houver backend, `transactions.store.ts` cria, edita e remove itens aqui, e as
- * demais telas (dashboard e avisos) leem da mesma fonte.
- */
 export const transactions: Lancamento[] = [
   {
     id: 'tx-01',
@@ -966,23 +855,11 @@ export const transactions: Lancamento[] = [
   },
 ];
 
-/* -------------------------------------------------------------------------- */
-/* Historico dos meses anteriores                                             */
-/* -------------------------------------------------------------------------- */
-
-/** Um lancamento do modelo mensal: dia do mes no lugar da data completa. */
 type HistoryTemplate = Omit<Lancamento, 'id' | 'data' | 'situacao'> & {
   day: number;
-  /** Conta fixa: nao acompanha a variacao do mes. */
   fixed?: boolean;
 };
 
-/**
- * Modelo de um mes tipico. O seletor de mes do header precisa de meses com
- * movimento para ter o que mostrar, e escrever seis meses a mao seria
- * repetitivo e dificil de manter. O dia fica em 28 ou menos para a data existir
- * tambem em fevereiro.
- */
 const monthlyTemplate: HistoryTemplate[] = [
   {
     day: 1,
@@ -1169,19 +1046,11 @@ const monthlyTemplate: HistoryTemplate[] = [
   },
 ];
 
-/**
- * Variacao aplicada aos gastos variaveis, do mes atual para tras. E uma lista
- * fixa de proposito: o grafico de fluxo precisa oscilar, mas nao pode mudar a
- * cada recarregamento da pagina. O tamanho define ate onde o historico vai, e
- * precisa cobrir com folga o mes mais antigo que o seletor de periodo oferece:
- * um recorte de mes unico ainda desenha os cinco meses anteriores.
- */
 const monthlyVariation = [
   1, 0.96, 1.07, 0.91, 1.12, 0.94, 1.03, 0.89, 1.08, 0.97, 1.05, 0.93,
   1.11, 0.9, 1.02, 0.98, 1.06, 0.92,
 ];
 
-/** Projeto freelance nao entra todo mes; estes sao os meses em que entrou. */
 const freelanceMonths: Record<number, number> = {
   1: 2400,
   3: 3100,
@@ -1192,11 +1061,6 @@ const freelanceMonths: Record<number, number> = {
   17: 2050,
 };
 
-/**
- * Expande o modelo mes a mes para tras. O mes atual para no dia de hoje: um
- * lancamento com data futura marcado como pago seria incoerente, e os itens
- * pendentes e agendados ja vem da lista escrita a mao acima.
- */
 function buildHistory(): Lancamento[] {
   const result: Lancamento[] = [];
   const todayDay = today.getDate();
@@ -1238,6 +1102,4 @@ function buildHistory(): Lancamento[] {
   return result;
 }
 
-// O historico entra depois da lista escrita a mao para nao atrapalhar a leitura
-// dela. O array e o mesmo que `transactions.store.ts` muta.
 transactions.push(...buildHistory());

@@ -6,13 +6,11 @@ import type { PontoSaldo, Variacao } from '@/types';
 import styles from './BalancePanel.module.css';
 
 interface BalancePanelProps {
-  /** "Saldo atual" no periodo corrente; nos anteriores, o saldo no fim dele. */
   label: string;
   balance: number;
   delta: Variacao;
   income: number;
   expense: number;
-  /** "mês" ou "período", conforme o recorte escolhido no header. */
   periodNoun: string;
   history: PontoSaldo[];
 }
@@ -29,11 +27,6 @@ export function BalancePanel({
   const palette = useChartPalette();
   const lineColor = palette.series[0];
 
-  /*
-   * A folga da escala sai da amplitude da serie, nao de um percentual do valor:
-   * com saldo negativo, `min * 0.92` levanta o piso acima do proprio minimo e
-   * corta a linha no rodape do grafico.
-   */
   const values = history.map((point) => point.saldo);
   const min = Math.min(...values);
   const max = Math.max(...values);
@@ -79,11 +72,6 @@ export function BalancePanel({
 
       <div className={styles.chart}>
         <ResponsiveContainer width="100%" height="100%">
-          {/*
-            A folga lateral e do eixo, nao da area: com margem de 8px o rotulo
-            do primeiro mes ficava meio fora do grafico e o Recharts o descartava,
-            deixando seis pontos com cinco nomes.
-          */}
           <AreaChart data={history} margin={{ top: 16, right: 20, bottom: 0, left: 20 }}>
             <defs>
               <linearGradient id="balanceFill" x1="0" y1="0" x2="0" y2="1">
@@ -108,8 +96,6 @@ export function BalancePanel({
               type="monotone"
               dataKey="saldo"
               name="Saldo"
-              // Sem base explicita a area se apoia no zero: um mes com saldo negativo
-              // aparece com o preenchimento acima da linha, invertido.
               baseValue={domainMin}
               stroke={lineColor}
               strokeWidth={2}

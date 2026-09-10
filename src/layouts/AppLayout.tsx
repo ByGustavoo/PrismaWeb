@@ -8,7 +8,6 @@ import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 import { cn } from '@/utils/cn';
 import styles from './AppLayout.module.css';
 
-/** Alvo do link de salto; tambem serve de ancora para voltar ao topo. */
 const CONTENT_ID = 'conteudo';
 
 export function AppLayout() {
@@ -19,12 +18,10 @@ export function AppLayout() {
 
   const closeMobile = useCallback(() => setMobileOpen(false), []);
 
-  // Fecha o drawer ao navegar.
   useEffect(() => {
     setMobileOpen(false);
   }, [location.pathname]);
 
-  // Esc fecha o drawer: quem abriu pelo teclado precisa poder sair por ele.
   useEffect(() => {
     if (!mobileOpen) return;
     const handleKeyDown = (event: KeyboardEvent) => {

@@ -16,7 +16,6 @@ export const accountsService = {
     return httpClient.get<Account[]>(endpoints.accounts.list, { ...(signal ? { signal } : {}) });
   },
 
-  /** Contas e cartoes na mesma lista, do jeito que os seletores de lancamento precisam. */
   listSources(signal?: AbortSignal): Promise<PaymentSource[]> {
     if (env.useMocks) return mockResponse(listPaymentSources(), signal);
     return httpClient.get<PaymentSource[]>(endpoints.accounts.sources, { ...(signal ? { signal } : {}) });

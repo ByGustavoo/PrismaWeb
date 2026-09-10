@@ -68,11 +68,6 @@ export function updateRecurringExpense(id: string, payload: RecurringPayload): R
   return updated;
 }
 
-/**
- * Excluir a recorrencia nao apaga os lancamentos que ela ja gerou: eles vivem
- * em `transactions` e continuam no historico. O que se perde e a previsao das
- * proximas ocorrencias — por isso pausar existe, para quem so quer suspender.
- */
 export function deleteRecurringExpense(id: string): void {
   recurringExpenses.splice(findIndexOrThrow(id), 1);
 }

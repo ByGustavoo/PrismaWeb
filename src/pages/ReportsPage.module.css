@@ -11,11 +11,6 @@
   align-items: start;
 }
 
-/*
- * As variacoes ficam numa linha propria, sem moldura: sao duas frases curtas, e
- * dar um cartao a cada uma criaria dois blocos quase vazios entre a faixa de
- * numeros e o primeiro grafico.
- */
 .deltas {
   display: flex;
   align-items: center;

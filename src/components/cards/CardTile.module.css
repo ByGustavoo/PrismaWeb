@@ -14,11 +14,6 @@
   border-color: var(--border-strong);
 }
 
-/*
- * Grade de tres colunas para a linha de identificacao poder atravessar por
- * baixo do nome e das acoes. O icone fica so na primeira linha; a segunda
- * comeca alinhada com o nome.
- */
 .header {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -61,15 +56,9 @@
   margin-top: calc(var(--space-1) * -1);
 }
 
-/*
- * Excluir so fica vermelho no hover: em repouso, um icone vermelho em cada
- * cartao transformaria a acao rara na mais visivel da tela.
- */
 .delete:hover {
   color: var(--negative);
 }
-
-/* --- Bloco de limite (so credito) -------------------------------------- */
 
 .limit {
   display: flex;
@@ -105,8 +94,6 @@
   font-size: var(--fs-xs);
   color: var(--text-subtle);
 }
-
-/* --- Datas e fatura ----------------------------------------------------- */
 
 .facts {
   display: grid;
@@ -148,8 +135,6 @@
   font-size: var(--fs-sm);
   color: var(--text-muted);
 }
-
-/* --- Debito e vales ----------------------------------------------------- */
 
 .simple {
   display: flex;

@@ -1,7 +1,3 @@
-/**
- * Contrato de rotas do backend. Nenhuma URL deve ser escrita fora deste arquivo.
- * Os caminhos sao relativos a VITE_API_URL.
- */
 export const endpoints = {
   dashboard: {
     resumo: '/dashboard/resumo',
@@ -17,7 +13,6 @@ export const endpoints = {
   accounts: {
     list: '/accounts',
     create: '/accounts',
-    /** Contas e cartoes juntos, para os seletores de lancamento. */
     sources: '/accounts/sources',
     byId: (id: string) => `/accounts/${id}`,
   },
@@ -39,14 +34,11 @@ export const endpoints = {
     list: '/investments',
     create: '/investments',
     byId: (id: string) => `/investments/${id}`,
-    /** Carteira consolidada: totais, distribuicao e evolucao do patrimonio. */
     portfolio: '/investments/portfolio',
   },
   budgets: {
-    /* Nao ha listagem crua: a tela le os limites de dentro de /budgets/overview. */
     create: '/budgets',
     byId: (id: string) => `/budgets/${id}`,
-    /** Consumo do mes: limites, gasto e o que ficou fora do orcamento. */
     overview: '/budgets/overview',
   },
   recurring: {
@@ -58,7 +50,6 @@ export const endpoints = {
     list: '/goals',
     create: '/goals',
     byId: (id: string) => `/goals/${id}`,
-    /** Registro de um preco novo; nunca substitui o anterior. */
     prices: (id: string) => `/goals/${id}/prices`,
   },
   forecast: {

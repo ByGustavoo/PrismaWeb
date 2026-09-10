@@ -1,9 +1,3 @@
-/*
- * Esta tela e a unica do app desenhada fora do `AppLayout`: um endereco que nao
- * existe nao e uma tela do produto, e cercar o erro de sidebar, busca e seletor
- * de periodo seria oferecer o mobiliario de um lugar onde nao ha nada. Em troca,
- * a marca no topo e os atalhos do rodape assumem o papel da navegacao.
- */
 .screen {
   display: grid;
   align-content: center;
@@ -39,11 +33,6 @@
   letter-spacing: 0;
 }
 
-/*
- * Unico cartao do produto com sombra: aqui ele flutua sozinho sobre o canvas,
- * sem sidebar nem grade em volta, e no tema claro a borda sozinha quase nao o
- * separa do fundo. Dentro do app, onde ha vizinhos, a moldura continua chapada.
- */
 .card {
   width: 100%;
   max-width: 620px;
@@ -53,8 +42,6 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-popover);
 }
-
-/* --- Topo: o numero e a serie que para no meio ------------------------- */
 
 .hero {
   position: relative;
@@ -66,7 +53,6 @@
   border-bottom: 1px solid var(--border);
 }
 
-/* Halo do acento atras do numero, para o topo nao ser um bloco chapado. */
 .hero::before {
   content: '';
   position: absolute;
@@ -96,25 +82,11 @@
   color: var(--accent);
 }
 
-/* --- O grafico --------------------------------------------------------- */
-
-/*
- * A coreografia toda pende de tres variaveis vindas do componente:
- * `--draw-length`, o comprimento exato da poligonal; `--sweep-duration`, o ciclo
- * de ida e volta do traco; e `--draw-duration`, o instante em que a ida termina.
- * Os atrasos dos demais elementos saem dela, entao mudar o ciclo no TSX reordena
- * a cena inteira sozinha.
- *
- * Todos os keyframes moram neste arquivo de proposito: o CSS Modules reescreve
- * o nome da animacao junto com a referencia quando os dois estao no mesmo
- * modulo. Uma animacao declarada aqui e definida no `global.css` nao rodaria.
- */
 .chart {
   display: block;
   width: 100%;
   height: auto;
   margin-top: var(--space-6);
-  /* Encosta na borda do bloco: o grafico e o piso do topo, nao um cartao solto. */
   margin-bottom: -1px;
 }
 
@@ -124,11 +96,6 @@
   animation: fade-in var(--duration-base) var(--ease-out) backwards;
 }
 
-/*
- * A area so aparece no fim do tracado. Ela e uma forma inteira, entao entrar
- * junto com a linha mostraria o preenchimento adiantado, cobrindo um trecho que
- * a serie ainda nem desenhou.
- */
 .area {
   animation: area-in var(--draw-duration) var(--ease-out) backwards;
 }
@@ -169,7 +136,6 @@
   animation: sweep-series var(--sweep-duration) var(--ease-out) infinite;
 }
 
-/* Mesmo tracado, desfocado e por baixo: o traco ganha corpo sem engrossar. */
 .glow {
   fill: none;
   stroke: var(--accent);
@@ -181,15 +147,6 @@
   animation: sweep-series var(--sweep-duration) var(--ease-out) infinite;
 }
 
-/*
- * O vaivem da leitura: 42% do ciclo avancando, um quinto parado no ponto em que
- * a historia acaba — tempo de ler que ela acabou —, e o resto recuando ate o
- * comeco. O tracado recua pelo fim, que e por onde ele cresceu; e a mesma
- * propriedade animada nos dois sentidos, entao a volta nunca destoa da ida.
- *
- * O quadro de 42% e o mesmo `SWEEP_FORWARD` do componente: e dele que saem os
- * atrasos de tudo que entra quando a linha chega ao fim pela primeira vez.
- */
 @keyframes sweep-series {
   0% {
     stroke-dashoffset: var(--draw-length);
@@ -203,7 +160,6 @@
   }
 }
 
-/* Cada ponto assenta no instante em que a linha passa por cima dele. */
 .dot {
   fill: var(--surface-muted);
   stroke: var(--accent);
@@ -220,10 +176,6 @@
   }
 }
 
-/*
- * A marca vertical desce do topo ate a base quando a serie para: e o gesto que
- * separa o que existe do que nao existe.
- */
 .marker {
   stroke: var(--border-strong);
   stroke-dasharray: 3 4;
@@ -239,12 +191,6 @@
   }
 }
 
-/*
- * O tracejado corre para a direita sem nunca chegar, no mesmo laco sem fim da
- * serie: a espera por um dado que nao vem e exatamente o que a pagina esta
- * dizendo. Fica em cinza, na velocidade de um respiro, para nao competir com o
- * texto ao lado.
- */
 .trail {
   fill: none;
   stroke: var(--border-strong);
@@ -271,7 +217,6 @@
   animation: settle var(--duration-base) var(--ease-spring) var(--draw-duration) backwards;
 }
 
-/* Ponto vazio: marca de dado ausente, nao de valor zero. */
 .end {
   fill: var(--surface-muted);
   stroke: var(--border-strong);
@@ -279,7 +224,6 @@
   animation: fade-in var(--duration-base) var(--ease-out) calc(var(--draw-duration) + 240ms) backwards;
 }
 
-/* O halo que se abre e some no lugar onde o proximo dado deveria estar. */
 .pulse {
   fill: none;
   stroke: var(--border-strong);
@@ -289,12 +233,6 @@
   animation: pulse 2.8s var(--ease-out) calc(var(--draw-duration) + 400ms) infinite backwards;
 }
 
-/*
- * O laco comeca e termina invisivel de proposito. Como a animacao tem atraso e
- * `backwards`, o navegador pinta o primeiro quadro durante toda a espera: um
- * `from` opaco deixaria o halo aceso no canto desde o inicio, antes mesmo de a
- * serie ser desenhada.
- */
 @keyframes pulse {
   from {
     opacity: 0;
@@ -316,13 +254,6 @@
   }
 }
 
-/*
- * Sem movimento, a serie precisa existir inteira. A regra global reduz toda
- * animacao a um instante, e um laco reduzido assim para no ultimo quadro — que
- * aqui e a linha recolhida, ou seja, um grafico vazio. Por isso o tracado perde
- * a animacao e o tracejado em vez de herdar o atalho, e o halo do ponto final,
- * que so existe enquanto pulsa, sai de cena.
- */
 @media (prefers-reduced-motion: reduce) {
   .line,
   .glow {
@@ -335,8 +266,6 @@
     display: none;
   }
 }
-
-/* --- Miolo: mensagem, acoes e atalhos ---------------------------------- */
 
 .content {
   display: flex;
@@ -424,10 +353,6 @@
   color: var(--accent);
 }
 
-/*
- * A regra global de foco tambem arredonda o alvo em `--radius-xs`, o que
- * deixaria a pilula quadrada justamente enquanto ela esta em foco.
- */
 .link:focus-visible {
   border-radius: var(--radius-pill);
 }
@@ -451,7 +376,6 @@
   }
 }
 
-/* Dois botoes lado a lado nao cabem sem quebrar o rotulo em telas estreitas. */
 @media (max-width: 479px) {
   .actions {
     align-self: stretch;

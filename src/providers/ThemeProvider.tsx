@@ -6,9 +6,7 @@ export type ThemeMode = 'light' | 'dark' | 'system';
 export type ResolvedTheme = 'light' | 'dark';
 
 interface ThemeContextValue {
-  /** Preferencia escolhida pelo usuario. */
   mode: ThemeMode;
-  /** Tema efetivamente aplicado. */
   theme: ResolvedTheme;
   setMode: (mode: ThemeMode) => void;
   toggleTheme: () => void;
@@ -21,7 +19,6 @@ function readStoredMode(): ThemeMode {
     const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
     if (stored === 'light' || stored === 'dark' || stored === 'system') return stored;
   } catch {
-    // storage indisponivel
   }
   return 'system';
 }
@@ -43,8 +40,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const theme: ResolvedTheme = mode === 'system' ? systemPreference : mode;
 
-  // Aplicado durante o render (e nao em efeito) para que os componentes que leem
-  // os tokens computados ja enxerguem o tema correto no mesmo ciclo.
   if (typeof document !== 'undefined' && document.documentElement.dataset.theme !== theme) {
     document.documentElement.dataset.theme = theme;
   }
@@ -54,7 +49,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     try {
       window.localStorage.setItem(THEME_STORAGE_KEY, next);
     } catch {
-      // storage indisponivel
     }
   }, []);
 

@@ -13,7 +13,6 @@ import { monthKeyFromOffset, shiftMonthKey } from '@/utils/date';
 import { capitalize, formatMonthLabel, formatPercent } from '@/utils/format';
 import styles from './BudgetPage.module.css';
 
-/** Ate onde as setas voltam. Doze meses cobrem o ciclo que se compara. */
 const HISTORY_MONTHS = 11;
 
 export function BudgetPage() {
@@ -42,8 +41,6 @@ export function BudgetPage() {
   );
 
   const inProgress = Boolean(overview && overview.daysLeft > 0 && overview.daysElapsed > 0);
-  // Um mes em andamento nem sempre da para projetar: nos primeiros dias a regra
-  // de tres multiplica o que acontece uma vez so (ver BUDGET_PROJECTION_MIN_DAYS).
   const showProjection = inProgress && (overview?.daysElapsed ?? 0) >= BUDGET_PROJECTION_MIN_DAYS;
 
   const formOpen = creating || editing !== null;
@@ -110,7 +107,6 @@ export function BudgetPage() {
         }
       />
 
-      {/* O esqueleto e so da primeira carga; trocar de mes mantem os numeros na tela. */}
       {loading && !data ? (
         <div className={styles.stack} aria-busy="true">
           <Card padding="none">
@@ -208,10 +204,6 @@ export function BudgetPage() {
               <p className={styles.totalNote}>
                 <Amount className={styles.inline} value={overview.spent} size="sm" /> de{' '}
                 <Amount className={styles.inline} value={overview.planned} size="sm" tone="muted" /> planejados.
-                {/*
-                  Num mes que mal comecou, toda barra esta vazia e nenhum limite
-                  disparou — a projecao e o que torna a tela util no dia 5.
-                */}
                 {showProjection ? (
                   <span>
                     No ritmo atual, o mês fecha em{' '}
@@ -239,10 +231,6 @@ export function BudgetPage() {
             ))}
           </ul>
 
-          {/*
-            Sem este bloco, a soma dos limites seria lida como o gasto total do
-            mes — e ela nao e: o que nao tem limite tambem saiu da conta.
-          */}
           {overview.unplanned.length > 0 ? (
             <Card>
               <CardHeader

@@ -4,12 +4,6 @@ import { fromMonthKey, todayISO } from '@/utils/date';
 import { groupByCategory } from './aggregate';
 import { budgets, currentMonth, transactions } from './data';
 
-/**
- * O orcamento nao guarda gasto: ele guarda o limite. O consumo sai das despesas
- * do mes pedido, exatamente como as faturas saem das compras — assim um
- * lancamento cadastrado agora move a barra na mesma hora, sem nenhum ajuste.
- */
-
 function money(value: number): number {
   return Math.round(value * 100) / 100;
 }
@@ -18,11 +12,6 @@ function expensesOfMonth(monthKey: string): Lancamento[] {
   return transactions.filter((item) => item.tipo === 'DESPESA' && item.data.startsWith(monthKey));
 }
 
-/**
- * Dias ja vividos do mes. Num mes passado o mes inteiro conta; num mes futuro,
- * nenhum dia. E o denominador da projecao de ritmo, e por isso nunca pode ser
- * zero num mes que ja comecou.
- */
 function elapsedDays(monthKey: string, daysInMonth: number): number {
   const today = todayISO();
   const thisMonth = today.slice(0, 7);
@@ -37,8 +26,6 @@ export function buildBudgetOverview(month: string = currentMonth): BudgetOvervie
   const start = fromMonthKey(month);
   const daysInMonth = new Date(start.getFullYear(), start.getMonth() + 1, 0).getDate();
   const daysElapsed = elapsedDays(month, daysInMonth);
-  // Ver BUDGET_PROJECTION_MIN_DAYS: projetar o inicio do mes por regra de tres
-  // multiplica despesas que acontecem uma vez so, e mente mais do que informa.
   const projects = daysElapsed >= BUDGET_PROJECTION_MIN_DAYS && daysElapsed < daysInMonth;
 
   const spentByCategory = new Map<string, number>();
@@ -61,8 +48,6 @@ export function buildBudgetOverview(month: string = currentMonth): BudgetOvervie
         status: budgetStatusOf(ratio),
       };
     })
-    // Estouro primeiro, depois o que esta perto do limite: a tela abre no que
-    // exige decisao, nao na ordem em que os limites foram cadastrados.
     .sort((a, b) => b.ratio - a.ratio);
 
   const planned = money(budgets.reduce((total, item) => total + item.limit, 0));

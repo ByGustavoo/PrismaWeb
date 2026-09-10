@@ -14,7 +14,6 @@ import { cn } from '@/utils/cn';
 import { fold, formatShortDate } from '@/utils/format';
 import styles from './GlobalSearch.module.css';
 
-/** Quantos itens cada grupo mostra antes de sobrar para "ver todos". */
 const LIMITS = { transaction: 5, category: 3, account: 4 };
 
 type ResultGroup = 'transaction' | 'category' | 'account' | 'all';
@@ -26,7 +25,6 @@ interface SearchResult {
   hint: string;
   to: string;
   icon: LucideIcon;
-  /** Presente so nos lancamentos, que mostram o valor a direita. */
   transaction?: Lancamento;
 }
 
@@ -92,23 +90,10 @@ function buildResults(catalog: Catalog, term: string): SearchResult[] {
 }
 
 interface GlobalSearchProps {
-  /**
-   * Em tela estreita o campo fica escondido e so aparece quando o header pede.
-   * No desktop a prop e ignorada: o campo ja esta sempre visivel.
-   */
   expanded?: boolean;
   onCollapse?: () => void;
 }
 
-/**
- * Busca do header. Procura em lancamentos, categorias e contas ao mesmo tempo e
- * entrega cada resultado como um destino: o lancamento abre a propria edicao, e
- * a categoria e a conta abrem a listagem ja filtrada por elas.
- *
- * O catalogo e recarregado sempre que o campo recebe foco — um lancamento
- * cadastrado ha pouco precisa aparecer na busca seguinte — e a filtragem roda em
- * memoria, para responder a cada tecla sem uma nova ida ao servidor.
- */
 export function GlobalSearch({ expanded = false, onCollapse }: GlobalSearchProps) {
   const navigate = useNavigate();
   const baseId = useId();
@@ -145,8 +130,6 @@ export function GlobalSearch({ expanded = false, onCollapse }: GlobalSearchProps
     return () => controller.abort();
   }, [focused]);
 
-  // Abrir a busca no celular precisa levar o cursor junto, senao o teclado do
-  // aparelho nao sobe e o campo aparece pedindo mais um toque.
   useEffect(() => {
     if (expanded) inputRef.current?.focus();
   }, [expanded]);
@@ -154,7 +137,6 @@ export function GlobalSearch({ expanded = false, onCollapse }: GlobalSearchProps
   const trimmed = term.trim();
   const results = useMemo(() => (trimmed ? buildResults(catalog, trimmed) : []), [catalog, trimmed]);
 
-  // A ultima linha e sempre um destino valido, mesmo sem nenhuma correspondencia.
   const seeAll = useMemo<SearchResult>(
     () => ({
       key: 'all',
@@ -190,7 +172,6 @@ export function GlobalSearch({ expanded = false, onCollapse }: GlobalSearchProps
     [navigate, onCollapse],
   );
 
-  // Fecha ao clicar fora sem roubar o clique do alvo.
   useEffect(() => {
     if (!open && !expanded) return;
 
@@ -204,7 +185,6 @@ export function GlobalSearch({ expanded = false, onCollapse }: GlobalSearchProps
     return () => document.removeEventListener('pointerdown', handlePointerDown);
   }, [open, expanded, onCollapse]);
 
-  // Mantem o item ativo visivel durante a navegacao pelo teclado.
   useEffect(() => {
     if (!open) return;
     rootRef.current?.querySelector<HTMLElement>('[data-active="true"]')?.scrollIntoView({ block: 'nearest' });
@@ -228,8 +208,6 @@ export function GlobalSearch({ expanded = false, onCollapse }: GlobalSearchProps
         go(items[activeIndex]);
         return;
       case 'Escape':
-        // Primeiro Escape fecha a lista; o segundo limpa o campo (e, no celular,
-        // fecha a propria busca).
         event.preventDefault();
         if (open) setFocused(false);
         else collapse();
@@ -307,7 +285,6 @@ export function GlobalSearch({ expanded = false, onCollapse }: GlobalSearchProps
                     isActive && styles.optionActive,
                   )}
                   onPointerEnter={() => setActiveIndex(index)}
-                  // O ponteiro precisa agir antes do blur do campo, que fecharia o painel.
                   onPointerDown={(event) => {
                     event.preventDefault();
                     go(result);

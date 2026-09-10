@@ -3,25 +3,12 @@ import { env } from '@/constants/env';
 import type { ID, Lancamento, TipoLancamento, LancamentoPayload, SituacaoLancamento } from '@/types';
 import { createTransaction, deleteTransaction, mockResponse, transactions, updateTransaction } from './mocks';
 
-/**
- * Filtros aceitos pela listagem. Sao os mesmos parametros que a API vai receber
- * como query string; a tela usa apenas `kind` (que vem da rota) e refina busca,
- * periodo, categoria e situacao em memoria, para responder a cada tecla sem uma
- * nova ida ao servidor.
- *
- * Os nomes aqui sao de estado de tela e seguem em ingles; a traducao para os
- * parametros do contrato (`tipo`, `busca`, `de`, `ate`...) acontece so na
- * montagem da query.
- */
 export interface TransactionFilters {
   kind?: TipoLancamento;
   search?: string;
-  /** Inicio do periodo, data ISO inclusiva. */
   from?: string;
-  /** Fim do periodo, data ISO inclusiva. */
   to?: string;
   categoryId?: ID;
-  /** Casa com a conta de origem ou, em transferencias, com a de destino. */
   accountId?: ID;
   status?: SituacaoLancamento;
 }

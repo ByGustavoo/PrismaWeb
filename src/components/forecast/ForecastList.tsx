@@ -9,11 +9,6 @@ interface ForecastListProps {
   lowestMonth: string;
 }
 
-/**
- * A mesma previsao em cartoes, para as larguras em que a tabela de sete colunas
- * so caberia rolando de lado — e rolar ate o saldo previsto, que e o dado mais
- * importante da linha, nao e leitura.
- */
 export function ForecastList({ months, lowestMonth }: ForecastListProps) {
   return (
     <Card padding="none">
@@ -31,7 +26,6 @@ export function ForecastList({ months, lowestMonth }: ForecastListProps) {
               <div className={styles.top}>
                 <span className={styles.month}>
                   {capitalize(formatMonthLabel(month.month))}
-                  {/* A faixa lateral e so cor; quem le por audio precisa da mesma informacao. */}
                   {month.month === lowestMonth ? (
                     <span className="visually-hidden"> — mês de menor saldo previsto</span>
                   ) : null}

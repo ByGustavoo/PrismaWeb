@@ -16,10 +16,6 @@
   color: var(--text-muted);
 }
 
-/*
- * Um cartao de credito carrega limite, barra, tres datas e um botao: abaixo de
- * 340px de largura essas informacoes comecam a quebrar em duas linhas cada uma.
- */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));

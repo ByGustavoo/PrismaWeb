@@ -15,7 +15,6 @@
   border-top: 1px solid var(--border);
 }
 
-/* Contagem e seletor de densidade sao o mesmo assunto: o que a lista mostra. */
 .summaryCount {
   display: flex;
   align-items: center;

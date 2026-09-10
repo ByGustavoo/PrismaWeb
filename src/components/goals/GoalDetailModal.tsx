@@ -18,16 +18,13 @@ import { insightTone } from './meta';
 import styles from './GoalDetailModal.module.css';
 
 interface GoalDetailModalProps {
-  /** A meta escolhida na lista; `null` mantem o modal fechado. */
   tracking: GoalTracking | null;
   saving: boolean;
-  /** Aberto pelo atalho de registrar preco: o campo ja recebe o foco. */
   focusPriceForm: boolean;
   onClose: () => void;
   onEdit: (tracking: GoalTracking) => void;
   onDelete: (tracking: GoalTracking) => void;
   onStatusChange: (tracking: GoalTracking, status: GoalStatus) => void;
-  /** Resolve para `true` quando o registro entrou; so entao o campo se limpa. */
   onAddPrice: (tracking: GoalTracking, payload: GoalPricePayload) => Promise<boolean>;
 }
 
@@ -37,12 +34,10 @@ interface PriceForm {
   note: string;
 }
 
-/* Funcao, e nao constante: com o app aberto de um dia para o outro, "hoje" muda. */
 function emptyPriceForm(): PriceForm {
   return { price: '', date: todayISO(), note: '' };
 }
 
-/** As regras do registro de preco no servidor, conferidas antes do envio. */
 function validatePrice(form: PriceForm, goal: Goal): FieldErrors<PriceForm> {
   const errors: FieldErrors<PriceForm> = {
     price: amountError(form.price, {
@@ -58,11 +53,9 @@ function validatePrice(form: PriceForm, goal: Goal): FieldErrors<PriceForm> {
   } else if (form.date > todayISO()) {
     errors.date = 'A data da consulta não pode estar no futuro!';
   } else if (form.date < goal.createdAt) {
-    // Um registro anterior ao primeiro trocaria o "preco inicial", base de toda a variacao.
     errors.date = `A data da consulta não pode ser anterior ao primeiro preço, de ${formatNumericDate(goal.createdAt)}!`;
   }
 
-  // Mesmo preco na mesma data e clique repetido, nao consulta nova.
   const price = parseAmountInput(form.price);
   if (!errors.price && !errors.date && goal.history.some((entry) => entry.date === form.date && entry.price === price)) {
     errors.price = 'Esse preço já está registrado nessa data!';
@@ -71,16 +64,6 @@ function validatePrice(form: PriceForm, goal: Goal): FieldErrors<PriceForm> {
   return errors;
 }
 
-/**
- * O historico de uma meta: a analise, a curva, o formulario de registro e a
- * serie completa. E aqui que a tela ganha sentido — o cartao mostra o preco de
- * agora, e esta e a unica vista que responde se ele e caro ou barato dentro do
- * que ja foi visto.
- *
- * O registro de preco fica embutido, e nao num segundo modal: dois paineis
- * empilhados disputariam a trava de foco e o Escape do `Modal`, e quem acabou
- * de olhar o grafico ja esta no lugar certo para anotar o valor.
- */
 export function GoalDetailModal({
   tracking,
   saving,
@@ -109,12 +92,9 @@ export function GoalDetailModal({
 
   useEffect(() => {
     if (!goalId || !focusPriceForm) return;
-    // O efeito do `Modal` roda antes deste — ele e componente filho —, entao o
-    // foco pedido pelo atalho e o ultimo a ser aplicado e prevalece.
     priceRef.current?.focus();
   }, [goalId, focusPriceForm]);
 
-  /** Cada registro com a variacao contra o imediatamente anterior. */
   const entries = useMemo(() => {
     if (!tracking) return [];
 
@@ -143,7 +123,6 @@ export function GoalDetailModal({
       ...(form.note.trim() ? { note: form.note.trim() } : {}),
     });
 
-    // Limpo o campo, a validacao volta ao zero: senao o preco vazio seria cobrado na hora.
     if (ok) {
       setForm(emptyPriceForm());
       reset();
@@ -179,7 +158,6 @@ export function GoalDetailModal({
         <div className={styles.headMain}>
           <span className={styles.headLabel}>Preço atual</span>
           <Amount value={analysis.currentPrice} size="lg" />
-          {/* Ver o comentario equivalente em `GoalCard`: um registro so nao varia. */}
           {analysis.entryCount > 1 ? (
             <PriceDelta change={analysis.change} percentage={analysis.changePercentage} trend={analysis.trend} />
           ) : (
@@ -192,10 +170,6 @@ export function GoalDetailModal({
         </Badge>
       </header>
 
-      {/*
-        A leitura do momento vem antes dos numeros: ela e a conclusao, e quem
-        quiser conferir a conta encontra a faixa inteira logo abaixo.
-      */}
       <p className={cn(styles.insight, styles[insightTone[analysis.insight]])}>
         <span className={styles.insightDot} aria-hidden="true" />
         {goalInsightText[analysis.insight]}
@@ -234,7 +208,6 @@ export function GoalDetailModal({
           </dd>
         </div>
         <div>
-          {/* Nao e dinheiro guardado: e o que deixou de ser pago em relacao ao pico. */}
           <dt>Abaixo do maior preço</dt>
           <dd>
             <Amount value={analysis.savings} size="sm" tone={analysis.savings > 0 ? 'positive' : 'muted'} />
@@ -242,7 +215,6 @@ export function GoalDetailModal({
         </div>
       </dl>
 
-      {/* Um ponto sozinho nao desenha evolucao nenhuma; o convite vale mais. */}
       {analysis.entryCount > 1 ? (
         <PriceHistoryChart history={goal.history} averagePrice={analysis.averagePrice} trend={analysis.trend} />
       ) : (
@@ -260,7 +232,6 @@ export function GoalDetailModal({
           Consultou de novo? Anote o valor. O preço anterior continua no histórico — é o que permite comparar.
         </p>
 
-        {/* Um formulario de verdade: o Enter no campo de preco registra, como em qualquer outro. */}
         <form
           ref={formRef}
           className={styles.registerFields}

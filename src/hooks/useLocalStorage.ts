@@ -1,6 +1,5 @@
 import { useCallback, useState } from 'react';
 
-/** Estado persistido em localStorage, tolerante a ambientes sem acesso. */
 export function useLocalStorage<T>(key: string, initialValue: T) {
   const [value, setValue] = useState<T>(() => {
     try {
@@ -17,7 +16,6 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
       try {
         window.localStorage.setItem(key, JSON.stringify(next));
       } catch {
-        // storage indisponivel: mantem apenas em memoria
       }
     },
     [key],

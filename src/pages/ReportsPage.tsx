@@ -13,18 +13,12 @@ import type { ReportRange } from '@/types';
 import { formatNumericDate } from '@/utils/format';
 import styles from './ReportsPage.module.css';
 
-/** Recorte de abertura: o mes corrente responde a pergunta mais frequente. */
 const INITIAL_KEY = 'month' satisfies Exclude<ReportRangeKey, 'custom'>;
 
 export function ReportsPage() {
   const [rangeKey, setRangeKey] = useState<ReportRangeKey>(INITIAL_KEY);
   const [range, setRange] = useState<ReportRange>(() => reportRangeOf(INITIAL_KEY));
 
-  /*
-   * Escolher um atalho troca as datas; escolher "Personalizado" mantem as do
-   * recorte anterior. Zerar o intervalo ali deixaria a tela vazia no exato
-   * momento em que o usuario quer ajustar o que ja estava vendo.
-   */
   const handleSelect = (key: ReportRangeKey) => {
     setRangeKey(key);
     if (key !== 'custom') setRange(reportRangeOf(key));
@@ -57,7 +51,6 @@ export function ReportsPage() {
         }
       />
 
-      {/* O esqueleto e so da primeira carga; trocar o recorte mantem os numeros na tela. */}
       {loading && !data ? (
         <div className={styles.stack} aria-busy="true">
           <Card padding="none">
@@ -128,11 +121,6 @@ export function ReportsPage() {
             ]}
           />
 
-          {/*
-            As duas variacoes ficam juntas, abaixo da faixa: comparadas com o
-            periodo anterior de mesma duracao, elas respondem "melhorou ou
-            piorou?" — a pergunta que a faixa sozinha nao responde.
-          */}
           <div className={styles.deltas}>
             <span className={styles.delta}>
               <span className={styles.deltaLabel}>Receitas</span>
@@ -144,11 +132,6 @@ export function ReportsPage() {
             </span>
           </div>
 
-          {/*
-            A barra engorda quando ha poucos baldes: um recorte de quatro dias
-            desenhado com a espessura de doze meses vira quatro tracinhos numa
-            faixa vazia.
-          */}
           <CashflowChart
             data={data.cashflow}
             title="Receitas e despesas"

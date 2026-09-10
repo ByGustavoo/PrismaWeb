@@ -4,15 +4,6 @@ import type { Goal, GoalPayload, GoalPricePayload, GoalUpdatePayload, GoalsSumma
 import { addGoalPrice, buildGoalsSummary, createGoal, deleteGoal, mockResponse, updateGoal } from './mocks';
 import type { GoalFilters } from './mocks';
 
-/**
- * Metas e desejos. A listagem devolve o consolidado — variacao, menor preco,
- * media e leitura do momento vem calculados —, do mesmo jeito que a carteira de
- * investimentos: conta de servidor, nao de componente.
- *
- * `status` e `search` sao os parametros que a API vai receber como query
- * string. A tela hoje nao os usa: com poucas dezenas de metas, filtrar e
- * ordenar em memoria responde a cada tecla sem uma nova ida ao servidor.
- */
 export const goalsService = {
   list(filters: GoalFilters = {}, signal?: AbortSignal): Promise<GoalsSummary> {
     if (env.useMocks) return mockResponse(buildGoalsSummary(filters), signal);
@@ -32,7 +23,6 @@ export const goalsService = {
     return httpClient.put<Goal>(endpoints.goals.byId(id), payload, { ...(signal ? { signal } : {}) });
   },
 
-  /** Acrescenta um preco ao historico e devolve a meta com a serie atualizada. */
   addPrice(id: ID, payload: GoalPricePayload, signal?: AbortSignal): Promise<Goal> {
     if (env.useMocks) return mockResponse(addGoalPrice(id, payload), signal);
     return httpClient.post<Goal>(endpoints.goals.prices(id), payload, { ...(signal ? { signal } : {}) });

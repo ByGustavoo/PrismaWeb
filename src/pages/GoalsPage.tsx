@@ -22,7 +22,6 @@ import type { Goal, GoalPricePayload, GoalStatus, GoalTracking, Tendencia } from
 import { formatPercent } from '@/utils/format';
 import styles from './GoalsPage.module.css';
 
-/** Direcao do conjunto: barateou, encareceu ou nao se moveu. */
 function totalTrend(change: number, base: number): Tendencia {
   if (base <= 0 || Math.abs(change / base) <= 0.005) return 'ESTAVEL';
   return change > 0 ? 'ALTA' : 'BAIXA';
@@ -44,11 +43,6 @@ export function GoalsPage() {
   const items = useMemo(() => data?.items ?? [], [data]);
   const visible = useMemo(() => applyGoalQuery(items, query), [items, query]);
 
-  /*
-   * O detalhe guarda o id, e nao o objeto: depois de registrar um preco a lista
-   * recarrega, e um retrato preso no estado continuaria mostrando o historico
-   * de antes — justamente o que o usuario acabou de mudar.
-   */
   const detail = useMemo(
     () => (detailId ? items.find((item) => item.goal.id === detailId) ?? null : null),
     [detailId, items],
@@ -86,7 +80,6 @@ export function GoalsPage() {
     }
   };
 
-  /** Devolve `true` quando o preco entrou, para o formulario se limpar. */
   const handleAddPrice = async (tracking: GoalTracking, payload: GoalPricePayload): Promise<boolean> => {
     setSaving(true);
 
@@ -103,7 +96,6 @@ export function GoalsPage() {
     }
   };
 
-  /** Marcar como comprada, cancelar ou voltar a acompanhar sem abrir o formulario. */
   const handleStatusChange = async (tracking: GoalTracking, status: GoalStatus) => {
     const { goal } = tracking;
     setSaving(true);
@@ -158,7 +150,6 @@ export function GoalsPage() {
         }
       />
 
-      {/* O esqueleto e so da primeira carga: registrar um preco mantem a lista na tela. */}
       {loading && !data ? (
         <div className={styles.stack} aria-busy="true">
           <Card padding="none">
@@ -277,11 +268,6 @@ export function GoalsPage() {
         onClose={closeForm}
       />
 
-      {/*
-        Editar e excluir fecham o detalhe antes de abrir o proximo painel: dois
-        modais empilhados disputariam a trava de Tab e o Escape fecharia os dois
-        de uma vez.
-      */}
       <GoalDetailModal
         tracking={detail}
         saving={saving}

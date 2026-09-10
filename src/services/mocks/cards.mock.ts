@@ -13,15 +13,6 @@ import type {
 import { fromMonthKey, monthKeyRange, monthsBetween, shiftMonthKey, todayISO } from '@/utils/date';
 import { cards, currentMonth, installmentPurchases, transactions } from './data';
 
-/**
- * Faturas e parcelamentos nao sao uma lista escrita a mao: eles saem das compras
- * do cartao e das compras parceladas, do mesmo jeito que os avisos saem dos
- * lancamentos. Assim uma compra cadastrada agora aparece na fatura do mes, no
- * limite comprometido do cartao e no cronograma de parcelas sem nenhum ajuste
- * manual — e o formato calculado aqui e exatamente o que o backend vai devolver.
- */
-
-/** Meses de historico e de projecao gerados alem do que as parcelas exigem. */
 const HISTORY_MONTHS = 6;
 const HORIZON_MONTHS = 6;
 
@@ -29,16 +20,10 @@ function money(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-/** Diferenca em meses com sinal: ("2026-09", "2026-07") -> -2. */
 function monthDiff(from: string, to: string): number {
   return monthsBetween(from, to) - 1;
 }
 
-/**
- * Data ISO do dia `day` no mes indicado. Dia 31 num mes de 30 cai no ultimo dia,
- * como fazem as operadoras: uma fatura nao deixa de fechar porque fevereiro e
- * curto.
- */
 function dayIn(monthKey: string, day: number): string {
   const start = fromMonthKey(monthKey);
   const lastDay = new Date(start.getFullYear(), start.getMonth() + 1, 0).getDate();
@@ -49,11 +34,6 @@ function closingDateOf(card: Card, monthKey: string): string {
   return isCreditCard(card) ? dayIn(monthKey, card.closingDay) : monthKeyRange(monthKey).to;
 }
 
-/**
- * Vencimento da fatura do mes. Quando o dia de vencimento e anterior ou igual ao
- * de fechamento, ele so pode ser no mes seguinte — e o arranjo usual: fecha dia
- * 28, vence dia 8.
- */
 function dueDateOf(card: Card, monthKey: string): string {
   if (!isCreditCard(card)) return monthKeyRange(monthKey).to;
   const month = card.dueDay <= card.closingDay ? shiftMonthKey(monthKey, 1) : monthKey;
@@ -64,15 +44,6 @@ function invoiceId(cardId: string, monthKey: string): string {
   return `inv-${cardId}-${monthKey}`;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Compras parceladas                                                         */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Valor de cada parcela. As primeiras levam o valor arredondado para baixo e a
- * ultima absorve a sobra, para que a soma feche exatamente com o total da
- * compra: 3x de R$ 1.000,00 nao pode virar R$ 999,99.
- */
 function installmentAmounts(purchase: InstallmentPurchase): number[] {
   const base = Math.floor((purchase.totalAmount * 100) / purchase.count) / 100;
   const amounts = Array.from({ length: purchase.count }, () => base);
@@ -80,7 +51,6 @@ function installmentAmounts(purchase: InstallmentPurchase): number[] {
   return amounts;
 }
 
-/** Mes da fatura em que a parcela `index` (base zero) cai. */
 function installmentMonth(purchase: InstallmentPurchase, index: number): string {
   return shiftMonthKey(purchase.firstMonth, index);
 }
@@ -99,13 +69,10 @@ export function buildInstallmentPlan(purchase: InstallmentPurchase): Installment
       month,
       dueDate,
       amount,
-      // A parcela deixa de ser cobranca futura quando a fatura dela vence: e o
-      // unico marco que o mock conhece, ja que nao ha registro de pagamento.
       status: dueDate < today ? 'PAGA' : 'FUTURA',
     };
   });
 
-  // A primeira ainda nao vencida e a que esta em curso; as demais seguem futuras.
   const current = schedule.find((item) => item.status !== 'PAGA') ?? null;
   if (current) current.status = 'ATUAL';
 
@@ -124,7 +91,6 @@ export function buildInstallmentPlan(purchase: InstallmentPurchase): Installment
   };
 }
 
-/** Compras parceladas em curso primeiro; entre elas, a que termina antes. */
 export function buildInstallmentPlans(cardId?: string): InstallmentPlan[] {
   return installmentPurchases
     .filter((purchase) => (cardId ? purchase.cardId === cardId : true))
@@ -136,11 +102,6 @@ export function buildInstallmentPlans(cardId?: string): InstallmentPlan[] {
     });
 }
 
-/* -------------------------------------------------------------------------- */
-/* Faturas                                                                    */
-/* -------------------------------------------------------------------------- */
-
-/** Compras avulsas do ciclo: depois do fechamento anterior, ate o deste mes. */
 function purchaseItems(card: Card, monthKey: string): InvoiceItem[] {
   const closing = closingDateOf(card, monthKey);
   const previousClosing = closingDateOf(card, shiftMonthKey(monthKey, -1));
@@ -162,7 +123,6 @@ function purchaseItems(card: Card, monthKey: string): InvoiceItem[] {
     }));
 }
 
-/** Parcelas que caem na fatura deste mes. */
 function installmentItems(card: Card, monthKey: string): InvoiceItem[] {
   const items: InvoiceItem[] = [];
 
@@ -177,8 +137,6 @@ function installmentItems(card: Card, monthKey: string): InvoiceItem[] {
 
     items.push({
       id: `item-${purchase.id}-${index + 1}`,
-      // A data e a da compra, nao a do mes da parcela: e ela que o extrato
-      // mostra, e o selo "3/10" ao lado ja explica por que a data e antiga.
       description: purchase.description,
       date: purchase.purchaseDate,
       amount,
@@ -196,18 +154,12 @@ function invoiceItems(card: Card, monthKey: string): InvoiceItem[] {
   );
 }
 
-/**
- * Situacao da fatura a partir das datas. O mock nao registra pagamento, entao
- * fatura vencida e tratada como paga — o que interessa exercitar na tela e a
- * distincao entre o ciclo aberto, o fechado a pagar e o encerrado.
- */
 function invoiceStatus(closingDate: string, dueDate: string, isOpenCycle: boolean): SituacaoFatura {
   const today = todayISO();
   if (closingDate >= today) return isOpenCycle ? 'ABERTA' : 'FUTURA';
   return dueDate >= today ? 'FECHADA' : 'PAGA';
 }
 
-/** Ate onde as faturas vao: o horizonte fixo ou a ultima parcela, o que for maior. */
 function horizonFor(card: Card): number {
   const furthest = installmentPurchases
     .filter((purchase) => purchase.cardId === card.id)
@@ -232,16 +184,12 @@ function buildCardInvoices(card: Card): Invoice[] {
     const dueDate = dueDateOf(card, month);
     const items = invoiceItems(card, month);
 
-    // O ciclo aberto e o primeiro que ainda nao fechou; os seguintes sao previstos.
     const isOpenCycle = !openFound && closingDate >= todayISO();
     const status = invoiceStatus(closingDate, dueDate, isOpenCycle);
     if (status === 'ABERTA') openFound = true;
 
-    // Fatura futura sem nada dentro nao existe: so polui a lista com zeros.
     if (items.length === 0 && (status === 'FUTURA' || status === 'PAGA')) continue;
 
-    // A anterior e a ultima que entrou na lista, e nao a do mes -1: um mes sem
-    // compra nenhuma nao vira fatura, e comparar com um buraco nao diz nada.
     const previous = invoices[invoices.length - 1];
 
     invoices.push({
@@ -261,7 +209,6 @@ function buildCardInvoices(card: Card): Invoice[] {
   return invoices;
 }
 
-/** Todas as faturas, da mais proxima do vencimento para a mais distante. */
 export function buildInvoices(cardId?: string): Invoice[] {
   return cards
     .filter((card) => (cardId ? card.id === cardId : true))
@@ -279,11 +226,6 @@ export function buildInvoiceDetail(id: string): InvoiceDetail | undefined {
   return { ...invoice, items: invoiceItems(card, invoice.month) };
 }
 
-/**
- * Soma das parcelas que caem nas faturas de um mes, de todos os cartoes. E o
- * que a previsao financeira precisa saber: uma compra em doze vezes ja e uma
- * despesa assumida dos proximos doze meses, mesmo sem lancamento nenhum.
- */
 export function installmentTotalIn(monthKey: string): number {
   return money(
     installmentPurchases.reduce((total, purchase) => {
@@ -294,15 +236,6 @@ export function installmentTotalIn(monthKey: string): number {
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* Cartoes                                                                    */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Limite comprometido: tudo que ainda nao foi pago, incluindo as parcelas que so
- * vao cair nos proximos meses. E o numero que responde "quanto ainda posso
- * gastar" — somar apenas a fatura aberta esconderia doze parcelas ja assumidas.
- */
 export function usedLimitOf(cardId: string): number {
   return money(
     buildInvoices(cardId)
@@ -311,12 +244,10 @@ export function usedLimitOf(cardId: string): number {
   );
 }
 
-/** Cartoes com o limite comprometido ja calculado, do jeito que a API devolveria. */
 export function buildCards(): Card[] {
   return cards.map((card) => (isCreditCard(card) ? { ...card, used: usedLimitOf(card.id) } : { ...card }));
 }
 
-/** Cartoes de credito acima da faixa de atencao, para o painel de avisos. */
 export function cardsNearLimit(): Array<{ card: CreditCard; used: number; ratio: number }> {
   return buildCards()
     .filter(isCreditCard)

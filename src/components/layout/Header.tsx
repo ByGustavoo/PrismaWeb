@@ -24,35 +24,15 @@ export function Header({ onOpenMenu }: HeaderProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const isMobile = useIsMobile();
 
-  // O painel monta uma vez e informa quantos avisos exigem atencao, para que o
-  // ponto no sino nao dependa de o usuario abrir o painel antes.
   const closeAlerts = useCallback(() => setAlertsOpen(false), []);
   const closeSearch = useCallback(() => setSearchOpen(false), []);
 
-  // O seletor so aparece onde ele muda alguma coisa. As demais telas ou nao tem
-  // nocao de periodo ou tem o proprio filtro, como Lancamentos.
-  //
-  // No celular ele sai daqui: o header ja carrega menu, busca, tema, avisos e a
-  // acao principal, e o seletor ficava com largura para escrever "Sete...". Quem
-  // o exibe nessa faixa e o proprio dashboard, junto dos controles da tela.
   const showPeriodSwitcher = location.pathname === paths.dashboard && !isMobile;
 
-  // Pelo mesmo motivo, o header cede a busca e a acao principal onde a tela ja
-  // traz as suas. Em Lancamentos a caixa dos filtros peneira a lista a cada
-  // tecla — duas caixas quase iguais, uma que navega e outra que filtra, so
-  // fazem escolher errado — e o cadastro ja aparece logo abaixo, separado por
-  // tipo, do qual "Novo lancamento" seria so um quarto caminho para o mesmo
-  // formulario. O campo da tela ocupa o espaco da busca pelo HeaderSlot.
   const pageOwnsControls = location.pathname.startsWith(paths.transactions);
 
   return (
     <header className={styles.header}>
-      {/*
-       * O miolo repete a caixa do conteudo (mesma largura maxima, mesmo
-       * centramento). Sem isso, em telas mais largas que --content-max a pagina
-       * centraliza e o header nao: a busca e o seletor de periodo ficavam
-       * recuados a esquerda do titulo da tela logo abaixo deles.
-       */}
       <div className={styles.inner}>
         <button type="button" className={styles.menuButton} onClick={onOpenMenu} aria-label="Abrir menu">
           <Menu size={20} strokeWidth={2} />
@@ -61,19 +41,12 @@ export function Header({ onOpenMenu }: HeaderProps) {
         {showPeriodSwitcher ? <PeriodSwitcher /> : null}
 
         {pageOwnsControls ? (
-          // Espaco a disposicao da tela, preenchido por HeaderSlot. Ver o
-          // comentario la.
           <div id={HEADER_SLOT_ID} className={styles.slot} />
         ) : (
           <GlobalSearch expanded={searchOpen} onCollapse={closeSearch} />
         )}
 
         <div className={styles.actions}>
-          {/*
-           * Em tela estreita o campo nao cabe ao lado das acoes, entao ele vira
-           * este botao, que abre a busca sobre o header. Esconder a busca sem
-           * substituto tirava do celular o caminho mais curto para um lancamento.
-           */}
           {pageOwnsControls ? null : (
             <button
               type="button"
@@ -112,10 +85,6 @@ export function Header({ onOpenMenu }: HeaderProps) {
             <NotificationsPanel open={alertsOpen} onClose={closeAlerts} onCountChange={setAlertCount} />
           </div>
 
-          {/*
-           * No celular o rotulo sai e sobra o "+", mas a acao continua a mesma e o
-           * nome acessivel nao depende do texto visivel.
-           */}
           {pageOwnsControls ? null : (
             <Button
               className={styles.newButton}

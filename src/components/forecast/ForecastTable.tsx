@@ -6,15 +6,9 @@ import styles from './ForecastTable.module.css';
 
 interface ForecastTableProps {
   months: ForecastMonth[];
-  /** Mes de menor saldo projetado; ele ganha destaque na linha. */
   lowestMonth: string;
 }
 
-/**
- * A previsao aberta em suas partes. O grafico responde a forma da curva; esta
- * tabela responde de onde vem cada numero — sem ela, "R$ 6.480 de despesa" e
- * uma afirmacao que nao da para conferir nem contestar.
- */
 export function ForecastTable({ months, lowestMonth }: ForecastTableProps) {
   return (
     <Card padding="none">
@@ -56,7 +50,6 @@ export function ForecastTable({ months, lowestMonth }: ForecastTableProps) {
                 <Tr key={month.month} className={month.month === lowestMonth ? styles.lowest : undefined}>
                   <Td>
                     <span className={styles.month}>{capitalize(formatMonthLabel(month.month))}</span>
-                    {/* A faixa lateral e so cor; quem le por audio precisa da mesma informacao. */}
                     {month.month === lowestMonth ? (
                       <span className="visually-hidden"> — mês de menor saldo previsto</span>
                     ) : null}

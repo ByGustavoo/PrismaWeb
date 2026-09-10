@@ -13,12 +13,6 @@ interface InvestmentCardProps {
   onDelete: (position: InvestmentPosition) => void;
 }
 
-/**
- * Uma posicao da carteira. Segue o mesmo arranjo do cartao de conta — o cartao
- * inteiro abre a edicao e so o excluir recebe ponteiro proprio —, porque as
- * duas telas fazem a mesma promessa: uma lista de cadastros que se edita
- * clicando no item.
- */
 export function InvestmentCard({ position, onEdit, onDelete }: InvestmentCardProps) {
   const { investment, profit, profitability, share } = position;
   const Icon = investmentClassIcon[investment.assetClass];

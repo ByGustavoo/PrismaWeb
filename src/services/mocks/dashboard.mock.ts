@@ -20,25 +20,17 @@ import { balanceAt, monthClosingDate } from './balance';
 import { buildInvoices } from './cards.mock';
 import { currentMonth, investments, transactions } from './data';
 
-/** Recorte pedido pelo header: um mes so quando `from` e `to` sao iguais. */
 export interface DashboardPeriod {
   from: string;
   to: string;
 }
 
-/**
- * Um mes sozinho nao conta historia nenhuma num grafico de linha, entao o
- * recorte de mes unico ganha os cinco meses anteriores como contexto. Um periodo
- * de varios meses ja e a propria janela: mostrar meses de fora confundiria.
- */
 const SINGLE_MONTH_WINDOW = 6;
 
-/** Os `count` meses que terminam em `monthKey`, do mais antigo ao mais recente. */
 function monthWindow(monthKey: string, count: number): string[] {
   return Array.from({ length: count }, (_, index) => shiftMonthKey(monthKey, index - (count - 1)));
 }
 
-/** Meses desenhados nos graficos para o periodo escolhido. */
 function chartWindow(period: DashboardPeriod): string[] {
   const length = monthsBetween(period.from, period.to);
   return monthWindow(period.to, length > 1 ? length : SINGLE_MONTH_WINDOW);
@@ -53,22 +45,11 @@ function ofMonth(monthKey: string): Lancamento[] {
   return transactions.filter((item) => item.data.startsWith(monthKey));
 }
 
-/** O periodo de mesmo tamanho imediatamente anterior, base das variacoes. */
 function previousPeriod(period: DashboardPeriod): DashboardPeriod {
   const length = monthsBetween(period.from, period.to);
   return { from: shiftMonthKey(period.from, -length), to: shiftMonthKey(period.to, -length) };
 }
 
-/**
- * Um total de despesas para cada dia da janela desenhada — a mesma dos outros
- * graficos, entao um mes unico vem acompanhado dos cinco anteriores. Trinta
- * quadradinhos sozinhos nao mostram habito nenhum: e a repeticao de seis meses
- * que faz aparecer o dia da semana em que se gasta e a semana do mes que pesa.
- *
- * A serie e continua de proposito, com o dia sem gasto valendo zero: e o
- * calendario que decide como pintar o vazio e o dia que ainda nao chegou, e
- * para isso ele precisa de todas as casas.
- */
 function buildDailySpending(window: string[]): GastoDiario[] {
   const first = window[0];
   const last = window[window.length - 1];
@@ -109,11 +90,6 @@ function buildBalanceHistory(window: string[]): PontoSaldo[] {
   return window.map((key) => ({ rotulo: shortMonthLabel(key), saldo: balanceAt(monthClosingDate(key)) }));
 }
 
-/**
- * Fatura em destaque no mes: a aberta, e na falta dela a de maior valor. O
- * cartao aparece nomeado no rodape do bloco, entao somar as faturas de todos os
- * cartoes daria um numero que nao corresponde a nenhum vencimento.
- */
 function buildInvoice(monthKey: string): ResumoDashboard['faturaAtual'] {
   const monthly = buildInvoices().filter((invoice) => invoice.month === monthKey);
   const open = monthly.filter((invoice) => invoice.status === 'ABERTA');
@@ -128,8 +104,6 @@ function buildInvoice(monthKey: string): ResumoDashboard['faturaAtual'] {
     };
   }
 
-  // Mes sem nenhum cartao movimentado: o bloco mostra zero em vez de sumir. O
-  // nome nunca vem vazio porque a tela concatena nome e vencimento sem guarda.
   return {
     total: 0,
     nomeCartao: 'Nenhum cartão',
@@ -138,7 +112,6 @@ function buildInvoice(monthKey: string): ResumoDashboard['faturaAtual'] {
   };
 }
 
-/** Sem periodo, o mes corrente. */
 export function buildDashboardSummary(
   period: DashboardPeriod = { from: currentMonth, to: currentMonth },
 ): ResumoDashboard {

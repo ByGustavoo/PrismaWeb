@@ -3,7 +3,6 @@ import { cn } from '@/utils/cn';
 import styles from './Card.module.css';
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
-  /** `muted` para blocos secundarios, `bare` quando o proprio conteudo desenha a moldura. */
   tone?: 'default' | 'muted' | 'bare';
   padding?: 'none' | 'sm' | 'md';
 }

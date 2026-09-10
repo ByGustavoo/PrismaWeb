@@ -14,7 +14,6 @@ import styles from './InstallmentForm.module.css';
 
 interface InstallmentFormModalProps {
   open: boolean;
-  /** Presente apenas na edicao. */
   purchase: InstallmentPurchase | null;
   cards: Card[];
   categories: Categoria[];
@@ -54,11 +53,6 @@ function initialState(purchase: InstallmentPurchase | null): FormState {
   };
 }
 
-/**
- * Mes em que a primeira parcela cai: compra feita depois do fechamento entra so
- * na fatura seguinte. E o mesmo criterio que a fatura usa para montar o ciclo,
- * entao o padrao sugerido aqui coincide com o que a tela de faturas vai mostrar.
- */
 function defaultFirstMonth(card: CreditCard | undefined, purchaseDate: string): string {
   const month = purchaseDate.slice(0, 7);
   if (!card) return month;
@@ -131,11 +125,6 @@ export function InstallmentFormModal({
   const suggestedMonth = defaultFirstMonth(selectedCard, form.purchaseDate);
   const firstMonth = form.firstMonth || suggestedMonth;
 
-  /*
-   * Meses oferecidos: o sugerido, o anterior e os tres seguintes. Vale poder
-   * ajustar — compra parcelada com carencia comeca depois —, mas uma lista de
-   * doze meses tiraria a forca do padrao, que acerta na maioria dos casos.
-   */
   const monthOptions = useMemo<Option[]>(
     () =>
       Array.from({ length: 5 }, (_, index) => {
@@ -240,8 +229,6 @@ export function InstallmentFormModal({
           value={form.cardId}
           onChange={(cardId) => {
             set('cardId', cardId);
-            // O mes sugerido depende do fechamento do cartao: trocar de cartao
-            // com um mes escolhido a mao guardaria a escolha do cartao anterior.
             set('firstMonth', '');
           }}
           error={errors.cardId}
@@ -284,10 +271,6 @@ export function InstallmentFormModal({
           error={errors.notes}
         />
 
-        {/*
-          A previa responde antes do envio a pergunta que a tela toda existe para
-          responder: quanto e cada parcela e ate quando ela aparece nas faturas.
-        */}
         {total && total > 0 && count > 1 ? (
           <p className={styles.preview}>
             <strong className={styles.previewValue}>
@@ -303,7 +286,6 @@ export function InstallmentFormModal({
 
         <p className={styles.legend}>* Campos obrigatórios.</p>
 
-        {/* Envio pelo Enter dentro do formulario; o botao visivel fica no rodape do modal. */}
         <button type="submit" className="visually-hidden" tabIndex={-1} aria-hidden="true" />
       </form>
     </Modal>

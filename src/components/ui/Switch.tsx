@@ -11,14 +11,6 @@ export interface SwitchProps {
   className?: string;
 }
 
-/**
- * Chave de duas posicoes para preferencias booleanas de formulario. Um `Select`
- * de "Sim/Nao" resolveria, mas custa dois cliques e uma leitura a mais para uma
- * decisao que cabe num toque.
- *
- * O rotulo e o proprio alvo, entao a area de acionamento e a linha inteira — e
- * nao so o desenho de 40px da chave.
- */
 export function Switch({ checked, onChange, label, hint, disabled = false, className }: SwitchProps) {
   const id = useId();
   const hintId = hint ? `${id}-hint` : undefined;
@@ -36,12 +28,6 @@ export function Switch({ checked, onChange, label, hint, disabled = false, class
         onClick={() => onChange(!checked)}
       >
         <span className={cn(styles.track, checked && styles.trackOn)} aria-hidden="true">
-          {/*
-            O preenchimento e uma camada propria para poder crescer de debaixo do
-            polegar ligado ate tomar a chave inteira — e encolher de volta para
-            la ao desligar. Trocar so a cor de fundo do trilho chegaria a mesma
-            cor final, sem nenhum sentido de origem.
-          */}
           <span className={styles.fill} />
           <span className={styles.thumb} />
         </span>

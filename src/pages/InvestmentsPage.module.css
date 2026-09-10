@@ -4,17 +4,6 @@
   gap: var(--space-5);
 }
 
-/*
- * A evolucao ocupa dois tercos e a distribuicao um: a serie temporal precisa de
- * largura para os doze meses caberem sem apertar, enquanto a rosca e quadrada e
- * so ganharia espaco vazio ao redor.
- */
-/*
- * A evolucao continua maior que a distribuicao — serie temporal precisa de
- * largura —, mas nao tanto quanto antes: com 1.6fr a legenda da rosca ficava
- * estreita a ponto de truncar o nome de todas as oito classes ("Crip...").
- * Uma legenda que nao se le nao e legenda.
- */
 .charts {
   display: grid;
   grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
@@ -33,10 +22,6 @@
   font-weight: 600;
 }
 
-/*
- * `auto-fill` com largura minima em vez de um numero fixo de colunas: quem
- * decide quando vale quebrar e o conteudo do cartao, nao a tela.
- */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(312px, 1fr));
@@ -46,7 +31,6 @@
   list-style: none;
 }
 
-/* A rentabilidade e o unico numero da faixa que nao e dinheiro. */
 .percent {
   font-family: var(--font-figure);
   font-size: var(--fs-md);

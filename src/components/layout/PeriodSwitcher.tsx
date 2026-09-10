@@ -9,11 +9,6 @@ import { monthKeyFromOffset, shiftMonthKey } from '@/utils/date';
 import { capitalize, formatMonthLabel, formatPeriodLabel } from '@/utils/format';
 import styles from './PeriodSwitcher.module.css';
 
-/**
- * Quantos meses a lista do periodo personalizado oferece, contando o corrente.
- * Nao adianta oferecer mais do que o historico cobre: o seletor viraria um jeito
- * de chegar a um dashboard vazio.
- */
 const CUSTOM_RANGE_MONTHS = 12;
 
 interface Preset {
@@ -41,11 +36,6 @@ function monthOptions(thisMonth: string): Option[] {
   }).reverse();
 }
 
-/**
- * Recorte de tempo do dashboard. O caso comum — um mes de cada vez — fica nas
- * setas, e o painel guarda os periodos maiores, ate um intervalo proprio ("de
- * maio a agosto"). O periodo escolhido vive no `PeriodProvider`, fora da URL.
- */
 export function PeriodSwitcher() {
   const { period, setPeriod, shiftPeriod } = usePeriod();
   const [open, setOpen] = useState(false);
@@ -73,7 +63,6 @@ export function PeriodSwitcher() {
     const handlePointerDown = (event: PointerEvent) => {
       const target = event.target as Node;
       if (rootRef.current?.contains(target)) return;
-      // A lista do Select vive num portal, fora deste no.
       if ((target as HTMLElement).closest?.('[role="listbox"]')) return;
       close();
     };

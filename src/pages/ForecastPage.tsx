@@ -110,10 +110,6 @@ export function ForecastPage() {
             <ForecastTable months={data.months} lowestMonth={data.lowest.month} />
           )}
 
-          {/*
-            A projecao e uma suposicao, e dizer isso e parte do produto: um
-            numero apresentado como certeza vira decisao errada quando erra.
-          */}
           <p className={styles.method}>
             A previsão parte do saldo de hoje e começa no mês que vem — o mês corrente já está no dashboard. As
             receitas e o gasto variável usam a média dos três meses fechados anteriores; as recorrentes e as parcelas

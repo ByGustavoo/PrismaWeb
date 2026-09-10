@@ -15,11 +15,8 @@ interface TransactionFiltersProps {
   query: TransactionQuery;
   onChange: (patch: Partial<TransactionQuery>) => void;
   onClear: () => void;
-  /** Lista completa da tela: as opcoes saem dela, nunca de um cadastro fixo. */
   source: Lancamento[];
-  /** Escondido nas telas que ja sao de um tipo so. */
   showKindFilter: boolean;
-  /** Escondido em Transferencias, onde nenhum lancamento tem categoria. */
   showCategoryFilter: boolean;
 }
 
@@ -37,14 +34,12 @@ const statusOptions: Option[] = [
   { value: 'AGENDADO', label: transactionStatusLabel.AGENDADO },
 ];
 
-/** Quantos filtros (fora a busca) estao restringindo a lista agora. */
 function countActiveFilters(query: TransactionQuery): number {
   return [query.period, query.kind, query.categoryId, query.accountId, query.status].filter(
     (value) => value !== ALL,
   ).length;
 }
 
-/** Ordena e deduplica pares id/nome vindos dos proprios dados. */
 function toOptions(entries: Array<[string, string]>, allLabel: string): Option[] {
   const unique = new Map(entries);
   const sorted = [...unique.entries()]
@@ -89,9 +84,6 @@ export function TransactionFilters({
   const panelId = useId();
 
   const activeCount = countActiveFilters(query);
-  // No desktop os filtros cabem na mesma linha da busca. No celular, cinco
-  // campos empilhados empurravam o primeiro lancamento para fora da tela, entao
-  // eles ficam atras de um botao que diz quantos estao ativos.
   const showControls = !isCompact || expanded;
 
   const search = (
@@ -111,24 +103,12 @@ export function TransactionFilters({
     </Button>
   ) : null;
 
-  /*
-   * A busca e o "Limpar" andam juntos — o botao zera tambem o que foi digitado
-   * — e mudam de lugar conforme a largura. No desktop sobem para o espaco que o
-   * header reserva a tela, o mesmo em que as outras telas mostram a busca
-   * global; no celular ficam na tela, ao lado do botao que abre os filtros,
-   * porque la o header nao tem folga para mais um campo.
-   */
   return (
     <div className={styles.filters}>
       {isCompact ? (
         <div className={styles.searchRow}>
           {search}
 
-          {/*
-            "Filtros" vem antes de "Limpar" para que a quebra caia no lugar
-            certo: busca e filtros juntos na primeira linha, e o limpar —
-            secundario — desce sozinho quando existe.
-          */}
           <Button
             className={styles.toggle}
             variant="secondary"
@@ -201,7 +181,6 @@ export function TransactionFilters({
         />
       </div>
 
-      {/* As datas so aparecem quando o usuario pede um periodo proprio. */}
       {showControls && query.period === 'custom' ? (
         <div className={styles.range}>
           <DatePicker

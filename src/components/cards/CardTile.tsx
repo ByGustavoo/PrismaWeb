@@ -9,25 +9,13 @@ import styles from './CardTile.module.css';
 
 interface CardTileProps {
   card: Card;
-  /** Fatura em curso; so cartao de credito tem uma. */
   invoice?: Invoice | undefined;
-  /**
-   * Saldo da conta que o cartao de debito acessa. E o numero que responde quanto
-   * ele pode gastar: sem ele, o unico cartao da tela sem valor algum era
-   * justamente o que se usa todo dia.
-   */
   accountBalance?: number | undefined;
   onEdit: (card: Card) => void;
   onDelete: (card: Card) => void;
   onOpenInvoices: (card: Card) => void;
 }
 
-/**
- * Um cartao no cadastro. Os quatro tipos dividem o cabecalho e mudam so o miolo:
- * credito mostra limite e fatura, debito mostra a conta que ele acessa e os
- * vales mostram o saldo carregado. Repetir a moldura em quatro componentes
- * separados faria a mesma identidade visual divergir com o tempo.
- */
 export function CardTile({ card, invoice, accountBalance, onEdit, onDelete, onOpenInvoices }: CardTileProps) {
   const Icon = cardTypeIcon[card.type];
   const credit = isCreditCard(card);
@@ -68,13 +56,6 @@ export function CardTile({ card, invoice, accountBalance, onEdit, onDelete, onOp
           />
         </span>
 
-        {/*
-          A linha de identificacao ocupa a largura do nome mais a das acoes: com
-          ela espremida na coluna do nome, "Banco Nova · Mastercard · •••• 4417"
-          quebrava em duas e deixava um separador solto no fim da primeira.
-          Espaco inquebravel nos digitos: "•••• 4417" partido no meio vira dois
-          lixos visuais.
-        */}
         <span className={styles.meta}>
           {[card.institution, card.brand, card.lastDigits ? `•••• ${card.lastDigits}` : null]
             .filter(Boolean)

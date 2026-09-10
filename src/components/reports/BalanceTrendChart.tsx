@@ -10,11 +10,6 @@ interface BalanceTrendChartProps {
   data: PontoSaldo[];
 }
 
-/**
- * Evolucao do saldo dentro do recorte. O eixo nao comeca em zero de proposito:
- * saldo varia numa faixa estreita perto de um valor alto, e forcar o zero
- * transformaria meses de diferenca real numa linha reta.
- */
 export function BalanceTrendChart({ data }: BalanceTrendChartProps) {
   const palette = useChartPalette();
 

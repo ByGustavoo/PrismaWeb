@@ -15,7 +15,6 @@
   box-shadow: var(--shadow-accent);
 }
 
-/* Cobre a linha e abre a edicao de qualquer ponto; so o excluir volta ao ponteiro. */
 .open {
   position: absolute;
   inset: 0;
@@ -110,11 +109,6 @@
   color: var(--text-muted);
 }
 
-/*
- * Texto corrido, e nao flex: como flex, cada no vira um item com `gap` entre
- * eles, e o ponto final da frase se descolava do valor — "cabem R$ 1.701,38 .".
- * A pontuacao precisa encostar na palavra anterior como em qualquer frase.
- */
 .note {
   margin: 0;
   max-width: none;
@@ -123,12 +117,10 @@
   color: var(--text-subtle);
 }
 
-/* Valor dentro de uma frase: alinha na linha do texto em vez de virar bloco. */
 .inline {
   display: inline-flex;
 }
 
-/* Segue a frase anterior na mesma linha, separada por um espaco de frase. */
 .projection {
   margin-left: var(--space-1);
   color: var(--text-subtle);

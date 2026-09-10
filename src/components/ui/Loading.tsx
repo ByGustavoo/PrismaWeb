@@ -32,7 +32,6 @@ export function Skeleton({ width = '100%', height = 16, radius = 'var(--radius-x
   );
 }
 
-/** Bloco de carregamento para areas grandes (cards, tabelas). */
 export function LoadingBlock({ lines = 3, height = 240 }: { lines?: number; height?: number }) {
   return (
     <div className={styles.block} style={{ minHeight: height }}>

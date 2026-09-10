@@ -6,35 +6,21 @@ import { formatCompactCurrency, formatNumericDate } from '@/utils/format';
 import styles from './PriceHistoryChart.module.css';
 
 interface PriceHistoryChartProps {
-  /** Registros em ordem cronologica. */
   history: GoalPriceEntry[];
   averagePrice: number;
   trend: Tendencia;
 }
 
-/** "2026-09-04" -> "04/09", o rotulo curto do eixo. */
 function dayLabel(isoDate: string): string {
   return `${isoDate.slice(8, 10)}/${isoDate.slice(5, 7)}`;
 }
 
-/**
- * Folga aplicada ao eixo. Sem ela o Recharts abriria a escala no zero, e uma
- * variacao de 15% numa serie que orbita os R$ 5.000,00 viraria uma reta.
- */
 const AXIS_PADDING_RATIO = 0.2;
 
-/** Quantos intervalos o eixo de valores tem; quatro cabem sem apertar. */
 const AXIS_STEPS = 4;
 
-/** Passos aceitos, em multiplos da magnitude: 100, 200, 250, 500, 1000... */
 const NICE_STEPS = [1, 2, 2.5, 5, 10];
 
-/**
- * Uma escala com marcas redondas. Deixar o Recharts dividir o intervalo cru
- * produzia "R$ 989,9" e "R$ 919,9" num eixo de precos — numeros que ninguem
- * escreveria, e que fazem o leitor conferir a casa decimal em vez de olhar a
- * curva.
- */
 function niceAxis(min: number, max: number): { domain: [number, number]; ticks: number[] } {
   const raw = (max - min) / AXIS_STEPS;
   const magnitude = 10 ** Math.floor(Math.log10(raw || 1));
@@ -52,14 +38,6 @@ function niceAxis(min: number, max: number): { domain: [number, number]; ticks: 
   return { domain: [start, end], ticks };
 }
 
-/**
- * A evolucao do preco. A cor segue a mesma logica do indicador do cartao —
- * queda em verde, alta em vermelho —, para que grafico e numero nunca contem
- * historias diferentes sobre a mesma meta.
- *
- * A tracejada da media nao e enfeite: e contra ela que se le "o preço atual
- * está abaixo da média", a frase que a analise mostra logo acima.
- */
 export function PriceHistoryChart({ history, averagePrice, trend }: PriceHistoryChartProps) {
   const palette = useChartPalette();
   const color = trend === 'ALTA' ? palette.series[2] : trend === 'BAIXA' ? palette.series[1] : palette.series[0];
@@ -73,7 +51,6 @@ export function PriceHistoryChart({ history, averagePrice, trend }: PriceHistory
   const prices = history.map((entry) => entry.price);
   const lowest = Math.min(...prices);
   const highest = Math.max(...prices);
-  // Serie de preco unico ainda precisa de faixa, senao o eixo colapsa num ponto.
   const padding = Math.max((highest - lowest) * AXIS_PADDING_RATIO, highest * 0.02);
   const axis = niceAxis(lowest - padding, highest + padding);
 

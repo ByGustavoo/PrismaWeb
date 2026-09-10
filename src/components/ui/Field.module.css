@@ -11,10 +11,6 @@
   color: var(--text-muted);
 }
 
-/*
- * Marca de campo obrigatorio. E reforco visual: quem usa leitor de tela recebe
- * a informacao pelo `required` do proprio controle, nao por este asterisco.
- */
 .required {
   margin-left: 2px;
   color: var(--negative);
@@ -35,7 +31,6 @@
     box-shadow var(--duration-fast) var(--ease-out);
 }
 
-/* Campo de varias linhas cresce com o conteudo em vez de manter altura fixa. */
 .controlMultiline {
   height: auto;
   align-items: stretch;
@@ -85,7 +80,6 @@
   flex-shrink: 0;
 }
 
-/* "R$" antes do valor: mesma cor de apoio dos icones, sem competir com o numero. */
 .prefix {
   flex-shrink: 0;
   color: var(--text-subtle);
@@ -102,7 +96,6 @@
   color: var(--negative);
 }
 
-/* Mensagem a esquerda e contador de caracteres a direita, na mesma linha. */
 .foot {
   display: flex;
   align-items: baseline;

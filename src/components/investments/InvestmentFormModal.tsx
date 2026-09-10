@@ -13,7 +13,6 @@ import styles from './InvestmentForm.module.css';
 
 interface InvestmentFormModalProps {
   open: boolean;
-  /** Presente apenas na edicao. */
   investment: Investment | null;
   saving: boolean;
   onSubmit: (payload: InvestmentPayload) => void;
@@ -228,7 +227,6 @@ export function InvestmentFormModal({ open, investment, saving, onSubmit, onClos
           error={errors.notes}
         />
 
-        {/* A previa responde antes do envio o que a tela existe para mostrar. */}
         {preview ? (
           <p className={styles.preview}>
             <strong className={styles.previewValue}>
@@ -243,7 +241,6 @@ export function InvestmentFormModal({ open, investment, saving, onSubmit, onClos
 
         <p className={styles.legend}>* Campos obrigatórios.</p>
 
-        {/* Envio pelo Enter dentro do formulario; o botao visivel fica no rodape do modal. */}
         <button type="submit" className="visually-hidden" tabIndex={-1} aria-hidden="true" />
       </form>
     </Modal>

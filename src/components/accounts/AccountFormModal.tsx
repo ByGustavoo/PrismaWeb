@@ -11,7 +11,6 @@ import styles from './AccountForm.module.css';
 
 interface AccountFormModalProps {
   open: boolean;
-  /** Presente apenas na edicao. */
   account: Account | null;
   saving: boolean;
   onSubmit: (payload: AccountPayload) => void;
@@ -59,7 +58,6 @@ function validate(form: FormState): FieldErrors<FormState> {
       missing: 'Informe o banco ou a instituição da conta!',
       max: textLimits.institution,
     }),
-    // Conta no cheque especial existe: o saldo aceita valor negativo.
     balance: amountError(form.balance, {
       subject: 'O saldo atual',
       missing: 'Informe o saldo atual da conta!',
@@ -72,7 +70,6 @@ export function AccountFormModal({ open, account, saving, onSubmit, onClose }: A
   const [form, setForm] = useState<FormState>(() => initialState(account));
   const { errors, formRef, touch, submit, reset } = useFormValidation(form, validate, { limits });
 
-  // Cada abertura comeca do zero (ou do registro em edicao), sem resto da anterior.
   useEffect(() => {
     if (!open) return;
     setForm(initialState(account));
@@ -190,8 +187,6 @@ export function AccountFormModal({ open, account, saving, onSubmit, onClose }: A
           className={styles.full}
           label="Somar ao saldo total"
           checked={form.includeInTotal && !inactive}
-          // Conta inativa nunca soma, entao a chave nao teria efeito nenhum
-          // ligada: desabilitar diz isso antes de o usuario tentar.
           disabled={inactive}
           onChange={(checked) => set('includeInTotal', checked)}
           hint={
@@ -203,7 +198,6 @@ export function AccountFormModal({ open, account, saving, onSubmit, onClose }: A
 
         <p className={styles.legend}>* Campos obrigatórios.</p>
 
-        {/* Envio pelo Enter dentro do formulario; o botao visivel fica no rodape do modal. */}
         <button type="submit" className="visually-hidden" tabIndex={-1} aria-hidden="true" />
       </form>
     </Modal>

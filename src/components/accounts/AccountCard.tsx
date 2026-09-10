@@ -8,22 +8,11 @@ import styles from './AccountCard.module.css';
 
 interface AccountCardProps {
   account: Account;
-  /**
-   * Fatia desta conta no saldo total, de 0 a 1. Ausente quando a conta nao entra
-   * no total, esta inativa ou tem saldo negativo — nesses casos ela nao tem uma
-   * fatia para mostrar, e uma barra vazia seria pior que barra nenhuma.
-   */
   share?: number;
   onEdit: (account: Account) => void;
   onDelete: (account: Account) => void;
 }
 
-/**
- * Uma conta no cadastro. O cartao inteiro abre a edicao — o botao que cobre a
- * area fica atras do conteudo e so o excluir volta a receber ponteiro, o mesmo
- * arranjo da lista de lancamentos, para que a acao destrutiva continue exigindo
- * um toque proprio.
- */
 export function AccountCard({ account, share, onEdit, onDelete }: AccountCardProps) {
   const Icon = accountTypeIcon[account.type];
   const inactive = account.status === 'INATIVO';
@@ -66,11 +55,6 @@ export function AccountCard({ account, share, onEdit, onDelete }: AccountCardPro
           <Amount value={account.balance} size="lg" tone={inactive ? 'muted' : 'default'} />
         </div>
 
-        {/*
-          A tela promete "onde o seu dinheiro esta hoje" e, sem isto, cada cartao
-          respondia so "quanto". A fatia usa a mesma barra do limite do cartao:
-          quando duas telas medem proporcao, elas medem do mesmo jeito.
-        */}
         {share === undefined ? null : (
           <div className={styles.share}>
             <ProgressBar
@@ -88,10 +72,6 @@ export function AccountCard({ account, share, onEdit, onDelete }: AccountCardPro
           <Badge tone={accountStatusTone[account.status]} dot>
             {accountStatusLabel[account.status]}
           </Badge>
-          {/*
-            So a ausencia e digna de nota: escrever "Soma no saldo total" nas
-            outras quatro contas repetiria o padrao em vez de sinalizar a excecao.
-          */}
           {!account.includeInTotal && !inactive ? (
             <span className={styles.note}>Fora do saldo total</span>
           ) : null}

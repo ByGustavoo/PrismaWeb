@@ -10,11 +10,6 @@ import {
   updateInvestment,
 } from './mocks';
 
-/**
- * A carteira tem duas leituras: a lista crua, que o formulario edita, e o
- * consolidado, que a tela mostra. As duas vem do servidor — distribuicao,
- * rentabilidade e evolucao sao conta de backend, nao de componente.
- */
 export const investmentsService = {
   list(signal?: AbortSignal): Promise<Investment[]> {
     if (env.useMocks) return mockResponse(investments, signal);

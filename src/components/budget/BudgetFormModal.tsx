@@ -9,10 +9,8 @@ import styles from './BudgetForm.module.css';
 
 interface BudgetFormModalProps {
   open: boolean;
-  /** Presente apenas na edicao. */
   budget: Budget | null;
   categories: Categoria[];
-  /** Categorias que ja tem limite: elas saem da lista, exceto a que se edita. */
   usedCategoryIds: string[];
   saving: boolean;
   onSubmit: (payload: BudgetPayload) => void;
@@ -60,11 +58,6 @@ export function BudgetFormModal({
     reset();
   }, [open, budget, reset]);
 
-  /*
-   * Uma categoria tem no maximo um limite, entao as ja orcadas nem aparecem: e
-   * melhor nao oferecer a opcao do que deixar o usuario escolher e receber um
-   * erro de conflito depois de preencher o valor.
-   */
   const categoryOptions = useMemo<Option[]>(
     () =>
       categories
@@ -138,7 +131,6 @@ export function BudgetFormModal({
 
         <p className={styles.legend}>* Campos obrigatórios.</p>
 
-        {/* Envio pelo Enter dentro do formulario; o botao visivel fica no rodape do modal. */}
         <button type="submit" className="visually-hidden" tabIndex={-1} aria-hidden="true" />
       </form>
     </Modal>

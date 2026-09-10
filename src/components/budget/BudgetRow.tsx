@@ -8,17 +8,11 @@ import styles from './BudgetRow.module.css';
 
 interface BudgetRowProps {
   usage: BudgetUsage;
-  /** Projecao so faz sentido num mes em andamento; num mes fechado ela e o gasto. */
   showProjection: boolean;
   onEdit: (usage: BudgetUsage) => void;
   onDelete: (usage: BudgetUsage) => void;
 }
 
-/**
- * Um limite da lista. A pergunta que a linha responde e "quanto do meu limite
- * ja foi", e por isso o par valor/limite vem antes da barra: o numero e a
- * resposta exata, a barra e a leitura de relance.
- */
 export function BudgetRow({ usage, showProjection, onEdit, onDelete }: BudgetRowProps) {
   const { budget, spent, remaining, ratio, projected, status } = usage;
   const exceeded = status === 'ESTOURADO';

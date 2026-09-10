@@ -4,11 +4,6 @@
   gap: var(--space-5);
 }
 
-/*
- * Nota de metodo. Fica ao fim, em corpo menor: quem le a tela quer o numero
- * primeiro, mas o numero e uma projecao, e omitir como ela foi feita seria
- * apresentar suposicao como certeza.
- */
 .method {
   margin: 0;
   font-size: var(--fs-sm);

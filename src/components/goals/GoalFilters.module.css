@@ -5,10 +5,6 @@
   flex-wrap: wrap;
 }
 
-/*
- * A busca cresce, mas com teto: ocupando a faixa inteira ela viraria uma barra
- * de busca — e o header logo acima ja tem uma, que procura outra coisa.
- */
 .search {
   flex: 1 1 220px;
   max-width: 320px;
@@ -23,10 +19,6 @@
   flex-shrink: 0;
 }
 
-/*
- * A contagem fica no fim da linha e nao empurra nada quando aparece: o
- * paragrafo esta sempre no fluxo, so o texto e que entra e sai.
- */
 .count {
   margin: 0 0 0 auto;
   max-width: none;

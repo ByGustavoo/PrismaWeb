@@ -51,14 +51,12 @@ export function RecentTransactions({ transactions, description }: RecentTransact
 
 interface TransactionRowProps {
   transaction: Lancamento;
-  /** Posicao na lista: e o que escalona a entrada da linha. */
   index?: number;
 }
 
 export function TransactionRow({ transaction, index = 0 }: TransactionRowProps) {
   const Icon = kindIcon[transaction.tipo];
 
-  // `list-item-in` e uma classe global (global.css): entrada escalonada por `--i`.
   return (
     <Tr interactive className="list-item-in" style={{ '--i': index } as CSSProperties}>
       <Td>

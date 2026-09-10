@@ -7,7 +7,6 @@ export interface ConfirmDialogProps {
   open: boolean;
   title: string;
   description?: string;
-  /** Detalhe do que sera afetado: o usuario confere antes de confirmar. */
   children?: ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;
@@ -17,10 +16,6 @@ export interface ConfirmDialogProps {
   onCancel: () => void;
 }
 
-/**
- * Confirmacao de acao destrutiva. Sempre em modal proprio, nunca inline: a
- * exclusao precisa de um gesto deliberado, separado do clique que a disparou.
- */
 export function ConfirmDialog({
   open,
   title,

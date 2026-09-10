@@ -14,7 +14,6 @@ import type { InstallmentPayload, InstallmentPurchase, Option } from '@/types';
 import { formatShortMonth } from '@/utils/format';
 import styles from './InstallmentsPage.module.css';
 
-/** Valor do filtro para "sem restricao de cartao". */
 const ALL_CARDS = 'all';
 
 export function InstallmentsPage() {
@@ -26,7 +25,6 @@ export function InstallmentsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const toast = useToast();
 
-  // Mesmo contrato das outras telas: o cartao chega pela URL e sai dela na leitura.
   useEffect(() => {
     const requested = searchParams.get(CARD_PARAM);
     if (!requested) return;
@@ -67,7 +65,6 @@ export function InstallmentsPage() {
 
   const summary = useMemo(() => {
     const active = plans.filter((plan) => plan.remainingCount > 0);
-    // O ultimo mes com parcela responde "quando eu me livro disso".
     const lastMonth = active
       .map((plan) => plan.schedule[plan.schedule.length - 1]?.month ?? '')
       .filter(Boolean)
@@ -141,13 +138,6 @@ export function InstallmentsPage() {
         description="Quanto já foi pago, quanto falta e em quais faturas as parcelas caem"
         actions={
           <>
-            {/*
-             * O filtro vive na linha de acoes da tela, e nao numa faixa propria
-             * entre o resumo e a lista: sozinho ali, um campo estreito ficava
-             * perdido entre dois blocos largos e criava uma terceira faixa sem
-             * conteudo. Aqui ele divide a linha com a acao principal, que e onde
-             * os controles de tela ja moram.
-             */}
             {creditCards.length > 1 ? (
               <Select
                 className={styles.filter}
@@ -167,13 +157,6 @@ export function InstallmentsPage() {
         }
       />
 
-      {/*
-        O esqueleto e so da primeira carga. Depois de cadastrar, editar ou trocar
-        o filtro, os numeros anteriores ficam na tela ate os novos chegarem:
-        apagar a tela a cada gravacao piscava o conteudo inteiro e, pior,
-        remontava a faixa de resumo — o que faria a contagem de entrada
-        (`Amount countUp`) recomecar do zero a cada salvamento.
-      */}
       {loading && !data ? (
         <div className={styles.stack} aria-busy="true">
           <Card padding="none">

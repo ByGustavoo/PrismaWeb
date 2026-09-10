@@ -11,9 +11,7 @@ import styles from './CardForm.module.css';
 
 interface CardFormModalProps {
   open: boolean;
-  /** Presente apenas na edicao. */
   card: Card | null;
-  /** Contas oferecidas ao vincular um cartao de debito. */
   accounts: Account[];
   saving: boolean;
   onSubmit: (payload: CardPayload) => void;
@@ -63,13 +61,11 @@ function initialState(card: Card | null): FormState {
   };
 }
 
-/** Dia do mes valido, ou undefined quando o campo nao serve. */
 function parseDay(raw: string): number | undefined {
   const parsed = Number(raw.trim());
   return Number.isInteger(parsed) && parsed >= 1 && parsed <= 31 ? parsed : undefined;
 }
 
-/* Os dois campos de dia ficam lado a lado: a mensagem precisa dizer qual deles falhou. */
 function dayError(raw: string, field: string): string | undefined {
   if (!raw.trim()) return `Informe o ${field}!`;
   return parseDay(raw) === undefined ? `O ${field} precisa estar entre 1 e 31!` : undefined;
@@ -129,7 +125,6 @@ export function CardFormModal({ open, card, accounts, saving, onSubmit, onClose 
     reset();
   }, [open, card, reset]);
 
-  // Cartao de debito acessa uma conta de verdade; uma conta encerrada nao serve.
   const accountOptions = useMemo<Option[]>(
     () =>
       accounts
@@ -145,8 +140,6 @@ export function CardFormModal({ open, card, accounts, saving, onSubmit, onClose 
   const handleSubmit = () => {
     if (!submit()) return;
 
-    // So vao os campos do tipo escolhido: o cadastro guarda o cartao, nao o
-    // rascunho de um tipo que o usuario chegou a selecionar e trocou depois.
     onSubmit({
       name: form.name,
       institution: form.institution,
@@ -335,7 +328,6 @@ export function CardFormModal({ open, card, accounts, saving, onSubmit, onClose 
 
         <p className={styles.legend}>* Campos obrigatórios.</p>
 
-        {/* Envio pelo Enter dentro do formulario; o botao visivel fica no rodape do modal. */}
         <button type="submit" className="visually-hidden" tabIndex={-1} aria-hidden="true" />
       </form>
     </Modal>

@@ -26,11 +26,6 @@
   outline-offset: 3px;
 }
 
-/*
- * O trilho tem 42x24 com polegar de 20: a proporcao da chave do iOS, que e a
- * referencia que quase todo mundo ja tem na mao. Menor que isso o curso fica
- * curto demais para o movimento significar alguma coisa.
- */
 .track {
   position: relative;
   flex-shrink: 0;
@@ -51,11 +46,6 @@
   border-color: var(--accent);
 }
 
-/*
- * Cobre a borda (inset negativo) para que ligar nao deixe uma linha cinza em
- * volta do azul. Nasce e morre sob o polegar ligado, nao no centro do trilho:
- * a cor parece vir de onde o dedo deixou a chave.
- */
 .fill {
   position: absolute;
   inset: -1px;
@@ -74,11 +64,6 @@
   opacity: 1;
 }
 
-/*
- * So o `transform` anima: mexer em `left` recalcularia layout a cada quadro
- * para um deslocamento de 18px. A curva com ultrapassagem e o que da peso ao
- * polegar — ele chega, passa um fio e assenta, como um interruptor de verdade.
- */
 .thumb {
   position: absolute;
   top: 2px;
@@ -100,11 +85,6 @@
   background-color: var(--accent-contrast);
 }
 
-/*
- * Pressionado, o polegar se alonga no sentido em que vai andar. E o retorno
- * tatil que a chave do iOS da antes mesmo de o valor mudar — e some sozinho no
- * `prefers-reduced-motion`, junto com as outras transicoes.
- */
 .control:active:not(:disabled) .thumb {
   transform: scaleX(1.16);
 }

@@ -18,7 +18,6 @@ interface GoalCardProps {
   onDelete: (tracking: GoalTracking) => void;
 }
 
-/** "https://www.nike.com.br/tenis" -> "nike.com.br" */
 function hostOf(url: string): string | null {
   try {
     return new URL(url).hostname.replace(/^www\./, '');
@@ -27,12 +26,6 @@ function hostOf(url: string): string | null {
   }
 }
 
-/**
- * Uma meta da lista. Segue o arranjo das outras telas de cadastro — o cartao
- * inteiro e clicavel e as acoes tem ponteiro proprio —, mas o clique abre o
- * historico, e nao o formulario: numa meta, o que se consulta e a evolucao do
- * preco; o nome e o link se editam de vez em quando.
- */
 export function GoalCard({ tracking, index, onOpen, onRegisterPrice, onDelete }: GoalCardProps) {
   const { goal, analysis } = tracking;
   const [imageBroken, setImageBroken] = useState(false);
@@ -58,18 +51,10 @@ export function GoalCard({ tracking, index, onOpen, onRegisterPrice, onDelete }:
                 onError={() => setImageBroken(true)}
               />
             ) : (
-              // Sem imagem — ou com um endereco que nao carregou — a caixa
-              // continua ocupando o mesmo espaco, para a lista nao desalinhar.
               <ShoppingBag size={20} strokeWidth={1.75} aria-hidden="true" />
             )}
           </span>
 
-          {/*
-            O nome ocupa a largura inteira do topo. Com o badge ao lado dele —
-            "Em acompanhamento" e um rotulo longo — sobrava menos de metade do
-            cartao para o produto, e "Notebook Dell Inspiron 15" quebrava em
-            tres linhas. A situacao desceu para o rodape, junto das acoes.
-          */}
           <span className={styles.identity}>
             <span className={styles.name}>{goal.name}</span>
             <span className={styles.meta}>
@@ -87,10 +72,6 @@ export function GoalCard({ tracking, index, onOpen, onRegisterPrice, onDelete }:
             <span className={styles.figureLabel}>Preço atual</span>
             <Amount value={analysis.currentPrice} size="lg" />
           </span>
-          {/*
-            Com um registro so nao ha variacao: "Preço estável" afirmaria uma
-            estabilidade que ninguem observou ainda.
-          */}
           {analysis.entryCount > 1 ? (
             <PriceDelta
               className={styles.delta}
@@ -103,10 +84,6 @@ export function GoalCard({ tracking, index, onOpen, onRegisterPrice, onDelete }:
           )}
         </div>
 
-        {/*
-          No lugar da curva que ainda nao existe entra o que fazer para ela
-          existir — melhor que um vao entre o preco e o rodape do cartao.
-        */}
         {analysis.entryCount > 1 ? (
           <PriceSparkline
             className={styles.spark}

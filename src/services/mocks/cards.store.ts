@@ -5,12 +5,6 @@ import { isMonthKey } from '@/utils/date';
 import { fitsAmountColumn } from '@/utils/validation';
 import { accounts, cards, categories, installmentPurchases, transactions } from './data';
 
-/**
- * Escrita dos cadastros de cartao e de compra parcelada. Como em
- * `accounts.store.ts`, o formato de erro e o mesmo que a API real usaria, para
- * que a tela ja trate hoje o que vai receber depois.
- */
-
 let cardSequence = cards.length;
 let purchaseSequence = installmentPurchases.length;
 
@@ -37,16 +31,6 @@ function assertDay(value: number | undefined, field: string): number {
   return value;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Cartoes                                                                    */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Monta o registro a partir do payload guardando apenas o que o tipo de cartao
- * usa. Sem esse recorte, trocar um cartao de credito para vale-refeicao deixaria
- * limite e datas de fatura para tras, e a tela mostraria uma barra de limite num
- * cartao que nao tem limite.
- */
 function resolveCard(payload: CardPayload): Omit<Card, 'id'> {
   const base = {
     name: payload.name.trim(),
@@ -116,7 +100,6 @@ export function updateCard(id: string, payload: CardPayload): Card {
   const updated: Card = { id, ...resolveCard(payload) };
   cards[index] = updated;
 
-  // Nome desnormalizado nos lancamentos e nas compras parceladas, como viria da API.
   for (const item of transactions) {
     if (item.idOrigem === id) item.nomeOrigem = updated.name;
   }
@@ -127,11 +110,6 @@ export function updateCard(id: string, payload: CardPayload): Card {
   return updated;
 }
 
-/**
- * Mesma regra das contas: um cartao com passado nao se apaga, se inativa. As
- * compras parceladas contam junto porque suas parcelas continuam caindo nas
- * faturas dos proximos meses.
- */
 export function deleteCard(id: string): void {
   const index = findCardIndexOrThrow(id);
   const linked =
@@ -148,10 +126,6 @@ export function deleteCard(id: string): void {
 
   cards.splice(index, 1);
 }
-
-/* -------------------------------------------------------------------------- */
-/* Compras parceladas                                                         */
-/* -------------------------------------------------------------------------- */
 
 function resolvePurchase(payload: InstallmentPayload): Omit<InstallmentPurchase, 'id'> {
   if (payload.description.trim().length < 2) {

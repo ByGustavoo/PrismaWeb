@@ -1,7 +1,6 @@
 import { CURRENCY, LOCALE } from '@/constants/app';
 import { daysBetween, fromISODate, todayISO } from './date';
 
-/** Simbolo usado quando o Intl nao devolve a parte de moeda. */
 const CURRENCY_SYMBOL = 'R$';
 
 const currencyFormatter = new Intl.NumberFormat(LOCALE, {
@@ -52,21 +51,13 @@ const timeFormatter = new Intl.DateTimeFormat(LOCALE, {
   minute: '2-digit',
 });
 
-/** Espaco inquebravel entre o simbolo e os algarismos. */
 const NBSP = ' ';
 
 export interface CurrencyParts {
-  /** Simbolo da moeda isolado, para receber estilo proprio. */
   symbol: string;
-  /** Algarismos ja agrupados e com duas casas: "5.000,00". */
   digits: string;
 }
 
-/**
- * Separa "R$" dos algarismos. Simbolo e numeros usam familia e tracking
- * diferentes (ver .tabular no global.css); mante-los em spans distintos e o que
- * faz o cifrao aparecer igual, e alinhado, em todos os componentes.
- */
 export function formatCurrencyParts(value: number): CurrencyParts {
   const parts = currencyFormatter.formatToParts(value);
   const symbol = parts.find((part) => part.type === 'currency')?.value ?? CURRENCY_SYMBOL;
@@ -84,7 +75,6 @@ export function formatCurrency(value: number): string {
   return symbol + NBSP + digits;
 }
 
-/** Versao curta para eixos de grafico: "R$ 12,4 mil". */
 export function formatCompactCurrency(value: number): string {
   return CURRENCY_SYMBOL + NBSP + compactFormatter.format(value);
 }
@@ -98,12 +88,6 @@ export function formatSignedPercent(value: number): string {
   return `${sign}${formatPercent(value)}`;
 }
 
-/**
- * "2026-09-03" -> "03 de Set". O nome do mes leva inicial maiuscula como em
- * todo o resto do app. A troca e feita pela parte de mes do `Intl`, e nao por
- * corte de texto: em pt-BR o formatador devolve "03 de set.", e capitalizar a
- * primeira palavra depois do espaco produzia "03 De set".
- */
 export function formatShortDate(isoDate: string): string {
   return dayMonthFormatter
     .formatToParts(fromISODate(isoDate))
@@ -116,46 +100,25 @@ export function formatFullDate(isoDate: string): string {
   return fullDateFormatter.format(fromISODate(isoDate));
 }
 
-/**
- * "2026-09-03" -> "03/09/2026". Forma curta para o campo de data, onde a data
- * por extenso nao caberia: o valor precisa caber num campo estreito de filtro
- * sem reticencias. Quem usa leitor de tela recebe a data por extenso pelo
- * `aria-label` do campo.
- */
 export function formatNumericDate(isoDate: string): string {
   return numericDateFormatter.format(fromISODate(isoDate));
 }
 
-/** Hora local no formato "14:32". */
 export function formatTime(value: Date = new Date()): string {
   return timeFormatter.format(value);
 }
 
-/** "2026-08" -> "agosto de 2026" */
 export function formatMonthLabel(month: string): string {
   const [year, monthNumber] = month.split('-').map(Number);
   return monthYearFormatter.format(new Date(year ?? 1970, (monthNumber ?? 1) - 1, 1));
 }
 
-/**
- * "2026-08" -> "Ago/2026". Forma curta para listas com muitos meses seguidos,
- * como o cronograma de um parcelamento de doze vezes, em que o nome inteiro
- * repetido doze vezes vira ruido.
- */
 export function formatShortMonth(month: string): string {
   const [year, monthNumber] = month.split('-').map(Number);
   const name = shortMonthFormatter.format(new Date(year ?? 1970, (monthNumber ?? 1) - 1, 1)).replace('.', '');
   return `${capitalize(name)}/${year}`;
 }
 
-/**
- * Rotulo de um periodo de meses: "Agosto de 2026" quando e um mes so, "Maio a
- * Agosto de 2026" dentro do mesmo ano e "Novembro de 2025 a Marco de 2026"
- * quando atravessa a virada — repetir o ano nos dois lados so polui.
- *
- * Os dois meses saem com inicial maiuscula: no rotulo eles nomeiam o recorte, e
- * capitalizar so o primeiro fazia a segunda metade parecer descuido.
- */
 export function formatPeriodLabel(from: string, to: string): string {
   const end = capitalize(formatMonthLabel(to));
   if (from === to) return end;
@@ -165,10 +128,6 @@ export function formatPeriodLabel(from: string, to: string): string {
   return `${capitalize(start)} a ${end}`;
 }
 
-/**
- * Distancia ate um vencimento em linguagem corrente: "vence em 5 dias", "vence
- * hoje", "venceu há 3 dias". Uma data sozinha obriga quem le a fazer a conta.
- */
 export function formatDueLabel(isoDate: string, reference: string = todayISO()): string {
   const days = daysBetween(reference, isoDate);
   if (days < 0) {
@@ -184,7 +143,6 @@ export function capitalize(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-/** Iniciais para avatar: "Ana Ribeiro" -> "AR" */
 export function initials(name: string): string {
   return name
     .split(' ')
@@ -194,21 +152,9 @@ export function initials(name: string): string {
     .join('');
 }
 
-/** "1.234,56", "1234,56" e "1.234": virgula decimal, ponto so em grupos de milhar. */
 const BRAZILIAN_AMOUNT = /^-?(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d+)?$/;
-/** "1200.50": numero cru colado de outro lugar, com ponto decimal. */
 const DOT_DECIMAL_AMOUNT = /^-?\d+\.\d+$/;
 
-/**
- * Le o valor digitado num campo de moeda. Aceita tanto "1.200,50" quanto
- * "1200.50": o usuario digita do jeito brasileiro, mas colar um numero cru
- * tambem precisa funcionar.
- *
- * O formato e conferido por expressao, e nao entregue direto ao `Number`: ele
- * aceitaria "1e5" e "0x10" como cem mil e dezesseis. E o ponto seguido de tres
- * digitos e milhar — quem digita "1.500" num campo em reais quer mil e
- * quinhentos, nao um real e meio.
- */
 export function parseAmountInput(raw: string): number | undefined {
   const trimmed = raw.trim();
 
@@ -221,15 +167,10 @@ export function parseAmountInput(raw: string): number | undefined {
   return undefined;
 }
 
-/** Numero -> texto do campo de moeda, sem simbolo: 1200.5 -> "1.200,50". */
 export function toAmountInput(value: number): string {
   return amountInputFormatter.format(value);
 }
 
-/**
- * Texto pronto para comparacao: sem acento e sem caixa. Quem digita "saude"
- * espera achar "Saúde", e quem digita "tenis" espera achar "Tênis".
- */
 export function fold(value: string): string {
   return value
     .normalize('NFD')

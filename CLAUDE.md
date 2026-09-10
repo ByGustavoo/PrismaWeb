@@ -186,11 +186,14 @@ Cada pasta de componentes tem um `index.ts` de barril — ao criar um componente
   correta: `Lancamentos` -> `Lançamentos`, `Configuracoes` -> `Configurações`. Titulos e labels
   seguem capitalizacao de frase ("Últimos lançamentos", "Rentabilidade acumulada"), nunca tudo em
   minusculo nem title case ao estilo ingles.
-- **O que nao aparece na tela continua em ASCII puro:** comentarios, JSDoc, nomes de variaveis,
-  chaves de objeto, ids de mock (`cat-saude`) e as rotas em `src/routes/paths.ts`
-  (`/lancamentos`, `/configuracoes`). Manter essa separacao evita quebrar referencias no codigo.
-- **Comentario existe para explicar o porque, nao o que.** O codigo atual segue isso — mantenha o
-  padrao, nao encha de comentario obvio.
+- **O que nao aparece na tela continua em ASCII puro:** nomes de variaveis, chaves de objeto, ids
+  de mock (`cat-saude`) e as rotas em `src/routes/paths.ts` (`/lancamentos`, `/configuracoes`).
+  Manter essa separacao evita quebrar referencias no codigo.
+- **O projeto nao tem comentarios.** Nem de linha, nem de bloco, nem JSDoc — em `.ts`, `.tsx`,
+  `.css`, `index.html` e `.gitignore`. A unica excecao sao as explicacoes das variaveis em
+  `.env.example`. O porque das decisoes vive neste arquivo e no `API_CONTRACT.md`, nao no codigo.
+  A diretiva `/// <reference types="vite/client" />` de `src/vite-env.d.ts` fica: ela nao e
+  comentario, e sem ela `import.meta.env` perde o tipo.
 - `tsconfig` roda com `noUnusedLocals`, `noUnusedParameters` e `noUncheckedIndexedAccess`.
   Acesso a indice de array devolve `T | undefined` — trate, nao use `!`.
 - Formatacao de moeda, numero e data passa por `src/utils/format.ts`, que usa `Intl` com

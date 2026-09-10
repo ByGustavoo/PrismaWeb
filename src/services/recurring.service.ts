@@ -10,7 +10,6 @@ import {
 } from './mocks';
 
 export const recurringService = {
-  /** Lista ja acompanhada do custo mensal equivalente e dos vencimentos proximos. */
   getSummary(signal?: AbortSignal): Promise<RecurringSummary> {
     if (env.useMocks) return mockResponse(buildRecurringSummary(), signal);
     return httpClient.get<RecurringSummary>(endpoints.recurring.list, { ...(signal ? { signal } : {}) });

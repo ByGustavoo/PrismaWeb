@@ -12,30 +12,14 @@ import type {
 import { fold } from '@/utils/format';
 import { goals } from './data';
 
-/**
- * A meta guarda a serie de precos; tudo o mais e conta feita sobre ela. Menor
- * preco, media, variacao e a leitura do momento nascem aqui — e nao no
- * componente — porque e exatamente esse o formato que o backend vai devolver.
- */
-
 function money(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-/**
- * Historico em ordem cronologica. `sort` e estavel, entao dois registros do
- * mesmo dia mantem a ordem em que foram gravados — que e a ordem em que
- * aconteceram.
- */
 function ordered(goal: Goal): GoalPriceEntry[] {
   return [...goal.history].sort((a, b) => a.date.localeCompare(b.date));
 }
 
-/**
- * Onde o preco atual cai dentro da faixa ja registrada. A media sozinha nao
- * bastaria: numa serie que desceu de 900 para 750 e voltou a 780, "abaixo da
- * media" e verdade e ainda assim esconde que o fundo foi bem mais baixo.
- */
 function insightOf(
   current: number,
   lowest: number,
@@ -43,8 +27,6 @@ function insightOf(
   average: number,
   entryCount: number,
 ): GoalInsight {
-  // Com um preco so nao ha o que comparar: dizer "nao se moveu" afirmaria uma
-  // estabilidade que ninguem chegou a observar.
   if (entryCount < 2) return 'PRIMEIRO';
 
   const span = highest - lowest;
@@ -68,8 +50,6 @@ export function analyzeGoal(goal: Goal): GoalAnalysis {
   const first = history[0];
   const last = history[history.length - 1];
 
-  // Uma meta sem nenhum registro nao chega a existir: o cadastro grava o
-  // primeiro preco junto. O ramo existe para o tipo, nao para a tela.
   if (!first || !last) {
     return {
       initialPrice: 0,
@@ -104,7 +84,6 @@ export function analyzeGoal(goal: Goal): GoalAnalysis {
     change,
     changePercentage: initialPrice > 0 ? (change / initialPrice) * 100 : 0,
     trend: trendOf(change, initialPrice),
-    // Nunca negativa: o preco atual e, no maximo, o proprio pico.
     savings: money(Math.max(highestPrice - currentPrice, 0)),
     lastUpdate: last.date,
     entryCount: history.length,
@@ -131,16 +110,10 @@ function matches(goal: Goal, filters: GoalFilters): boolean {
   return fold(goal.name).includes(needle) || fold(goal.notes ?? '').includes(needle);
 }
 
-/**
- * Os totais olham so as metas em acompanhamento. Somar no "quanto custa a
- * minha lista" o que ja foi comprado — ou o que foi cancelado — daria um numero
- * que nao corresponde a decisao nenhuma.
- */
 export function buildGoalsSummary(filters: GoalFilters = {}): GoalsSummary {
   const items = goals
     .filter((goal) => matches(goal, filters))
     .map(buildGoalTracking)
-    // Atualizada mais recentemente primeiro: a tela abre no que acabou de mudar.
     .sort((a, b) => b.analysis.lastUpdate.localeCompare(a.analysis.lastUpdate));
 
   const tracking = items.filter((item) => item.goal.status === 'ACOMPANHANDO');

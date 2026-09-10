@@ -1,8 +1,6 @@
-/* Ancora do painel de periodos. */
 .root {
   position: relative;
   flex-shrink: 0;
-  /* Seta e rotulo crescem junto no toque, sem inchar o header no desktop. */
   --period-control: 26px;
 }
 
@@ -66,7 +64,6 @@
   text-overflow: ellipsis;
 }
 
-/* Sem mola aqui: a seta do `Select` gira igual, e as duas nao podem divergir. */
 .chevron {
   flex-shrink: 0;
   color: var(--text-subtle);
@@ -89,7 +86,6 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-popover);
-  /* Mesma entrada dos outros popovers: painel de avisos e lista do Select. */
   animation: panelIn var(--duration-base) var(--ease-spring);
 }
 
@@ -122,11 +118,6 @@
   font-weight: 500;
 }
 
-/*
- * Separado da lista: aqui o periodo e montado, nao escolhido pronto. Os dois
- * campos ficam empilhados porque "Setembro de 2026" nao cabe em meia largura do
- * painel — lado a lado, o mes escolhido apareceria cortado.
- */
 .custom {
   display: flex;
   flex-direction: column;
@@ -143,12 +134,6 @@
   }
 }
 
-/*
- * Nesta faixa o seletor sai do header e vai para os controles do dashboard
- * (ver DashboardPage): no header ele disputava largura com o menu e quatro
- * acoes, e o rotulo encolhia ate "Sete...". Na pagina ele tem espaco, e pode
- * ocupar a linha inteira quando nao couber ao lado de "Atualizar".
- */
 @media (max-width: 767px) {
   .root {
     flex: 1 1 auto;

@@ -12,16 +12,10 @@
   border-top: 1px solid var(--border);
 }
 
-/* Faixa lateral no mes mais apertado, o mesmo destaque da tabela. */
 .lowest {
   box-shadow: inset 3px 0 0 var(--warning-graphic);
 }
 
-/*
- * O padding e do item, e nao do cartao: o cartao usa `padding="none"` para que
- * as bordas entre os meses atravessem a largura inteira. Sem ele aqui, o
- * conteudo de cada mes encostava nas bordas do cartao no celular.
- */
 .item {
   display: flex;
   flex-direction: column;
@@ -72,10 +66,6 @@
   margin: 0;
 }
 
-/*
- * O resultado fecha a lista ocupando a linha inteira: ele e a soma das quatro
- * de cima, e dividir a largura com outra linha o faria parecer mais um item.
- */
 .result {
   grid-column: 1 / -1;
   padding-top: var(--space-2);

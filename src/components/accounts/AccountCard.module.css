@@ -15,7 +15,6 @@
   box-shadow: var(--shadow-accent);
 }
 
-/* Cobre o cartao e abre a edicao de qualquer ponto; ver o comentario no TSX. */
 .open {
   position: absolute;
   inset: 0;
@@ -82,7 +81,6 @@
   color: var(--text-muted);
 }
 
-/* Espacamento proprio: um espaco de texto encolhe junto do tracking da fonte. */
 .separator {
   margin-inline: 5px;
   color: var(--text-subtle);
@@ -108,13 +106,6 @@
   color: var(--negative);
 }
 
-/*
- * O saldo fica logo abaixo do cabecalho, e nao empurrado para o fim: com o
- * espaco livre embaixo, os numeros principais alinham entre cartoes com e sem
- * barra de participacao. Antes o margin-top automatico vivia aqui, e a Corretora
- * (fora do saldo total) e a conta inativa — as duas sem barra — mostravam o
- * saldo trinta pixels abaixo das vizinhas.
- */
 .balance {
   display: flex;
   flex-direction: column;
@@ -139,10 +130,6 @@
   color: var(--text-subtle);
 }
 
-/*
- * A fatia fica colada no saldo, e nao no rodape: ela qualifica aquele numero, e
- * separada dele por um bloco de status viraria mais um dado solto no cartao.
- */
 .share {
   display: flex;
   flex-direction: column;

@@ -10,12 +10,6 @@ interface NetWorthChartProps {
   data: NetWorthPoint[];
 }
 
-/**
- * Evolucao do patrimonio, empilhada em conta e investimento. O empilhamento e a
- * escolha central: o topo continua sendo o total, mas a divisao mostra dinheiro
- * migrando de um lado para o outro — um total estavel pode esconder exatamente
- * isso, e e o que um aporte faz todo mes.
- */
 export function NetWorthChart({ data }: NetWorthChartProps) {
   const palette = useChartPalette();
 

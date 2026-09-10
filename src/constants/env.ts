@@ -1,7 +1,3 @@
-/**
- * Ponto unico de leitura de variaveis de ambiente.
- * Nenhum outro arquivo deve ler `import.meta.env` diretamente.
- */
 const parsedDelay = Number(import.meta.env.VITE_MOCK_DELAY);
 
 export const env = {

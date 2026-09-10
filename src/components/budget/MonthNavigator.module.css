@@ -32,10 +32,6 @@
   cursor: not-allowed;
 }
 
-/*
- * Largura minima suficiente para "Setembro de 2026", o rotulo mais longo do
- * ano: sem ela as setas dancam a cada troca de mes.
- */
 .label {
   min-width: 148px;
   text-align: center;

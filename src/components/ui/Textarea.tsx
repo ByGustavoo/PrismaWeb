@@ -9,7 +9,6 @@ export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElemen
   label?: string;
   hint?: string;
   error?: string;
-  /** Limite de caracteres; mesmo comportamento do `characterLimit` do `Input`. */
   characterLimit?: number;
 }
 
@@ -66,7 +65,6 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
       {counter ? (
         <div className={styles.foot}>
           {message}
-          {/* Quem usa leitor de tela recebe o excesso pela mensagem de erro do campo. */}
           <span className={cn(styles.counter, counter.over && styles.counterOver, 'tabular')} aria-hidden="true">
             {counter.length}/{counter.limit}
           </span>

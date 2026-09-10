@@ -5,12 +5,6 @@ import { todayISO } from '@/utils/date';
 import { fitsAmountColumn } from '@/utils/validation';
 import { investments } from './data';
 
-/**
- * Escrita do cadastro de investimentos. Como nas demais stores, o formato de
- * erro e o mesmo que a API real usara, para que a tela ja trate hoje o que vai
- * receber depois.
- */
-
 let sequence = investments.length;
 
 function findIndexOrThrow(id: string): number {
@@ -50,8 +44,6 @@ function resolve(payload: InvestmentPayload): Omit<Investment, 'id'> {
   if (!payload.startDate) {
     throw new ApiError('Informe a data do primeiro aporte.', 422, 'erro_validacao');
   }
-  // Aporte com data futura quebraria a curva de evolucao, que distribui os
-  // aportes entre o inicio da posicao e hoje.
   if (payload.startDate > todayISO()) {
     throw new ApiError('A data do primeiro aporte não pode estar no futuro.', 422, 'erro_validacao');
   }
@@ -81,12 +73,6 @@ export function updateInvestment(id: string, payload: InvestmentPayload): Invest
   return updated;
 }
 
-/**
- * Investimento nao tem historico preso a ele como conta e cartao tem: os
- * aportes ficam nos lancamentos, apontando para a corretora, e continuam la
- * depois da exclusao. Por isso aqui a exclusao e simples, sem o 409 das outras
- * stores.
- */
 export function deleteInvestment(id: string): void {
   investments.splice(findIndexOrThrow(id), 1);
 }

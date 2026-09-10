@@ -28,15 +28,9 @@ const severityClass: Record<AlertSeverity, string> = {
 interface NotificationsPanelProps {
   open: boolean;
   onClose: () => void;
-  /** Recebe a contagem para o ponto do sino sempre que a lista muda. */
   onCountChange: (count: number) => void;
 }
 
-/**
- * Painel de avisos do header. A lista vem de `alertsService`, que hoje deriva os
- * avisos dos mocks (faturas a vencer, contas pendentes, agendamentos e cartoes
- * perto do limite) e amanha vem do backend sem que este componente mude.
- */
 export function NotificationsPanel({ open, onClose, onCountChange }: NotificationsPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -50,7 +44,6 @@ export function NotificationsPanel({ open, onClose, onCountChange }: Notificatio
     onCountChange(urgentCount);
   }, [urgentCount, onCountChange]);
 
-  // Fecha ao clicar fora. O gatilho no header trata o proprio clique.
   useEffect(() => {
     if (!open) return;
 
@@ -110,7 +103,6 @@ export function NotificationsPanel({ open, onClose, onCountChange }: Notificatio
 
 interface AlertRowProps {
   alert: Alert;
-  /** Posicao na lista: e o que escalona a entrada da linha. */
   index: number;
   onNavigate: () => void;
 }

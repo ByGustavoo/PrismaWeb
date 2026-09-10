@@ -1,9 +1,3 @@
-/*
- * Colunas de largura igual, e nao itens encostados a esquerda: com tres figuras
- * curtas numa faixa larga, o alinhamento a esquerda deixava dois tercos da
- * moldura vazios e a faixa parecia inacabada. Distribuidos, os divisores marcam
- * o ritmo da linha inteira.
- */
 .bar {
   display: grid;
   grid-auto-flow: column;
@@ -23,10 +17,6 @@
   min-width: 0;
 }
 
-/*
- * Separador so entre itens, e desenhado como borda do proprio item: um elemento
- * a parte precisaria ser escondido do leitor de tela em cada quebra de linha.
- */
 .item + .item {
   padding-left: var(--space-8);
   border-left: 1px solid var(--border);
@@ -47,11 +37,6 @@
   color: var(--text-subtle);
 }
 
-/*
- * Em tela estreita a faixa vira duas colunas: empilhada em uma so, ela ocuparia
- * meia tela antes de a lista comecar. Sem divisor, que a essa altura corta na
- * horizontal e nao separa mais nada.
- */
 @media (max-width: 767px) {
   .bar {
     grid-auto-flow: row;

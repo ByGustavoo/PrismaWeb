@@ -22,13 +22,6 @@ import { balanceAt, monthClosingDate } from './balance';
 import { transactions } from './data';
 import { portfolioValueAt } from './investments.mock';
 
-/**
- * Relatorios recortam por dia, e nao por mes como o dashboard: "ultimos 7 dias"
- * e "de 12/03 a 04/05" nao cabem numa chave YYYY-MM. Todo o resto — variacao
- * contra o periodo anterior, agrupamento por categoria, saldo reconstruido — sai
- * dos mesmos modulos que o dashboard usa, para que os dois nunca discordem.
- */
-
 function money(value: number): number {
   return Math.round(value * 100) / 100;
 }
@@ -37,25 +30,16 @@ function inRange(range: ReportRange): Lancamento[] {
   return transactions.filter((item) => item.data >= range.from && item.data <= range.to);
 }
 
-/** O intervalo de mesma duracao imediatamente anterior, base das variacoes. */
 function previousRange(range: ReportRange): ReportRange {
   const length = daysBetween(range.from, range.to) + 1;
   const end = toISODate(addDays(fromISODate(range.from), -1));
   return { from: toISODate(addDays(fromISODate(end), -(length - 1))), to: end };
 }
 
-/** "2026-09-08" -> "08/09", o rotulo curto dos eixos de dia e de semana. */
 function dayLabel(dateISO: string): string {
   return `${dateISO.slice(8, 10)}/${dateISO.slice(5, 7)}`;
 }
 
-/**
- * Um numero de baldes e um rotulo para cada um, conforme a duracao do recorte.
- * A escolha e sempre pelo mesmo criterio: um grafico precisa de barras
- * suficientes para desenhar uma forma e poucas o bastante para os rotulos
- * caberem. Uma semana em baldes semanais viraria uma barra sozinha, que nao
- * conta historia nenhuma; um ano em baldes diarios viraria trezentas.
- */
 function buckets(range: ReportRange): Array<{ label: string; from: string; to: string }> {
   const days = daysBetween(range.from, range.to) + 1;
 
@@ -72,8 +56,6 @@ function buckets(range: ReportRange): Array<{ label: string; from: string; to: s
     for (let cursor = range.from; cursor <= range.to; ) {
       const end = toISODate(addDays(fromISODate(cursor), 6));
       const to = end > range.to ? range.to : end;
-      // O rotulo e o primeiro dia da semana: "08/09" se le mais rapido que
-      // "08/09 a 14/09" num eixo com seis ou sete baldes.
       result.push({ label: dayLabel(cursor), from: cursor, to });
       cursor = toISODate(addDays(fromISODate(to), 1));
     }
@@ -105,15 +87,10 @@ function buildCashflow(range: ReportRange): PontoFluxo[] {
   });
 }
 
-/** Saldo no ultimo dia de cada balde: e a evolucao do saldo dentro do recorte. */
 function buildBalanceHistory(range: ReportRange): PontoSaldo[] {
   return buckets(range).map((bucket) => ({ rotulo: bucket.label, saldo: balanceAt(bucket.to) }));
 }
 
-/**
- * Gasto por origem do dinheiro. A transferencia fica de fora: ela sai de uma
- * conta e entra em outra, entao contaria como gasto de uma conta que nao gastou.
- */
 function buildBySource(list: Lancamento[]): SourceSpending[] {
   const expenses = list.filter((item) => item.tipo === 'DESPESA');
   const total = expenses.reduce((sum, item) => sum + item.valor, 0);
@@ -129,8 +106,6 @@ function buildBySource(list: Lancamento[]): SourceSpending[] {
     grouped.set(item.idOrigem, {
       id: item.idOrigem,
       name: item.nomeOrigem,
-      // Os ids de cartao sao prefixados no cadastro; e o que distingue a compra
-      // no cartao do debito em conta sem uma segunda consulta.
       group: item.idOrigem.startsWith('card-') ? 'CARTAO' : 'CONTA',
       amount: item.valor,
       share: 0,
@@ -142,11 +117,6 @@ function buildBySource(list: Lancamento[]): SourceSpending[] {
     .sort((a, b) => b.amount - a.amount);
 }
 
-/**
- * Um mes sozinho nao mostra evolucao de patrimonio nenhuma, entao o recorte
- * curto ganha os cinco meses anteriores como contexto — a mesma regra que o
- * dashboard aplica aos seus graficos.
- */
 const SHORT_RANGE_WINDOW = 6;
 
 function buildNetWorth(range: ReportRange): NetWorthPoint[] {

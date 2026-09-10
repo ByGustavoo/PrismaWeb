@@ -10,18 +10,12 @@ import { parseAmountInput } from '@/utils/format';
 import { amountError, textError } from '@/utils/validation';
 import styles from './GoalForm.module.css';
 
-/**
- * O cadastro e a edicao enviam corpos diferentes, e nao por detalhe de
- * implementacao: preco novo e sempre um registro novo, entao a edicao nao tem
- * como carregar preco sem apagar um ponto do historico.
- */
 export type GoalFormResult =
   | { mode: 'create'; data: GoalPayload }
   | { mode: 'update'; data: GoalUpdatePayload };
 
 interface GoalFormModalProps {
   open: boolean;
-  /** Presente apenas na edicao. */
   goal: Goal | null;
   saving: boolean;
   onSubmit: (result: GoalFormResult) => void;
@@ -57,13 +51,11 @@ function initialState(goal: Goal | null): FormState {
   };
 }
 
-/** Link opcional: vazio passa; preenchido, precisa ser algo que o navegador abra. */
 function linkError(value: string, subject: string): string | undefined {
   const trimmed = value.trim();
   const tooLong = textError(value, { subject, max: textLimits.link });
 
   if (!trimmed || tooLong) return tooLong;
-  // Um "www.loja.com" solto nao abre; um link com espaco no meio foi colado pela metade.
   if (/\s/.test(trimmed)) return `${subject} não pode ter espaços!`;
   if (!/^https?:\/\/\S+$/i.test(trimmed)) return `${subject} precisa começar com http:// ou https://!`;
   return undefined;
@@ -81,7 +73,6 @@ function validate(form: FormState, editing: boolean): FieldErrors<FormState> {
     notes: textError(form.notes, { subject: 'A observação', max: textLimits.notes }),
   };
 
-  // Preco e data so existem no cadastro: ver o comentario de GoalFormResult.
   if (editing) return errors;
 
   errors.price = amountError(form.price, {
@@ -262,7 +253,6 @@ export function GoalFormModal({ open, goal, saving, onSubmit, onClose }: GoalFor
 
         <p className={styles.legend}>* Campos obrigatórios.</p>
 
-        {/* Envio pelo Enter dentro do formulario; o botao visivel fica no rodape do modal. */}
         <button type="submit" className="visually-hidden" tabIndex={-1} aria-hidden="true" />
       </form>
     </Modal>

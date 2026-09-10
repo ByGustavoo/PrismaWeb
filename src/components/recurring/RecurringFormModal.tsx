@@ -13,7 +13,6 @@ import styles from './RecurringForm.module.css';
 
 interface RecurringFormModalProps {
   open: boolean;
-  /** Presente apenas na edicao. */
   expense: RecurringExpense | null;
   categories: Categoria[];
   sources: PaymentSource[];
@@ -243,10 +242,6 @@ export function RecurringFormModal({
           error={errors.notes}
         />
 
-        {/*
-          O custo mensal equivalente e a conta que o usuario nao faz de cabeca:
-          um seguro anual de R$ 2.340 pesa R$ 195 por mes no orcamento.
-        */}
         {monthlyEquivalent !== undefined && form.frequency !== 'MENSAL' ? (
           <p className={styles.preview}>
             <strong className={styles.previewValue}>
@@ -259,7 +254,6 @@ export function RecurringFormModal({
 
         <p className={styles.legend}>* Campos obrigatórios.</p>
 
-        {/* Envio pelo Enter dentro do formulario; o botao visivel fica no rodape do modal. */}
         <button type="submit" className="visually-hidden" tabIndex={-1} aria-hidden="true" />
       </form>
     </Modal>

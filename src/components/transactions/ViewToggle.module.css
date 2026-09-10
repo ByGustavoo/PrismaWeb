@@ -8,11 +8,6 @@
   border-radius: var(--radius-sm);
 }
 
-/*
- * As duas opcoes tem a mesma largura (flex: 1), entao o indicador ocupa metade
- * do miolo e anda uma largura mais o vao. Sem isso, "Tabela" e "Cartoes" teriam
- * caixas diferentes e o deslizamento pareceria um erro de alinhamento.
- */
 .indicator {
   position: absolute;
   top: 3px;
@@ -59,11 +54,6 @@
   color: var(--text);
 }
 
-/*
- * `--bar-scale` e a identidade do icone: 1 desenha linhas, 1.75 desenha blocos.
- * `--bar-emphasis` e o estado: a opcao escolhida chega a espessura cheia, a
- * outra fica um pouco abaixo dela.
- */
 .icon {
   --bar-emphasis: 0.86;
   flex-shrink: 0;
@@ -81,11 +71,6 @@
   --bar-emphasis: 1;
 }
 
-/*
- * A barra cresce em torno do proprio centro, entao as tres se espessam sem sair
- * do lugar. `transform-box: fill-box` faz a origem valer dentro do retangulo, e
- * nao no canto do viewBox.
- */
 .bar {
   fill: currentColor;
   transform-box: fill-box;
@@ -94,10 +79,6 @@
   transition: transform var(--duration-base) var(--ease-spring);
 }
 
-/*
- * Entre 900px (onde a tabela deixa de caber) e 1100px a linha de resumo fica
- * apertada: o rotulo sai e o icone fica, com o nome da opcao no `aria-label`.
- */
 @media (max-width: 1099px) {
   .label {
     position: absolute;

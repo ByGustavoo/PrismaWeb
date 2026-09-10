@@ -85,11 +85,6 @@ export function InvestmentsPage() {
         }
       />
 
-      {/*
-        O esqueleto e so da primeira carga: depois de cadastrar ou editar, os
-        numeros anteriores ficam na tela ate os novos chegarem. Remontar a faixa
-        de resumo a cada gravacao faria a contagem de entrada recomecar do zero.
-      */}
       {loading && !data ? (
         <div className={styles.stack} aria-busy="true">
           <Card padding="none">

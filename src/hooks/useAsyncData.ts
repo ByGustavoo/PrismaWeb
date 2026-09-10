@@ -11,10 +11,6 @@ export interface AsyncResult<T> extends AsyncState<T> {
   reload: () => void;
 }
 
-/**
- * Executa uma chamada assincrona controlando loading, erro e cancelamento.
- * Como recebe o `AbortSignal`, funciona igual com mocks e com a API real.
- */
 export function useAsyncData<T>(
   fetcher: (signal: AbortSignal) => Promise<T>,
   deps: DependencyList = [],
@@ -49,7 +45,6 @@ export function useAsyncData<T>(
       active = false;
       controller.abort();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...deps, nonce]);
 
   const reload = useCallback(() => setNonce((value) => value + 1), []);

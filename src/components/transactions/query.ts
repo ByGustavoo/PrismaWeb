@@ -3,7 +3,6 @@ import { transactionStatusLabel } from '@/constants/transactions';
 import type { Option, Lancamento } from '@/types';
 import { lastDaysRange, monthRange, yearRange } from '@/utils/date';
 
-/** Valor usado por todo filtro para "sem restricao". */
 export const ALL = 'all';
 
 export type PeriodPreset =
@@ -18,10 +17,6 @@ export type PeriodPreset =
 export type SortDirection = 'asc' | 'desc';
 export type SortField = 'date' | 'description' | 'amount';
 
-/**
- * Direcao inicial de cada coluna. Data e valor comecam do maior — o lancamento
- * mais recente e o mais caro sao o que se procura primeiro — e texto comeca de A.
- */
 export const initialSortDirection: Record<SortField, SortDirection> = {
   date: 'desc',
   description: 'asc',
@@ -31,7 +26,6 @@ export const initialSortDirection: Record<SortField, SortDirection> = {
 export interface TransactionQuery {
   search: string;
   period: PeriodPreset;
-  /** Usados apenas quando o periodo e `custom`. */
   from: string;
   to: string;
   kind: string;
@@ -65,7 +59,6 @@ export const periodOptions: Option[] = [
   { value: 'custom', label: 'Período personalizado' },
 ];
 
-/** Traduz o periodo escolhido em datas ISO inclusivas. */
 export function resolvePeriod(query: TransactionQuery): { from?: string; to?: string } {
   switch (query.period) {
     case 'this-month':
@@ -88,7 +81,6 @@ export function resolvePeriod(query: TransactionQuery): { from?: string; to?: st
   }
 }
 
-/** Alguma restricao ativa? Decide o botao de limpar e o texto do estado vazio. */
 export function hasActiveFilters(query: TransactionQuery): boolean {
   return (
     query.search.trim() !== '' ||
@@ -119,12 +111,10 @@ function compare(a: Lancamento, b: Lancamento, field: SortField): number {
     case 'description':
       return a.descricao.localeCompare(b.descricao, LOCALE);
     default:
-      // Empate na data cai para a descricao: a ordem nao muda a cada renderizacao.
       return a.data.localeCompare(b.data) || a.descricao.localeCompare(b.descricao, LOCALE);
   }
 }
 
-/** Aplica filtros e ordenacao em memoria, sem tocar na lista original. */
 export function applyQuery(list: Lancamento[], query: TransactionQuery): Lancamento[] {
   const term = query.search.trim().toLowerCase();
   const { from, to } = resolvePeriod(query);
@@ -136,7 +126,6 @@ export function applyQuery(list: Lancamento[], query: TransactionQuery): Lancame
     if (from && item.data < from) return false;
     if (to && item.data > to) return false;
 
-    // Numa transferencia, a conta filtrada pode ser tanto a origem quanto o destino.
     if (query.accountId !== ALL && item.idOrigem !== query.accountId && item.idContaDestino !== query.accountId) {
       return false;
     }
@@ -148,10 +137,6 @@ export function applyQuery(list: Lancamento[], query: TransactionQuery): Lancame
   return filtered.sort((a, b) => compare(a, b, query.sortField) * direction);
 }
 
-/**
- * Total liquido do resultado. Transferencia nao entra: ela apenas move dinheiro
- * entre contas do proprio usuario e nao altera o patrimonio.
- */
 export function netTotal(list: Lancamento[]): number {
   return list.reduce((sum, item) => {
     if (item.tipo === 'RECEITA') return sum + item.valor;

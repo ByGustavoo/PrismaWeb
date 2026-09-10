@@ -9,49 +9,26 @@ import styles from './Select.module.css';
 
 export interface SelectProps {
   options: Option[];
-  /** Controlado. Sem ele o componente guarda o proprio valor. */
   value?: string;
   defaultValue?: string;
   onChange?: (value: string) => void;
   label?: string;
   hint?: string;
   error?: string;
-  /** Texto exibido quando nenhuma opcao esta escolhida. */
   placeholder?: string;
-  /** Rotulo fixo antes do valor no gatilho: "Conta: Todas as contas". */
   prefix?: string;
-  /**
-   * `sm` acompanha o `Button size="sm"`, para o campo poder dividir a linha de
-   * acoes de um cabecalho de tela sem ficar mais alto que o botao ao lado.
-   */
   size?: 'sm' | 'md';
   icon?: LucideIcon;
   disabled?: boolean;
-  /** Marca o rotulo e anuncia o campo como obrigatorio. */
   required?: boolean;
   id?: string;
   className?: string;
   'aria-label'?: string;
 }
 
-/** Altura maxima da lista; mantida em sincronia com .menu no CSS. */
 const MENU_MAX_HEIGHT = 288;
 const MENU_GAP = 8;
 
-/**
- * Select proprio, no lugar do <select> nativo: o navegador desenha a lista do
- * elemento nativo com as cores do sistema e ignora os tokens do tema, o que
- * deixava as opcoes ilegiveis no tema escuro. Aqui a lista e HTML comum, entao
- * segue o design system nos dois temas.
- *
- * A lista vai para um portal no body com posicao fixa. Dentro de um formulario
- * em modal — que rola — uma lista absoluta seria cortada pela borda do painel;
- * no portal ela flutua acima de tudo e ainda escolhe abrir para cima quando nao
- * cabe abaixo do gatilho.
- *
- * A navegacao segue o padrao de combobox: o foco permanece no gatilho e a opcao
- * ativa e anunciada por aria-activedescendant.
- */
 export function Select({
   options,
   value,
@@ -123,7 +100,6 @@ export function Select({
     const rect = trigger.getBoundingClientRect();
     const below = window.innerHeight - rect.bottom - MENU_GAP;
     const above = rect.top - MENU_GAP;
-    // Abre para cima so quando nao cabe abaixo e ha mais espaco acima.
     const flip = below < Math.min(MENU_MAX_HEIGHT, above) && above > below;
 
     setMenuStyle({
@@ -134,7 +110,6 @@ export function Select({
     });
   }, []);
 
-  // Mede antes da pintura para a lista nunca aparecer no lugar errado.
   useLayoutEffect(() => {
     if (open) position();
   }, [open, position]);
@@ -143,7 +118,6 @@ export function Select({
     if (!open) return;
 
     const handleReposition = () => position();
-    // `true` para acompanhar tambem a rolagem de containers internos (modal).
     window.addEventListener('scroll', handleReposition, true);
     window.addEventListener('resize', handleReposition);
     return () => {
@@ -152,7 +126,6 @@ export function Select({
     };
   }, [open, position]);
 
-  // Fecha ao clicar fora sem roubar o clique do alvo.
   useEffect(() => {
     if (!open) return;
     const handlePointerDown = (event: PointerEvent) => {
@@ -164,7 +137,6 @@ export function Select({
     return () => document.removeEventListener('pointerdown', handlePointerDown);
   }, [open]);
 
-  // Mantem a opcao ativa visivel durante a navegacao pelo teclado.
   useEffect(() => {
     if (!open) return;
     listRef.current?.querySelector<HTMLElement>('[data-active="true"]')?.scrollIntoView({ block: 'nearest' });

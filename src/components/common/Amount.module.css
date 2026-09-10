@@ -6,12 +6,6 @@
   white-space: nowrap;
 }
 
-/*
- * O simbolo acompanha o tamanho do valor (em), mas com peso e tracking da
- * familia de interface: e o que evita o cifrao "esticado" que a familia de
- * numeros produz, e o que o mantem identico entre componentes. A hierarquia vem
- * do tamanho e do peso, nunca de opacidade — que reduziria o contraste do texto.
- */
 .symbol {
   font-family: var(--font-ui);
   font-size: 0.68em;
@@ -52,7 +46,6 @@
   line-height: 1;
 }
 
-/* Em tamanhos grandes o simbolo pode ser proporcionalmente menor sem sumir. */
 .lg .symbol,
 .display .symbol {
   font-size: 0.5em;
@@ -64,13 +57,6 @@
   }
 }
 
-/* --- Algarismos que rolam (Amount animate) ---------------------------- */
-
-/*
- * A altura de cada casa. E a mesma medida em tres lugares — caixa da coluna,
- * altura de um algarismo e passo do deslocamento —, e e o que garante que o
- * algarismo vizinho pare exatamente na borda da coluna, sem espiar.
- */
 .roller {
   --roll-step: 1.12em;
   display: inline-flex;
@@ -81,19 +67,9 @@
   position: relative;
   display: inline-block;
   line-height: 1.12;
-  /*
-   * Recorta com clip-path, e nao com overflow: um inline-block com overflow
-   * diferente de visible passa a ter a linha de base no rodape da caixa, e o
-   * "R$" ao lado desceria junto com ela.
-   */
   clip-path: inset(0);
 }
 
-/*
- * Um algarismo em branco sustenta a coluna: dele saem a largura (tabular, igual
- * para os dez) e a linha de base. A roda flutua por cima sem participar do
- * layout, entao rolar nunca reposiciona o que esta ao lado.
- */
 .ghost {
   visibility: hidden;
 }
@@ -115,7 +91,6 @@
   line-height: 1.12;
 }
 
-/* Separador de milhar e de centavos: fica parado enquanto as casas rolam. */
 .separator {
   line-height: 1.12;
 }

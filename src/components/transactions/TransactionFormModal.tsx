@@ -17,9 +17,7 @@ import styles from './TransactionForm.module.css';
 
 interface TransactionFormModalProps {
   open: boolean;
-  /** Transferencia tem formulario proprio; aqui so entra receita ou despesa. */
   kind: 'RECEITA' | 'DESPESA';
-  /** Presente apenas na edicao. */
   transaction: Lancamento | null;
   categories: Categoria[];
   sources: PaymentSource[];
@@ -111,7 +109,6 @@ export function TransactionFormModal({
     { limits },
   );
 
-  // Cada abertura comeca do zero (ou do registro em edicao), sem resto da anterior.
   useEffect(() => {
     if (!open) return;
     setForm(initialState(transaction));
@@ -123,7 +120,6 @@ export function TransactionFormModal({
     [categories, kind],
   );
 
-  // Despesa pode sair de um cartao; receita sempre cai numa conta propria.
   const sourceOptions = useMemo<Option[]>(
     () =>
       sources
@@ -271,7 +267,6 @@ export function TransactionFormModal({
 
         <p className={styles.legend}>* Campos obrigatórios.</p>
 
-        {/* Envio pelo Enter dentro do formulario; o botao visivel fica no rodape do modal. */}
         <button type="submit" className="visually-hidden" tabIndex={-1} aria-hidden="true" />
       </form>
     </Modal>

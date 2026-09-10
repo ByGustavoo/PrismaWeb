@@ -13,11 +13,6 @@
   list-style: none;
 }
 
-/*
- * Faixa de atencao, nao um cartao: ela avisa e some quando nao ha nada a
- * avisar. O fundo ambar suave e a mesma familia do badge de fatura fechada,
- * entao a mesma cor continua querendo dizer "tem prazo".
- */
 .dueSoon {
   display: flex;
   flex-direction: column;

@@ -15,15 +15,6 @@ interface InstallmentCardProps {
   onDelete: (purchase: InstallmentPurchase) => void;
 }
 
-/**
- * Uma compra parcelada. O cabecalho responde de relance — quantas parcelas ja
- * foram, quanto falta — e o cronograma completo fica atras de um botao: dez ou
- * doze linhas de datas abertas em toda compra transformariam a lista num
- * calendario.
- *
- * A barra e segmentada de proposito: seis blocos cheios de doze se contam com o
- * olho, enquanto uma faixa pela metade so diz "mais ou menos metade".
- */
 export function InstallmentCard({ plan, onEdit, onDelete }: InstallmentCardProps) {
   const [expanded, setExpanded] = useState(false);
   const scheduleId = useId();
@@ -128,7 +119,6 @@ export function InstallmentCard({ plan, onEdit, onDelete }: InstallmentCardProps
         <div className={styles.fact}>
           <dt>Já pago</dt>
           <dd>
-            {/* Zero em verde soaria como boa noticia; ainda nao ha nada pago. */}
             <Amount value={plan.paidAmount} size="sm" tone={plan.paidAmount > 0 ? 'positive' : 'muted'} />
           </dd>
         </div>
@@ -155,10 +145,6 @@ export function InstallmentCard({ plan, onEdit, onDelete }: InstallmentCardProps
         <ChevronDown className={cn(styles.chevron, expanded && styles.chevronOpen)} size={15} strokeWidth={2} />
       </button>
 
-      {/*
-        Todas as parcelas, e nao so as futuras: ver as pagas ao lado das que vem
-        e o que deixa claro em que mes o compromisso termina.
-      */}
       <ul id={scheduleId} className={styles.schedule} hidden={!expanded}>
         {plan.schedule.map((installment) => {
           const paid = installment.status === 'PAGA';
@@ -178,17 +164,11 @@ export function InstallmentCard({ plan, onEdit, onDelete }: InstallmentCardProps
 
               <span className={styles.when}>
                 <span className={`${styles.month} tabular`}>{formatShortMonth(installment.month)}</span>
-                {/* Forma curta: o mes ao lado ja diz o ciclo, aqui basta o dia. */}
                 <span className={styles.dueDate}>vence {formatShortDate(installment.dueDate)}</span>
               </span>
 
               <Amount value={installment.amount} size="sm" tone={paid ? 'muted' : 'default'} />
 
-              {/*
-                So a parcela em curso leva selo. Repetir "A vencer" em oito linhas
-                seguidas nao acrescenta nada; a paga se anuncia pelo visto, que e
-                simbolo, e nao apenas cor.
-              */}
               <span className={styles.installmentStatus}>
                 {installment.status === 'ATUAL' ? (
                   <Badge tone={installmentStatusTone.ATUAL} dot>

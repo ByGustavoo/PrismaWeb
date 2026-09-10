@@ -1,4 +1,3 @@
-/** Erro normalizado devolvido por toda a camada de API. */
 export class ApiError extends Error {
   readonly status: number;
   readonly code: string;

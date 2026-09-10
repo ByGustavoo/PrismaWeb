@@ -3,7 +3,6 @@ import { goalStatusLabel, goalStatuses } from '@/constants/goals';
 import type { GoalTracking, Option } from '@/types';
 import { fold } from '@/utils/format';
 
-/** Valor usado pelo filtro de situacao para "sem restricao". */
 export const ALL = 'all';
 
 export type GoalSort = 'recent' | 'drop' | 'rise' | 'price-desc' | 'price-asc' | 'name';
@@ -14,10 +13,6 @@ export interface GoalQuery {
   sort: GoalSort;
 }
 
-/**
- * A lista abre pela ultima consulta, e nao por nome: quem entra na tela quer
- * ver o que mudou desde a ultima vez que olhou.
- */
 export const emptyGoalQuery: GoalQuery = {
   search: '',
   status: ALL,
@@ -59,12 +54,6 @@ function compare(a: GoalTracking, b: GoalTracking, sort: GoalSort): number {
   }
 }
 
-/**
- * Busca, filtro e ordenacao acontecem em memoria, como em Lancamentos: com
- * poucas dezenas de metas, responder a cada tecla vale mais que uma ida ao
- * servidor por letra digitada. Os mesmos parametros existem no service porque
- * sao os que a API vai receber quando a lista crescer.
- */
 export function applyGoalQuery(items: GoalTracking[], query: GoalQuery): GoalTracking[] {
   const needle = fold(query.search.trim());
 

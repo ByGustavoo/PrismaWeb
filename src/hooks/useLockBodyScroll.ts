@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 
-/** Impede o scroll do fundo enquanto um overlay estiver aberto. */
 export function useLockBodyScroll(locked: boolean): void {
   useEffect(() => {
     if (!locked) return;

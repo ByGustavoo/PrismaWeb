@@ -6,7 +6,6 @@ import { monthKeyFromOffset, monthsBetween, shiftMonthKey } from '@/utils/date';
 interface PeriodContextValue {
   period: DashboardPeriod;
   setPeriod: (period: DashboardPeriod) => void;
-  /** Desloca a janela inteira: de "maio a agosto" chega-se a "janeiro a abril". */
   shiftPeriod: (direction: number) => void;
 }
 
@@ -17,13 +16,6 @@ function currentMonthPeriod(): DashboardPeriod {
   return { from: month, to: month };
 }
 
-/**
- * Recorte de tempo do dashboard, escolhido no header e consumido pela tela.
- *
- * Ele vive em memoria, e nao na URL: o endereco de uma tela diz que tela e, nao
- * qual filtro esta aberto nela. Como consequencia, recarregar a pagina volta ao
- * mes corrente — que e o ponto de partida esperado de quem abre o app.
- */
 export function PeriodProvider({ children }: { children: ReactNode }) {
   const [period, setPeriod] = useState<DashboardPeriod>(currentMonthPeriod);
 

@@ -11,12 +11,10 @@ export interface NavItem {
   label: string;
   icon: LucideIcon;
   to: string;
-  /** Quando presente, o item vira um grupo expansivel na sidebar. */
   children?: NavChild[];
 }
 
 export interface NavSection {
-  /** Titulo do bloco; ausente no primeiro bloco. */
   title?: string;
   items: NavItem[];
 }

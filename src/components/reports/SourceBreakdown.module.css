@@ -1,4 +1,3 @@
-/* O cartao acompanha o proprio conteudo em vez de esticar ate o vizinho. */
 .card {
   align-self: start;
 }
@@ -30,10 +29,6 @@
   font-size: var(--fs-base);
 }
 
-/*
- * O icone distingue conta de cartao: dois nomes proprios lado a lado ("Conta
- * corrente" e "Nova Platinum") nao dizem sozinhos qual e qual.
- */
 .iconBox {
   display: grid;
   place-items: center;
@@ -68,11 +63,6 @@
   overflow: hidden;
 }
 
-/*
- * Uma cor so para todas as origens: aqui a comparacao e de tamanho, nao de
- * identidade — dar uma cor a cada conta faria a barra competir com o codigo de
- * cores das categorias, que e o unico do produto.
- */
 .bar {
   height: 100%;
   border-radius: var(--radius-pill);

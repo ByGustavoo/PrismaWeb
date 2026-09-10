@@ -8,15 +8,12 @@ import { capitalize, formatFullDate, formatMonthLabel, formatNumericDate } from 
 import styles from './DatePicker.module.css';
 
 export interface DatePickerProps {
-  /** Data ISO (YYYY-MM-DD) ou string vazia quando nada foi escolhido. */
   value: string;
   onChange: (value: string) => void;
   label?: string;
   hint?: string;
   error?: string;
-  /** Primeira data escolhivel, ISO. */
   min?: string;
-  /** Ultima data escolhivel, ISO. */
   max?: string;
   placeholder?: string;
   required?: boolean;
@@ -27,19 +24,12 @@ export interface DatePickerProps {
   'aria-label'?: string;
 }
 
-/** Largura e altura do painel; mantidas em sincronia com .panel no CSS. */
 const PANEL_WIDTH = 292;
 const PANEL_HEIGHT = 348;
 const PANEL_GAP = 8;
 
-/**
- * Iniciais de tres letras. O calendario de gastos do dashboard usa uma letra so
- * porque a casa tem 16px; aqui a coluna tem quase 40px, e "Qua" e "Qui" deixam
- * de depender de contar posicoes.
- */
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
-/** Seis linhas fixas: a altura do painel nao pode mudar ao virar o mes. */
 const WEEKS = 6;
 
 function monthMatrix(monthKey: string): Array<Array<string | null>> {
@@ -56,19 +46,6 @@ function monthMatrix(monthKey: string): Array<Array<string | null>> {
   return Array.from({ length: WEEKS }, (_, row) => cells.slice(row * 7, row * 7 + 7));
 }
 
-/**
- * Campo de data com calendario proprio, no lugar do `<input type="date">`. Pelo
- * mesmo motivo que o `Select` existe: o calendario nativo e desenhado pelo
- * navegador com as cores do sistema, ignora os tokens do tema e muda de forma a
- * cada navegador — no tema escuro ele abria como uma janela clara no meio de um
- * formulario escuro.
- *
- * A arquitetura e a do `Select`, e nao por acaso: o painel vai para um portal no
- * body (dentro de um modal que rola, um painel absoluto seria cortado pela borda
- * do formulario) e o foco **fica no gatilho**, com o dia sob o cursor anunciado
- * por `aria-activedescendant`. Mover o foco para dentro do portal brigaria com a
- * trava de Tab do `Modal`, que so conhece os elementos do proprio painel.
- */
 export function DatePicker({
   value,
   onChange,
@@ -95,7 +72,6 @@ export function DatePicker({
   const today = todayISO();
   const [open, setOpen] = useState(false);
   const [panelStyle, setPanelStyle] = useState<CSSProperties>({});
-  // Dia sob o cursor do teclado. Comeca no valor escolhido, e sem valor em hoje.
   const [cursor, setCursor] = useState(() => value || today);
 
   const rootRef = useRef<HTMLDivElement>(null);
@@ -130,7 +106,6 @@ export function DatePicker({
     [close, isBlocked, onChange],
   );
 
-  /** Move o cursor por dias; virar o mes e consequencia, nao um comando a parte. */
   const moveCursor = useCallback((days: number) => {
     setCursor((current) => toISODate(addDays(fromISODate(current), days)));
   }, []);
@@ -139,7 +114,6 @@ export function DatePicker({
     setCursor((current) => {
       const date = fromISODate(current);
       const target = addMonths(date, months);
-      // Mantem o dia do mes quando ele existe no destino: 31 de janeiro -> 28 de fevereiro.
       const last = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
       return toISODate(new Date(target.getFullYear(), target.getMonth(), Math.min(date.getDate(), last)));
     });
@@ -152,10 +126,7 @@ export function DatePicker({
     const rect = trigger.getBoundingClientRect();
     const below = window.innerHeight - rect.bottom - PANEL_GAP;
     const above = rect.top - PANEL_GAP;
-    // Abre para cima so quando nao cabe abaixo e ha mais espaco acima.
     const flip = below < PANEL_HEIGHT && above > below;
-    // O painel tem largura propria e pode ser mais largo que o campo, entao
-    // precisa ser trazido de volta quando o campo esta perto da borda direita.
     const left = Math.min(Math.max(PANEL_GAP, rect.left), window.innerWidth - PANEL_WIDTH - PANEL_GAP);
 
     setPanelStyle({
@@ -165,7 +136,6 @@ export function DatePicker({
     });
   }, []);
 
-  // Mede antes da pintura para o painel nunca aparecer no lugar errado.
   useLayoutEffect(() => {
     if (open) position();
   }, [open, position]);
@@ -174,7 +144,6 @@ export function DatePicker({
     if (!open) return;
 
     const handleReposition = () => position();
-    // `true` para acompanhar tambem a rolagem de containers internos (modal).
     window.addEventListener('scroll', handleReposition, true);
     window.addEventListener('resize', handleReposition);
     return () => {
@@ -183,7 +152,6 @@ export function DatePicker({
     };
   }, [open, position]);
 
-  // Fecha ao clicar fora sem roubar o clique do alvo.
   useEffect(() => {
     if (!open) return;
 
@@ -248,7 +216,6 @@ export function DatePicker({
         return;
       case 'Escape':
         event.preventDefault();
-        // Sem isto o Escape sobe ate o `Modal`, que fecharia o formulario inteiro.
         event.stopPropagation();
         close();
         return;
@@ -292,10 +259,6 @@ export function DatePicker({
       >
         <CalendarDays className={styles.icon} size={15} strokeWidth={2} aria-hidden="true" />
 
-        {/*
-          A tela mostra a forma curta, que e a que cabe num campo estreito de
-          filtro; quem usa leitor de tela recebe a data por extenso.
-        */}
         <span className={cn(styles.value, !value && styles.placeholder, value && 'tabular')}>
           {value ? formatNumericDate(value) : placeholder}
         </span>
@@ -310,7 +273,6 @@ export function DatePicker({
                   <ChevronLeft size={16} strokeWidth={2} aria-hidden="true" />
                 </button>
 
-                {/* `polite` para o teclado ouvir a virada do mes sem perder o foco. */}
                 <span className={styles.month} id={monthId} aria-live="polite">
                   {capitalize(formatMonthLabel(viewMonth))}
                 </span>
@@ -361,11 +323,6 @@ export function DatePicker({
                 ))}
               </div>
 
-              {/*
-                "Hoje" e o atalho que cobre a maior parte dos lancamentos, e o
-                dia sob o cursor fica escrito ao lado: quem navega pelo teclado
-                nao precisa procurar na grade qual casa esta ativa.
-              */}
               <footer className={styles.foot}>
                 <button
                   type="button"
