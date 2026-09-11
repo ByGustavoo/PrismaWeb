@@ -146,15 +146,6 @@ export function capitalizar(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-export function iniciais(name: string): string {
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part.charAt(0).toUpperCase())
-    .join('');
-}
-
 const VALOR_BRASILEIRO = /^-?(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d+)?$/;
 const VALOR_DECIMAL_COM_PONTO = /^-?\d+\.\d+$/;
 

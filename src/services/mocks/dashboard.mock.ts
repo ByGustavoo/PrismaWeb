@@ -95,20 +95,13 @@ function montarFatura(monthKey: string): DashboardDTO['faturaAtual'] {
   const open = monthly.filter((invoice) => invoice.situacao === 'ABERTA');
   const chosen = [...(open.length > 0 ? open : monthly)].sort((a, b) => b.total - a.total)[0];
 
-  if (chosen) {
-    return {
-      total: chosen.total,
-      nomeCartao: chosen.nomeCartao,
-      dataVencimento: chosen.dataVencimento,
-      situacao: chosen.situacao,
-    };
-  }
+  if (!chosen) return null;
 
   return {
-    total: 0,
-    nomeCartao: 'Nenhum cartão',
-    dataVencimento: periodoDaChaveMes(deslocarChaveMes(monthKey, 1)).to,
-    situacao: monthKey < mesAtual ? 'PAGA' : 'ABERTA',
+    total: chosen.total,
+    nomeCartao: chosen.nomeCartao,
+    dataVencimento: chosen.dataVencimento,
+    situacao: chosen.situacao,
   };
 }
 

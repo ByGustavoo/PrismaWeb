@@ -1,0 +1,1 @@
+export const DIAS_HORIZONTE_AVISOS = 15;

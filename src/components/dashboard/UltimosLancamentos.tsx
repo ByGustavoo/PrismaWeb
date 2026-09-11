@@ -1,8 +1,9 @@
 import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
+import { Receipt } from 'lucide-react';
 import { ValorMonetario } from '@/components/comum';
 import { classePorTipo, iconePorTipo, sinalPorTipo, tomPorTipo, tomPorSituacao } from '@/components/lancamentos/aparencia';
-import { Selo, Painel, CorpoPainel, CabecalhoPainel, CorpoTabela, CabecaTabela, Tabela, ContainerTabela, Celula, CelulaCabecalho, LinhaTabela } from '@/components/ui';
+import { Selo, Painel, CorpoPainel, CabecalhoPainel, CorpoTabela, CabecaTabela, Tabela, ContainerTabela, Celula, CelulaCabecalho, LinhaTabela, EstadoVazio } from '@/components/ui';
 import { rotuloSituacaoLancamento } from '@/constants/lancamentos';
 import { caminhos } from '@/routes/caminhos';
 import type { LancamentoDTO } from '@/types';
@@ -25,25 +26,33 @@ export function UltimosLancamentos({ lancamentos, descricao }: UltimosLancamento
       </div>
 
       <CorpoPainel>
-        <ContainerTabela>
-          <Tabela>
-            <CabecaTabela>
-              <LinhaTabela>
-                <CelulaCabecalho>Descrição</CelulaCabecalho>
-                <CelulaCabecalho>Categoria</CelulaCabecalho>
-                <CelulaCabecalho>Conta</CelulaCabecalho>
-                <CelulaCabecalho>Data</CelulaCabecalho>
-                <CelulaCabecalho>Situação</CelulaCabecalho>
-                <CelulaCabecalho numerico>Valor</CelulaCabecalho>
-              </LinhaTabela>
-            </CabecaTabela>
-            <CorpoTabela>
-              {lancamentos.map((transaction, index) => (
-                <LinhaLancamento key={transaction.id} lancamento={transaction} indice={index} />
-              ))}
-            </CorpoTabela>
-          </Tabela>
-        </ContainerTabela>
+        {lancamentos.length === 0 ? (
+          <EstadoVazio
+            icone={Receipt}
+            titulo="Nenhum lançamento neste período"
+            descricao="Receitas, despesas e transferências registradas aparecem aqui, das mais recentes para as mais antigas."
+          />
+        ) : (
+          <ContainerTabela>
+            <Tabela>
+              <CabecaTabela>
+                <LinhaTabela>
+                  <CelulaCabecalho>Descrição</CelulaCabecalho>
+                  <CelulaCabecalho>Categoria</CelulaCabecalho>
+                  <CelulaCabecalho>Conta</CelulaCabecalho>
+                  <CelulaCabecalho>Data</CelulaCabecalho>
+                  <CelulaCabecalho>Situação</CelulaCabecalho>
+                  <CelulaCabecalho numerico>Valor</CelulaCabecalho>
+                </LinhaTabela>
+              </CabecaTabela>
+              <CorpoTabela>
+                {lancamentos.map((transaction, index) => (
+                  <LinhaLancamento key={transaction.id} lancamento={transaction} indice={index} />
+                ))}
+              </CorpoTabela>
+            </Tabela>
+          </ContainerTabela>
+        )}
       </CorpoPainel>
     </Painel>
   );

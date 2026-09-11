@@ -71,6 +71,9 @@ function validar(form: EstadoFormulario): ErrosCampos<EstadoFormulario> {
   if (!form.data) {
     errors.data = 'Informe a data da transferência!';
   }
+  if (form.data && form.situacao === 'PAGO' && form.data > hojeISO()) {
+    errors.situacao = 'Uma transferência com data futura não pode estar concluída!';
+  }
 
   return errors;
 }
@@ -115,6 +118,14 @@ export function ModalFormularioTransferencia({
   const handleOriginChange = (accountId: string) => {
     set('idOrigem', accountId);
     if (form.idContaDestino === accountId) set('idContaDestino', '');
+  };
+
+  const handleDateChange = (date: string) => {
+    setForm((current) => ({
+      ...current,
+      data: date,
+      situacao: current.situacao === 'PAGO' && date > hojeISO() ? 'AGENDADO' : current.situacao,
+    }));
   };
 
   const handleSubmit = () => {
@@ -200,7 +211,7 @@ export function ModalFormularioTransferencia({
           required
           rotulo="Data"
           value={form.data}
-          onChange={(date) => set('data', date)}
+          onChange={handleDateChange}
           erro={erros.data}
         />
 
@@ -220,6 +231,7 @@ export function ModalFormularioTransferencia({
           opcoes={opcoesSituacao}
           value={form.situacao}
           onChange={(status) => set('situacao', status as SituacaoLancamento)}
+          erro={erros.situacao}
           dica={form.situacao === 'PAGO' ? 'A transferência já foi feita.' : 'Ainda não saiu da conta de origem.'}
         />
 

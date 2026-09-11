@@ -16,6 +16,8 @@ import styles from './BuscaGlobal.module.css';
 
 const LIMITES = { transaction: 5, category: 3, account: 4 };
 
+const ESPERA_ENTRE_TECLAS_MS = 250;
+
 type GrupoResultado = 'transaction' | 'category' | 'account' | 'all';
 
 interface ResultadoBusca {
@@ -34,7 +36,12 @@ interface Catalogo {
   origens: OrigemDTO[];
 }
 
-const catalogoVazio: Catalogo = { lancamentos: [], categorias: [], origens: [] };
+interface CatalogoFixo {
+  categorias: CategoriaDTO[];
+  origens: OrigemDTO[];
+}
+
+const catalogoVazio: CatalogoFixo = { categorias: [], origens: [] };
 
 const rotuloGrupo: Record<GrupoResultado, string> = {
   transaction: 'Lançamentos',
@@ -104,38 +111,70 @@ export function BuscaGlobal({ expandido = false, aoRecolher }: BuscaGlobalProps)
 
   const [term, setTerm] = useState('');
   const [focused, setFocused] = useState(false);
-  const [catalog, setCatalog] = useState<Catalogo>(catalogoVazio);
-  const [loading, setLoading] = useState(false);
+  const [fixedCatalog, setFixedCatalog] = useState<CatalogoFixo>(catalogoVazio);
+  const [transactions, setTransactions] = useState<LancamentoDTO[]>([]);
+  const [loadingCatalog, setLoadingCatalog] = useState(false);
+  const [searching, setSearching] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+
+  const trimmed = term.trim();
 
   useEffect(() => {
     if (!focused) return;
 
     const controller = new AbortController();
-    setLoading(true);
+    setLoadingCatalog(true);
 
-    Promise.all([
-      lancamentosService.listar({}, controller.signal),
-      categoriasService.listar(undefined, controller.signal),
-      contasService.listarOrigens(controller.signal),
-    ])
-      .then(([lancamentos, categorias, origens]) => {
-        if (!controller.signal.aborted) setCatalog({ lancamentos, categorias, origens });
+    Promise.all([categoriasService.listar(undefined, controller.signal), contasService.listarOrigens(controller.signal)])
+      .then(([categorias, origens]) => {
+        if (!controller.signal.aborted) setFixedCatalog({ categorias, origens });
       })
       .catch(() => undefined)
       .finally(() => {
-        if (!controller.signal.aborted) setLoading(false);
+        if (!controller.signal.aborted) setLoadingCatalog(false);
       });
 
     return () => controller.abort();
   }, [focused]);
 
   useEffect(() => {
+    if (!focused || !trimmed) {
+      setTransactions([]);
+      setSearching(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    setSearching(true);
+
+    const timer = setTimeout(() => {
+      lancamentosService
+        .listar({ busca: trimmed }, controller.signal)
+        .then((found) => {
+          if (!controller.signal.aborted) setTransactions(found);
+        })
+        .catch(() => undefined)
+        .finally(() => {
+          if (!controller.signal.aborted) setSearching(false);
+        });
+    }, ESPERA_ENTRE_TECLAS_MS);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [focused, trimmed]);
+
+  useEffect(() => {
     if (expandido) inputRef.current?.focus();
   }, [expandido]);
 
-  const trimmed = term.trim();
-  const results = useMemo(() => (trimmed ? montarResultados(catalog, trimmed) : []), [catalog, trimmed]);
+  const loading = loadingCatalog || searching;
+
+  const results = useMemo(
+    () => (trimmed ? montarResultados({ ...fixedCatalog, lancamentos: transactions }, trimmed) : []),
+    [fixedCatalog, transactions, trimmed],
+  );
 
   const seeAll = useMemo<ResultadoBusca>(
     () => ({

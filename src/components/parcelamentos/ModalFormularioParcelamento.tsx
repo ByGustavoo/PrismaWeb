@@ -79,6 +79,9 @@ function validar(form: EstadoFormulario): ErrosCampos<EstadoFormulario> {
   if (!form.dataCompra) {
     errors.dataCompra = 'Informe a data da compra!';
   }
+  if (form.dataCompra && form.primeiroMes && form.primeiroMes < form.dataCompra.slice(0, 7)) {
+    errors.primeiroMes = 'A primeira parcela não pode cair antes do mês da compra!';
+  }
 
   return errors;
 }
@@ -123,15 +126,17 @@ export function ModalFormularioParcelamento({
   const suggestedMonth = primeiroMesPadrao(selectedCard, form.dataCompra);
   const firstMonth = form.primeiroMes || suggestedMonth;
 
-  const monthOptions = useMemo<Opcao[]>(
-    () =>
-      Array.from({ length: 5 }, (_, index) => {
-        const month = deslocarChaveMes(suggestedMonth, index - 1);
-        return { valor: month, rotulo: capitalizar(formatarRotuloMes(month)) + (month === suggestedMonth ? ' (sugerido)' : ''),
-        };
-      }),
-    [suggestedMonth],
-  );
+  const purchaseMonth = form.dataCompra.slice(0, 7);
+
+  const monthOptions = useMemo<Opcao[]>(() => {
+    const previousMonth = deslocarChaveMes(suggestedMonth, -1);
+    const start = purchaseMonth && previousMonth < purchaseMonth ? purchaseMonth : previousMonth;
+
+    return Array.from({ length: 5 }, (_, index) => {
+      const month = deslocarChaveMes(start, index);
+      return { valor: month, rotulo: capitalizar(formatarRotuloMes(month)) + (month === suggestedMonth ? ' (sugerido)' : '') };
+    });
+  }, [suggestedMonth, purchaseMonth]);
 
   const count = Number(form.parcelas) || 0;
   const total = interpretarEntradaValor(form.valorTotal);
@@ -246,6 +251,7 @@ export function ModalFormularioParcelamento({
           opcoes={monthOptions}
           value={firstMonth}
           onChange={(month) => set('primeiroMes', month)}
+          erro={erros.primeiroMes}
         />
 
         <CampoSelecao

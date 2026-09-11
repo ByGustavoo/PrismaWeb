@@ -1,3 +1,4 @@
+import { DIAS_HORIZONTE_AVISOS } from '@/constants/avisos';
 import { PROPORCAO_CRITICA_LIMITE_CARTAO } from '@/constants/cartoes';
 import { rotuloTipoLancamento } from '@/constants/lancamentos';
 import { caminhos } from '@/routes/caminhos';
@@ -7,14 +8,11 @@ import { formatarRotuloVencimento } from '@/utils/formatacao';
 import { montarFaturas, cartoesPertoDoLimite } from './cartoes.mock';
 import { lancamentos } from './dados';
 
-const DIAS_HORIZONTE = 15;
-
 function severidadePorDias(days: number): AvisoDTO['severidade'] {
   if (days <= 2) return 'CRITICO';
   if (days <= 7) return 'ATENCAO';
   return 'INFO';
 }
-
 
 export function montarAvisos(): AvisoDTO[] {
   const today = hojeISO();
@@ -23,7 +21,7 @@ export function montarAvisos(): AvisoDTO[] {
   for (const invoice of montarFaturas()) {
     if (invoice.situacao === 'PAGA' || invoice.situacao === 'FUTURA') continue;
     const days = diasEntre(today, invoice.dataVencimento);
-    if (days > DIAS_HORIZONTE || days < -DIAS_HORIZONTE) continue;
+    if (days > DIAS_HORIZONTE_AVISOS || days < -DIAS_HORIZONTE_AVISOS) continue;
 
     alerts.push({
       id: `alert-invoice-${invoice.id}`,
@@ -40,7 +38,7 @@ export function montarAvisos(): AvisoDTO[] {
   for (const transaction of lancamentos) {
     if (transaction.situacao === 'PAGO') continue;
     const days = diasEntre(today, transaction.data);
-    if (days > DIAS_HORIZONTE) continue;
+    if (days > DIAS_HORIZONTE_AVISOS) continue;
 
     const pending = transaction.situacao === 'PENDENTE';
     alerts.push({

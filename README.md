@@ -300,7 +300,8 @@ O que já está pronto do lado do cliente:
 * 🧭 Todas as URLs em `src/api/rotasApi.ts`. Nenhuma string de rota de backend escrita fora dele.
 * 🧵 `AbortSignal` propagado de ponta a ponta: trocar de tela cancela a requisição em voo.
 
-O backend precisa liberar **CORS** para `http://localhost:5173` nos métodos `GET`, `POST`, `PUT` e
+O backend precisa liberar **CORS** para a origem do dev server (`http://localhost:5173`; o perfil `dev`
+do PrismaAPI aceita qualquer porta de `localhost` e de `127.0.0.1`) nos métodos `GET`, `POST`, `PUT` e
 `DELETE`, e responder erro no formato `ErrorResponseDTO` (`status`, `title`, `instance`, `type`,
 `detail`, `errors`, `timestamp`) — o `detail` é o texto que aparece no toast da tela. O PrismaAPI já
 faz as duas coisas.

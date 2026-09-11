@@ -307,7 +307,7 @@ export interface DashboardDTO {
   variacaoDespesas: VariacaoDTO;
   totalInvestido: number;
   variacaoInvestimentos: VariacaoDTO;
-  faturaAtual: FaturaDTO;
+  faturaAtual: FaturaDTO | null;
   historicoSaldo: SaldoDTO[];
   fluxoCaixa: FluxoDTO[];
   gastoDiario: GastoDiarioDTO[];

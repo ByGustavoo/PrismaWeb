@@ -12,12 +12,17 @@ export interface VariacaoDTO {
   tendencia: Tendencia;
 }
 
+export interface ErroCampoDTO {
+  campo: string;
+  mensagem: string;
+}
+
 export interface ErrorResponseDTO {
   status: number;
   title: string;
   instance: string;
   type: string;
   detail: string;
-  errors?: unknown;
+  errors?: ErroCampoDTO[];
   timestamp: string;
 }

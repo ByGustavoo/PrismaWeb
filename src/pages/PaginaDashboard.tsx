@@ -117,9 +117,13 @@ export function PaginaDashboard() {
             />
             <BlocoIndicador
               rotulo={shownFrom === shownTo ? 'Fatura do mês' : `Fatura de ${capitalizar(formatarRotuloMes(shownTo))}`}
-              valor={dados.faturaAtual.total}
+              valor={dados.faturaAtual?.total ?? 0}
               icone={CreditCard}
-              notaRodape={`${dados.faturaAtual.nomeCartao} · vence em ${formatarDataCompleta(dados.faturaAtual.dataVencimento)}`}
+              notaRodape={
+                dados.faturaAtual
+                  ? `${dados.faturaAtual.nomeCartao} · vence em ${formatarDataCompleta(dados.faturaAtual.dataVencimento)}`
+                  : 'Sem compras no cartão de crédito'
+              }
             />
           </div>
 

@@ -155,8 +155,8 @@ src/
 │   ├── previsao/  GraficoPrevisao, TabelaPrevisao, ListaPrevisao (versao compacta)
 │   ├── relatorios/ SeletorPeriodoRelatorio, DistribuicaoOrigens, GraficoEvolucaoSaldo, GraficoPatrimonio
 │   └── graficos/  DicaGrafico
-├── constants/     ambiente, aplicacao, navegacao, lancamentos, contas, cartoes, investimentos, orcamento,
-│                  recorrentes, metas, previsao, relatorios, validacao
+├── constants/     ambiente, aplicacao, navegacao, avisos, lancamentos, contas, cartoes, investimentos,
+│                  orcamento, recorrentes, metas, previsao, relatorios, validacao
 ├── hooks/         useDadosAssincronos, useConsultaMidia, useArmazenamentoLocal, useTravarRolagem,
 │                  usePaletaGrafico, useContagem, useValidacaoFormulario
 ├── layouts/       LayoutAplicacao (sidebar + header + conteudo)
@@ -312,6 +312,13 @@ fica fora do total do periodo (`totalLiquido`) e de `gastoPorCategoria`: o dinhe
 altera o patrimonio. Por isso a tela de Transferencias esconde a coluna e o filtro de categoria —
 seriam um traco em toda linha.
 
+**A forma de pagamento sai da origem.** Com origem em cartao, o formulario esconde "Forma de
+pagamento" e envia `CARTAO_CREDITO`; com origem em conta, a opcao de cartao nem aparece. Antes dava
+para gravar uma compra no cartao como "Debito em conta", e a API aceitava. Store e PrismaAPI recusam
+com `422` essa combinacao e mais tres: categoria do lado errado, origem em cartao de debito e
+lancamento `PAGO` com data futura. Ao escolher uma data futura com a situacao em "Concluido", o
+formulario troca para "Agendado" na hora, em vez de guardar o erro para o envio.
+
 A tela de lancamentos busca do service so pelo `tipo` da rota; busca, periodo, categoria, conta,
 situacao e ordenacao sao aplicados em memoria por `components/lancamentos/consulta.ts`, para responder
 a cada tecla sem uma nova ida ao servidor. Os mesmos filtros existem em `FiltroLancamentoDTO` do
@@ -357,7 +364,13 @@ parcelamentos sao leitura calculada, exceto o cadastro da compra parcelada.
 - **Faturas em quatro blocos.** "A pagar" (ciclo fechado), "Fatura atual" (ciclo em andamento),
   "Proximas faturas" e "Faturas anteriores". A fechada e a aberta sao coisas diferentes — uma exige
   pagamento numa data, a outra ainda acumula compras — e junta-las colocava duas faturas do mesmo
-  cartao lado a lado sem explicar por que eram duas.
+  cartao lado a lado sem explicar por que eram duas. Fatura `VENCIDA` fica em "A pagar" so dentro da
+  janela dos avisos (`DIAS_HORIZONTE_AVISOS`, em `constants/avisos.ts`, 15 dias) e depois passa para
+  "Faturas anteriores": sem registro de pagamento a vencida e tratada como paga, e sem o corte uma
+  fatura de janeiro somava em "A pagar agora" para sempre. Os mocks nunca emitem `VENCIDA` e a API
+  emite — foi por isso que o erro so apareceu contra o backend. Fora da janela, a vencida usa selo
+  neutro em toda tela de fatura (`tomDaFatura`, em `components/cartoes/aparencia.ts`): o vermelho
+  pedia uma acao que o produto ja considera resolvida.
 - **A barra de limite usa as faixas de `constants/cartoes.ts`**, as mesmas que decidem o aviso do
   sino. Separadas, um dia a barra ficaria ambar sem nenhum aviso correspondente no painel.
 - **Filtro de tela vai na linha de acoes do `CabecalhoPagina`; filtro de bloco, no cabecalho do bloco.**
@@ -618,7 +631,9 @@ O `SeletorPeriodo` e a busca global sao os dois pontos em que o header conversa 
   entrega cada resultado como destino: lancamento abre `?editar=<id>`, categoria abre
   `?categoria=<id>` e conta abre `?conta=<id>`, todos em `/lancamentos`. A ultima linha leva a
   `?busca=<termo>`. A comparacao ignora acento (`normalizarBusca`), porque quem digita "saude" espera achar
-  "Saude". Chegar pela busca **reseta** os filtros da tela antes de aplicar o que veio na URL: um
+  "Saude". Categorias e origens carregam uma vez, ao focar o campo; lancamentos vao ao servidor com
+  `?busca=` a cada termo, com 250 ms de espera entre teclas. Baixar a tabela inteira de lancamentos a
+  cada abertura funcionava com o mock e nao escala com historico real. Chegar pela busca **reseta** os filtros da tela antes de aplicar o que veio na URL: um
   filtro esquecido da navegacao anterior zeraria o resultado que o usuario acabou de escolher.
 - **Os parametros da busca saem da URL assim que sao lidos**
   (`setSearchParams({}, { replace: true })`), para que voltar no historico nao reabra um
@@ -744,11 +759,14 @@ Basta `VITE_USE_MOCKS=false`, com `VITE_API_URL` apontando para o PrismaAPI
 os mesmos DTOs do backend, entao nenhum componente muda. O `clienteHttp` ja tem timeout de 15s, um
 ponto unico (`obterTokenAutenticacao`) para plugar o token quando entrar o Spring Security e normalizacao de
 erros em `ErroApi`: o corpo de erro do servidor e o `ErrorResponseDTO` (`types/comum.ts`), e o
-`interpretarErro` usa `detail` como mensagem, `type` como codigo e `errors` como detalhe.
+`interpretarErro` usa as mensagens de `errors` (validacao de campo) ou `detail` como mensagem, `type` como
+codigo e `errors` como detalhe. Cancelamento pelo `AbortSignal` de quem chamou sai como o proprio
+`AbortError`, igual ao `respostaMock`; so o estouro dos 15 s vira `ErroApi` de `timeout`.
 
 ## Fora de escopo hoje
 
-Autenticacao, ESLint/Prettier, testes e code-splitting por rota ainda nao existem. Nao ha pagamento de fatura nem registro de quitacao — a fatura vencida e tratada como
+Autenticacao, ESLint/Prettier, testes e code-splitting por rota ainda nao existem. Por isso a sidebar
+nao mostra usuario: o bloco com nome e e-mail ficticios saiu, e volta quando houver login. Nao ha pagamento de fatura nem registro de quitacao — a fatura vencida e tratada como
 paga —, nem historico de cotacao por ativo: a evolucao do patrimonio e reconstruida a partir do
 valor atual e da idade da posicao. Exportacao de relatorio (PDF, CSV) tambem ficou de fora. Nao
 invente configuracao dessas sem o usuario pedir.

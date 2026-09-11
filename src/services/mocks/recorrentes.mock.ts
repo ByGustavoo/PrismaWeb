@@ -61,10 +61,22 @@ export function custoMensalRecorrentes(): number {
   );
 }
 
+function emDia(item: DespesaRecorrenteDTO, today: string): DespesaRecorrenteDTO {
+  let cursor = item.proximoVencimento;
+
+  let guard = 0;
+  while (cursor < today && guard < 400) {
+    cursor = proximaOcorrencia(cursor, item.frequencia);
+    guard += 1;
+  }
+
+  return cursor === item.proximoVencimento ? item : { ...item, proximoVencimento: cursor };
+}
+
 export function montarResumoRecorrentes(): ResumoDespesasRecorrentesDTO {
   const today = hojeISO();
 
-  const items = [...despesasRecorrentes].sort((a, b) => {
+  const items = despesasRecorrentes.map((item) => emDia(item, today)).sort((a, b) => {
     const paused = Number(a.situacao === 'PAUSADO') - Number(b.situacao === 'PAUSADO');
     if (paused !== 0) return paused;
     return a.proximoVencimento.localeCompare(b.proximoVencimento);

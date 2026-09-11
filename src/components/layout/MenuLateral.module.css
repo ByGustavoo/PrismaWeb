@@ -194,60 +194,6 @@
   border-top: 1px solid var(--border);
 }
 
-.user {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  flex: 1;
-  min-width: 0;
-  padding: var(--space-2);
-  border-radius: var(--radius-sm);
-}
-
-.avatar {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
-  border-radius: var(--radius-pill);
-  background-color: var(--neutral-soft);
-  color: var(--text-muted);
-  font-family: var(--font-figure);
-  font-size: var(--fs-xs);
-  font-weight: 600;
-}
-
-.userText {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.userName {
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.userEmail {
-  font-size: var(--fs-xs);
-  color: var(--text-subtle);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.collapsed .userText {
-  display: none;
-}
-
-.collapsed .user {
-  justify-content: center;
-}
-
 .collapseButton {
   display: grid;
   place-items: center;
@@ -302,8 +248,7 @@
   }
 
   .collapsed .brandText,
-  .collapsed .itemLabel,
-  .collapsed .userText {
+  .collapsed .itemLabel {
     display: flex;
   }
 
@@ -316,7 +261,7 @@
     display: grid;
   }
 
-  .collapseButton {
+  .footer {
     display: none;
   }
 

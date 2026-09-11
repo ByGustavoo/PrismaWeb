@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { CreditCard, Receipt } from 'lucide-react';
+import { ehVencidaRecente } from '@/components/cartoes/aparencia';
 import { ValorMonetario, BarraResumo } from '@/components/comum';
 import { ModalDetalheFatura, DestaqueFatura, LinhaFatura } from '@/components/faturas';
 import { CabecalhoPagina } from '@/components/layout';
@@ -10,7 +11,7 @@ import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
 import { PARAMETRO_CARTAO } from '@/routes/caminhos';
 import { cartoesService } from '@/services';
 import type { FaturaCartaoDTO, Opcao } from '@/types';
-import { chaveMesPorDeslocamento, mesesEntre } from '@/utils/data';
+import { chaveMesPorDeslocamento, hojeISO, mesesEntre } from '@/utils/data';
 import { capitalizar, formatarRotuloVencimento } from '@/utils/formatacao';
 import styles from './PaginaFaturas.module.css';
 
@@ -78,10 +79,15 @@ export function PaginaFaturas() {
   );
 
   const groups = useMemo(() => {
-    const toPay = invoices.filter((item) => item.situacao === 'FECHADA' || item.situacao === 'VENCIDA');
+    const today = hojeISO();
+
+    const toPay = invoices.filter((item) => item.situacao === 'FECHADA' || ehVencidaRecente(item, today));
     const current = invoices.filter((item) => item.situacao === 'ABERTA');
     const upcoming = invoices.filter((item) => item.situacao === 'FUTURA');
-    const past = invoices.filter((item) => item.situacao === 'PAGA').slice().reverse();
+    const past = invoices
+      .filter((item) => item.situacao === 'PAGA' || (item.situacao === 'VENCIDA' && !ehVencidaRecente(item, today)))
+      .slice()
+      .reverse();
 
     return { toPay, current, upcoming, past };
   }, [invoices]);

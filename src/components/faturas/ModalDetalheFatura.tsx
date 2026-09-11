@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { Receipt } from 'lucide-react';
-import { tomSituacaoFatura } from '@/components/cartoes';
+import { tomDaFatura } from '@/components/cartoes/aparencia';
 import { ValorMonetario } from '@/components/comum';
 import { Selo, Botao, EstadoVazio, BlocoCarregando, Modal } from '@/components/ui';
 import { rotuloSituacaoFatura } from '@/constants/cartoes';
@@ -60,7 +60,7 @@ export function ModalDetalheFatura({ fatura, aoFechar }: ModalDetalheFaturaProps
           <div>
             <dt>Situação</dt>
             <dd>
-              <Selo tom={tomSituacaoFatura[fatura.situacao]} ponto>
+              <Selo tom={tomDaFatura(fatura)} ponto>
                 {rotuloSituacaoFatura[fatura.situacao]}
               </Selo>
             </dd>

@@ -31,6 +31,18 @@ function obterTokenAutenticacao(): string | null {
   return null;
 }
 
+function mensagensDosCampos(errors: unknown): string | null {
+  if (!Array.isArray(errors)) return null;
+
+  const mensagens = errors
+    .map((item: unknown) =>
+      item && typeof item === 'object' && 'mensagem' in item && typeof item.mensagem === 'string' ? item.mensagem : '',
+    )
+    .filter((mensagem) => mensagem !== '');
+
+  return mensagens.length > 0 ? mensagens.join(' ') : null;
+}
+
 async function interpretarErro(response: Response): Promise<ErroApi> {
   let message = `Falha na requisição (${response.status})`;
   let code = 'erro_http';
@@ -38,7 +50,7 @@ async function interpretarErro(response: Response): Promise<ErroApi> {
 
   try {
     const body = (await response.json()) as Partial<ErrorResponseDTO>;
-    message = body.detail ?? body.title ?? message;
+    message = mensagensDosCampos(body.errors) ?? body.detail ?? body.title ?? message;
     code = body.type ?? code;
     details = body.errors;
   } catch {
@@ -49,10 +61,16 @@ async function interpretarErro(response: Response): Promise<ErroApi> {
 
 async function requisitar<T>(method: string, path: string, body?: unknown, options: OpcoesRequisicao = {}): Promise<T> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), TEMPO_LIMITE_PADRAO_MS);
+  let expirou = false;
+  const timeout = setTimeout(() => {
+    expirou = true;
+    controller.abort();
+  }, TEMPO_LIMITE_PADRAO_MS);
   const token = obterTokenAutenticacao();
 
-  if (options.signal) {
+  if (options.signal?.aborted) {
+    controller.abort();
+  } else if (options.signal) {
     options.signal.addEventListener('abort', () => controller.abort(), { once: true });
   }
 
@@ -81,6 +99,7 @@ async function requisitar<T>(method: string, path: string, body?: unknown, optio
   } catch (error) {
     if (error instanceof ErroApi) throw error;
     if (error instanceof DOMException && error.name === 'AbortError') {
+      if (!expirou) throw error;
       throw new ErroApi('A requisição demorou demais e foi cancelada!', 0, 'timeout');
     }
     throw new ErroApi('Não foi possível falar com o servidor!', 0, 'network_error', error);

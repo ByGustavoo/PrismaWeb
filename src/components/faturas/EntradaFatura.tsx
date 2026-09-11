@@ -1,7 +1,7 @@
 import { ArrowDownRight, ArrowRight, ArrowUpRight, ChevronRight } from 'lucide-react';
 import { ValorMonetario } from '@/components/comum';
 import { Selo, Botao } from '@/components/ui';
-import { tomSituacaoFatura } from '@/components/cartoes';
+import { tomDaFatura } from '@/components/cartoes/aparencia';
 import { rotuloSituacaoFatura } from '@/constants/cartoes';
 import type { FaturaCartaoDTO } from '@/types';
 import { capitalizar, formatarRotuloVencimento, formatarDataCompleta, formatarRotuloMes, formatarDataCurta } from '@/utils/formatacao';
@@ -27,7 +27,7 @@ export function DestaqueFatura({ fatura, aoAbrir }: EntradaFaturaProps) {
     <article className={styles.highlight}>
       <header className={styles.highlightHeader}>
         <span className={styles.cardName}>{fatura.nomeCartao}</span>
-        <Selo tom={tomSituacaoFatura[fatura.situacao]} ponto>
+        <Selo tom={tomDaFatura(fatura)} ponto>
           {rotuloSituacaoFatura[fatura.situacao]}
         </Selo>
       </header>
@@ -106,7 +106,7 @@ export function LinhaFatura({ fatura, aoAbrir }: EntradaFaturaProps) {
         </span>
 
         <span className={styles.rowStatus}>
-          <Selo tom={tomSituacaoFatura[fatura.situacao]} ponto>
+          <Selo tom={tomDaFatura(fatura)} ponto>
             {rotuloSituacaoFatura[fatura.situacao]}
           </Selo>
         </span>

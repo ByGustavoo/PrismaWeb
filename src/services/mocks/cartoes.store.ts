@@ -147,6 +147,9 @@ function resolverCompra(payload: SalvarCompraParceladaDTO): Omit<CompraParcelada
   if (!ehChaveMes(payload.primeiroMes)) {
     throw new ErroApi('Informe o mês da primeira parcela!', 422, 'erro_validacao');
   }
+  if (payload.primeiroMes < payload.dataCompra.slice(0, 7)) {
+    throw new ErroApi('A primeira parcela não pode cair antes do mês da compra!', 422, 'erro_validacao');
+  }
 
   const card = cartoes.find((item) => item.id === payload.idCartao);
   if (!card) {
@@ -154,6 +157,11 @@ function resolverCompra(payload: SalvarCompraParceladaDTO): Omit<CompraParcelada
   }
   if (card.tipo !== 'CREDITO') {
     throw new ErroApi('Só cartões de crédito aceitam compras parceladas!', 422, 'erro_validacao');
+  }
+
+  const category = categorias.find((item) => item.id === payload.idCategoria) ?? null;
+  if (category && category.tipo !== 'DESPESA') {
+    throw new ErroApi('Escolha uma categoria de despesa!', 422, 'erro_validacao');
   }
 
   return {
@@ -164,7 +172,7 @@ function resolverCompra(payload: SalvarCompraParceladaDTO): Omit<CompraParcelada
     primeiroMes: payload.primeiroMes,
     idCartao: card.id,
     nomeCartao: card.nome,
-    categoria: categorias.find((item) => item.id === payload.idCategoria) ?? null,
+    categoria: category,
     ...(payload.observacoes?.trim() ? { observacoes: payload.observacoes.trim() } : {}),
   };
 }

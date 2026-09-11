@@ -57,7 +57,7 @@ A fonte de verdade dos tipos é [`src/types/financas.ts`](src/types/financas.ts)
 | Timeout | O cliente aborta em **15 s**. Endpoints de relatório e previsão precisam responder dentro disso. |
 | Cancelamento | Toda requisição carrega um `AbortSignal`. Trocar de tela cancela a requisição em voo; o backend pode simplesmente ignorar a desconexão. |
 | Autenticação | Ainda não existe. O `clienteHttp` já tem o ponto único `obterTokenAutenticacao()`; quando o Spring Security entrar, ele passa a mandar `Authorization: Bearer <token>` em todas as chamadas. Nenhum endpoint deste documento precisa mudar por causa disso. |
-| CORS | O dev server roda em `http://localhost:5173`. O backend libera essa origem para os métodos `GET`, `POST`, `PUT`, `DELETE` e para os headers `Authorization`, `Content-Type` e `Accept`. |
+| CORS | O dev server roda em `http://localhost:5173`. No perfil `dev`, o backend libera qualquer porta de `localhost` e de `127.0.0.1` (propriedade `prismaapi.cors.origens-permitidas`), para que um segundo Vite ou o acesso por IP não esbarrem num `403` no preflight; fora do `dev`, só a origem configurada. Métodos `GET`, `POST`, `PUT`, `DELETE`; headers `Authorization`, `Content-Type` e `Accept`. |
 | `204 No Content` | Toda exclusão responde `204` sem corpo. O `clienteHttp` já trata esse status e não tenta desserializar. |
 | Paginação | **Não há.** Toda listagem devolve o array inteiro. O frontend não envia `page` nem `pageSize` e não sabe interpretar um envelope paginado — se um dia a base exigir paginação, ela entra como mudança de contrato, não como detalhe de implementação. |
 
@@ -84,12 +84,12 @@ Toda resposta de erro tem o corpo do `ErrorResponseDTO`, próximo do RFC 7807:
 | `title` | sim | Nome curto do tipo de falha. |
 | `instance` | sim | Caminho da requisição que falhou. |
 | `type` | sim | Caminho estável por tipo de falha, no formato `/PrismaAPI/problems/<slug>`. É o que o cliente guarda em `ErroApi.codigo`. |
-| `detail` | sim | Frase em português, pronta para ser exibida ao usuário. **É este texto que aparece no toast da tela** — o frontend não traduz nem reescreve mensagem de erro do servidor. Nas falhas técnicas — corpo ilegível, conflito de integridade no banco, erro inesperado — é uma frase fixa, e o texto da exceção vai em `errors`. |
-| `errors` | não | Detalhamento. Na validação de campo, é uma lista de `{ "campo": "nome", "mensagem": "O campo 'nome' deve ter entre 2 e 80 caracteres!" }`; nas falhas técnicas, o texto original da exceção. Fica disponível em `ErroApi.detalhes`; hoje nenhuma tela o consome. |
+| `detail` | sim | Frase em português, pronta para ser exibida ao usuário. **É este texto que aparece no toast da tela** — o frontend não traduz nem reescreve mensagem de erro do servidor. Nas falhas técnicas — corpo ilegível, parâmetro em formato inválido, conflito de integridade no banco, erro inesperado — é uma frase fixa; o texto da exceção vai só para o log do servidor e **nunca** para a resposta, que não pode expor SQL, nome de classe nem assinatura de método. |
+| `errors` | não | Só aparece na validação de campo (`validation-error`): uma lista de `{ "campo": "nome", "mensagem": "O campo 'nome' é obrigatório!" }`, com **uma mensagem por campo**. Quando um campo quebra mais de uma regra — vazio e curto demais ao mesmo tempo —, vale a de ausência. O `clienteHttp` usa essas mensagens no lugar de `detail`, para que o toast diga qual campo foi recusado, e a lista fica em `ErroApi.detalhes`. |
 | `timestamp` | sim | Data e hora da falha, em `dd/MM/yyyy - HH:mm:ss`. |
 
 O tipo `ErrorResponseDTO` mora em [`src/types/comum.ts`](src/types/comum.ts), e o `interpretarErro` de
-`src/api/clienteHttp.ts` monta o `ErroApi` com `detail` (ou `title`, se faltar), `type` e `errors`.
+`src/api/clienteHttp.ts` monta o `ErroApi` com as mensagens de `errors` (ou `detail`, ou `title`), `type` e `errors`.
 
 ### Status esperados
 
@@ -98,7 +98,7 @@ O tipo `ErrorResponseDTO` mora em [`src/types/comum.ts`](src/types/comum.ts), e 
 | `400` | `/PrismaAPI/problems/validation-error` | Campo recusado pela validação estrutural, corpo malformado ou parâmetro impossível de interpretar. Também `unreadable-message`, `invalid-parameters` e `invalid-request`. |
 | `404` | `/PrismaAPI/problems/conta-nao-encontrada` | Id inexistente numa rota `/{id}`. Um id que nem chega a ser UUID responde `400` com `invalid-parameters`. |
 | `409` | `/PrismaAPI/problems/conta-duplicada` | A operação é válida mas conflita com o estado atual (duplicidade, exclusão de registro com histórico). |
-| `422` | `/PrismaAPI/problems/origem-inexistente` | Corpo bem formado, mas com valor recusado pela regra de negócio: referência inexistente, destino igual à origem, categoria do tipo errado. |
+| `422` | `/PrismaAPI/problems/origem-inexistente` | Corpo bem formado, mas com valor recusado pela regra de negócio: referência inexistente, destino igual à origem, categoria do tipo errado, forma de pagamento incompatível com a origem, lançamento futuro marcado como concluído. |
 | `500` | `/PrismaAPI/problems/internal-server-error` | Falha inesperada. |
 
 > **Sobre as mensagens.** As frases citadas em cada seção são as mesmas nos mocks do frontend e no
@@ -166,10 +166,11 @@ jeito que os mocks.
 | --- | --- | --- |
 | Campo obrigatório, tamanho mínimo e máximo, faixa numérica, casas decimais, formato (`http://`, quatro dígitos, `YYYY-MM`) e data no futuro | `422` com a frase da seção | `400`, com `detail` `A requisição contém dados inválidos!` e uma mensagem por campo em `errors` |
 | Campo exigido pelo tipo do cartão: limite, dias de fechamento e vencimento, saldo do vale | `422` | `400`, com a frase da seção em `detail` |
-| Valor que nem chega a ser lido: texto em campo numérico, enum desconhecido, data fora do formato | `422` | `400` |
+| Valor que nem chega a ser lido: texto em campo numérico, enum desconhecido, data fora do formato ou inexistente (`2026-02-30` é recusada, nunca corrigida para o último dia do mês) | `422` | `400` |
 
 Os `404`, os `409` e os `422` de regra de negócio (referência inexistente, destino igual à origem,
-categoria de receita, data anterior ao primeiro preço) são iguais nos dois lados. Os formulários
+categoria do tipo errado, forma incompatível com a origem, data anterior ao primeiro preço) são
+iguais nos dois lados. Os formulários
 validam cada campo antes de enviar, então o `400` do servidor é a segunda barreira, não o caminho
 normal de feedback.
 
@@ -275,11 +276,10 @@ um, ou um `dataInicial` posterior ao `dataFinal`, é `400`.
   no empate, por descrição crescente na collation de `pt-BR`. Mesmo formato de `LancamentoDTO`.
 - `faturaAtual` é a fatura do mês de `dataFinal`, não a maior de todo o recorte: entre as daquele
   mês, prefira as de situação `ABERTA` e escolha a de maior valor; não havendo nenhuma aberta, a de
-  maior valor entre as do mês. Cartão inativo também conta, desde que tenha movimento no mês. Sem
-  nenhum cartão movimentado no mês, devolva `total: 0`, `nomeCartao: "Nenhum cartão"`, o último dia
-  do mês seguinte como `dataVencimento` e situação `PAGA` para um mês passado ou `ABERTA` para o
-  corrente. O objeto nunca vem `null` e `nomeCartao` nunca vem vazio — a tela concatena nome e
-  vencimento sem nenhuma guarda.
+  maior valor entre as do mês. Cartão inativo também conta, desde que tenha movimento no mês.
+  **Sem nenhum cartão movimentado no mês, `faturaAtual` vem `null`**, e a tela escreve "Sem compras
+  no cartão de crédito". A versão anterior devolvia `nomeCartao: "Nenhum cartão"` com um vencimento
+  inventado, e o bloco anunciava um prazo que não existia.
 - Um recorte válido **sem nenhum lançamento não é erro**: responda `200` com os totais zerados e as
   séries preenchidas com zeros.
 
@@ -306,8 +306,9 @@ um, ou um `dataInicial` posterior ao `dataFinal`, é `400`.
 - Receita e despesa **não compartilham categoria**: cada formulário oferece apenas as do seu lado.
   O filtro por `tipo` é o que sustenta isso.
 - Ordem alfabética por `nome`.
-- Categoria é hoje um catálogo fixo do servidor. Não há CRUD de categoria no frontend — se um dia
-  houver, ele entra como um domínio novo.
+- Categoria é hoje um catálogo fixo do servidor, criado pela migração `V1.1__InsertCategorias.sql`
+  do PrismaAPI com as mesmas onze categorias dos mocks. Sem ele não se cadastra receita, despesa nem
+  orçamento. Não há CRUD de categoria no frontend — se um dia houver, ele entra como um domínio novo.
 
 ---
 
@@ -385,8 +386,20 @@ usam **o mesmo endpoint**, mudando apenas o parâmetro `tipo`. Não crie rotas s
   conceito único no produto (veja `GET /contas/origens`), e no banco são duas chaves
   estrangeiras (`id_conta` e `id_cartao`) reunidas num campo só pelo `COALESCE`.
 - `valor` é sempre positivo; a direção do dinheiro vem de `tipo`, nunca do sinal.
+- **O cartão de débito não é origem.** Ele fica fora de `GET /contas/origens` porque é só o meio de
+  acessar a conta, e lançar nele responde `422`.
+- **A forma de pagamento acompanha a origem.** Origem em cartão (crédito ou vale) exige
+  `forma: "CARTAO_CREDITO"`; origem em conta aceita `CONTA`, `PIX` ou `DINHEIRO`, nunca `CARTAO_CREDITO`.
+  O formulário esconde o campo quando a origem é um cartão e já envia a forma certa.
+- **Data futura não pode estar concluída.** `situacao: "PAGO"` com `data` depois de hoje responde
+  `422`: o que ainda não aconteceu é `AGENDADO` ou `PENDENTE`. O formulário troca a situação para
+  agendado quando a data escolhida passa de hoje.
+- **A categoria precisa ser do lado do lançamento:** despesa só com categoria de despesa, receita só
+  com categoria de receita.
 - **Transferência tem regras próprias:**
-  - `categoria` **deve** vir `null` na resposta, e `idCategoria` é ignorado na entrada;
+  - `categoria` vem **sempre presente e `null`** na resposta, nunca omitido, e `idCategoria` é
+    ignorado na entrada;
+  - a origem precisa ser uma conta;
   - `idContaDestino` é obrigatório;
   - a conta de destino precisa ser diferente da origem;
   - ela **não entra** em receita, despesa, resultado do período nem gasto por categoria.
@@ -403,6 +416,13 @@ usam **o mesmo endpoint**, mudando apenas o parâmetro `tipo`. Não crie rotas s
   | `idContaDestino` inexistente (transferência) | `422` | `A conta de destino informada não existe!` |
   | Destino igual à origem | `422` | `A conta de destino precisa ser diferente da origem!` |
   | `idCategoria` inexistente fora de transferência | `422` | `A categoria informada não existe!` |
+  | Despesa com categoria de receita | `422` | `Escolha uma categoria de despesa!` |
+  | Receita com categoria de despesa | `422` | `Escolha uma categoria de receita!` |
+  | Origem em cartão de débito | `422` | `O cartão de débito não é origem de lançamento: escolha a conta que ele movimenta!` |
+  | Transferência saindo de um cartão | `422` | `A transferência precisa sair de uma conta!` |
+  | Cartão com `forma` diferente de `CARTAO_CREDITO` | `422` | `Um lançamento no cartão precisa ter a forma de pagamento cartão!` |
+  | Conta com `forma: "CARTAO_CREDITO"` | `422` | `Um lançamento na conta não pode ter a forma de pagamento cartão de crédito!` |
+  | `situacao: "PAGO"` com `data` futura | `422` | `Um lançamento com data futura não pode estar concluído: marque como agendado ou pendente!` |
 
 - `PUT` com id inexistente: `404` — `Lançamento não encontrado!`
 
@@ -703,6 +723,8 @@ calculados**:
 | `primeiroMes` ausente ou fora de `YYYY-MM` | `422` | `Informe o mês da primeira parcela!` |
 | `idCartao` inexistente | `422` | `O cartão informado não existe!` |
 | Cartão que não é de crédito | `422` | `Só cartões de crédito aceitam compras parceladas!` |
+| `primeiroMes` anterior ao mês de `dataCompra` | `422` | `A primeira parcela não pode cair antes do mês da compra!` |
+| `idCategoria` de receita | `422` | `Escolha uma categoria de despesa!` |
 | Id inexistente (`PUT`) | `404` | `Compra parcelada não encontrada!` |
 
 ### `DELETE /compras-parceladas/{id}`
@@ -938,6 +960,10 @@ Devolve a lista **já consolidada** — note que a resposta é um objeto, não u
 - `custoMensal` e `custoAnual` contam **apenas as ativas**. Pausada continua no cadastro, sai do
   custo e volta com um clique.
 - `vencendoEmBreve` traz as ativas que vencem nos próximos **7 dias**, da mais próxima em diante.
+- **`proximoVencimento` na resposta nunca fica no passado.** O cadastro guarda a data informada, e a
+  leitura avança pela frequência até a primeira ocorrência de hoje em diante: um aluguel mensal
+  cadastrado com vencimento em 10/08 aparece com 10/09 depois que agosto passa. Como não há registro
+  de pagamento, sem esse avanço toda recorrente virava "venceu há N dias" um mês depois do cadastro.
 - `itens` vem ordenado pelo `proximoVencimento` crescente, com as pausadas ao fim.
 
 ### `POST /despesas-recorrentes` · `PUT /despesas-recorrentes/{id}` · `DELETE /despesas-recorrentes/{id}`

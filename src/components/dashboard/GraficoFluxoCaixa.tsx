@@ -1,7 +1,8 @@
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { ArrowLeftRight } from 'lucide-react';
 import { DicaGrafico } from '@/components/graficos';
 import { usePaletaGrafico } from '@/hooks/usePaletaGrafico';
-import { Painel, CorpoPainel, CabecalhoPainel } from '@/components/ui';
+import { Painel, CorpoPainel, CabecalhoPainel, EstadoVazio } from '@/components/ui';
 import type { FluxoDTO } from '@/types';
 import { formatarMoedaCompacta } from '@/utils/formatacao';
 import styles from './GraficoFluxoCaixa.module.css';
@@ -20,48 +21,59 @@ export function GraficoFluxoCaixa({
   larguraMaximaBarra = 26,
 }: GraficoFluxoCaixaProps) {
   const palette = usePaletaGrafico();
+  const semMovimento = dados.every((item) => item.receitas === 0 && item.despesas === 0);
 
   return (
     <Painel>
       <CabecalhoPainel titulo={titulo} descricao={descricao} />
-      <CorpoPainel className={styles.chart}>
-        <ResponsiveContainer width="100%" height={260}>
-          <BarChart
-            data={dados}
-            barGap={6}
-            barCategoryGap="28%"
-            margin={{ top: 8, right: 4, bottom: 0, left: -12 }}
-          >
-            <CartesianGrid vertical={false} stroke={palette.grade} />
-            <XAxis
-              dataKey="rotulo"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: palette.textoEixo, fontSize: 12 }}
-              dy={6}
-            />
-            <YAxis
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: palette.textoEixo, fontSize: 12 }}
-              tickFormatter={formatarMoedaCompacta}
-              width={78}
-            />
-            <Tooltip
-              cursor={{ fill: palette.superficieSuave }}
-              content={<DicaGrafico />}
-            />
-            <Legend
-              iconType="square"
-              iconSize={9}
-              wrapperStyle={{ paddingTop: 12 }}
-              formatter={(value) => <span className={styles.legendLabel}>{value}</span>}
-            />
-            <Bar dataKey="receitas" name="Entradas" fill={palette.series[1]} radius={[4, 4, 0, 0]} maxBarSize={larguraMaximaBarra} />
-            <Bar dataKey="despesas" name="Saídas" fill={palette.series[2]} radius={[4, 4, 0, 0]} maxBarSize={larguraMaximaBarra} />
-          </BarChart>
-        </ResponsiveContainer>
-      </CorpoPainel>
+      {semMovimento ? (
+        <CorpoPainel className={styles.empty}>
+          <EstadoVazio
+            icone={ArrowLeftRight}
+            titulo="Nenhuma entrada ou saída"
+            descricao="As receitas e despesas lançadas no período aparecem aqui, lado a lado."
+          />
+        </CorpoPainel>
+      ) : (
+        <CorpoPainel className={styles.chart}>
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart
+              data={dados}
+              barGap={6}
+              barCategoryGap="28%"
+              margin={{ top: 8, right: 4, bottom: 0, left: -12 }}
+            >
+              <CartesianGrid vertical={false} stroke={palette.grade} />
+              <XAxis
+                dataKey="rotulo"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: palette.textoEixo, fontSize: 12 }}
+                dy={6}
+              />
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: palette.textoEixo, fontSize: 12 }}
+                tickFormatter={formatarMoedaCompacta}
+                width={78}
+              />
+              <Tooltip
+                cursor={{ fill: palette.superficieSuave }}
+                content={<DicaGrafico />}
+              />
+              <Legend
+                iconType="square"
+                iconSize={9}
+                wrapperStyle={{ paddingTop: 12 }}
+                formatter={(value) => <span className={styles.legendLabel}>{value}</span>}
+              />
+              <Bar dataKey="receitas" name="Entradas" fill={palette.series[1]} radius={[4, 4, 0, 0]} maxBarSize={larguraMaximaBarra} />
+              <Bar dataKey="despesas" name="Saídas" fill={palette.series[2]} radius={[4, 4, 0, 0]} maxBarSize={larguraMaximaBarra} />
+            </BarChart>
+          </ResponsiveContainer>
+        </CorpoPainel>
+      )}
     </Painel>
   );
 }

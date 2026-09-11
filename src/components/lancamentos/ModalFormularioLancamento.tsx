@@ -77,6 +77,9 @@ function validar(form: EstadoFormulario, isExpense: boolean): ErrosCampos<Estado
   if (!form.idOrigem) {
     errors.idOrigem = isExpense ? 'Escolha a conta ou o cartão da despesa!' : 'Escolha a conta da receita!';
   }
+  if (form.data && form.situacao === 'PAGO' && form.data > hojeISO()) {
+    errors.situacao = `Uma ${noun} com data futura não pode estar concluída!`;
+  }
 
   return errors;
 }
@@ -84,8 +87,9 @@ function validar(form: EstadoFormulario, isExpense: boolean): ErrosCampos<Estado
 const opcoesSituacao: Opcao[] = situacoesLancamento.map((status) => ({ valor: status, rotulo: rotuloSituacaoLancamento[status],
 }));
 
-const opcoesForma: Opcao[] = formasLancamento.map((method) => ({ valor: method, rotulo: rotuloFormaLancamento[method],
-}));
+const opcoesFormaNaConta: Opcao[] = formasLancamento
+  .filter((method) => method !== 'CARTAO_CREDITO')
+  .map((method) => ({ valor: method, rotulo: rotuloFormaLancamento[method] }));
 
 export function ModalFormularioLancamento({
   aberto,
@@ -125,8 +129,19 @@ export function ModalFormularioLancamento({
     [origens, isExpense],
   );
 
+  const paidWithCard = origens.find((item) => item.id === form.idOrigem)?.grupo === 'CARTAO';
+  const accountMethod: FormaLancamento = form.forma === 'CARTAO_CREDITO' ? 'CONTA' : form.forma;
+
   const set = <K extends keyof EstadoFormulario>(field: K, value: EstadoFormulario[K]) => {
     setForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleDateChange = (date: string) => {
+    setForm((current) => ({
+      ...current,
+      data: date,
+      situacao: current.situacao === 'PAGO' && date > hojeISO() ? 'AGENDADO' : current.situacao,
+    }));
   };
 
   const handleSubmit = () => {
@@ -137,7 +152,7 @@ export function ModalFormularioLancamento({
       valor: interpretarEntradaValor(form.valor) ?? 0,
       tipo: tipo,
       situacao: form.situacao,
-      forma: form.forma,
+      forma: paidWithCard ? 'CARTAO_CREDITO' : accountMethod,
       data: form.data,
       idCategoria: form.idCategoria,
       idOrigem: form.idOrigem,
@@ -207,7 +222,7 @@ export function ModalFormularioLancamento({
           required
           rotulo="Data"
           value={form.data}
-          onChange={(date) => set('data', date)}
+          onChange={handleDateChange}
           erro={erros.data}
         />
 
@@ -229,13 +244,14 @@ export function ModalFormularioLancamento({
           value={form.idOrigem}
           onChange={(accountId) => set('idOrigem', accountId)}
           erro={erros.idOrigem}
+          {...(paidWithCard ? { dica: 'A forma de pagamento é o próprio cartão.' } : {})}
         />
 
-        {isExpense ? (
+        {isExpense && !paidWithCard ? (
           <CampoSelecao
             rotulo="Forma de pagamento"
-            opcoes={opcoesForma}
-            value={form.forma}
+            opcoes={opcoesFormaNaConta}
+            value={accountMethod}
             onChange={(method) => set('forma', method as FormaLancamento)}
           />
         ) : null}
@@ -245,6 +261,7 @@ export function ModalFormularioLancamento({
           opcoes={opcoesSituacao}
           value={form.situacao}
           onChange={(status) => set('situacao', status as SituacaoLancamento)}
+          erro={erros.situacao}
           dica={form.situacao === 'PAGO' ? 'Já entrou ou saiu da conta.' : 'Ainda não afetou o saldo.'}
         />
 

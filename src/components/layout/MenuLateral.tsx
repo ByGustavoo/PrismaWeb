@@ -7,7 +7,6 @@ import { MarcaPrisma } from '@/components/comum';
 import type { ItemNavegacao } from '@/constants/navegacao';
 import { manterTabDentro } from '@/utils/foco';
 import { juntarClasses } from '@/utils/juntarClasses';
-import { iniciais } from '@/utils/formatacao';
 import styles from './MenuLateral.module.css';
 
 interface MenuLateralProps {
@@ -16,8 +15,6 @@ interface MenuLateralProps {
   aoAlternarRecolhido: () => void;
   aoFecharMobile: () => void;
 }
-
-const usuarioAtual = { nome: 'Ana Ribeiro', email: 'ana@exemplo.com' };
 
 export function MenuLateral({ recolhido, abertoNoMobile, aoAlternarRecolhido, aoFecharMobile }: MenuLateralProps) {
   const sidebarRef = useRef<HTMLElement>(null);
@@ -87,16 +84,6 @@ export function MenuLateral({ recolhido, abertoNoMobile, aoAlternarRecolhido, ao
         </nav>
 
         <div className={styles.footer}>
-          <div className={styles.user}>
-            <span className={styles.avatar} aria-hidden="true">
-              {iniciais(usuarioAtual.nome)}
-            </span>
-            <span className={styles.userText}>
-              <span className={styles.userName}>{usuarioAtual.nome}</span>
-              <span className={styles.userEmail}>{usuarioAtual.email}</span>
-            </span>
-          </div>
-
           <button
             type="button"
             className={styles.collapseButton}

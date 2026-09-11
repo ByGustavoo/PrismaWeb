@@ -2,6 +2,12 @@
   margin-inline: calc(var(--space-2) * -1);
 }
 
+.empty {
+  display: grid;
+  place-items: center;
+  min-height: 292px;
+}
+
 .legendLabel {
   color: var(--text-muted);
   font-size: var(--fs-sm);

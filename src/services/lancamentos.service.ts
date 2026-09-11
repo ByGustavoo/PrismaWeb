@@ -1,6 +1,7 @@
 import { rotasApi, clienteHttp } from '@/api';
 import { ambiente } from '@/constants/ambiente';
 import type { ID, LancamentoDTO, SalvarLancamentoDTO, SituacaoLancamento, TipoLancamento } from '@/types';
+import { normalizarBusca } from '@/utils/formatacao';
 import { criarLancamento, excluirLancamento, respostaMock, lancamentos, atualizarLancamento } from './mocks';
 
 export interface FiltroLancamentoDTO {
@@ -24,14 +25,11 @@ function corresponde(item: LancamentoDTO, filters: FiltroLancamentoDTO): boolean
     return false;
   }
 
-  const term = filters.busca?.trim().toLowerCase();
+  const term = filters.busca?.trim() ? normalizarBusca(filters.busca.trim()) : '';
   if (!term) return true;
 
-  return (
-    item.descricao.toLowerCase().includes(term) ||
-    (item.categoria?.nome.toLowerCase().includes(term) ?? false) ||
-    item.nomeOrigem.toLowerCase().includes(term) ||
-    (item.nomeContaDestino?.toLowerCase().includes(term) ?? false)
+  return [item.descricao, item.categoria?.nome, item.nomeOrigem, item.nomeContaDestino].some((field) =>
+    field ? normalizarBusca(field).includes(term) : false,
   );
 }
 

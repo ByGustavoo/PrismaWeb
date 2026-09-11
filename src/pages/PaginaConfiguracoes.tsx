@@ -79,10 +79,12 @@ export function PaginaConfiguracoes() {
                   )}
                 </dd>
               </div>
-              <div className={styles.detailRow}>
-                <dt>Latência simulada</dt>
-                <dd className="tabular">{ambiente.atrasoMocks} ms</dd>
-              </div>
+              {ambiente.usarMocks ? (
+                <div className={styles.detailRow}>
+                  <dt>Latência simulada</dt>
+                  <dd className="tabular">{ambiente.atrasoMocks} ms</dd>
+                </div>
+              ) : null}
             </dl>
           </CorpoPainel>
         </Painel>
