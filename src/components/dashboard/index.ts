@@ -1,6 +1,6 @@
-export { BalancePanel } from './BalancePanel';
-export { StatTile } from './StatTile';
-export { CashflowChart } from './CashflowChart';
-export { CategoryBreakdown } from './CategoryBreakdown';
-export { SpendingCalendar } from './SpendingCalendar';
-export { RecentTransactions, TransactionRow } from './RecentTransactions';
+export { PainelSaldo } from './PainelSaldo';
+export { BlocoIndicador } from './BlocoIndicador';
+export { GraficoFluxoCaixa } from './GraficoFluxoCaixa';
+export { DistribuicaoCategorias } from './DistribuicaoCategorias';
+export { CalendarioGastos } from './CalendarioGastos';
+export { UltimosLancamentos, LinhaLancamento } from './UltimosLancamentos';

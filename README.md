@@ -159,18 +159,18 @@ $ npm run typecheck
 ## 🔐 Variáveis de Ambiente
 
 Todas as variáveis ficam no arquivo `.env`, criado a partir do `.env.example`. **Nenhum outro
-arquivo lê `import.meta.env` diretamente**: isso acontece apenas em `src/constants/env.ts`, e o
-resto do código consome o objeto `env` exportado de lá.
+arquivo lê `import.meta.env` diretamente**: isso acontece apenas em `src/constants/ambiente.ts`, e o
+resto do código consome o objeto `ambiente` exportado de lá.
 
 O `.env` está no `.gitignore`; só o `.env.example` é versionado, e ele não contém segredo nenhum.
 
 <br>
 
 ```bash
-# URL base do backend
-VITE_API_URL=http://localhost:8080/api
+# URL base do backend (PrismaAPI, perfil dev)
+VITE_API_URL=http://localhost:9017/PrismaAPI/v1
 
-# Troque para "false" quando a API real existir
+# Troque para "false" para falar com o PrismaAPI
 VITE_USE_MOCKS=true
 
 # Latência simulada dos mocks, em milissegundos
@@ -187,45 +187,48 @@ VITE_MOCK_DELAY=450
 
 ```bash
 src/
-├── api/           httpClient, ApiError, endpoints (única fonte de URLs)
+├── api/           clienteHttp, ErroApi, rotasApi (única fonte de URLs)
 ├── components/
-│   ├── ui/        Button, Card, Input, Textarea, Select, DatePicker, Switch,
-│   │              Modal, ConfirmDialog, Badge, Table, ProgressBar, Loading,
-│   │              EmptyState, Toast
-│   ├── common/    Amount, BrandMark, DeltaIndicator, SummaryBar, UnderConstruction
-│   ├── layout/    Sidebar, Header, HeaderSlot, PageHeader, NotificationsPanel,
-│   │              GlobalSearch, PeriodSwitcher
-│   ├── dashboard/ BalancePanel, StatTile, CashflowChart, CategoryBreakdown,
-│   │              SpendingCalendar, RecentTransactions
-│   ├── transactions/ filtros, tabela, lista, formulários e query em memória
-│   ├── accounts/  AccountCard, AccountFormModal
-│   ├── cards/     CardTile, CardFormModal
-│   ├── invoices/  InvoiceEntry, InvoiceDetailModal
-│   ├── installments/ InstallmentCard, InstallmentFormModal
-│   ├── investments/ AllocationChart, PortfolioChart, InvestmentCard, InvestmentFormModal
-│   ├── budget/    MonthNavigator, BudgetRow, BudgetFormModal
-│   ├── recurring/ RecurringCard, RecurringFormModal
-│   ├── goals/     GoalCard, GoalFormModal, GoalDetailModal, GoalFilters,
-│   │              PriceDelta, PriceSparkline, PriceHistoryChart
-│   ├── forecast/  ForecastChart, ForecastTable, ForecastList
-│   ├── reports/   ReportRangePicker, SourceBreakdown, BalanceTrendChart, NetWorthChart
-│   └── charts/    ChartTooltip
-├── constants/     env, app, navigation, transactions, accounts, cards,
-│                  investments, budget, recurring, goals, forecast, reports
-├── hooks/         useAsyncData, useMediaQuery, useLocalStorage,
-│                  useLockBodyScroll, useChartPalette, useCountUp
-├── layouts/       AppLayout (shell: sidebar + header + conteúdo)
-├── pages/         Dashboard, Lançamentos, Contas, Cartões, Faturas, Parcelamentos,
-│                  Investimentos, Orçamento, Recorrentes, Previsão, Metas,
-│                  Relatórios, Configurações, 404
-├── providers/     ThemeProvider, ToastProvider, PeriodProvider, AppProviders
-├── routes/        AppRoutes, paths (única fonte de rotas)
-├── services/      dashboard, transactions, categories, accounts, cards,
-│                  investments, budget, recurring, goals, forecast, reports, alerts
-│   └── mocks/     data, stores de escrita e builders de cada domínio
+│   ├── ui/        Botao, Painel, CampoTexto, AreaTexto, CampoSelecao, SeletorData,
+│   │              Interruptor, Modal, DialogoConfirmacao, Selo, Tabela, BarraProgresso,
+│   │              Carregamento, EstadoVazio, Notificacao
+│   ├── comum/     ValorMonetario, MarcaPrisma, IndicadorVariacao, BarraResumo
+│   ├── layout/    MenuLateral, Cabecalho, EspacoCabecalho, CabecalhoPagina, PainelAvisos,
+│   │              BuscaGlobal, SeletorPeriodo
+│   ├── dashboard/ PainelSaldo, BlocoIndicador, GraficoFluxoCaixa, DistribuicaoCategorias,
+│   │              CalendarioGastos, UltimosLancamentos
+│   ├── lancamentos/ filtros, tabela, lista, formulários e consulta em memória
+│   ├── contas/    CartaoConta, ModalFormularioConta
+│   ├── cartoes/   BlocoCartao, ModalFormularioCartao
+│   ├── faturas/   EntradaFatura, ModalDetalheFatura
+│   ├── parcelamentos/ CartaoParcelamento, ModalFormularioParcelamento
+│   ├── investimentos/ GraficoAlocacao, GraficoCarteira, CartaoInvestimento,
+│   │              ModalFormularioInvestimento
+│   ├── orcamento/ NavegadorMes, LinhaOrcamento, ModalFormularioOrcamento
+│   ├── recorrentes/ CartaoRecorrente, ModalFormularioRecorrente
+│   ├── metas/     CartaoMeta, ModalFormularioMeta, ModalDetalheMeta, FiltrosMetas,
+│   │              VariacaoPreco, MiniCurvaPreco, GraficoHistoricoPreco
+│   ├── previsao/  GraficoPrevisao, TabelaPrevisao, ListaPrevisao
+│   ├── relatorios/ SeletorPeriodoRelatorio, DistribuicaoOrigens, GraficoEvolucaoSaldo,
+│   │              GraficoPatrimonio
+│   └── graficos/  DicaGrafico
+├── constants/     ambiente, aplicacao, navegacao, lancamentos, contas, cartoes, investimentos,
+│                  orcamento, recorrentes, metas, previsao, relatorios, validacao
+├── hooks/         useDadosAssincronos, useConsultaMidia, useArmazenamentoLocal,
+│                  useTravarRolagem, usePaletaGrafico, useContagem, useValidacaoFormulario
+├── layouts/       LayoutAplicacao (shell: sidebar + header + conteúdo)
+├── pages/         PaginaDashboard, PaginaLancamentos, PaginaContas, PaginaCartoes,
+│                  PaginaFaturas, PaginaParcelamentos, PaginaInvestimentos, PaginaOrcamento,
+│                  PaginaRecorrentes, PaginaPrevisao, PaginaMetas, PaginaRelatorios,
+│                  PaginaConfiguracoes, PaginaNaoEncontrada
+├── providers/     ProvedorTema, ProvedorNotificacoes, ProvedorPeriodo, ProvedoresAplicacao
+├── routes/        RotasAplicacao, caminhos (única fonte de rotas)
+├── services/      dashboard, lancamentos, categorias, contas, cartoes, investimentos,
+│                  orcamento, recorrentes, metas, previsao, relatorios, avisos
+│   └── mocks/     dados, stores de escrita e builders de cada domínio
 ├── styles/        tokens.css (design tokens), global.css
-├── types/         common, finance (contratos de domínio)
-└── utils/         cn, date, format
+├── types/         comum, financas (contratos de domínio)
+└── utils/         juntarClasses, data, formatacao, validacao
 ```
 
 
@@ -241,12 +244,12 @@ service decide a origem:
 
 ```ts
 export const dashboardService = {
-  getSummary(period?: DashboardPeriod, signal?: AbortSignal): Promise<ResumoDashboard> {
-    if (env.useMocks) {
-      return mockResponse(buildDashboardSummary(period), signal);
+  buscarResumo(period?: PeriodoDashboard, signal?: AbortSignal): Promise<DashboardDTO> {
+    if (ambiente.usarMocks) {
+      return respostaMock(montarResumoDashboard(period), signal);
     }
-    return httpClient.get<ResumoDashboard>(endpoints.dashboard.resumo, {
-      query: { de: period?.from, ate: period?.to },
+    return clienteHttp.get<DashboardDTO>(rotasApi.dashboard.resumo, {
+      consulta: { dataInicial: period?.dataInicial, dataFinal: period?.dataFinal },
       signal,
     });
   },
@@ -257,7 +260,7 @@ export const dashboardService = {
 
 ### Como os mocks funcionam
 
-* 🕐 **Todo mock passa por `mockResponse`**, que aplica a latência de `VITE_MOCK_DELAY` e respeita o
+* 🕐 **Todo mock passa por `respostaMock`**, que aplica a latência de `VITE_MOCK_DELAY` e respeita o
   `AbortSignal`. As telas já exercitam carregamento, erro e cancelamento exatamente como farão
   contra o backend real.
 
@@ -266,8 +269,8 @@ export const dashboardService = {
   novo aparece no dashboard, nos avisos e no relatório na mesma sessão. O estado vive até o reload
   da página — não há persistência enquanto não houver backend, e isso é proposital.
 
-* 🚦 **Os mocks recusam entrada inválida como a API vai recusar.** Os stores lançam `ApiError` com
-  status `404`, `409` e `422` e com o mesmo formato de corpo do `httpClient`, para que a tela já
+* 🚦 **Os mocks recusam entrada inválida como a API vai recusar.** Os stores lançam `ErroApi` com
+  status `404`, `409` e `422` e com o mesmo formato de corpo do `clienteHttp`, para que a tela já
   trate erro do jeito certo antes da integração.
 
 * 🧮 **O que é cálculo, é cálculo.** Fatura, limite comprometido, cronograma de parcelas,
@@ -285,21 +288,22 @@ export const dashboardService = {
 ## 🔌 Integração com a API
 
 Basta trocar `VITE_USE_MOCKS` para `false`. Se o backend respeitar os contratos de
-`src/types/finance.ts` — detalhados endpoint a endpoint em **[API_CONTRACT.md](API_CONTRACT.md)** —
+`src/types/financas.ts` — detalhados endpoint a endpoint em **[API_CONTRACT.md](API_CONTRACT.md)** —
 **nenhum componente precisa mudar**.
 
 O que já está pronto do lado do cliente:
 
-* 🌐 `httpClient` com timeout de 15 s, montagem de query string e normalização de erros em `ApiError`
-  (`status`, `code`, `details`).
-* 🔑 Um ponto único, `getAuthToken()`, para plugar o token quando entrar o Spring Security. Ele já
+* 🌐 `clienteHttp` com timeout de 15 s, montagem de query string e normalização de erros em `ErroApi`
+  (`status`, `codigo`, `detalhes`).
+* 🔑 Um ponto único, `obterTokenAutenticacao()`, para plugar o token quando entrar o Spring Security. Ele já
   monta o header `Authorization: Bearer <token>` quando devolve algo.
-* 🧭 Todas as URLs em `src/api/endpoints.ts`. Nenhuma string de rota de backend escrita fora dele.
+* 🧭 Todas as URLs em `src/api/rotasApi.ts`. Nenhuma string de rota de backend escrita fora dele.
 * 🧵 `AbortSignal` propagado de ponta a ponta: trocar de tela cancela a requisição em voo.
 
 O backend precisa liberar **CORS** para `http://localhost:5173` nos métodos `GET`, `POST`, `PUT` e
-`DELETE`, e responder erro no formato `{ "message", "code", "errors" }` — a `message` é o texto que
-aparece no toast da tela.
+`DELETE`, e responder erro no formato `ErrorResponseDTO` (`status`, `title`, `instance`, `type`,
+`detail`, `errors`, `timestamp`) — o `detail` é o texto que aparece no toast da tela. O PrismaAPI já
+faz as duas coisas.
 
 
 <br>
@@ -313,7 +317,7 @@ aparece no toast da tela.
 
 * 🔀 Três modos disponíveis: claro, escuro e sistema (acompanha o dispositivo). A escolha fica em **Configurações**, com atalho rápido no header.
 
-* 📊 O Recharts escreve cor como atributo de SVG, onde `var(--token)` não resolve de forma confiável. O hook `useChartPalette` lê os tokens computados e recalcula quando o tema muda.
+* 📊 O Recharts escreve cor como atributo de SVG, onde `var(--token)` não resolve de forma confiável. O hook `usePaletaGrafico` lê os tokens computados e recalcula quando o tema muda.
 
 * 🧭 A página 404 fica fora do shell do app, mas dentro dos providers: ela abre no mesmo tema em que a pessoa estava, inclusive quando o endereço é digitado direto na barra do navegador.
 
@@ -343,7 +347,7 @@ aparece no toast da tela.
 
 * 🟢 Backend em Java / Spring Boot + PostgreSQL, implementando o [API_CONTRACT.md](API_CONTRACT.md).
 
-* 🔐 Autenticação com Spring Security, plugada no `getAuthToken()`.
+* 🔐 Autenticação com Spring Security, plugada no `obterTokenAutenticacao()`.
 
 * 🧰 ESLint e Prettier, suíte de testes e code-splitting por rota.
 

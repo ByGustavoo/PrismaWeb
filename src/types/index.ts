@@ -1,2 +1,2 @@
-export * from './common';
-export * from './finance';
+export * from './comum';
+export * from './financas';

@@ -2,39 +2,39 @@ import { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import type { ReactNode } from 'react';
 import { X } from 'lucide-react';
-import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
-import { cn } from '@/utils/cn';
-import { Button } from './Button';
+import { useTravarRolagem } from '@/hooks/useTravarRolagem';
+import { juntarClasses } from '@/utils/juntarClasses';
+import { Botao } from './Botao';
 import styles from './Modal.module.css';
 
 export interface ModalProps {
-  open: boolean;
-  onClose: () => void;
-  title: string;
-  description?: string;
-  size?: 'sm' | 'md' | 'lg';
-  footer?: ReactNode;
+  aberto: boolean;
+  aoFechar: () => void;
+  titulo: string;
+  descricao?: string;
+  tamanho?: 'sm' | 'md' | 'lg';
+  rodape?: ReactNode;
   children: ReactNode;
 }
 
-const FOCUSABLE =
+const FOCAVEIS =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-export function Modal({ open, onClose, title, description, size = 'md', footer, children }: ModalProps) {
+export function Modal({ aberto, aoFechar, titulo, descricao, tamanho = 'md', rodape, children }: ModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const baseId = useId();
   const titleId = `${baseId}-title`;
   const descriptionId = `${baseId}-description`;
 
-  useLockBodyScroll(open);
+  useTravarRolagem(aberto);
 
-  if (open && openerRef.current === null) {
+  if (aberto && openerRef.current === null) {
     openerRef.current = document.activeElement as HTMLElement | null;
   }
 
   useEffect(() => {
-    if (!open) return;
+    if (!aberto) return;
 
     const panel = panelRef.current;
     if (panel && !panel.contains(document.activeElement)) panel.focus();
@@ -44,14 +44,14 @@ export function Modal({ open, onClose, title, description, size = 'md', footer, 
       openerRef.current?.focus?.();
       openerRef.current = null;
     };
-  }, [open]);
+  }, [aberto]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!aberto) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        onClose();
+        aoFechar();
         return;
       }
 
@@ -60,7 +60,7 @@ export function Modal({ open, onClose, title, description, size = 'md', footer, 
       const panel = panelRef.current;
       if (!panel) return;
 
-      const focusable = [...panel.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
+      const focusable = [...panel.querySelectorAll<HTMLElement>(FOCAVEIS)].filter(
         (element) => element.offsetParent !== null || element === document.activeElement,
       );
       const first = focusable[0];
@@ -78,39 +78,39 @@ export function Modal({ open, onClose, title, description, size = 'md', footer, 
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [open, onClose]);
+  }, [aberto, aoFechar]);
 
-  if (!open) return null;
+  if (!aberto) return null;
 
   return createPortal(
-    <div className={styles.overlay} onMouseDown={onClose}>
+    <div className={styles.overlay} onMouseDown={aoFechar}>
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        aria-describedby={description ? descriptionId : undefined}
+        aria-describedby={descricao ? descriptionId : undefined}
         tabIndex={-1}
-        className={cn(styles.panel, styles[size])}
+        className={juntarClasses(styles.panel, styles[tamanho])}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <header className={styles.header}>
           <div>
             <h2 className={styles.title} id={titleId}>
-              {title}
+              {titulo}
             </h2>
-            {description ? (
+            {descricao ? (
               <p className={styles.description} id={descriptionId}>
-                {description}
+                {descricao}
               </p>
             ) : null}
           </div>
-          <Button variant="ghost" size="sm" icon={X} onClick={onClose} aria-label="Fechar" />
+          <Botao variante="ghost" tamanho="sm" icone={X} onClick={aoFechar} aria-label="Fechar" />
         </header>
 
         <div className={styles.content}>{children}</div>
 
-        {footer ? <footer className={styles.footer}>{footer}</footer> : null}
+        {rodape ? <footer className={styles.footer}>{rodape}</footer> : null}
       </div>
     </div>,
     document.body,

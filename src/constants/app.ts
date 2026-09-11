@@ -1,7 +1,0 @@
-export const APP_NAME = 'Prisma';
-export const APP_TAGLINE = 'Finanças pessoais';
-export const THEME_STORAGE_KEY = 'prisma:theme';
-export const SIDEBAR_STORAGE_KEY = 'prisma:sidebar-collapsed';
-export const TRANSACTIONS_VIEW_STORAGE_KEY = 'prisma:transactions-view';
-export const LOCALE = 'pt-BR';
-export const CURRENCY = 'BRL';

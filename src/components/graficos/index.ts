@@ -1,0 +1,1 @@
+export { DicaGrafico } from './DicaGrafico';

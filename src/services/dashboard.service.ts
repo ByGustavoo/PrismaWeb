@@ -1,16 +1,16 @@
-import { endpoints, httpClient } from '@/api';
-import { env } from '@/constants/env';
-import type { ResumoDashboard } from '@/types';
-import { buildDashboardSummary, mockResponse } from './mocks';
-import type { DashboardPeriod } from './mocks';
+import { rotasApi, clienteHttp } from '@/api';
+import { ambiente } from '@/constants/ambiente';
+import type { DashboardDTO } from '@/types';
+import { montarResumoDashboard, respostaMock } from './mocks';
+import type { PeriodoDashboard } from './mocks';
 
 export const dashboardService = {
-  getSummary(period?: DashboardPeriod, signal?: AbortSignal): Promise<ResumoDashboard> {
-    if (env.useMocks) {
-      return mockResponse(buildDashboardSummary(period), signal);
+  buscarResumo(period?: PeriodoDashboard, signal?: AbortSignal): Promise<DashboardDTO> {
+    if (ambiente.usarMocks) {
+      return respostaMock(montarResumoDashboard(period), signal);
     }
-    return httpClient.get<ResumoDashboard>(endpoints.dashboard.resumo, {
-      query: { de: period?.from, ate: period?.to },
+    return clienteHttp.get<DashboardDTO>(rotasApi.dashboard.resumo, {
+      consulta: { dataInicial: period?.dataInicial, dataFinal: period?.dataFinal },
       signal,
     });
   },

@@ -1,16 +1,16 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import App from './App';
+import Aplicacao from './Aplicacao';
 import './styles/global.css';
 
-const container = document.getElementById('root');
+const raiz = document.getElementById('root');
 
-if (!container) {
+if (!raiz) {
   throw new Error('Elemento #root não encontrado no index.html.');
 }
 
-createRoot(container).render(
+createRoot(raiz).render(
   <StrictMode>
-    <App />
+    <Aplicacao />
   </StrictMode>,
 );
