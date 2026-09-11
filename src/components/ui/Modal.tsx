@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import type { ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { useTravarRolagem } from '@/hooks/useTravarRolagem';
+import { devolverFoco, manterTabDentro } from '@/utils/foco';
 import { juntarClasses } from '@/utils/juntarClasses';
 import { Botao } from './Botao';
 import styles from './Modal.module.css';
@@ -16,9 +17,6 @@ export interface ModalProps {
   rodape?: ReactNode;
   children: ReactNode;
 }
-
-const FOCAVEIS =
-  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 export function Modal({ aberto, aoFechar, titulo, descricao, tamanho = 'md', rodape, children }: ModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -41,8 +39,9 @@ export function Modal({ aberto, aoFechar, titulo, descricao, tamanho = 'md', rod
 
     return () => {
       if (panel?.isConnected) return;
-      openerRef.current?.focus?.();
+      const opener = openerRef.current;
       openerRef.current = null;
+      devolverFoco(opener);
     };
   }, [aberto]);
 
@@ -55,25 +54,7 @@ export function Modal({ aberto, aoFechar, titulo, descricao, tamanho = 'md', rod
         return;
       }
 
-      if (event.key !== 'Tab') return;
-
-      const panel = panelRef.current;
-      if (!panel) return;
-
-      const focusable = [...panel.querySelectorAll<HTMLElement>(FOCAVEIS)].filter(
-        (element) => element.offsetParent !== null || element === document.activeElement,
-      );
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (!first || !last) return;
-
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
+      if (panelRef.current) manterTabDentro(event, panelRef.current);
     };
 
     document.addEventListener('keydown', handleKeyDown);

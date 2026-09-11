@@ -23,6 +23,10 @@ export function LayoutAplicacao() {
   }, [location.pathname]);
 
   useEffect(() => {
+    if (!isTablet) setMobileOpen(false);
+  }, [isTablet]);
+
+  useEffect(() => {
     if (!mobileOpen) return;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setMobileOpen(false);

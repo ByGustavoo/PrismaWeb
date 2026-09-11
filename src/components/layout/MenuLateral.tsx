@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { ChevronDown, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react';
 import { NOME_APLICACAO, SLOGAN_APLICACAO } from '@/constants/aplicacao';
 import { navegacao } from '@/constants/navegacao';
 import { MarcaPrisma } from '@/components/comum';
 import type { ItemNavegacao } from '@/constants/navegacao';
+import { manterTabDentro } from '@/utils/foco';
 import { juntarClasses } from '@/utils/juntarClasses';
 import { iniciais } from '@/utils/formatacao';
 import styles from './MenuLateral.module.css';
@@ -19,6 +20,29 @@ interface MenuLateralProps {
 const usuarioAtual = { nome: 'Ana Ribeiro', email: 'ana@exemplo.com' };
 
 export function MenuLateral({ recolhido, abertoNoMobile, aoAlternarRecolhido, aoFecharMobile }: MenuLateralProps) {
+  const sidebarRef = useRef<HTMLElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!abertoNoMobile) return;
+
+    const sidebar = sidebarRef.current;
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    closeButtonRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (sidebar) manterTabDentro(event, sidebar);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      const focused = document.activeElement;
+      const focusLeftWithMenu = !focused || focused === document.body || Boolean(sidebar?.contains(focused));
+      if (focusLeftWithMenu && opener && !sidebar?.contains(opener)) opener.focus();
+    };
+  }, [abertoNoMobile]);
+
   return (
     <>
       <div
@@ -28,6 +52,7 @@ export function MenuLateral({ recolhido, abertoNoMobile, aoAlternarRecolhido, ao
       />
 
       <aside
+        ref={sidebarRef}
         className={juntarClasses(styles.sidebar, recolhido && styles.collapsed, abertoNoMobile && styles.mobileOpen)}
         aria-label="Navegação principal"
       >
@@ -39,7 +64,13 @@ export function MenuLateral({ recolhido, abertoNoMobile, aoAlternarRecolhido, ao
             <span className={styles.brandName}>{NOME_APLICACAO}</span>
             <span className={styles.brandTagline}>{SLOGAN_APLICACAO}</span>
           </span>
-          <button type="button" className={styles.closeMobile} onClick={aoFecharMobile} aria-label="Fechar menu">
+          <button
+            ref={closeButtonRef}
+            type="button"
+            className={styles.closeMobile}
+            onClick={aoFecharMobile}
+            aria-label="Fechar menu"
+          >
             <X size={18} strokeWidth={2} />
           </button>
         </div>

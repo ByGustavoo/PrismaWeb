@@ -3,8 +3,8 @@ import type { LeituraMeta, Opcao, SituacaoMeta } from '@/types';
 
 export const rotuloSituacaoMeta: Record<SituacaoMeta, string> = {
   ACOMPANHANDO: 'Em acompanhamento',
-  COMPRADA: 'Comprado',
-  CANCELADA: 'Cancelado',
+  COMPRADA: 'Comprada',
+  CANCELADA: 'Cancelada',
 };
 
 export const situacoesMeta: SituacaoMeta[] = ['ACOMPANHANDO', 'COMPRADA', 'CANCELADA'];

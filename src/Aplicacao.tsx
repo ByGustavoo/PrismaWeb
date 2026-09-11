@@ -4,7 +4,7 @@ import { RotasAplicacao } from '@/routes';
 
 export default function Aplicacao() {
   return (
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <ProvedoresAplicacao>
         <RotasAplicacao />
       </ProvedoresAplicacao>

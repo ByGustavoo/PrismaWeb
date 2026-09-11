@@ -48,7 +48,7 @@ O script usa `tsc -b`, e nao `tsc --noEmit`: o `tsconfig.json` da raiz e uma sol
 | --- | --- |
 | Build | Vite 5 |
 | UI | React 18 + TypeScript 5 (`strict`) |
-| Rotas | React Router 6 |
+| Rotas | React Router 6, com as future flags da v7 (`v7_startTransition`, `v7_relativeSplatPath`) ligadas no `BrowserRouter` |
 | Estilos | CSS Modules + custom properties (sem framework de UI) |
 | Icones | lucide-react |
 | Graficos | Recharts |
@@ -173,7 +173,7 @@ src/
 │                  metas.mock, previsao.mock, relatorios.mock, avisos.mock, respostaMock
 ├── styles/        tokens.css, global.css
 ├── types/         comum, financas
-└── utils/         juntarClasses, data, formatacao, validacao
+└── utils/         juntarClasses, data, formatacao, validacao, foco
 ```
 
 Cada pasta de componentes tem um `index.ts` de barril — ao criar um componente novo, exporte-o la.
@@ -711,6 +711,28 @@ num layout deslocado que precisa desfazer a mao.
   `autoFocus` do primeiro campo, e depois disso `document.activeElement` ja seria o campo. O foco so
   volta quando o painel ja saiu do DOM: o `StrictMode` ensaia desmontar os efeitos de um modal que
   nasce aberto, e devolver o foco nesse ensaio o tirava do campo escolhido (o preco da meta).
+  **Quando quem abriu ja nao existe, o foco vai para o `<main>`**, com `preventScroll`. O caso tipico
+  e o "Novo lancamento" do header: ele leva a `/lancamentos?novo=despesa`, onde o proprio botao some
+  (`pageOwnsControls`), e o formulario abre com o foco ja solto no `body` — o mesmo vale para um
+  lancamento aberto pela busca global. Sem esse destino, fechar o formulario devolvia o foco ao
+  `body` e o proximo Tab recomecava no "Pular para o conteudo"; a partir do `<main>`, que ja tem
+  `tabIndex={-1}` por causa desse link, o Tab segue para as acoes da propria tela.
+  **Quem abriu tambem pode sumir depois**, e por isso `devolverFoco` (`utils/foco.ts`) vigia a pagina
+  por um tempo curto. Na exclusao o foco volta para a lixeira da linha, a lista recarrega e a linha
+  deixa de existir: sem a vigia o foco caia no `body` quando o dado chegava. Um `MutationObserver`
+  leva o foco ao `<main>` se o elemento sai do DOM, ou o devolve ao elemento se ele so foi reinserido
+  (a linha que muda de posicao depois de uma edicao). A vigia termina assim que o foco vai para outro
+  lugar, no primeiro clique — para nunca tirar o foco de quem clicou de proposito numa area vazia — ou
+  em `ESPERA_MAXIMA_RETORNO_FOCO_MS`, que cobre o timeout de 15s do `clienteHttp`.
+- **O drawer do menu lateral se comporta como o `Modal`.** Ao abrir, o foco vai para "Fechar menu",
+  o Tab fica preso dentro dele e, ao fechar, volta para quem o abriu — normalmente o botao "Abrir
+  menu" do header. Antes o foco ficava no header, atras do scrim: o Tab percorria uma tela que o
+  proprio drawer cobria. A trava de Tab e a mesma do `Modal` (`manterTabDentro`, em `utils/foco.ts`),
+  e aqui o elemento que abriu pode ser lido **no efeito**, ao contrario do `Modal`: nada dentro do
+  drawer tem `autoFocus`, entao o foco ainda esta no gatilho quando o efeito roda. O foco so e
+  devolvido se ele ainda estiver no drawer (ou solto no `body`) — se quem fechou ja o levou para
+  outro lugar, ele fica la. E o `LayoutAplicacao` fecha o drawer quando a tela sai da faixa de
+  tablet, para a trava nao continuar ativa sobre a sidebar fixa do desktop.
 - Formulario de lancamento marca campo obrigatorio no rotulo e, ao reprovar, leva o foco ao
   primeiro `[aria-invalid="true"]` em vez de so pintar as mensagens.
 - Contraste, foco visivel e navegacao por teclado sao requisito, nao acabamento.
