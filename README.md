@@ -35,7 +35,7 @@
 O frontend está **completo e pronto para integração**. Todas as telas existem, todos os fluxos de
 cadastro funcionam e a camada de dados responde por mocks enquanto o backend não existe.
 
-O contrato que o backend precisa cumprir está em **[API_CONTRACT.md](API_CONTRACT.md)**: são 42
+O contrato que o backend precisa cumprir está em **[API_CONTRACT.md](API_CONTRACT.md)**: são 41
 endpoints com método, URL, parâmetros, corpo de requisição, corpo de resposta, códigos de status,
 validações e as regras de cálculo de cada um. É a especificação a partir da qual os `@RestController`
 e os DTOs em Java / Spring Boot devem ser escritos.

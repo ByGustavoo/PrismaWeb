@@ -749,29 +749,10 @@ calculados**:
 
 ## Investimentos
 
-### `GET /investimentos`
-
-Lista crua. O frontend de hoje não a consome: a tela e o formulário de edição usam as `posicoes`
-de `GET /investimentos/carteira`.
-
-**Resposta `200` — `InvestimentoDTO[]`**
-
-```jsonc
-{
-  "id": "inv-1",
-  "nome": "Tesouro Selic 2029",
-  "classeAtivo": "TESOURO",
-  "instituicao": "Meridiano Investimentos",
-  "aportado": 20000.00,
-  "valorAtual": 22480.15,
-  "dataInicio": "2024-06-10",
-  "observacoes": null
-}
-```
-
 ### `GET /investimentos/carteira`
 
-Carteira consolidada — é o que a tela mostra.
+Carteira consolidada — é o que a tela mostra, e as `posicoes` também alimentam o formulário de
+edição. Não há endpoint que liste os investimentos crus.
 
 **Resposta `200` — `CarteiraDTO`**
 
@@ -792,6 +773,21 @@ Carteira consolidada — é o que a tela mostra.
   "posicoes": [
     { "investimento": { "…": "InvestimentoDTO" }, "rendimento": 2480.15, "rentabilidade": 0.124, "participacao": 0.196 }
   ]
+}
+```
+
+**`InvestimentoDTO`** — o `investimento` de cada posição, e também a resposta de `POST` e `PUT`:
+
+```jsonc
+{
+  "id": "inv-1",
+  "nome": "Tesouro Selic 2029",
+  "classeAtivo": "TESOURO",
+  "instituicao": "Meridiano Investimentos",
+  "aportado": 20000.00,
+  "valorAtual": 22480.15,
+  "dataInicio": "2024-06-10",
+  "observacoes": null
 }
 ```
 
@@ -1334,27 +1330,26 @@ chave `YYYY-MM`. Todo atalho da tela termina hoje.
 | 19 | `POST` | `/compras-parceladas` | `CompraParceladaDTO` | Parcelas |
 | 20 | `PUT` | `/compras-parceladas/{id}` | `CompraParceladaDTO` | Parcelas |
 | 21 | `DELETE` | `/compras-parceladas/{id}` | `204` | Parcelas |
-| 22 | `GET` | `/investimentos` | `InvestimentoDTO[]` | Investimentos |
-| 23 | `GET` | `/investimentos/carteira` | `CarteiraDTO` | Investimentos |
-| 24 | `POST` | `/investimentos` | `InvestimentoDTO` | Investimentos |
-| 25 | `PUT` | `/investimentos/{id}` | `InvestimentoDTO` | Investimentos |
-| 26 | `DELETE` | `/investimentos/{id}` | `204` | Investimentos |
-| 27 | `GET` | `/orcamentos/visao-geral?mes` | `VisaoGeralOrcamentoDTO` | Orçamento |
-| 28 | `POST` | `/orcamentos` | `OrcamentoDTO` | Orçamento |
-| 29 | `PUT` | `/orcamentos/{id}` | `OrcamentoDTO` | Orçamento |
-| 30 | `DELETE` | `/orcamentos/{id}` | `204` | Orçamento |
-| 31 | `GET` | `/despesas-recorrentes` | `ResumoDespesasRecorrentesDTO` | Recorrentes |
-| 32 | `POST` | `/despesas-recorrentes` | `DespesaRecorrenteDTO` | Recorrentes |
-| 33 | `PUT` | `/despesas-recorrentes/{id}` | `DespesaRecorrenteDTO` | Recorrentes |
-| 34 | `DELETE` | `/despesas-recorrentes/{id}` | `204` | Recorrentes |
-| 35 | `GET` | `/metas?situacao&busca` | `ResumoMetasDTO` | Metas |
-| 36 | `POST` | `/metas` | `MetaDTO` | Metas |
-| 37 | `PUT` | `/metas/{id}` | `MetaDTO` | Metas |
-| 38 | `POST` | `/metas/{id}/precos` | `MetaDTO` | Metas |
-| 39 | `DELETE` | `/metas/{id}` | `204` | Metas |
-| 40 | `GET` | `/previsao?meses` | `PrevisaoDTO` | Previsão |
-| 41 | `GET` | `/relatorios/resumo?dataInicial&dataFinal` | `RelatorioDTO` | Relatórios |
-| 42 | `GET` | `/avisos` | `AvisoDTO[]` | Avisos |
+| 22 | `GET` | `/investimentos/carteira` | `CarteiraDTO` | Investimentos |
+| 23 | `POST` | `/investimentos` | `InvestimentoDTO` | Investimentos |
+| 24 | `PUT` | `/investimentos/{id}` | `InvestimentoDTO` | Investimentos |
+| 25 | `DELETE` | `/investimentos/{id}` | `204` | Investimentos |
+| 26 | `GET` | `/orcamentos/visao-geral?mes` | `VisaoGeralOrcamentoDTO` | Orçamento |
+| 27 | `POST` | `/orcamentos` | `OrcamentoDTO` | Orçamento |
+| 28 | `PUT` | `/orcamentos/{id}` | `OrcamentoDTO` | Orçamento |
+| 29 | `DELETE` | `/orcamentos/{id}` | `204` | Orçamento |
+| 30 | `GET` | `/despesas-recorrentes` | `ResumoDespesasRecorrentesDTO` | Recorrentes |
+| 31 | `POST` | `/despesas-recorrentes` | `DespesaRecorrenteDTO` | Recorrentes |
+| 32 | `PUT` | `/despesas-recorrentes/{id}` | `DespesaRecorrenteDTO` | Recorrentes |
+| 33 | `DELETE` | `/despesas-recorrentes/{id}` | `204` | Recorrentes |
+| 34 | `GET` | `/metas?situacao&busca` | `ResumoMetasDTO` | Metas |
+| 35 | `POST` | `/metas` | `MetaDTO` | Metas |
+| 36 | `PUT` | `/metas/{id}` | `MetaDTO` | Metas |
+| 37 | `POST` | `/metas/{id}/precos` | `MetaDTO` | Metas |
+| 38 | `DELETE` | `/metas/{id}` | `204` | Metas |
+| 39 | `GET` | `/previsao?meses` | `PrevisaoDTO` | Previsão |
+| 40 | `GET` | `/relatorios/resumo?dataInicial&dataFinal` | `RelatorioDTO` | Relatórios |
+| 41 | `GET` | `/avisos` | `AvisoDTO[]` | Avisos |
 
 ---
 

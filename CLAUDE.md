@@ -18,7 +18,7 @@ desejos com historico de precos, e relatorios. O backend e o PrismaAPI (Java / S
 PostgreSQL); com `VITE_USE_MOCKS=true` a camada de dados responde com mocks, e a escrita vive em
 memoria pelo tempo da sessao.
 
-A Etapa 6 fechou o frontend para integracao: o `API_CONTRACT.md` da raiz especifica os 42 endpoints
+A Etapa 6 fechou o frontend para integracao: o `API_CONTRACT.md` da raiz especifica os 41 endpoints
 que o backend precisa expor — metodo, URL, parametros, corpo, status, validacoes e as regras de
 calculo de cada um —, e o `README.md` documenta instalacao, variaveis, como os mocks funcionam e
 como virar a chave para a API real. **Ao mudar um contrato em `src/types/financas.ts`, uma rota em
