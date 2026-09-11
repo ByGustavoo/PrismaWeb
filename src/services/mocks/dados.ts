@@ -558,7 +558,7 @@ export const lancamentos: LancamentoDTO[] = [
   },
   {
     id: 'tx-04',
-    descricao: 'Aporte mensal na corretora',
+    descricao: 'Aporte na corretora',
     valor: 2000,
     tipo: 'TRANSFERENCIA',
     situacao: 'PAGO',
@@ -656,7 +656,7 @@ export const lancamentos: LancamentoDTO[] = [
   },
   {
     id: 'tx-12',
-    descricao: 'Transferência para reserva',
+    descricao: 'Aporte na reserva',
     valor: 1500,
     tipo: 'TRANSFERENCIA',
     situacao: 'PAGO',
@@ -978,7 +978,7 @@ const modeloMensal: ModeloHistorico[] = [
   },
   {
     dia: 16,
-    descricao: 'Assinaturas digitais',
+    descricao: 'Streaming e assinaturas',
     valor: 89.7,
     tipo: 'DESPESA',
     forma: 'CARTAO_CREDITO',
@@ -1064,6 +1064,7 @@ const mesesFreelance: Record<number, number> = {
 function montarHistorico(): LancamentoDTO[] {
   const result: LancamentoDTO[] = [];
   const todayDay = hoje.getDate();
+  const handwritten = new Set(lancamentos.map((item) => `${item.data.slice(0, 7)}|${item.descricao}`));
 
   for (let offset = 0; offset < variacaoMensal.length; offset += 1) {
     const month = chaveMesPorDeslocamento(-offset);
@@ -1071,6 +1072,7 @@ function montarHistorico(): LancamentoDTO[] {
 
     for (const [index, entry] of modeloMensal.entries()) {
       if (offset === 0 && entry.dia > todayDay) continue;
+      if (handwritten.has(`${month}|${entry.descricao}`)) continue;
 
       const { dia, fixo, ...rest } = entry;
       result.push({
@@ -1083,7 +1085,7 @@ function montarHistorico(): LancamentoDTO[] {
     }
 
     const freelance = mesesFreelance[offset];
-    if (freelance && !(offset === 0 && todayDay < 21)) {
+    if (freelance && !(offset === 0 && todayDay < 21) && !handwritten.has(`${month}|Projeto freelance`)) {
       result.push({
         id: `tx-h${offset}-freela`,
         descricao: 'Projeto freelance',

@@ -1,12 +1,11 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { createContext, useContext, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { PeriodoDashboard } from '@/services';
-import { chaveMesPorDeslocamento, mesesEntre, deslocarChaveMes } from '@/utils/data';
+import { chaveMesPorDeslocamento } from '@/utils/data';
 
 interface ValorContextoPeriodo {
   periodo: PeriodoDashboard;
   definirPeriodo: (period: PeriodoDashboard) => void;
-  deslocarPeriodo: (direction: number) => void;
 }
 
 const ContextoPeriodo = createContext<ValorContextoPeriodo | null>(null);
@@ -19,14 +18,7 @@ function periodoMesAtual(): PeriodoDashboard {
 export function ProvedorPeriodo({ children }: { children: ReactNode }) {
   const [period, setPeriod] = useState<PeriodoDashboard>(periodoMesAtual);
 
-  const shiftPeriod = useCallback((direction: number) => {
-    setPeriod((current) => {
-      const step = direction * mesesEntre(current.dataInicial, current.dataFinal);
-      return { dataInicial: deslocarChaveMes(current.dataInicial, step), dataFinal: deslocarChaveMes(current.dataFinal, step) };
-    });
-  }, []);
-
-  const value = useMemo(() => ({ periodo: period, definirPeriodo: setPeriod, deslocarPeriodo: shiftPeriod }), [period, shiftPeriod]);
+  const value = useMemo(() => ({ periodo: period, definirPeriodo: setPeriod }), [period]);
 
   return <ContextoPeriodo.Provider value={value}>{children}</ContextoPeriodo.Provider>;
 }

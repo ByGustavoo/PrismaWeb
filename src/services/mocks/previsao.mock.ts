@@ -29,10 +29,9 @@ export function montarResumoPrevisao(months: number = MESES_PREVISAO): PrevisaoD
 
   const averageIncome = dinheiro(media(baseline.map((month) => somarPorTipo(doMes(month), 'RECEITA'))));
   const averageExpense = media(baseline.map((month) => somarPorTipo(doMes(month), 'DESPESA')));
-  const averageInstallments = media(baseline.map((month) => totalParcelasEm(month)));
   const averageRecurring = media(baseline.map((month) => totalRecorrentesEm(month)));
 
-  const variable = dinheiro(Math.max(averageExpense - averageRecurring - averageInstallments, 0));
+  const variable = dinheiro(Math.max(averageExpense - averageRecurring, 0));
 
   const startingBalance = saldoEm(hojeISO());
   let running = startingBalance;

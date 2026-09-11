@@ -96,8 +96,9 @@ Estas sao as invariantes do projeto. Quebra-las e o erro mais caro que se pode c
    campo de JSON em camelCase sem acento (`/dashboard/resumo?dataInicial=&dataFinal=`,
    `?idCartao=`, `saldoAtual`, `limiteComprometido`, `dataVencimento`) e valor de enum em
    MAIUSCULAS (`RECEITA`, `CARTAO_CREDITO`). Inicio e fim de recorte se chamam sempre
-   `dataInicial` e `dataFinal`. As rotas continuam em ingles (`/accounts`, `/invoices`), mas os
-   tipos TypeScript tem o mesmo nome dos DTOs e enums do backend (`ContaDTO`, `SalvarContaDTO`,
+   `dataInicial` e `dataFinal`. As rotas da API tambem sao em portugues, em kebab-case sem acento
+   (`/contas/origens`, `/despesas-recorrentes`, `/metas/{id}/precos`), e os tipos TypeScript tem o
+   mesmo nome dos DTOs e enums do backend (`ContaDTO`, `SalvarContaDTO`,
    `TipoConta`, `Situacao`). O banco continua em snake_case e a
    traducao acontece uma vez so, no mapeamento da entidade JPA. Ao renomear um campo, lembre que
    o `dataKey` do Recharts e as chaves de `query` nos services sao string e nao passam pelo
@@ -286,6 +287,14 @@ que o seletor de periodo oferece (`MESES_PERIODO_PERSONALIZADO`), ja que um mes 
 cinco meses anteriores. O mes corrente para no dia de hoje: um lancamento com data futura marcado
 como pago seria incoerente, e os itens pendentes e agendados ja vem da lista escrita a mao.
 
+**O modelo cede o mes ao que foi escrito a mao.** As datas escritas a mao sao relativas a hoje
+(`diasAtras`), entao a janela delas atravessa o mes corrente e parte do anterior — exatamente os
+meses que `montarHistorico()` tambem gera. Por isso um item do modelo e pulado quando ja existe,
+no mesmo mes, um lancamento escrito a mao com a mesma `descricao`. Sem essa regra setembro tinha
+dois salarios e dois alugueis, e o dashboard mostrava receita e moradia infladas. A regra so funciona
+se o mesmo compromisso tiver o mesmo nome nas duas listas: ao escrever um lancamento fixo a mao,
+use a descricao que ele tem em `modeloMensal`.
+
 `montarResumoDashboard(period)` recorta tudo pelo intervalo pedido e calcula as variacoes contra a
 janela de mesmo tamanho imediatamente anterior, no lugar dos percentuais fixos que existiam antes.
 O saldo de um mes passado e reconstruido a partir dos saldos de hoje, desfazendo o que entrou e
@@ -335,8 +344,10 @@ parcelamentos sao leitura calculada, exceto o cadastro da compra parcelada.
   lancamentos ilegivel e o resultado do periodo errado, ja que quem sai da conta e a fatura, nao a
   parcela. As primeiras parcelas levam o valor arredondado para baixo e a ultima absorve a sobra,
   para a soma fechar exatamente com o total da compra.
-- **Excluir nao apaga historico.** Conta ou cartao com lancamentos (ou com compra parcelada) devolve
-  `409` do store, e a mensagem sugere marcar como inativo. Inativo sai do saldo total e dos
+- **Excluir nao apaga historico.** Conta ou cartao com lancamentos, despesas recorrentes ou, no
+  cartao, compra parcelada devolve `409` do store, e a mensagem sugere marcar como inativo. Conta
+  ainda vinculada a cartao de debito tambem devolve `409`, pedindo para trocar a conta do cartao
+  antes. As regras e as frases sao as mesmas do PrismaAPI. Inativo sai do saldo total e dos
   seletores de lancamento, mas o passado continua legivel. Por isso `ContaDTO` e `CartaoDTO` tem `situacao`
   e `listarOrigens()` filtra por ele — enquanto `buscarOrigem(id)` busca em tudo, para
   que editar um lancamento antigo nao falhe por causa de uma conta encerrada.
@@ -419,9 +430,10 @@ delas, dos parcelamentos e do historico.
   previsto na mesma linha produziria um numero que nao e nem um nem outro, e o dashboard ja
   responde pelo mes em curso. O saldo de partida, esse sim, e o de hoje.
 - **O gasto variavel e um resto, nao uma media solta.** Ele e a media de despesa dos tres meses
-  fechados menos as recorrentes e as parcelas medias do mesmo periodo. Sem esse desconto, aluguel e
-  parcelas apareceriam duas vezes — uma na sua linha, outra dentro da media — e a projecao ficaria
-  pessimista o bastante para nao servir para nada.
+  fechados menos a media das recorrentes do mesmo periodo. Sem esse desconto, o aluguel apareceria
+  duas vezes — uma na sua linha, outra dentro da media — e a projecao ficaria pessimista o bastante
+  para nao servir para nada. As parcelas nao entram no desconto: elas nao sao lancamentos, entao
+  nunca estiveram na media de despesa, e desconta-las tiraria o mesmo dinheiro duas vezes.
 - **A tela de previsao diz como ela foi feita.** A nota de metodo ao fim nao e enfeite: um numero
   apresentado como certeza vira decisao errada quando erra.
 
@@ -436,7 +448,7 @@ que se pretende comprar — planejamento, nao vitrine.
   sobrescreve o anterior (`adicionarPrecoMeta`, nunca um update de preco): sem a serie inteira nao ha
   menor preco, media, variacao nem grafico — sobra o ultimo numero digitado, que um campo de texto
   qualquer ja daria. Por isso a edicao (`AtualizarMetaDTO`) nao carrega preco: ela mexe em nome,
-  link, imagem, situacao e observacao, e o preco tem caminho proprio (`POST /goals/{id}/prices`).
+  link, imagem, situacao e observacao, e o preco tem caminho proprio (`POST /metas/{id}/precos`).
 - **Aqui a cor segue a noticia, nao a direcao do numero.** Preco que cai e a boa noticia de quem
   quer comprar, entao a queda e verde. Isso nao contradiz a regra do `IndicadorVariacao` — que
   continua sendo "subiu e verde" em toda variacao financeira — porque este indicador e outro
@@ -558,7 +570,12 @@ O `SeletorPeriodo` e a busca global sao os dois pontos em que o header conversa 
 
 - **Periodo.** O caso comum — um mes de cada vez — fica nas setas; o painel do seletor guarda os
   atalhos ("Ultimos 3 meses", "Este ano") e o intervalo proprio, montado com dois `CampoSelecao` de mes.
-  As setas deslocam a janela inteira: de "maio a agosto" chega-se a "janeiro a abril". O seletor
+  As setas deslocam a janela inteira: de "maio a agosto" chega-se a "janeiro a abril". **As setas
+  param nas mesmas bordas do intervalo proprio**: o mes corrente na frente e, atras, o mes mais
+  antigo que `MESES_PERIODO_PERSONALIZADO` oferece. Sem esse limite a seta levava a meses futuros
+  com receita zerada e variacao de -100%, e a um passado sem historico no mock. Perto da borda o
+  deslocamento encosta nela em vez de passar, e a seta que chegou ao fim fica com `aria-disabled` —
+  nao `disabled`, que tiraria o foco de quem estava navegando pelo teclado. O seletor
   so aparece no dashboard — as outras telas ou nao tem nocao de periodo ou tem o proprio filtro,
   como Lancamentos.
 - **O esqueleto e so da primeira carga** — no dashboard e tambem em Contas, Cartoes, Faturas e

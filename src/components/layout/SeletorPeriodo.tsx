@@ -5,7 +5,7 @@ import { usePeriodo } from '@/providers/ProvedorPeriodo';
 import type { PeriodoDashboard } from '@/services';
 import type { Opcao } from '@/types';
 import { juntarClasses } from '@/utils/juntarClasses';
-import { chaveMesPorDeslocamento, deslocarChaveMes } from '@/utils/data';
+import { chaveMesPorDeslocamento, deslocarChaveMes, mesesEntre } from '@/utils/data';
 import { capitalizar, formatarRotuloMes, formatarRotuloPeriodo } from '@/utils/formatacao';
 import styles from './SeletorPeriodo.module.css';
 
@@ -37,7 +37,7 @@ function opcoesMeses(thisMonth: string): Opcao[] {
 }
 
 export function SeletorPeriodo() {
-  const { periodo, definirPeriodo, deslocarPeriodo } = usePeriodo();
+  const { periodo, definirPeriodo } = usePeriodo();
   const [open, setOpen] = useState(false);
   const [editingCustom, setEditingCustom] = useState(false);
 
@@ -45,12 +45,29 @@ export function SeletorPeriodo() {
   const triggerRef = useRef<HTMLButtonElement>(null);
 
   const thisMonth = chaveMesPorDeslocamento(0);
+  const oldestMonth = deslocarChaveMes(thisMonth, -(MESES_PERIODO_PERSONALIZADO - 1));
   const options = useMemo(() => opcoesMeses(thisMonth), [thisMonth]);
+
+  const canGoBack = periodo.dataInicial > oldestMonth;
+  const canGoForward = periodo.dataFinal < thisMonth;
 
   const activePreset = atalhos.find((preset) => {
     const resolved = preset.resolver(thisMonth);
     return resolved.dataInicial === periodo.dataInicial && resolved.dataFinal === periodo.dataFinal;
   });
+
+  const shiftPeriod = (direction: -1 | 1) => {
+    const size = mesesEntre(periodo.dataInicial, periodo.dataFinal);
+    const room =
+      direction < 0 ? mesesEntre(oldestMonth, periodo.dataInicial) - 1 : mesesEntre(periodo.dataFinal, thisMonth) - 1;
+    const step = direction * Math.min(size, room);
+    if (step === 0) return;
+
+    definirPeriodo({
+      dataInicial: deslocarChaveMes(periodo.dataInicial, step),
+      dataFinal: deslocarChaveMes(periodo.dataFinal, step),
+    });
+  };
 
   const close = () => {
     setOpen(false);
@@ -83,7 +100,14 @@ export function SeletorPeriodo() {
   return (
     <div className={styles.root} ref={rootRef}>
       <div className={styles.switcher}>
-        <button type="button" className={styles.arrow} onClick={() => deslocarPeriodo(-1)} aria-label="Período anterior">
+        <button
+          type="button"
+          className={styles.arrow}
+          onClick={() => shiftPeriod(-1)}
+          aria-disabled={!canGoBack}
+          aria-label="Período anterior"
+          title={canGoBack ? undefined : 'Não há histórico anterior a este período'}
+        >
           <ChevronLeft size={16} strokeWidth={2} />
         </button>
 
@@ -99,7 +123,14 @@ export function SeletorPeriodo() {
           <ChevronDown className={juntarClasses(styles.chevron, open && styles.chevronOpen)} size={14} strokeWidth={2} />
         </button>
 
-        <button type="button" className={styles.arrow} onClick={() => deslocarPeriodo(1)} aria-label="Próximo período">
+        <button
+          type="button"
+          className={styles.arrow}
+          onClick={() => shiftPeriod(1)}
+          aria-disabled={!canGoForward}
+          aria-label="Próximo período"
+          title={canGoForward ? undefined : 'O período já chega ao mês atual'}
+        >
           <ChevronRight size={16} strokeWidth={2} />
         </button>
       </div>

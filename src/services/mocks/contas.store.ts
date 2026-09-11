@@ -2,7 +2,7 @@ import { ErroApi } from '@/api';
 import { limitesTexto } from '@/constants/validacao';
 import type { ContaDTO, SalvarContaDTO } from '@/types';
 import { cabeNaColunaValor } from '@/utils/validacao';
-import { contas, lancamentos } from './dados';
+import { contas, cartoes, lancamentos, despesasRecorrentes } from './dados';
 
 let sequencia = contas.length;
 
@@ -85,11 +85,31 @@ export function atualizarConta(id: string, payload: SalvarContaDTO): ContaDTO {
 
 export function excluirConta(id: string): void {
   const index = buscarIndiceOuFalhar(id);
-  const linked = lancamentos.filter((item) => item.idOrigem === id || item.idContaDestino === id).length;
+  const linked =
+    lancamentos.filter((item) => item.idOrigem === id || item.idContaDestino === id).length +
+    despesasRecorrentes.filter((item) => item.idOrigem === id).length;
 
   if (linked > 0) {
     throw new ErroApi(
-      `Esta conta tem ${linked} ${linked === 1 ? 'lançamento' : 'lançamentos'} no histórico. Marque-a como inativa para tirá-la do saldo sem apagar o passado!`,
+      `Esta conta tem ${linked} ${linked === 1 ? 'registro' : 'registros'} no histórico. Marque-a como inativa para tirá-la do saldo sem apagar o passado!`,
+      409,
+      'conflito',
+    );
+  }
+
+  const linkedCards = cartoes.filter((item) => item.idConta === id).length;
+
+  if (linkedCards === 1) {
+    throw new ErroApi(
+      'Esta conta está vinculada a um cartão de débito. Troque a conta desse cartão ou exclua-o antes de excluir a conta!',
+      409,
+      'conflito',
+    );
+  }
+
+  if (linkedCards > 1) {
+    throw new ErroApi(
+      `Esta conta está vinculada a ${linkedCards} cartões de débito. Troque a conta desses cartões ou exclua-os antes de excluir a conta!`,
       409,
       'conflito',
     );

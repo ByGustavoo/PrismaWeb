@@ -3,7 +3,7 @@ import { limitesTexto } from '@/constants/validacao';
 import type { CartaoDTO, CompraParceladaDTO, SalvarCartaoDTO, SalvarCompraParceladaDTO } from '@/types';
 import { ehChaveMes } from '@/utils/data';
 import { cabeNaColunaValor } from '@/utils/validacao';
-import { contas, cartoes, categorias, comprasParceladas, lancamentos } from './dados';
+import { contas, cartoes, categorias, comprasParceladas, lancamentos, despesasRecorrentes } from './dados';
 
 let sequenciaCartao = cartoes.length;
 let sequenciaCompra = comprasParceladas.length;
@@ -114,7 +114,8 @@ export function excluirCartao(id: string): void {
   const index = buscarIndiceCartaoOuFalhar(id);
   const linked =
     lancamentos.filter((item) => item.idOrigem === id).length +
-    comprasParceladas.filter((item) => item.idCartao === id).length;
+    comprasParceladas.filter((item) => item.idCartao === id).length +
+    despesasRecorrentes.filter((item) => item.idOrigem === id).length;
 
   if (linked > 0) {
     throw new ErroApi(

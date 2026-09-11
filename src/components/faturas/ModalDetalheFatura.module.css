@@ -40,8 +40,9 @@
 }
 
 .items {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: minmax(56px, max-content) minmax(0, 1fr) auto;
+  column-gap: var(--space-3);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -49,9 +50,9 @@
 
 .item {
   display: grid;
-  grid-template-columns: 56px minmax(0, 1fr) auto;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
   align-items: center;
-  gap: var(--space-3);
   padding: var(--space-3) 0;
   border-bottom: 1px solid var(--border);
 }
@@ -63,6 +64,7 @@
 .itemDate {
   font-size: var(--fs-sm);
   color: var(--text-muted);
+  white-space: nowrap;
 }
 
 .itemText {

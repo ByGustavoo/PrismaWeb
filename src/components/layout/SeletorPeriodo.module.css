@@ -30,9 +30,14 @@
   transition: background-color var(--duration-fast) var(--ease-out);
 }
 
-.arrow:hover {
+.arrow:hover:not([aria-disabled='true']) {
   background-color: var(--surface-muted);
   color: var(--text);
+}
+
+.arrow[aria-disabled='true'] {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .label {

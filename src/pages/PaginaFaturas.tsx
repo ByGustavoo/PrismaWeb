@@ -89,7 +89,7 @@ export function PaginaFaturas() {
   const sum = (list: FaturaCartaoDTO[]) => list.reduce((total, item) => total + item.total, 0);
 
   const summary = useMemo(() => {
-    const nextDue = groups.toPay[0]?.dataVencimento ?? groups.current[0]?.dataVencimento;
+    const nextDue = groups.toPay[0]?.dataVencimento;
 
     return {
       toPay: sum(groups.toPay),

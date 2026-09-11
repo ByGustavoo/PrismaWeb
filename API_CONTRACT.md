@@ -44,7 +44,7 @@ A fonte de verdade dos tipos é [`src/types/financas.ts`](src/types/financas.ts)
 | Assunto | Regra |
 | --- | --- |
 | Base URL | `VITE_API_URL`, por padrão `http://localhost:9017/PrismaAPI/v1` (perfil `dev` do PrismaAPI; em `prod`, porta `9027`). Todos os caminhos deste documento são relativos a ela. |
-| Nomes | Todo campo de JSON e todo parâmetro de query é escrito em **português**, em camelCase sem acento (`saldoAtual`, `idCartao`, `dataVencimento`). Início e fim de um recorte se chamam sempre `dataInicial` e `dataFinal`. Os tipos de `src/types` têm o mesmo nome dos DTOs e enums do PrismaAPI (`ContaDTO`, `SalvarContaDTO`, `TipoConta`). |
+| Nomes | Todo campo de JSON e todo parâmetro de query é escrito em **português**, em camelCase sem acento (`saldoAtual`, `idCartao`, `dataVencimento`), e o caminho de todo endpoint também, em kebab-case (`/contas/origens`, `/despesas-recorrentes`, `/metas/{id}/precos`). Início e fim de um recorte se chamam sempre `dataInicial` e `dataFinal`. Os tipos de `src/types` têm o mesmo nome dos DTOs e enums do PrismaAPI (`ContaDTO`, `SalvarContaDTO`, `TipoConta`). |
 | Formato | JSON em requisição e resposta. O cliente envia `Accept: application/json` sempre e `Content-Type: application/json` quando há corpo. |
 | Data | String ISO `YYYY-MM-DD`, sem hora e sem fuso. Representa um dia civil, não um instante — o backend deve usar `LocalDate`, nunca `Instant` ou `ZonedDateTime`. |
 | Mês | String `YYYY-MM` (por exemplo `2026-09`). Usado onde a granularidade é o mês: faturas, parcelas, orçamento, previsão e evolução do patrimônio. `YearMonth` no Java. |
@@ -71,7 +71,7 @@ Toda resposta de erro tem o corpo do `ErrorResponseDTO`, próximo do RFC 7807:
 {
   "status": 409,
   "title": "Conta Duplicada!",
-  "instance": "/PrismaAPI/v1/accounts",
+  "instance": "/PrismaAPI/v1/contas",
   "type": "/PrismaAPI/problems/conta-duplicada",
   "detail": "Já existe uma conta com esse nome nessa instituição!",
   "timestamp": "10/09/2026 - 21:30:00"
@@ -84,7 +84,7 @@ Toda resposta de erro tem o corpo do `ErrorResponseDTO`, próximo do RFC 7807:
 | `title` | sim | Nome curto do tipo de falha. |
 | `instance` | sim | Caminho da requisição que falhou. |
 | `type` | sim | Caminho estável por tipo de falha, no formato `/PrismaAPI/problems/<slug>`. É o que o cliente guarda em `ErroApi.codigo`. |
-| `detail` | sim | Frase em português, pronta para ser exibida ao usuário. **É este texto que aparece no toast da tela** — o frontend não traduz nem reescreve mensagem de erro do servidor. |
+| `detail` | sim | Frase em português, pronta para ser exibida ao usuário. **É este texto que aparece no toast da tela** — o frontend não traduz nem reescreve mensagem de erro do servidor. Nas falhas técnicas — corpo ilegível, conflito de integridade no banco, erro inesperado — é uma frase fixa, e o texto da exceção vai em `errors`. |
 | `errors` | não | Detalhamento. Na validação de campo, é uma lista de `{ "campo": "nome", "mensagem": "O campo 'nome' deve ter entre 2 e 80 caracteres!" }`; nas falhas técnicas, o texto original da exceção. Fica disponível em `ErroApi.detalhes`; hoje nenhuma tela o consome. |
 | `timestamp` | sim | Data e hora da falha, em `dd/MM/yyyy - HH:mm:ss`. |
 
@@ -96,7 +96,7 @@ O tipo `ErrorResponseDTO` mora em [`src/types/comum.ts`](src/types/comum.ts), e 
 | Status | `type` de exemplo | Quando |
 | --- | --- | --- |
 | `400` | `/PrismaAPI/problems/validation-error` | Campo recusado pela validação estrutural, corpo malformado ou parâmetro impossível de interpretar. Também `unreadable-message`, `invalid-parameters` e `invalid-request`. |
-| `404` | `/PrismaAPI/problems/conta-nao-encontrada` | Id inexistente numa rota `/{id}`. |
+| `404` | `/PrismaAPI/problems/conta-nao-encontrada` | Id inexistente numa rota `/{id}`. Um id que nem chega a ser UUID responde `400` com `invalid-parameters`. |
 | `409` | `/PrismaAPI/problems/conta-duplicada` | A operação é válida mas conflita com o estado atual (duplicidade, exclusão de registro com histórico). |
 | `422` | `/PrismaAPI/problems/origem-inexistente` | Corpo bem formado, mas com valor recusado pela regra de negócio: referência inexistente, destino igual à origem, categoria do tipo errado. |
 | `500` | `/PrismaAPI/problems/internal-server-error` | Falha inesperada. |
@@ -175,26 +175,14 @@ normal de feedback.
 
 ### Parâmetros
 
-- `GET /forecast` aceita `meses` de **1 a 24**; fora disso, `400`.
-- `GET /reports/summary` responde `400` sem `dataInicial` e `dataFinal`. Nos demais endpoints, um
+- `GET /previsao` aceita `meses` de **1 a 24**; fora disso, `400`.
+- `GET /relatorios/resumo` responde `400` sem `dataInicial` e `dataFinal`. Nos demais endpoints, um
   parâmetro ausente — ou enviado com outro nome — simplesmente não filtra.
 
 ### Regras que o PrismaAPI aplica de outro jeito
 
-- **Previsão — `variavel`:** é a média de despesa dos três meses fechados menos a média das
-  recorrentes do mesmo período, nunca negativa. As parcelas **não** são descontadas: como não são
-  lançamentos, elas nunca entram na média de despesa, e descontá-las tiraria o mesmo dinheiro duas
-  vezes.
 - **Lançamentos — transferência:** a origem precisa ser uma conta. Um cartão como origem de
   transferência responde `422` com `A transferência precisa sair de uma conta!`.
-- **Contas — `incluirNoTotal`:** conta gravada como `INATIVO` volta sempre com
-  `incluirNoTotal: false`, independentemente do valor enviado.
-- **Contas — exclusão:** o `409` conta lançamentos (como origem ou destino) e despesas recorrentes
-  pagas pela conta, e a frase fala em "registros": `Esta conta tem 42 registros no histórico. Marque-a
-  como inativa para tirá-la do saldo sem apagar o passado!`. Uma conta vinculada a cartão de débito
-  também é recusada com `409`, pedindo para trocar a conta do cartão ou excluí-lo antes.
-- **Cartões — exclusão:** a contagem do `409` inclui também as despesas recorrentes pagas pelo
-  cartão.
 
 ---
 
@@ -299,7 +287,7 @@ um, ou um `dataInicial` posterior ao `dataFinal`, é `400`.
 
 ## Categorias
 
-### `GET /categories`
+### `GET /categorias`
 
 **Query**
 
@@ -328,7 +316,7 @@ um, ou um `dataInicial` posterior ao `dataFinal`, é `400`.
 As três telas (`/lancamentos/receitas`, `/lancamentos/despesas`, `/lancamentos/transferencias`)
 usam **o mesmo endpoint**, mudando apenas o parâmetro `tipo`. Não crie rotas separadas por tipo.
 
-### `GET /transactions`
+### `GET /lancamentos`
 
 **Query** — todos opcionais; combinam-se com **E** lógico.
 
@@ -367,7 +355,7 @@ usam **o mesmo endpoint**, mudando apenas o parâmetro `tipo`. Não crie rotas s
 }
 ```
 
-### `POST /transactions` · `PUT /transactions/{id}`
+### `POST /lancamentos` · `PUT /lancamentos/{id}`
 
 **Corpo — `SalvarLancamentoDTO`**
 
@@ -394,7 +382,7 @@ usam **o mesmo endpoint**, mudando apenas o parâmetro `tipo`. Não crie rotas s
   `categoria` inteiro são preenchidos pelo backend a partir de `idOrigem`, `idContaDestino` e
   `idCategoria`. O frontend nunca envia nome.
 - `idOrigem` pode apontar para uma **conta** ou para um **cartão**. Origem de dinheiro é um
-  conceito único no produto (veja `GET /accounts/sources`), e no banco são duas chaves
+  conceito único no produto (veja `GET /contas/origens`), e no banco são duas chaves
   estrangeiras (`id_conta` e `id_cartao`) reunidas num campo só pelo `COALESCE`.
 - `valor` é sempre positivo; a direção do dinheiro vem de `tipo`, nunca do sinal.
 - **Transferência tem regras próprias:**
@@ -418,7 +406,7 @@ usam **o mesmo endpoint**, mudando apenas o parâmetro `tipo`. Não crie rotas s
 
 - `PUT` com id inexistente: `404` — `Lançamento não encontrado!`
 
-### `DELETE /transactions/{id}`
+### `DELETE /lancamentos/{id}`
 
 **Resposta `204`.** Id inexistente: `404` — `Lançamento não encontrado!`
 
@@ -426,7 +414,7 @@ usam **o mesmo endpoint**, mudando apenas o parâmetro `tipo`. Não crie rotas s
 
 ## Contas
 
-### `GET /accounts`
+### `GET /contas`
 
 **Resposta `200` — `ContaDTO[]`**, contas ativas primeiro. A tela não reordena o que chega.
 
@@ -442,7 +430,7 @@ usam **o mesmo endpoint**, mudando apenas o parâmetro `tipo`. Não crie rotas s
 }
 ```
 
-### `GET /accounts/sources`
+### `GET /contas/origens`
 
 Contas e cartões na mesma lista, do jeito que os seletores de lançamento precisam.
 
@@ -459,11 +447,11 @@ Contas e cartões na mesma lista, do jeito que os seletores de lançamento preci
 - **O cartão de débito fica de fora**: ele é apenas o meio de acessar a conta, que já está na lista.
   Incluí-lo criaria duas entradas para o mesmo dinheiro.
 - Contas primeiro, cartões depois.
-- Note que os ids convivem no mesmo espaço: `POST /transactions` aceita qualquer um deles em
+- Note que os ids convivem no mesmo espaço: `POST /lancamentos` aceita qualquer um deles em
   `idOrigem`. Se os ids de conta e de cartão puderem colidir no banco, prefixe-os (`acc-`, `card-`)
   como os mocks fazem.
 
-### `POST /accounts` · `PUT /accounts/{id}`
+### `POST /contas` · `PUT /contas/{id}`
 
 **Corpo — `SalvarContaDTO`**: `nome`, `instituicao`, `tipo`, `saldo`, `situacao`, `incluirNoTotal`.
 Todos obrigatórios.
@@ -480,16 +468,24 @@ Todos obrigatórios.
 | Mesmo `nome` na mesma `instituicao` | `409` | `Já existe uma conta com esse nome nessa instituição!` |
 | Id inexistente (`PUT`) | `404` | `Conta não encontrada!` |
 
-Saldo negativo é aceito: conta no vermelho existe.
+Saldo negativo é aceito: conta no vermelho existe. Conta gravada como `INATIVO` volta sempre com
+`incluirNoTotal: false`, independentemente do valor enviado.
 
-### `DELETE /accounts/{id}`
+### `DELETE /contas/{id}`
 
 **Resposta `204`.**
 
 **Regra — excluir não apaga histórico.** Se a conta tiver qualquer lançamento (como origem **ou**
-como destino de transferência), responda `409` com a mensagem, no plural correto:
+como destino de transferência) ou despesa recorrente paga por ela, responda `409` somando os dois,
+no plural correto:
 
-> `Esta conta tem 42 lançamentos no histórico. Marque-a como inativa para tirá-la do saldo sem apagar o passado!`
+> `Esta conta tem 42 registros no histórico. Marque-a como inativa para tirá-la do saldo sem apagar o passado!`
+
+Conta vinculada a cartão de débito também é recusada com `409`, e a frase acompanha a quantidade:
+
+> `Esta conta está vinculada a um cartão de débito. Troque a conta desse cartão ou exclua-o antes de excluir a conta!`
+
+> `Esta conta está vinculada a 2 cartões de débito. Troque a conta desses cartões ou exclua-os antes de excluir a conta!`
 
 Conta inativa sai do saldo total e dos seletores, mas o passado continua legível. É por isso que
 `ContaDTO` tem `situacao`.
@@ -498,7 +494,7 @@ Conta inativa sai do saldo total e dos seletores, mas o passado continua legíve
 
 ## Cartões
 
-### `GET /cards`
+### `GET /cartoes`
 
 **Resposta `200` — `CartaoDTO[]`**, crédito primeiro, depois débito e vales. A tela separa os dois grupos
 por `tipo`, mas não reordena dentro de cada um.
@@ -534,7 +530,7 @@ por `tipo`, mas não reordena dentro de cada um.
   barra de limite mentir na primeira compra parcelada. O cliente nunca envia este campo.
 - `nomeConta` é resolvido pelo servidor a partir de `idConta`.
 
-### `POST /cards` · `PUT /cards/{id}`
+### `POST /cartoes` · `PUT /cartoes/{id}`
 
 **Corpo — `SalvarCartaoDTO`**: `nome`, `instituicao`, `tipo`, `situacao` e, conforme o tipo,
 `bandeira`, `ultimosDigitos`, `limiteCredito`, `diaFechamento`, `diaVencimento`, `idConta`, `saldo`.
@@ -560,10 +556,10 @@ enviados — o backend precisa **limpar** esses campos, e não preservar o valor
 | Vale com `saldo` não numérico | `422` | `Informe um saldo válido para o cartão!` |
 | Id inexistente (`PUT`) | `404` | `Cartão não encontrado!` |
 
-### `DELETE /cards/{id}`
+### `DELETE /cartoes/{id}`
 
-**Resposta `204`.** Mesma regra das contas: cartão com lançamentos **ou** com compra parcelada
-responde `409`:
+**Resposta `204`.** Mesma regra das contas: cartão com lançamentos, compras parceladas ou despesas
+recorrentes pagas por ele responde `409`, somando os três:
 
 > `Este cartão tem 18 registros no histórico. Marque-o como inativo para tirá-lo dos lançamentos sem apagar o passado!`
 
@@ -574,7 +570,7 @@ responde `409`:
 Fatura **não é cadastro: é leitura calculada**. Não existe `POST`, `PUT` nem `DELETE` aqui, e o
 frontend nunca envia uma fatura.
 
-### `GET /invoices`
+### `GET /faturas`
 
 **Query**
 
@@ -599,7 +595,7 @@ frontend nunca envia uma fatura.
 }
 ```
 
-### `GET /invoices/{id}`
+### `GET /faturas/{id}`
 
 **Resposta `200` — `DetalheFaturaDTO`**: todos os campos de `FaturaCartaoDTO` mais `itens`.
 
@@ -650,7 +646,7 @@ para o mais antigo. Id inexistente: `404` — `Fatura não encontrada!`
 
 ## Compras parceladas
 
-### `GET /installments`
+### `GET /compras-parceladas`
 
 **Query**
 
@@ -688,7 +684,7 @@ calculados**:
 }
 ```
 
-### `POST /installments` · `PUT /installments/{id}`
+### `POST /compras-parceladas` · `PUT /compras-parceladas/{id}`
 
 **Corpo — `SalvarCompraParceladaDTO`**: `descricao`, `valorTotal`, `parcelas`, `dataCompra`,
 `primeiroMes`, `idCartao`, `idCategoria` (opcional), `observacoes` (opcional).
@@ -709,7 +705,7 @@ calculados**:
 | Cartão que não é de crédito | `422` | `Só cartões de crédito aceitam compras parceladas!` |
 | Id inexistente (`PUT`) | `404` | `Compra parcelada não encontrada!` |
 
-### `DELETE /installments/{id}`
+### `DELETE /compras-parceladas/{id}`
 
 **Resposta `204`.**
 
@@ -731,9 +727,10 @@ calculados**:
 
 ## Investimentos
 
-### `GET /investments`
+### `GET /investimentos`
 
-Lista crua, usada pelo formulário de edição.
+Lista crua. O frontend de hoje não a consome: a tela e o formulário de edição usam as `posicoes`
+de `GET /investimentos/carteira`.
 
 **Resposta `200` — `InvestimentoDTO[]`**
 
@@ -750,7 +747,7 @@ Lista crua, usada pelo formulário de edição.
 }
 ```
 
-### `GET /investments/portfolio`
+### `GET /investimentos/carteira`
 
 Carteira consolidada — é o que a tela mostra.
 
@@ -789,7 +786,7 @@ Carteira consolidada — é o que a tela mostra.
   e a única que faz a curva chegar em hoje valendo o que o cadastro diz.
 - `posicoes` vem do maior `valorAtual` para o menor.
 
-### `POST /investments` · `PUT /investments/{id}` · `DELETE /investments/{id}`
+### `POST /investimentos` · `PUT /investimentos/{id}` · `DELETE /investimentos/{id}`
 
 **Corpo — `SalvarInvestimentoDTO`**: `nome`, `classeAtivo`, `instituicao`, `aportado`, `valorAtual`,
 `dataInicio`, `observacoes` (opcional).
@@ -819,10 +816,10 @@ Carteira consolidada — é o que a tela mostra.
 
 ## Orçamento
 
-### `GET /budgets/overview`
+### `GET /orcamentos/visao-geral`
 
 O frontend **não lista orçamentos crus**: ele lê os limites de dentro deste consolidado. Não é
-preciso expor um `GET /budgets`.
+preciso expor um `GET /orcamentos`.
 
 **Query**
 
@@ -882,7 +879,7 @@ preciso expor um `GET /budgets`.
   os limites foram cadastrados.
 - Num mês passado, `diasRestantes` é `0` e `diasDecorridos` é `diasNoMes`.
 
-### `POST /budgets` · `PUT /budgets/{id}` · `DELETE /budgets/{id}`
+### `POST /orcamentos` · `PUT /orcamentos/{id}` · `DELETE /orcamentos/{id}`
 
 **Corpo — `SalvarOrcamentoDTO`**: `idCategoria`, `limiteMensal`.
 
@@ -905,7 +902,7 @@ regra precisa existir no servidor.
 
 ## Despesas recorrentes
 
-### `GET /recurring-expenses`
+### `GET /despesas-recorrentes`
 
 Devolve a lista **já consolidada** — note que a resposta é um objeto, não um array.
 
@@ -943,7 +940,7 @@ Devolve a lista **já consolidada** — note que a resposta é um objeto, não u
 - `vencendoEmBreve` traz as ativas que vencem nos próximos **7 dias**, da mais próxima em diante.
 - `itens` vem ordenado pelo `proximoVencimento` crescente, com as pausadas ao fim.
 
-### `POST /recurring-expenses` · `PUT /recurring-expenses/{id}` · `DELETE /recurring-expenses/{id}`
+### `POST /despesas-recorrentes` · `PUT /despesas-recorrentes/{id}` · `DELETE /despesas-recorrentes/{id}`
 
 **Corpo — `SalvarDespesaRecorrenteDTO`**: `descricao`, `valor`, `idCategoria` (opcional), `frequencia`,
 `proximoVencimento`, `idOrigem`, `situacao`, `observacoes` (opcional).
@@ -976,7 +973,7 @@ sobrescreve o anterior**. Sem a série completa, a tela perde menor preço, méd
 — sobra o último número digitado, que qualquer campo de texto já daria. É por isso que a edição não
 carrega preço e o registro tem rota própria.
 
-### `GET /goals`
+### `GET /metas`
 
 **Query**
 
@@ -1061,7 +1058,7 @@ carrega preço e o registro tem rota própria.
   compradas apenas para o rótulo auxiliar.
 - `itens` vem ordenado pela `ultimaAtualizacao` decrescente: a tela abre no que acabou de mudar.
 
-### `POST /goals`
+### `POST /metas`
 
 **Corpo — `SalvarMetaDTO`**: `nome`, `url` (opcional), `urlImagem` (opcional), `preco`, `data`,
 `situacao`, `observacoes` (opcional).
@@ -1071,7 +1068,7 @@ mostrar: cadastrar é, ao mesmo tempo, a primeira consulta. `dataCriacao` recebe
 
 **Resposta `201` — `MetaDTO`.**
 
-### `PUT /goals/{id}`
+### `PUT /metas/{id}`
 
 **Corpo — `AtualizarMetaDTO`**: `nome`, `url` (opcional), `urlImagem` (opcional), `situacao`,
 `observacoes` (opcional).
@@ -1081,7 +1078,7 @@ mostrar: cadastrar é, ao mesmo tempo, a primeira consulta. `dataCriacao` recebe
 
 **Resposta `200` — `MetaDTO`.**
 
-### `POST /goals/{id}/prices`
+### `POST /metas/{id}/precos`
 
 Acrescenta um preço ao histórico. **Nunca substitui o anterior.**
 
@@ -1090,7 +1087,7 @@ Acrescenta um preço ao histórico. **Nunca substitui o anterior.**
 **Resposta `201` — `MetaDTO`** com a série já atualizada. O frontend recarrega a lista a partir disso;
 devolver só o registro criado não bastaria, porque a tela precisa da análise recalculada.
 
-### `DELETE /goals/{id}`
+### `DELETE /metas/{id}`
 
 **Resposta `204`.** Apaga a meta **e todo o histórico dela** — é a única operação destrutiva do
 domínio, e a tela já pede confirmação.
@@ -1125,7 +1122,7 @@ silenciosamente o preço inicial, que é a referência de toda a variação most
 
 ## Previsão financeira
 
-### `GET /forecast`
+### `GET /previsao`
 
 **Query**
 
@@ -1167,9 +1164,10 @@ silenciosamente o preço inicial, que é a referência de toda a variação most
   inteiro no mês em que vence, e não como um doze avos em cada mês.
 - `parcelas` soma as parcelas que caem nas faturas do mês.
 - **`variavel` é um resto, não uma média solta**: é a média de despesa dos três meses fechados
-  **menos** as recorrentes e as parcelas médias do mesmo período. Sem esse desconto, aluguel e
-  parcelas apareceriam duas vezes — uma na sua linha, outra dentro da média — e a projeção ficaria
-  pessimista o bastante para não servir para nada.
+  **menos** a média das recorrentes do mesmo período, nunca negativa. Sem esse desconto, o aluguel
+  apareceria duas vezes — uma na sua linha, outra dentro da média — e a projeção ficaria pessimista
+  o bastante para não servir para nada. As parcelas **não** são descontadas: como não são
+  lançamentos, nunca entram na média de despesa, e descontá-las tiraria o mesmo dinheiro duas vezes.
 - `despesa` = `recorrentes + parcelas + variavel`; `resultado` = `receita − despesa`.
 - `saldoFinal` de cada mês acumula sobre o anterior, partindo de `saldoInicial`.
 - `menorSaldo` aponta o mês de menor `saldoFinal` — é o que a tela existe para antecipar.
@@ -1179,7 +1177,7 @@ silenciosamente o preço inicial, que é a referência de toda a variação most
 
 ## Relatórios
 
-### `GET /reports/summary`
+### `GET /relatorios/resumo`
 
 **Query**
 
@@ -1248,7 +1246,7 @@ chave `YYYY-MM`. Todo atalho da tela termina hoje.
 
 ## Avisos
 
-### `GET /alerts`
+### `GET /avisos`
 
 **Resposta `200` — `AvisoDTO[]`**
 
@@ -1290,47 +1288,47 @@ chave `YYYY-MM`. Todo atalho da tela termina hoje.
 | # | Método | URL | Resposta | Domínio |
 | --- | --- | --- | --- | --- |
 | 1 | `GET` | `/dashboard/resumo?dataInicial&dataFinal` | `DashboardDTO` | Dashboard |
-| 2 | `GET` | `/categories?tipo` | `CategoriaDTO[]` | Categorias |
-| 3 | `GET` | `/transactions?tipo&busca&dataInicial&dataFinal&idCategoria&idOrigem&situacao` | `LancamentoDTO[]` | Lançamentos |
-| 4 | `POST` | `/transactions` | `LancamentoDTO` | Lançamentos |
-| 5 | `PUT` | `/transactions/{id}` | `LancamentoDTO` | Lançamentos |
-| 6 | `DELETE` | `/transactions/{id}` | `204` | Lançamentos |
-| 7 | `GET` | `/accounts` | `ContaDTO[]` | Contas |
-| 8 | `GET` | `/accounts/sources` | `OrigemDTO[]` | Contas |
-| 9 | `POST` | `/accounts` | `ContaDTO` | Contas |
-| 10 | `PUT` | `/accounts/{id}` | `ContaDTO` | Contas |
-| 11 | `DELETE` | `/accounts/{id}` | `204` | Contas |
-| 12 | `GET` | `/cards` | `CartaoDTO[]` | Cartões |
-| 13 | `POST` | `/cards` | `CartaoDTO` | Cartões |
-| 14 | `PUT` | `/cards/{id}` | `CartaoDTO` | Cartões |
-| 15 | `DELETE` | `/cards/{id}` | `204` | Cartões |
-| 16 | `GET` | `/invoices?idCartao` | `FaturaCartaoDTO[]` | Faturas |
-| 17 | `GET` | `/invoices/{id}` | `DetalheFaturaDTO` | Faturas |
-| 18 | `GET` | `/installments?idCartao` | `PlanoCompraParceladaDTO[]` | Parcelas |
-| 19 | `POST` | `/installments` | `CompraParceladaDTO` | Parcelas |
-| 20 | `PUT` | `/installments/{id}` | `CompraParceladaDTO` | Parcelas |
-| 21 | `DELETE` | `/installments/{id}` | `204` | Parcelas |
-| 22 | `GET` | `/investments` | `InvestimentoDTO[]` | Investimentos |
-| 23 | `GET` | `/investments/portfolio` | `CarteiraDTO` | Investimentos |
-| 24 | `POST` | `/investments` | `InvestimentoDTO` | Investimentos |
-| 25 | `PUT` | `/investments/{id}` | `InvestimentoDTO` | Investimentos |
-| 26 | `DELETE` | `/investments/{id}` | `204` | Investimentos |
-| 27 | `GET` | `/budgets/overview?mes` | `VisaoGeralOrcamentoDTO` | Orçamento |
-| 28 | `POST` | `/budgets` | `OrcamentoDTO` | Orçamento |
-| 29 | `PUT` | `/budgets/{id}` | `OrcamentoDTO` | Orçamento |
-| 30 | `DELETE` | `/budgets/{id}` | `204` | Orçamento |
-| 31 | `GET` | `/recurring-expenses` | `ResumoDespesasRecorrentesDTO` | Recorrentes |
-| 32 | `POST` | `/recurring-expenses` | `DespesaRecorrenteDTO` | Recorrentes |
-| 33 | `PUT` | `/recurring-expenses/{id}` | `DespesaRecorrenteDTO` | Recorrentes |
-| 34 | `DELETE` | `/recurring-expenses/{id}` | `204` | Recorrentes |
-| 35 | `GET` | `/goals?situacao&busca` | `ResumoMetasDTO` | Metas |
-| 36 | `POST` | `/goals` | `MetaDTO` | Metas |
-| 37 | `PUT` | `/goals/{id}` | `MetaDTO` | Metas |
-| 38 | `POST` | `/goals/{id}/prices` | `MetaDTO` | Metas |
-| 39 | `DELETE` | `/goals/{id}` | `204` | Metas |
-| 40 | `GET` | `/forecast?meses` | `PrevisaoDTO` | Previsão |
-| 41 | `GET` | `/reports/summary?dataInicial&dataFinal` | `RelatorioDTO` | Relatórios |
-| 42 | `GET` | `/alerts` | `AvisoDTO[]` | Avisos |
+| 2 | `GET` | `/categorias?tipo` | `CategoriaDTO[]` | Categorias |
+| 3 | `GET` | `/lancamentos?tipo&busca&dataInicial&dataFinal&idCategoria&idOrigem&situacao` | `LancamentoDTO[]` | Lançamentos |
+| 4 | `POST` | `/lancamentos` | `LancamentoDTO` | Lançamentos |
+| 5 | `PUT` | `/lancamentos/{id}` | `LancamentoDTO` | Lançamentos |
+| 6 | `DELETE` | `/lancamentos/{id}` | `204` | Lançamentos |
+| 7 | `GET` | `/contas` | `ContaDTO[]` | Contas |
+| 8 | `GET` | `/contas/origens` | `OrigemDTO[]` | Contas |
+| 9 | `POST` | `/contas` | `ContaDTO` | Contas |
+| 10 | `PUT` | `/contas/{id}` | `ContaDTO` | Contas |
+| 11 | `DELETE` | `/contas/{id}` | `204` | Contas |
+| 12 | `GET` | `/cartoes` | `CartaoDTO[]` | Cartões |
+| 13 | `POST` | `/cartoes` | `CartaoDTO` | Cartões |
+| 14 | `PUT` | `/cartoes/{id}` | `CartaoDTO` | Cartões |
+| 15 | `DELETE` | `/cartoes/{id}` | `204` | Cartões |
+| 16 | `GET` | `/faturas?idCartao` | `FaturaCartaoDTO[]` | Faturas |
+| 17 | `GET` | `/faturas/{id}` | `DetalheFaturaDTO` | Faturas |
+| 18 | `GET` | `/compras-parceladas?idCartao` | `PlanoCompraParceladaDTO[]` | Parcelas |
+| 19 | `POST` | `/compras-parceladas` | `CompraParceladaDTO` | Parcelas |
+| 20 | `PUT` | `/compras-parceladas/{id}` | `CompraParceladaDTO` | Parcelas |
+| 21 | `DELETE` | `/compras-parceladas/{id}` | `204` | Parcelas |
+| 22 | `GET` | `/investimentos` | `InvestimentoDTO[]` | Investimentos |
+| 23 | `GET` | `/investimentos/carteira` | `CarteiraDTO` | Investimentos |
+| 24 | `POST` | `/investimentos` | `InvestimentoDTO` | Investimentos |
+| 25 | `PUT` | `/investimentos/{id}` | `InvestimentoDTO` | Investimentos |
+| 26 | `DELETE` | `/investimentos/{id}` | `204` | Investimentos |
+| 27 | `GET` | `/orcamentos/visao-geral?mes` | `VisaoGeralOrcamentoDTO` | Orçamento |
+| 28 | `POST` | `/orcamentos` | `OrcamentoDTO` | Orçamento |
+| 29 | `PUT` | `/orcamentos/{id}` | `OrcamentoDTO` | Orçamento |
+| 30 | `DELETE` | `/orcamentos/{id}` | `204` | Orçamento |
+| 31 | `GET` | `/despesas-recorrentes` | `ResumoDespesasRecorrentesDTO` | Recorrentes |
+| 32 | `POST` | `/despesas-recorrentes` | `DespesaRecorrenteDTO` | Recorrentes |
+| 33 | `PUT` | `/despesas-recorrentes/{id}` | `DespesaRecorrenteDTO` | Recorrentes |
+| 34 | `DELETE` | `/despesas-recorrentes/{id}` | `204` | Recorrentes |
+| 35 | `GET` | `/metas?situacao&busca` | `ResumoMetasDTO` | Metas |
+| 36 | `POST` | `/metas` | `MetaDTO` | Metas |
+| 37 | `PUT` | `/metas/{id}` | `MetaDTO` | Metas |
+| 38 | `POST` | `/metas/{id}/precos` | `MetaDTO` | Metas |
+| 39 | `DELETE` | `/metas/{id}` | `204` | Metas |
+| 40 | `GET` | `/previsao?meses` | `PrevisaoDTO` | Previsão |
+| 41 | `GET` | `/relatorios/resumo?dataInicial&dataFinal` | `RelatorioDTO` | Relatórios |
+| 42 | `GET` | `/avisos` | `AvisoDTO[]` | Avisos |
 
 ---
 
@@ -1342,18 +1340,18 @@ API gerada automaticamente a partir das tabelas.
 
 | Cálculo | Endpoint | Por quê |
 | --- | --- | --- |
-| Fatura a partir de despesas e parcelas | `/invoices` | Fatura não é cadastro. O ciclo vai do fechamento anterior (exclusivo) ao deste mês (inclusivo). |
-| `limiteComprometido` do cartão | `/cards` | Soma das faturas não pagas, **incluindo as futuras**. Guardar o valor faria a barra de limite mentir na primeira compra parcelada. |
-| Cronograma de parcelas | `/installments` | A última parcela absorve o arredondamento, para fechar exatamente com o total. |
-| Saldo reconstruído numa data passada | `/dashboard/resumo`, `/reports/summary` | Parte dos saldos de hoje e desfaz o que entrou e saiu depois. |
-| Variação contra a janela anterior | `/dashboard/resumo`, `/reports/summary`, `/investments/portfolio` | Sempre a janela de **mesmo tamanho** imediatamente anterior. |
-| Distribuição, rentabilidade e evolução da carteira | `/investments/portfolio` | A curva de aportes se apoia em `dataInicio`. |
-| Consumo e projeção de ritmo do orçamento | `/budgets/overview` | Projeção só a partir do décimo dia do mês. |
-| Custo mensal equivalente das recorrentes | `/recurring-expenses` | A anual entra dividida por doze; a semanal, multiplicada por 4,3452. |
-| Análise e leitura de uma meta | `/goals` | Posição na faixa antes da média; `PRIMEIRO` quando há um registro só. |
-| Projeção de saldo | `/forecast` | O gasto variável é um resto: média menos recorrentes menos parcelas. |
-| Agrupamento em baldes | `/reports/summary` | Dia, semana ou mês conforme a duração do recorte. |
-| Derivação dos avisos | `/alerts` | Faturas a vencer ou vencidas há até 15 dias, lançamentos próximos e cartões com 70% ou mais do limite. |
+| Fatura a partir de despesas e parcelas | `/faturas` | Fatura não é cadastro. O ciclo vai do fechamento anterior (exclusivo) ao deste mês (inclusivo). |
+| `limiteComprometido` do cartão | `/cartoes` | Soma das faturas não pagas, **incluindo as futuras**. Guardar o valor faria a barra de limite mentir na primeira compra parcelada. |
+| Cronograma de parcelas | `/compras-parceladas` | A última parcela absorve o arredondamento, para fechar exatamente com o total. |
+| Saldo reconstruído numa data passada | `/dashboard/resumo`, `/relatorios/resumo` | Parte dos saldos de hoje e desfaz o que entrou e saiu depois. |
+| Variação contra a janela anterior | `/dashboard/resumo`, `/relatorios/resumo`, `/investimentos/carteira` | Sempre a janela de **mesmo tamanho** imediatamente anterior. |
+| Distribuição, rentabilidade e evolução da carteira | `/investimentos/carteira` | A curva de aportes se apoia em `dataInicio`. |
+| Consumo e projeção de ritmo do orçamento | `/orcamentos/visao-geral` | Projeção só a partir do décimo dia do mês. |
+| Custo mensal equivalente das recorrentes | `/despesas-recorrentes` | A anual entra dividida por doze; a semanal, multiplicada por 4,3452. |
+| Análise e leitura de uma meta | `/metas` | Posição na faixa antes da média; `PRIMEIRO` quando há um registro só. |
+| Projeção de saldo | `/previsao` | O gasto variável é um resto: média de despesa menos recorrentes. As parcelas não são lançamentos e não entram no desconto. |
+| Agrupamento em baldes | `/relatorios/resumo` | Dia, semana ou mês conforme a duração do recorte. |
+| Derivação dos avisos | `/avisos` | Faturas a vencer ou vencidas há até 15 dias, lançamentos próximos e cartões com 70% ou mais do limite. |
 
 Três coisas que o contrato deliberadamente **não** pede, e que não devem ser inventadas: pagamento
 ou quitação de fatura, histórico de cotação por ativo, e exportação de relatório em PDF ou CSV.

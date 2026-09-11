@@ -89,11 +89,14 @@ export function formatarPercentualComSinal(value: number): string {
 }
 
 export function formatarDataCurta(isoDate: string): string {
-  return formatadorDiaMes
-    .formatToParts(deDataISO(isoDate))
+  const date = deDataISO(isoDate);
+  const dayAndMonth = formatadorDiaMes
+    .formatToParts(date)
     .map((part) => (part.type === 'month' ? capitalizar(part.value) : part.value))
     .join('')
     .replace('.', '');
+
+  return date.getFullYear() === new Date().getFullYear() ? dayAndMonth : `${dayAndMonth} de ${date.getFullYear()}`;
 }
 
 export function formatarDataCompleta(isoDate: string): string {
