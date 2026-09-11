@@ -39,11 +39,14 @@
   --sidebar-width-collapsed: 76px;
   --header-height: 68px;
   --content-max: 1440px;
+  --content-padding-top: var(--space-8);
+  --page-title-line: calc(var(--fs-xl) * var(--lh-tight));
 
   --control-height: 38px;
   --control-height-sm: 32px;
   --control-font: var(--fs-base);
   --tap-size: 34px;
+  --nav-item-height: max(var(--tap-size), calc(var(--space-2) * 2 + var(--fs-base) * var(--lh-normal)));
 
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-spring: cubic-bezier(0.34, 1.42, 0.54, 1);

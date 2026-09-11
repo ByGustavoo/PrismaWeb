@@ -7,7 +7,7 @@
   flex-direction: column;
   height: 100dvh;
   width: var(--sidebar-width);
-  padding: var(--space-4) var(--space-3);
+  padding: 0 var(--space-3) var(--space-4);
   background-color: var(--surface);
   border-right: 1px solid var(--border);
   transition: width var(--duration-base) var(--ease-out);
@@ -22,7 +22,11 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-2) var(--space-2) var(--space-5);
+  flex-shrink: 0;
+  height: calc(var(--header-height) + 1px);
+  margin-inline: calc(var(--space-3) * -1);
+  padding-inline: calc(var(--space-2) + var(--space-3));
+  border-bottom: 1px solid var(--border);
 }
 
 .brandMark {
@@ -81,6 +85,7 @@
   flex-direction: column;
   gap: var(--space-5);
   overflow-y: auto;
+  padding-top: calc(var(--content-padding-top) + (var(--page-title-line) - var(--nav-item-height)) / 2);
   padding-bottom: var(--space-4);
 }
 
@@ -97,34 +102,58 @@
 }
 
 .item {
+  position: relative;
+  isolation: isolate;
   display: flex;
   align-items: center;
   gap: var(--space-3);
   width: 100%;
-  min-height: var(--tap-size);
+  min-height: var(--nav-item-height);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-sm);
   color: var(--text-muted);
   font-size: var(--fs-base);
   font-weight: 500;
   text-align: left;
-  transition:
-    background-color var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out);
+  transition: color var(--duration-fast) var(--ease-out);
 }
 
-.item:hover {
+.item::before,
+.collapseButton::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
   background-color: var(--surface-muted);
-  color: var(--text);
+  opacity: 0;
+  transform: scale(0.96);
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    transform var(--duration-base) var(--ease-spring),
+    background-color var(--duration-fast) var(--ease-out);
 }
 
-.itemActive {
-  background-color: var(--accent-soft);
+.item:focus-visible::before,
+.collapseButton:focus-visible::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.itemActive,
+.itemActive:hover {
   color: var(--accent);
+}
+
+.itemActive::before {
+  background-color: var(--accent-soft);
+  opacity: 1;
+  transform: scale(1);
 }
 
 .itemIcon {
   flex-shrink: 0;
+  transition: transform var(--duration-base) var(--ease-spring);
 }
 
 .itemLabel {
@@ -133,6 +162,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: transform var(--duration-base) var(--ease-spring);
 }
 
 .collapsed .itemLabel {
@@ -177,8 +207,8 @@
   transition: color var(--duration-fast) var(--ease-out);
 }
 
-.child:hover {
-  color: var(--text);
+.childLabel {
+  transition: transform var(--duration-base) var(--ease-spring);
 }
 
 .childActive {
@@ -195,6 +225,8 @@
 }
 
 .collapseButton {
+  position: relative;
+  isolation: isolate;
   display: grid;
   place-items: center;
   width: var(--tap-size);
@@ -202,18 +234,56 @@
   flex-shrink: 0;
   border-radius: var(--radius-sm);
   color: var(--text-subtle);
-  transition:
-    background-color var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out);
+  transition: color var(--duration-fast) var(--ease-out);
 }
 
-.collapseButton:hover {
-  background-color: var(--surface-muted);
-  color: var(--text);
+.collapseButton svg {
+  transition: transform var(--duration-base) var(--ease-spring);
 }
 
 .collapsed .footer {
   flex-direction: column;
+}
+
+@media (hover: hover) {
+  .item:hover,
+  .collapseButton:hover {
+    color: var(--text);
+  }
+
+  .itemActive:hover {
+    color: var(--accent);
+  }
+
+  .item:hover::before,
+  .collapseButton:hover::before {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .item:hover .itemIcon,
+  .item:hover .itemLabel,
+  .child:hover .childLabel {
+    transform: translateX(2px);
+  }
+
+  .collapsed .item:hover .itemIcon,
+  .collapseButton:hover svg {
+    transform: scale(1.1);
+  }
+
+  .child:hover {
+    color: var(--text);
+  }
+
+  .childActive:hover {
+    color: var(--accent);
+  }
+}
+
+.item:active::before,
+.collapseButton:active::before {
+  transform: scale(0.98);
 }
 
 .scrim {
@@ -252,6 +322,11 @@
     display: flex;
   }
 
+  .collapsed .brand {
+    justify-content: flex-start;
+    padding-inline: calc(var(--space-2) + var(--space-3));
+  }
+
   .collapsed .item {
     justify-content: flex-start;
     padding-inline: var(--space-3);
@@ -279,5 +354,27 @@
   .scrimVisible {
     opacity: 1;
     pointer-events: auto;
+  }
+}
+
+@media (max-width: 1099px) and (hover: hover) {
+  .collapsed .item:hover .itemIcon {
+    transform: translateX(2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item::before,
+  .item:active::before,
+  .item:hover::before,
+  .item:hover .itemIcon,
+  .item:hover .itemLabel,
+  .collapsed .item:hover .itemIcon,
+  .child:hover .childLabel,
+  .collapseButton::before,
+  .collapseButton:active::before,
+  .collapseButton:hover::before,
+  .collapseButton:hover svg {
+    transform: none;
   }
 }

@@ -250,7 +250,7 @@ Cada pasta de componentes tem um `index.ts` de barril — ao criar um componente
   degrau distinguir do vizinho, nao 4.5:1 de texto. Nao os reaproveite para texto nem para badge.
 - Movimento tem tokens proprios: `--ease-out` para cor, borda, sombra e giro de seta;
   `--ease-spring` — o unico com ultrapassagem — para entrada de item de lista, entrada de popover
-  (CampoSelecao, avisos, periodo), curso do Interruptor e rolagem de algarismo;
+  (CampoSelecao, avisos, periodo), curso do Interruptor, rolagem de algarismo e hover do menu lateral;
   `--duration-fast/base/slow` e `--stagger-step`, o intervalo entre um item e o seguinte numa
   entrada escalonada. A entrada de lista e a classe **global** `.list-item-in` (`global.css`), usada
   com `style={{ '--i': index }}`: alem de duas listas distantes precisarem da mesma curva, o CSS
@@ -580,6 +580,29 @@ O `SeletorPeriodo` e a busca global sao os dois pontos em que o header conversa 
   `.container` do `LayoutAplicacao`. Sem isso, em telas mais largas que `--content-max` a pagina
   centraliza e o header nao, e a busca (ou o seletor de periodo) fica recuada a esquerda do titulo
   da tela logo abaixo dela. Barra fixa nova repete esse arranjo.
+- **Sidebar e area principal dividem as mesmas linhas horizontais.** A marca da sidebar tem a
+  altura do header mais 1px de borda inferior, entao busca, seletor de periodo e botoes do header
+  ficam centrados na mesma linha do logo e de "Prisma / Financas pessoais", e a borda da marca cai
+  exatamente sobre a borda do header: as duas formam uma linha so atravessando a tela. Por isso a
+  marca anula o `padding-inline` da sidebar com margem negativa — recuada, a linha pararia 12px
+  antes da borda direita e a emenda apareceria. Abaixo dela, o centro do primeiro item do menu
+  coincide com o centro do titulo da tela: o `padding-top` do `.nav` sai de
+  `--content-padding-top`, `--page-title-line` e `--nav-item-height`, e nao de um numero ajustado a
+  olho. O item usa o proprio `--nav-item-height` como altura minima, senao no menu recolhido, sem
+  rotulo, ele encolhe e o icone sobe dois pixels.
+- **O hover do menu lateral e uma pilula, nao uma troca de cor.** O fundo do item vive num
+  `::before` que entra crescendo de 96% a 100% com `--ease-spring`, enquanto icone e rotulo deslizam
+  2px; recolhido, o icone cresce 10% em vez de deslizar, que o tiraria do centro. O subitem desliza
+  so o texto, dentro de um `span`: mover o proprio link tiraria a area clicavel de baixo do cursor.
+  O item ativo usa a mesma pilula ja cheia em `--accent-soft`, entao passar o mouse sobre ele nao o
+  pinta de cinza. O botao de recolher o menu, no rodape, divide os mesmos seletores da pilula e
+  cresce o icone como o item recolhido: um controle da mesma coluna com outro retorno pareceria de
+  outro produto. O hover fica dentro de `@media (hover: hover)`, para um toque no celular nao deixar
+  a pilula presa, e sob `prefers-reduced-motion` todo deslocamento e cancelado — so a cor muda. Por isso o respiro do topo do conteudo tambem le
+  `--content-padding-top`. Ao mudar a altura do header, o tamanho do titulo, o respiro do conteudo ou
+  a altura do item do menu, a conta se refaz sozinha — um valor solto em qualquer um desses pontos
+  desalinha as duas colunas em todas as telas de uma vez. O `max()` do `--nav-item-height` existe
+  porque em `pointer: coarse` o `--tap-size` passa a mandar na altura do item.
 
 - **Periodo.** O caso comum — um mes de cada vez — fica nas setas; o painel do seletor guarda os
   atalhos ("Ultimos 3 meses", "Este ano") e o intervalo proprio, montado com dois `CampoSelecao` de mes.

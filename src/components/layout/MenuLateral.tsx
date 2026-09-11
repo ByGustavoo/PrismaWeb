@@ -150,7 +150,7 @@ function ItemMenuLateral({ item, recolhido }: ItemMenuLateralProps) {
               end
               className={({ isActive }) => juntarClasses(styles.child, isActive && styles.childActive)}
             >
-              {child.rotulo}
+              <span className={styles.childLabel}>{child.rotulo}</span>
             </NavLink>
           ))}
         </div>

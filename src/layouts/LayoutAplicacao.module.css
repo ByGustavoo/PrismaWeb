@@ -19,7 +19,7 @@
 
 .content {
   flex: 1;
-  padding: var(--space-8) var(--space-6) var(--space-12);
+  padding: var(--content-padding-top) var(--space-6) var(--space-12);
 }
 
 .content:focus {
