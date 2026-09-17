@@ -177,6 +177,87 @@ VITE_API_URL=http://localhost:9017/PrismaAPI/v1
 <br>
 
 
+## 🐳 Docker
+
+A imagem compila o app com Node 22 e o serve com o `nginx-unprivileged` (usuário sem root, porta
+`8080`), com fallback de rotas para o `index.html`, cache longo em `/assets/` e `/healthz` para o
+healthcheck.
+
+**A URL da API é lida ao subir o container, e não no build.** O script
+`docker/40-prisma-config.sh` grava `/config.js` a partir de `PRISMA_API_URL`, e o `ambiente.ts` dá
+preferência a esse valor sobre o `VITE_API_URL`. Assim a mesma imagem publicada serve qualquer
+ambiente.
+
+<br>
+
+```bash
+# Sobe a partir da imagem publicada
+docker compose up -d
+
+# Compila a imagem localmente e sobe
+docker compose up -d --build
+
+# Aponta para outra API e outra porta
+PRISMA_API_URL=https://api.exemplo.com/PrismaAPI/v1 PRISMA_WEB_PORT=3000 docker compose up -d
+```
+
+<br>
+
+| Variável | Padrão | Uso |
+| --- | --- | --- |
+| `PRISMA_API_URL` | `http://localhost:9017/PrismaAPI/v1` | URL da API, lida pelo navegador |
+| `PRISMA_WEB_PORT` | `8080` | Porta publicada no host |
+| `PRISMA_WEB_IMAGE` | `gurudohimalaia/prismaweb` | Repositório da imagem |
+| `PRISMA_WEB_TAG` | `latest` | Versão da imagem |
+
+> `PRISMA_API_URL` é acessada pelo navegador de quem usa o app, não pelo container: use um endereço
+> que a máquina do usuário alcance.
+
+
+<br>
+
+
+## 🚢 Esteira e Versionamento
+
+- **`ci.yml`** roda em todo PR para a `main`: `npm run build` (typecheck incluso) e build da imagem,
+  sem publicar.
+- **`release.yml`** roda quando um PR é **mergeado** na `main` (e também manualmente, em
+  *Actions → Release → Run workflow*). Ele calcula a próxima versão, publica a imagem no Docker Hub
+  para `linux/amd64` e `linux/arm64` e cria a tag `vX.Y.Z` com uma release no GitHub.
+
+A versão segue SemVer, e a fonte de verdade são as **tags git**. Sem nenhuma tag, a primeira
+versão é a do `package.json`; a partir daí o incremento vem do rótulo do PR:
+
+| Rótulo do PR | Exemplo |
+| --- | --- |
+| *(nenhum)* | `0.1.0` → `0.1.1` |
+| `release:minor` | `0.1.1` → `0.2.0` |
+| `release:major` | `0.2.0` → `1.0.0` |
+
+Cada publicação gera as tags de imagem `X.Y.Z`, `X.Y`, `X` (a partir da `1.0.0`), `sha-<commit>` e
+`latest`. PR fechado sem merge não publica nada.
+
+A versão e a data de lançamento vão para a imagem e aparecem em **Configurações → Versões**, ao lado
+das da API (lidas de `GET /sistema/versao`).
+
+<br>
+
+Configuração no GitHub (*Settings → Secrets and variables → Actions*):
+
+| Nome | Tipo | Conteúdo |
+| --- | --- | --- |
+| `DOCKER_USERNAME` | Secret | Usuário do Docker Hub (`gurudohimalaia`) |
+| `DOCKER_PASSWORD` | Secret | Senha ou access token do Docker Hub com permissão *Read & Write* |
+| `DOCKER_IMAGE` | Secret | Repositório completo da imagem (`gurudohimalaia/prismaweb`) |
+
+São os mesmos nomes da esteira do PrismaAPI, que publica em `gurudohimalaia/prismaapi`.
+
+Os rótulos `release:minor` e `release:major` precisam ser criados em *Issues → Labels*.
+
+
+<br>
+
+
 ## 📂 Estrutura do Projeto
 
 <br>

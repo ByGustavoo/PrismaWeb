@@ -24,7 +24,8 @@ Os tipos de referência estão em [`src/types/financas.ts`](src/types/financas.t
 6. [Investimentos com aportes e histórico](#6-investimentos-com-aportes-e-histórico)
 7. [Previsão financeira](#7-previsão-financeira)
 8. [Avisos](#8-avisos)
-9. [Resumo e checklist](#9-resumo-e-checklist)
+9. [Versão do sistema](#9-versão-do-sistema)
+10. [Resumo e checklist](#10-resumo-e-checklist)
 
 ---
 
@@ -145,8 +146,9 @@ frontend chama de `PontoEvolucaoDTO`.
 **Hoje:** `LancamentoService.salvar`, `atualizar` e `deletar` gravam o lançamento, mas não tocam em
 `contas.saldo`.
 
-**Precisa:** como `ContaDTO.saldo` é o saldo de hoje, todo lançamento com `data <= hoje` altera o
-saldo das contas envolvidas, na mesma transação:
+**Precisa:** como `ContaDTO.saldo` é o saldo de hoje, todo lançamento **`PAGO`** altera o saldo das
+contas envolvidas, na mesma transação. `PENDENTE` e `AGENDADO` não mexem no saldo, qualquer que seja a
+data — é o que o formulário diz ao usuário ("Ainda não afetou o saldo."):
 
 | Lançamento | Efeito |
 | --- | --- |
@@ -155,11 +157,14 @@ saldo das contas envolvidas, na mesma transação:
 | Transferência | `−valor` na origem, `+valor` no destino |
 | Qualquer lançamento em cartão | nenhum efeito em conta |
 
-- `POST`: aplica o efeito.
-- `PUT`: desfaz o efeito do lançamento antigo e aplica o do novo (a conta, o valor, o tipo ou a data
-  podem ter mudado).
-- `DELETE`: desfaz o efeito.
-- Lançamento com data futura não mexe no saldo ao ser gravado.
+- `POST`: aplica o efeito se o lançamento vier `PAGO`.
+- `PUT`: desfaz o efeito do lançamento antigo, se ele era `PAGO`, e aplica o do novo, se ele é `PAGO`
+  (a situação, a conta, o valor, o tipo ou a data podem ter mudado). Marcar um agendado como pago é o
+  que o leva ao saldo.
+- `DELETE`: desfaz o efeito, se o lançamento era `PAGO`.
+- Um `PAGO` nunca tem data futura (`422`), então não há efeito a aplicar quando uma data chega.
+- A linha do saldo (seção 4) segue a mesma regra: antes de hoje só os `PAGO` são reconstruídos; depois
+  de hoje, os agendados são projetados.
 
 Sem isso, um rendimento registrado numa reserva aparece em `/contas/{id}/evolucao`, mas `saldoAtual`
 não o inclui, e o `saldoInicial` cai para fechar a equação.
@@ -405,8 +410,8 @@ Campos novos: `saldoAtual`, `restanteMesAtual`, `base` (novo record `BaseCalculo
 ### 7.3 Regras
 
 - **Mesmo modelo de saldo** das seções 3 e 4.
-- **`restanteMesAtual`** cobre de amanhã ao fim do mês: lançamentos agendados ou pendentes
-  (`agendados` e `receita`), recorrentes que ainda vencem e não têm lançamento no mês, parcelas com
+- **`restanteMesAtual`** cobre de amanhã ao fim do mês: lançamentos agendados ou pendentes com data
+  até o fim do mês, **inclusive os vencidos**, que ainda não estão no saldo (`agendados` e `receita`), recorrentes que ainda vencem e não têm lançamento no mês, parcelas com
   vencimento até o último dia e `variavel` proporcional aos dias restantes. `receita` e `aportes` aqui
   são só os já agendados, sem média.
 - **Parcelas por data de vencimento:** `parcelas` soma as parcelas cuja `dataVencimento` cai no mês,
@@ -464,12 +469,41 @@ agendadas e transferências não concluídas.
 
 ---
 
-## 9. Resumo e checklist
+## 9. Versão do sistema
+
+**Hoje:** o PrismaAPI não expõe a própria versão. A tela de Configurações mostra a versão e a data de
+lançamento da aplicação web e da API, lado a lado; sem o endpoint, a linha da API aparece como "Não
+foi possível consultar".
+
+```
+GET /sistema/versao
+```
+
+```json
+{ "versao": "1.0.0", "dataLancamento": "2026-09-17T14:32:05Z" }
+```
+
+`VersaoSistemaDTO`:
+
+| Campo | Tipo | Conteúdo |
+| --- | --- | --- |
+| `versao` | `string` | `version` do `build.gradle.kts`, sem o prefixo `v` |
+| `dataLancamento` | `string` | instante ISO-8601 em UTC em que o artefato foi gerado |
+
+- O caminho mais direto é `springBoot { buildInfo() }` no `build.gradle.kts` e ler `BuildProperties`
+  (`getVersion()`, `getTime()`), que o Spring Boot registra sozinho a partir do
+  `META-INF/build-info.properties`.
+- Sem autenticação e sem acesso ao banco: é a chamada que diz se a API está no ar.
+
+---
+
+## 10. Resumo e checklist
 
 ### Endpoints novos
 
 | Método | URL | Resposta |
 | --- | --- | --- |
+| `GET` | `/sistema/versao` | `VersaoSistemaDTO` |
 | `GET` | `/contas/reservas` | `EvolucaoContaDTO[]` |
 | `GET` | `/contas/{id}/evolucao` | `EvolucaoContaDTO` |
 | `GET` | `/investimentos/{id}/extrato` | `ExtratoInvestimentoDTO` |
@@ -501,6 +535,7 @@ agendadas e transferências não concluídas.
 - [x] Enums: `TipoConta`, `ClasseAtivo`, `TipoAviso`; novos `FinalidadeConta`,
       `TipoMovimentacaoConta`, `TipoMovimentacaoInvestimento`.
 - [x] `LancamentoService`: efeito no saldo das contas em criar, editar e excluir.
+- [x] Só lançamento `PAGO` mexe no saldo; a linha do saldo e o resto do mês da previsão seguem a regra.
 - [x] `SaldoService`: despesa em cartão de crédito e parcelas na data de vencimento.
 - [x] `SalvarCompraParceladaDTO`: `@Min(1)`.
 - [x] Investimentos: DTOs novos, três endpoints novos, `PUT` sem valores, carteira pelas
@@ -508,6 +543,7 @@ agendadas e transferências não concluídas.
 - [x] Contas: evolução e reservas.
 - [x] `PrevisaoService`: ocorrências para trás, resto do mês, `agendados`, `aportes`, `base`.
 - [x] `AvisoService`: tipos novos, textos por tipo, limite sem `valor`.
+- [ ] `GET /sistema/versao` com `VersaoSistemaDTO`, a partir do `buildInfo()`.
 
 Fora de escopo, e não deve ser inventado: pagamento ou quitação de fatura, resgate de investimento,
 débito automático do aporte numa conta, histórico de cotação por ativo e exportação de relatório.

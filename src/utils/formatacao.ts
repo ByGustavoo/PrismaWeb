@@ -103,6 +103,15 @@ export function formatarDataCompleta(isoDate: string): string {
   return formatadorDataCompleta.format(deDataISO(isoDate));
 }
 
+export function formatarVersao(versao: string): string {
+  return /^\d/.test(versao) ? `v${versao}` : versao;
+}
+
+export function formatarInstanteCompleto(instante: string): string | null {
+  const data = new Date(instante);
+  return Number.isNaN(data.getTime()) ? null : formatadorDataCompleta.format(data);
+}
+
 export function formatarDataNumerica(isoDate: string): string {
   return formatadorDataNumerica.format(deDataISO(isoDate));
 }
