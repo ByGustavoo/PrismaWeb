@@ -32,6 +32,7 @@ export function FiltrosMetas({ consulta, aoAlterar, aoLimpar, quantidadeResultad
 
       <CampoSelecao
         className={styles.select}
+        larguraPelaMaiorOpcao
         icone={CircleDot}
         prefixo="Situação"
         opcoes={opcoesSituacao}
@@ -42,6 +43,7 @@ export function FiltrosMetas({ consulta, aoAlterar, aoLimpar, quantidadeResultad
 
       <CampoSelecao
         className={styles.select}
+        larguraPelaMaiorOpcao
         icone={ArrowDownUp}
         prefixo="Ordenar por"
         opcoes={opcoesOrdenacao}

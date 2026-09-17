@@ -19,6 +19,7 @@ export interface CampoSelecaoProps {
   prefixo?: string;
   tamanho?: 'sm' | 'md';
   icone?: LucideIcon;
+  larguraPelaMaiorOpcao?: boolean;
   disabled?: boolean;
   required?: boolean;
   id?: string;
@@ -41,6 +42,7 @@ export function CampoSelecao({
   prefixo,
   tamanho = 'md',
   icone: Icon,
+  larguraPelaMaiorOpcao = false,
   disabled = false,
   required = false,
   id,
@@ -258,9 +260,24 @@ export function CampoSelecao({
       >
         {Icon ? <Icon className={styles.icon} size={15} strokeWidth={2} aria-hidden="true" /> : null}
 
-        <span className={styles.text}>
+        <span className={juntarClasses(styles.text, larguraPelaMaiorOpcao && styles.textFit)}>
           {prefixo ? <span className={styles.prefix}>{prefixo}</span> : null}
-          <span className={juntarClasses(styles.value, !selected && styles.placeholder)}>{selected?.rotulo ?? placeholder}</span>
+          {larguraPelaMaiorOpcao ? (
+            <span className={styles.valueFit}>
+              {[...(selected ? [] : [placeholder]), ...opcoes.map((option) => option.rotulo)].map((texto, index) => (
+                <span key={index} className={styles.valueSizer} aria-hidden="true">
+                  {texto}
+                </span>
+              ))}
+              <span className={juntarClasses(styles.value, !selected && styles.placeholder)}>
+                {selected?.rotulo ?? placeholder}
+              </span>
+            </span>
+          ) : (
+            <span className={juntarClasses(styles.value, !selected && styles.placeholder)}>
+              {selected?.rotulo ?? placeholder}
+            </span>
+          )}
         </span>
 
         <ChevronDown

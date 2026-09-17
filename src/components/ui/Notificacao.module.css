@@ -31,12 +31,16 @@
   --tone: var(--accent);
   --tone-text: var(--accent);
   --tone-soft: var(--accent-soft);
+  --tone-edge: var(--tone);
+  --edge-width: 3px;
+  --edge-radius: calc(var(--radius-md) - 1px);
 
   position: relative;
+  isolation: isolate;
   display: flex;
   align-items: flex-start;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-2) calc(var(--space-3) + 3px) var(--space-3);
+  padding: var(--space-3) var(--space-2) calc(var(--space-3) + 3px) calc(var(--space-3) + 3px);
   overflow: hidden;
   background-color: var(--surface-raised);
   border: 1px solid var(--border);
@@ -49,6 +53,35 @@
     transform var(--duration-base) var(--ease-out),
     border-color var(--duration-fast) var(--ease-out);
   animation: enter var(--duration-slow) var(--ease-spring);
+}
+
+.toast::before,
+.toast::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: -1;
+  width: var(--edge-radius);
+}
+
+.toast::before {
+  left: 0;
+  background-color: var(--tone-edge);
+  border-bottom-right-radius: var(--edge-width);
+  transition: background-color var(--duration-base) var(--ease-out);
+}
+
+.toast::after {
+  bottom: var(--edge-width);
+  left: var(--edge-width);
+  background-color: var(--surface-raised);
+  border-radius: calc(var(--edge-radius) - var(--edge-width)) 0 0 calc(var(--edge-radius) - var(--edge-width)) /
+    var(--edge-radius) 0 0 calc(var(--edge-radius) - var(--edge-width));
+}
+
+.toast.paused {
+  --tone-edge: color-mix(in srgb, var(--tone) 40%, var(--surface-raised));
 }
 
 .toast.dragging {
@@ -88,7 +121,6 @@
 .text {
   flex: 1;
   min-width: 0;
-  padding-top: 1px;
   overflow-wrap: anywhere;
   text-wrap: pretty;
 }
@@ -149,17 +181,16 @@
   bottom: 0;
   left: 0;
   height: 3px;
-  background-color: var(--tone);
+  background-color: var(--tone-edge);
   transform-origin: left center;
   animation-name: drain;
   animation-timing-function: linear;
   animation-fill-mode: forwards;
-  transition: opacity var(--duration-base) var(--ease-out);
+  transition: background-color var(--duration-base) var(--ease-out);
 }
 
 .progressPaused {
   animation-play-state: paused;
-  opacity: 0.4;
 }
 
 .leaving {

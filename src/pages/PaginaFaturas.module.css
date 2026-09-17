@@ -4,10 +4,6 @@
   gap: var(--space-6);
 }
 
-.filter {
-  width: 220px;
-}
-
 .section {
   display: flex;
   flex-direction: column;
@@ -50,7 +46,6 @@
 
 .rangeFilter {
   flex-shrink: 0;
-  width: 220px;
 }
 
 .sectionEmpty {

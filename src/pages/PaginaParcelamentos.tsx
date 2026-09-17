@@ -154,6 +154,7 @@ export function PaginaParcelamentos() {
             {creditCards.length > 1 ? (
               <CampoSelecao
                 className={styles.filter}
+                larguraPelaMaiorOpcao
                 tamanho="sm"
                 prefixo="Cartão:"
                 icone={CreditCard}
@@ -162,6 +163,36 @@ export function PaginaParcelamentos() {
                 onChange={setCardId}
                 aria-label="Filtrar compras por cartão"
               />
+            ) : null}
+            {plans.length > 0 ? (
+              <>
+                <CampoSelecao
+                  className={styles.filter}
+                  larguraPelaMaiorOpcao
+                  tamanho="sm"
+                  icone={CircleDot}
+                  prefixo="Situação:"
+                  opcoes={opcoesSituacaoCompra}
+                  value={query.situacao}
+                  onChange={(situacao) =>
+                    setQuery((current) => ({ ...current, situacao: situacao as SituacaoCompraFiltro }))
+                  }
+                  aria-label="Filtrar compras por situação"
+                />
+                <CampoSelecao
+                  className={styles.filter}
+                  larguraPelaMaiorOpcao
+                  tamanho="sm"
+                  icone={ArrowDownUp}
+                  prefixo="Ordenar:"
+                  opcoes={opcoesOrdenacaoCompra}
+                  value={query.ordenacao}
+                  onChange={(ordenacao) =>
+                    setQuery((current) => ({ ...current, ordenacao: ordenacao as OrdenacaoCompra }))
+                  }
+                  aria-label="Ordenar compras"
+                />
+              </>
             ) : null}
             <Botao tamanho="sm" icone={Plus} disabled={noCreditCard} onClick={() => setCreating(true)}>
               Nova compra
@@ -254,38 +285,9 @@ export function PaginaParcelamentos() {
             </Painel>
           ) : (
             <section className={styles.section} aria-labelledby="titulo-lista-compras">
-              <div className={styles.sectionHeader}>
-                <h2 id="titulo-lista-compras" className={styles.sectionTitle}>
-                  Compras
-                  <span className={`${styles.sectionCount} tabular`}>{visiblePlans.length}</span>
-                </h2>
-                <div className={styles.toolbar}>
-                  <CampoSelecao
-                    className={styles.toolbarField}
-                    tamanho="sm"
-                    icone={CircleDot}
-                    prefixo="Situação:"
-                    opcoes={opcoesSituacaoCompra}
-                    value={query.situacao}
-                    onChange={(situacao) =>
-                      setQuery((current) => ({ ...current, situacao: situacao as SituacaoCompraFiltro }))
-                    }
-                    aria-label="Filtrar compras por situação"
-                  />
-                  <CampoSelecao
-                    className={styles.toolbarField}
-                    tamanho="sm"
-                    icone={ArrowDownUp}
-                    prefixo="Ordenar:"
-                    opcoes={opcoesOrdenacaoCompra}
-                    value={query.ordenacao}
-                    onChange={(ordenacao) =>
-                      setQuery((current) => ({ ...current, ordenacao: ordenacao as OrdenacaoCompra }))
-                    }
-                    aria-label="Ordenar compras"
-                  />
-                </div>
-              </div>
+              <h2 id="titulo-lista-compras" className="visually-hidden">
+                Compras
+              </h2>
 
               {visiblePlans.length === 0 ? (
                 <Painel espacamento="none">

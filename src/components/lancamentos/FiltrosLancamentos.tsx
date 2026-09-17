@@ -133,6 +133,7 @@ export function FiltrosLancamentos({
       <div className={juntarClasses(styles.controls, !showControls && styles.controlsHidden)} id={panelId} hidden={!showControls}>
         <CampoSelecao
           className={styles.filter}
+          larguraPelaMaiorOpcao
           icone={CalendarRange}
           opcoes={opcoesPeriodo}
           value={consulta.periodo}
@@ -143,6 +144,7 @@ export function FiltrosLancamentos({
         {mostrarFiltroTipo ? (
           <CampoSelecao
             className={styles.filter}
+            larguraPelaMaiorOpcao
             icone={ArrowLeftRight}
             opcoes={opcoesTipo}
             value={consulta.tipo}
@@ -154,6 +156,7 @@ export function FiltrosLancamentos({
         {mostrarFiltroCategoria ? (
           <CampoSelecao
             className={styles.filter}
+            larguraPelaMaiorOpcao
             icone={Tag}
             opcoes={categoryOptions}
             value={consulta.idCategoria}
@@ -164,6 +167,7 @@ export function FiltrosLancamentos({
 
         <CampoSelecao
           className={styles.filter}
+          larguraPelaMaiorOpcao
           icone={Wallet}
           opcoes={accountOptions}
           value={consulta.idOrigem}
@@ -173,6 +177,7 @@ export function FiltrosLancamentos({
 
         <CampoSelecao
           className={styles.filter}
+          larguraPelaMaiorOpcao
           icone={CircleDot}
           opcoes={opcoesSituacao}
           value={consulta.situacao}

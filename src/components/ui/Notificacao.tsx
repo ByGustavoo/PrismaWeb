@@ -111,7 +111,12 @@ export function ItemNotificacao({ notificacao, pausado, aoDispensar }: ItemNotif
     >
       <div className={styles.clip}>
         <div
-          className={juntarClasses(styles.toast, styles[variante], deslize > 0 && styles.dragging)}
+          className={juntarClasses(
+            styles.toast,
+            styles[variante],
+            parado && styles.paused,
+            deslize > 0 && styles.dragging,
+          )}
           role={variante === 'error' ? 'alert' : 'status'}
           aria-atomic="true"
           onPointerDown={handlePointerDown}

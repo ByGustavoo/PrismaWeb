@@ -24,7 +24,6 @@ export function CartaoParcelamento({ plano, aoEditar, aoExcluir }: CartaoParcela
   const settled = plano.parcelasRestantes === 0;
   const singlePayment = ehCompraAVista(purchase.parcelas);
   const lastInstallment = plano.cronograma[plano.cronograma.length - 1];
-  const onlyInstallment = plano.cronograma[0];
 
   return (
     <li className={styles.card}>
@@ -35,7 +34,7 @@ export function CartaoParcelamento({ plano, aoEditar, aoExcluir }: CartaoParcela
             {singlePayment ? <Selo tom="neutral">À vista</Selo> : null}
             {settled ? (
               <Selo tom="positive" ponto>
-                {singlePayment ? 'Paga' : 'Quitada'}
+                Quitada
               </Selo>
             ) : null}
           </span>
@@ -84,156 +83,137 @@ export function CartaoParcelamento({ plano, aoEditar, aoExcluir }: CartaoParcela
 
       <div className={styles.headline}>
         <span className={styles.plan}>
-          {singlePayment ? (
-            <>
-              Parcela única de <ValorMonetario valor={purchase.valorTotal} tamanho="md" />
-            </>
-          ) : (
-            <>
-              <span className="tabular">{purchase.parcelas}x</span> de{' '}
-              <ValorMonetario valor={plano.valorParcela} tamanho="md" />
-            </>
-          )}
+          <span className="tabular">{purchase.parcelas}x</span> de{' '}
+          <ValorMonetario valor={plano.valorParcela} tamanho="md" />
         </span>
-        {singlePayment ? null : (
-          <span className={styles.total}>
-            Total <ValorMonetario valor={purchase.valorTotal} tamanho="sm" tom="muted" />
-          </span>
+        <span className={styles.total}>
+          Total <ValorMonetario valor={purchase.valorTotal} tamanho="sm" tom="muted" />
+        </span>
+      </div>
+
+      <div className={styles.progress}>
+        <BarraProgresso
+          valor={plano.parcelasPagas / purchase.parcelas}
+          tom={settled ? 'positive' : 'accent'}
+          segmentos={purchase.parcelas}
+          rotulo={`Parcelas pagas de ${purchase.descricao}`}
+        />
+
+        {settled ? (
+          <p className={styles.progressMain}>
+            <span>
+              <strong className="tabular">{purchase.parcelas}</strong> de{' '}
+              <span className="tabular">{purchase.parcelas}</span>{' '}
+              {singlePayment ? 'parcela paga' : 'parcelas pagas'}
+            </span>
+            {lastInstallment ? (
+              <span className={styles.progressAside}>Quitada em {formatarMesCurto(lastInstallment.mes)}</span>
+            ) : null}
+          </p>
+        ) : (
+          <>
+            <p className={styles.progressMain}>
+              <span>
+                Parcela <strong className="tabular">{current?.numero ?? plano.parcelasPagas + 1}</strong> de{' '}
+                <span className="tabular">{purchase.parcelas}</span>
+              </span>
+              <span className={styles.remaining}>
+                <strong className="tabular">{plano.parcelasRestantes}</strong>{' '}
+                {plano.parcelasRestantes === 1 ? 'restante' : 'restantes'}
+              </span>
+            </p>
+            <p className={styles.progressSub}>
+              <span className="tabular">{plano.parcelasPagas}</span>{' '}
+              {plano.parcelasPagas === 1 ? 'paga' : 'pagas'}
+              {lastInstallment ? (
+                <>
+                  <span className={styles.separator} aria-hidden="true">
+                    ·
+                  </span>
+                  última em <span className="tabular">{formatarMesCurto(lastInstallment.mes)}</span>
+                </>
+              ) : null}
+            </p>
+          </>
         )}
       </div>
 
-      {singlePayment ? (
-        <p className={styles.singleNote}>
-          {onlyInstallment ? (
-            <>
-              {settled ? 'Paga na fatura de ' : 'Entra na fatura de '}
-              <strong className="tabular">{formatarMesCurto(onlyInstallment.mes)}</strong>
-              {settled ? '' : `, que vence em ${formatarDataCompleta(onlyInstallment.dataVencimento)}`}
-            </>
-          ) : null}
-        </p>
-      ) : (
-        <div className={styles.progress}>
-          <BarraProgresso
-            valor={plano.parcelasPagas / purchase.parcelas}
-            tom={settled ? 'positive' : 'accent'}
-            segmentos={purchase.parcelas}
-            rotulo={`Parcelas pagas de ${purchase.descricao}`}
-          />
-
-          {settled ? (
-            <p className={styles.progressMain}>
-              <span>
-                <strong className="tabular">{purchase.parcelas}</strong> de{' '}
-                <span className="tabular">{purchase.parcelas}</span> parcelas pagas
-              </span>
-              {lastInstallment ? (
-                <span className={styles.progressAside}>Quitada em {formatarMesCurto(lastInstallment.mes)}</span>
-              ) : null}
-            </p>
-          ) : (
-            <>
-              <p className={styles.progressMain}>
-                <span>
-                  Parcela <strong className="tabular">{current?.numero ?? plano.parcelasPagas + 1}</strong> de{' '}
-                  <span className="tabular">{purchase.parcelas}</span>
-                </span>
-                <span className={styles.remaining}>
-                  <strong className="tabular">{plano.parcelasRestantes}</strong>{' '}
-                  {plano.parcelasRestantes === 1 ? 'restante' : 'restantes'}
-                </span>
-              </p>
-              <p className={styles.progressSub}>
-                <span className="tabular">{plano.parcelasPagas}</span>{' '}
-                {plano.parcelasPagas === 1 ? 'paga' : 'pagas'}
-                {lastInstallment ? (
-                  <>
-                    <span className={styles.separator} aria-hidden="true">
-                      ·
-                    </span>
-                    última em <span className="tabular">{formatarMesCurto(lastInstallment.mes)}</span>
-                  </>
-                ) : null}
-              </p>
-            </>
-          )}
+      <dl className={styles.facts}>
+        <div className={styles.fact}>
+          <dt>Já pago</dt>
+          <dd>
+            <ValorMonetario valor={plano.valorPago} tamanho="sm" tom={plano.valorPago > 0 ? 'positive' : 'muted'} />
+          </dd>
         </div>
-      )}
+        <div className={styles.fact}>
+          <dt>Falta pagar</dt>
+          <dd>
+            <ValorMonetario valor={plano.valorRestante} tamanho="sm" tom={settled ? 'muted' : 'default'} />
+          </dd>
+        </div>
+        <div className={styles.fact}>
+          <dt>Próxima parcela</dt>
+          <dd className="tabular">{current ? formatarMesCurto(current.mes) : '—'}</dd>
+        </div>
+      </dl>
 
-      {singlePayment ? null : (
-        <dl className={styles.facts}>
-          <div className={styles.fact}>
-            <dt>Já pago</dt>
-            <dd>
-              <ValorMonetario valor={plano.valorPago} tamanho="sm" tom={plano.valorPago > 0 ? 'positive' : 'muted'} />
-            </dd>
-          </div>
-          <div className={styles.fact}>
-            <dt>Falta pagar</dt>
-            <dd>
-              <ValorMonetario valor={plano.valorRestante} tamanho="sm" tom={settled ? 'muted' : 'default'} />
-            </dd>
-          </div>
-          <div className={styles.fact}>
-            <dt>Próxima parcela</dt>
-            <dd className="tabular">{current ? formatarMesCurto(current.mes) : '—'}</dd>
-          </div>
-        </dl>
-      )}
+      <button
+        type="button"
+        className={styles.toggle}
+        aria-expanded={expanded}
+        aria-controls={scheduleId}
+        onClick={() => setExpanded((value) => !value)}
+      >
+        {expanded
+          ? singlePayment
+            ? 'Ocultar parcela'
+            : 'Ocultar parcelas'
+          : singlePayment
+            ? 'Ver a parcela'
+            : `Ver as ${purchase.parcelas} parcelas`}
+        <ChevronDown className={juntarClasses(styles.chevron, expanded && styles.chevronOpen)} size={15} strokeWidth={2} />
+    </button>
 
-      {singlePayment ? null : (
-        <button
-          type="button"
-          className={styles.toggle}
-          aria-expanded={expanded}
-          aria-controls={scheduleId}
-          onClick={() => setExpanded((value) => !value)}
-        >
-          {expanded ? 'Ocultar parcelas' : `Ver as ${purchase.parcelas} parcelas`}
-          <ChevronDown className={juntarClasses(styles.chevron, expanded && styles.chevronOpen)} size={15} strokeWidth={2} />
-        </button>
-      )}
+    <ul id={scheduleId} className={styles.schedule} hidden={!expanded}>
+      {plano.cronograma.map((installment) => {
+        const paid = installment.situacao === 'PAGA';
 
-      <ul id={scheduleId} className={styles.schedule} hidden={singlePayment || !expanded}>
-        {plano.cronograma.map((installment) => {
-          const paid = installment.situacao === 'PAGA';
+        return (
+          <li
+            key={installment.numero}
+            className={juntarClasses(
+              styles.installment,
+              paid && styles.installmentPaid,
+              installment.situacao === 'ATUAL' && styles.installmentCurrent,
+            )}
+          >
+            <span className={`${styles.number} tabular`}>
+              {installment.numero}/{purchase.parcelas}
+            </span>
 
-          return (
-            <li
-              key={installment.numero}
-              className={juntarClasses(
-                styles.installment,
-                paid && styles.installmentPaid,
-                installment.situacao === 'ATUAL' && styles.installmentCurrent,
-              )}
-            >
-              <span className={`${styles.number} tabular`}>
-                {installment.numero}/{purchase.parcelas}
-              </span>
+            <span className={styles.when}>
+              <span className={`${styles.month} tabular`}>{formatarMesCurto(installment.mes)}</span>
+              <span className={styles.dueDate}>vence {formatarDataCurta(installment.dataVencimento)}</span>
+            </span>
 
-              <span className={styles.when}>
-                <span className={`${styles.month} tabular`}>{formatarMesCurto(installment.mes)}</span>
-                <span className={styles.dueDate}>vence {formatarDataCurta(installment.dataVencimento)}</span>
-              </span>
+            <ValorMonetario valor={installment.valor} tamanho="sm" tom={paid ? 'muted' : 'default'} />
 
-              <ValorMonetario valor={installment.valor} tamanho="sm" tom={paid ? 'muted' : 'default'} />
-
-              <span className={styles.installmentStatus}>
-                {installment.situacao === 'ATUAL' ? (
-                  <Selo tom={tomSituacaoParcela.ATUAL} ponto>
-                    {rotuloSituacaoParcela.ATUAL}
-                  </Selo>
-                ) : paid ? (
-                  <span className={styles.paidMark}>
-                    <Check size={14} strokeWidth={2.5} aria-hidden="true" />
-                    <span className={styles.paidLabel}>{rotuloSituacaoParcela.PAGA}</span>
-                  </span>
-                ) : null}
-              </span>
-            </li>
-          );
-        })}
-      </ul>
-    </li>
-  );
+            <span className={styles.installmentStatus}>
+              {installment.situacao === 'ATUAL' ? (
+                <Selo tom={tomSituacaoParcela.ATUAL} ponto>
+                  {rotuloSituacaoParcela.ATUAL}
+                </Selo>
+              ) : paid ? (
+                <span className={styles.paidMark}>
+                  <Check size={14} strokeWidth={2.5} aria-hidden="true" />
+                  <span className={styles.paidLabel}>{rotuloSituacaoParcela.PAGA}</span>
+                </span>
+              ) : null}
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+  </li>
+);
 }

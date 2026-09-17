@@ -84,6 +84,27 @@
   min-width: 0;
 }
 
+.textFit {
+  padding-inline-end: var(--space-2);
+}
+
+.valueFit {
+  display: grid;
+  grid-template-columns: minmax(0, auto);
+  min-width: 0;
+}
+
+.valueFit > * {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+.valueSizer {
+  visibility: hidden;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
 .prefix {
   color: var(--text-subtle);
   flex-shrink: 0;

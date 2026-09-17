@@ -127,6 +127,7 @@ export function PaginaFaturas() {
           !carregando && !erro && creditCards.length > 1 ? (
             <CampoSelecao
               className={styles.filter}
+              larguraPelaMaiorOpcao
               tamanho="sm"
               prefixo="Cartão:"
               icone={CreditCard}
@@ -249,6 +250,7 @@ export function PaginaFaturas() {
                 </div>
                 <CampoSelecao
                   className={styles.rangeFilter}
+                  larguraPelaMaiorOpcao
                   opcoes={opcoesJanelaProximas}
                   value={upcomingRange}
                   onChange={setUpcomingRange}
@@ -285,6 +287,7 @@ export function PaginaFaturas() {
                 </div>
                 <CampoSelecao
                   className={styles.rangeFilter}
+                  larguraPelaMaiorOpcao
                   opcoes={opcoesJanelaAnteriores}
                   value={pastRange}
                   onChange={setPastRange}

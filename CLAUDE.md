@@ -114,6 +114,14 @@ Estas sao as invariantes do projeto. Quebra-las e o erro mais caro que se pode c
    fixa: dentro de um formulario em modal, que rola, uma lista absoluta seria cortada pela borda do
    painel. Por isso `--z-popover` fica acima de `--z-modal` — nao inverta essa ordem.
 
+   **Filtro tem a largura da maior opcao, e nao um numero fixo.** Todo `CampoSelecao` usado como
+   filtro (fora de formulario) recebe `larguraPelaMaiorOpcao` e nao leva `width` no CSS da tela: o
+   gatilho empilha todos os rotulos, invisiveis, na mesma celula de grade, e assim mede a opcao mais
+   longa (com o prefixo, como "Ordenar:") mais 16px antes da seta. Com largura escolhida a olho, um
+   filtro cortava "Menos parcelas restantes" e os outros sobravam vazios. Em Lancamentos isso
+   substituiu a grade de colunas iguais pela fileira de filtros; abaixo de 600px todos voltam a
+   ocupar a linha inteira.
+
    O campo de data tem o mesmo problema e a mesma solucao: `components/ui/SeletorData`. O calendario
    nativo e desenhado pelo navegador, ignora os tokens e muda de forma a cada navegador — no tema
    escuro ele abria como uma janela clara no meio de um formulario escuro. O `SeletorData` repete a
@@ -356,8 +364,9 @@ parcelamentos sao leitura calculada, exceto o cadastro da compra parcelada.
   proximo lancamento sem recarregar a pagina. O cartao de debito fica de fora da lista: ele e so o
   meio de acessar a conta, que ja esta la.
 - **Uma parcela e compra a vista.** `parcelas: 1` e valido (`PARCELAS_MINIMAS`), o formulario
-  comeca em "À vista (1x)" e o cartao troca barra e contagem por "Parcela única" e a fatura em que
-  ela cai. A compra a vista fica fora do "Total mensal em parcelas", que soma so o que se repete —
+  comeca em "À vista (1x)" e o cartao e o mesmo das outras compras — "1x de", barra, contagem, os
+  tres valores e o cronograma —, com o selo "À vista" e os textos no singular ("Ver a parcela").
+  Um cartao com outro desenho so para a compra a vista quebrava a leitura da lista. A compra a vista fica fora do "Total mensal em parcelas", que soma so o que se repete —
   mas continua em "Falta pagar", porque ainda sai numa fatura.
 - **"Falta pagar" e "Total mensal em parcelas" sao perguntas diferentes.** O primeiro soma todas as
   parcelas que ainda vao vencer; o segundo, a parcela atual de cada compra parcelada em aberto — o
@@ -365,8 +374,11 @@ parcelamentos sao leitura calculada, exceto o cadastro da compra parcelada.
 - **O progresso da compra tem hierarquia.** "Parcela 3 de 10" em destaque, "8 restantes" num selo
   com a cor de acento, e "2 pagas · última em Abr/2027" em texto menor. Numa linha so, com os tres
   numeros no mesmo peso, nenhum se destacava.
-- **Situacao e ordenacao ficam no cabecalho da lista**, nao no do `CabecalhoPagina`: so recortam a
-  lista (`components/parcelamentos/consulta.ts`). A ordenacao por parcelas restantes sempre deixa
+- **Situacao e ordenacao ficam na linha de acoes do `CabecalhoPagina`**, ao lado de "Nova compra", e
+  a lista nao tem titulo visivel nem contagem: a faixa de resumo logo acima ja diz quantas compras
+  existem, e um "Compras 2" entre ela e os cartoes repetia o numero. O `h2` "Compras" continua,
+  escondido, para leitor de tela. Os filtros so aparecem quando ha compra no cartao, e o recorte e
+  feito em memoria (`components/parcelamentos/consulta.ts`). A ordenacao por parcelas restantes sempre deixa
   as quitadas no fim — "menos restantes" com as quitadas no topo mostraria zero parcelas primeiro.
 - **Faturas em quatro blocos.** "A pagar" (ciclo fechado), "Fatura atual" (ciclo em andamento),
   "Proximas faturas" e "Faturas anteriores". A fechada e a aberta sao coisas diferentes — uma exige
@@ -724,7 +736,15 @@ de toast no app, e não deve passar a existir: comportamento, tempo e visual mud
 - **A barra na base do cartão é o tempo restante.** Ela esvazia por animação de CSS enquanto o
   `setTimeout` guarda o restante em milissegundos; os dois param e retomam juntos. A pilha inteira pausa
   com o mouse sobre ela, com o foco dentro dela e com a aba em segundo plano — ninguém perde uma
-  mensagem que chegou enquanto olhava outra janela. Pausada, a barra fica a 40% de opacidade.
+  mensagem que chegou enquanto olhava outra janela. Pausada, a barra e a faixa
+  esquerda do cartão, na cor do tipo, esmaecem juntas para 40% da cor (`--tone-edge`) — as duas marcas
+  dizem ao mesmo tempo que o tempo parou. A faixa é colada na borda e desenhada por duas camadas atrás
+  do conteúdo: `::before` pinta a cor e `::after`, na cor do cartão, a cobre a partir de 3px da esquerda e
+  de baixo, com cantos de mesmo centro que a curva da moldura. Em cima a faixa afina até a borda; embaixo
+  ela contorna o canto com 3px constantes e emenda na barra de tempo, e a ponta dessa curva é arredondada
+  para não virar um corte reto quando a barra esvazia. Borda de 3px, faixa reta e sombra interna ficavam assimétricas (somem num canto e engrossam
+  no outro), e a pílula solta foi recusada. A barra esmaece pela cor, e não por `opacity`, para as duas
+  marcas chegarem ao mesmo tom.
 - **No toque não há hover:** segurar o cartão pausa, e deslizar para a direita mais que
   `DISTANCIA_DESLIZE_DISPENSA_PX` dispensa. O botão de fechar continua lá, com área de toque ampliada.
 - **No máximo três na tela.** A quarta empurra a mais antiga para fora, e uma mensagem idêntica a uma

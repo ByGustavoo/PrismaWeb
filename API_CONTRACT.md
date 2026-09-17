@@ -329,16 +329,20 @@ Remove o cadastro **e** as movimentações.
 
 | Situação | Endpoint | Status | Mensagem |
 | --- | --- | --- | --- |
-| `aportado` ≤ 0 | `POST /investimentos` | `422` | `Informe o valor da aplicação inicial!` |
-| `dataInicio` ausente | `POST /investimentos` | `422` | `Informe a data da aplicação inicial!` |
-| `dataInicio` no futuro | `POST /investimentos` | `422` | `A data da aplicação inicial não pode estar no futuro!` |
-| `valor` ≤ 0 | `/aportes` | `422` | `Informe o valor do aporte!` |
-| `valorAtual` < 0 | `/saldos` | `422` | `Informe o saldo atual do investimento!` |
-| `data` ausente | `/aportes` · `/saldos` | `422` | `Informe a data do aporte!` · `Informe a data do saldo!` |
-| `data` no futuro | `/aportes` · `/saldos` | `422` | `A data do aporte não pode estar no futuro!` · `A data do saldo não pode estar no futuro!` |
+| `aportado` ausente ou ≤ 0 | `POST /investimentos` | `400` | `O campo 'aportado' é obrigatório!` · `O campo 'aportado' deve ser maior que zero!` |
+| `dataInicio` ausente | `POST /investimentos` | `400` | `O campo 'dataInicio' é obrigatório!` |
+| `dataInicio` no futuro | `POST /investimentos` | `400` | `O campo 'dataInicio' não pode estar no futuro!` |
+| `valor` ausente ou ≤ 0 | `/aportes` | `400` | `O campo 'valor' é obrigatório!` · `O campo 'valor' deve ser maior que zero!` |
+| `valorAtual` ausente ou < 0 | `/saldos` | `400` | `O campo 'valorAtual' é obrigatório!` · `O campo 'valorAtual' não pode ser negativo!` |
+| `data` ausente | `/aportes` · `/saldos` | `400` | `O campo 'data' é obrigatório!` |
+| `data` no futuro | `/aportes` · `/saldos` | `400` | `O campo 'data' não pode estar no futuro!` |
+| `descricao` com mais de 160 caracteres | `/aportes` · `/saldos` | `400` | `O campo 'descricao' deve ter no máximo 160 caracteres!` |
 | `data` anterior a `dataAtualizacao` | `/aportes` · `/saldos` | `422` | `A data do aporte não pode ser anterior à última atualização, de dd/MM/yyyy!` · `A data do saldo não pode ser anterior à última atualização, de dd/MM/yyyy!` |
-| `descricao` com mais de 160 caracteres | `/aportes` · `/saldos` | `422` | `A descrição pode ter no máximo 160 caracteres!` |
 | Id inexistente | todos com `{id}` | `404` | `Investimento não encontrado!` |
+
+Os `400` seguem a convenção geral de validação de campo: `detail` é `A requisição contém dados
+inválidos!` e a frase de cada campo vem em `errors`. Só a data mínima, que depende do estado do
+investimento, responde `422` com a frase no `detail`.
 
 A regra da data mínima existe porque um aporte anterior ao último saldo informado seria engolido
 por ele.
@@ -489,21 +493,21 @@ agendadas e transferências não concluídas.
 
 ### Checklist
 
-- [ ] Migração: `token_cor` 1–16, seis categorias novas, tokens reatribuídos.
-- [ ] Migração: `contas_tipo_check` com `POUPANCA` e `PREVIDENCIA`.
-- [ ] Migração: `compras_parceladas_parcelas_check` com 1–48.
-- [ ] Migração: `investimentos_classe_ativo_check` com `RDB` e `PREVIDENCIA`.
-- [ ] Migração: tabela `movimentacoes_investimento` e conversão dos investimentos existentes.
-- [ ] Enums: `TipoConta`, `ClasseAtivo`, `TipoAviso`; novos `FinalidadeConta`,
+- [x] Migração: `token_cor` 1–16, seis categorias novas, tokens reatribuídos.
+- [x] Migração: `contas_tipo_check` com `POUPANCA` e `PREVIDENCIA`.
+- [x] Migração: `compras_parceladas_parcelas_check` com 1–48.
+- [x] Migração: `investimentos_classe_ativo_check` com `RDB` e `PREVIDENCIA`.
+- [x] Migração: tabela `movimentacoes_investimento` e conversão dos investimentos existentes.
+- [x] Enums: `TipoConta`, `ClasseAtivo`, `TipoAviso`; novos `FinalidadeConta`,
       `TipoMovimentacaoConta`, `TipoMovimentacaoInvestimento`.
-- [ ] `LancamentoService`: efeito no saldo das contas em criar, editar e excluir.
-- [ ] `SaldoService`: despesa em cartão de crédito e parcelas na data de vencimento.
-- [ ] `SalvarCompraParceladaDTO`: `@Min(1)`.
-- [ ] Investimentos: DTOs novos, três endpoints novos, `PUT` sem valores, carteira pelas
+- [x] `LancamentoService`: efeito no saldo das contas em criar, editar e excluir.
+- [x] `SaldoService`: despesa em cartão de crédito e parcelas na data de vencimento.
+- [x] `SalvarCompraParceladaDTO`: `@Min(1)`.
+- [x] Investimentos: DTOs novos, três endpoints novos, `PUT` sem valores, carteira pelas
       movimentações.
-- [ ] Contas: evolução e reservas.
-- [ ] `PrevisaoService`: ocorrências para trás, resto do mês, `agendados`, `aportes`, `base`.
-- [ ] `AvisoService`: tipos novos, textos por tipo, limite sem `valor`.
+- [x] Contas: evolução e reservas.
+- [x] `PrevisaoService`: ocorrências para trás, resto do mês, `agendados`, `aportes`, `base`.
+- [x] `AvisoService`: tipos novos, textos por tipo, limite sem `valor`.
 
 Fora de escopo, e não deve ser inventado: pagamento ou quitação de fatura, resgate de investimento,
 débito automático do aporte numa conta, histórico de cotação por ativo e exportação de relatório.

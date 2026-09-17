@@ -44,6 +44,7 @@ export function ListaLancamentos({
         </span>
         <CampoSelecao
           className={styles.sortSelect}
+          larguraPelaMaiorOpcao
           opcoes={opcoesOrdenacao}
           value={campoOrdenacao}
           onChange={(field) => aoOrdenar(field as CampoOrdenacao)}

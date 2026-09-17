@@ -23,6 +23,7 @@ export function SeletorPeriodoRelatorio({ valor, periodo, aoSelecionar, aoMudarP
       {compact ? (
         <CampoSelecao
           className={styles.select}
+          larguraPelaMaiorOpcao
           tamanho="sm"
           icone={CalendarRange}
           prefixo="Período:"

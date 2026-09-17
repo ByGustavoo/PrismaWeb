@@ -159,18 +159,6 @@
   color: var(--text-subtle);
 }
 
-.singleNote {
-  margin: 0;
-  max-width: none;
-  font-size: var(--fs-sm);
-  color: var(--text-muted);
-}
-
-.singleNote strong {
-  color: var(--text);
-  font-weight: 600;
-}
-
 .facts {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

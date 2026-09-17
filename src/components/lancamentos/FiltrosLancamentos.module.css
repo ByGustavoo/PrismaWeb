@@ -35,9 +35,14 @@
 }
 
 .controls {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-2);
+}
+
+.filter {
+  flex: 0 1 auto;
+  min-width: 0;
 }
 
 .controlsHidden {
@@ -58,6 +63,10 @@
 }
 
 @media (max-width: 599px) {
+  .filter {
+    flex: 1 1 100%;
+  }
+
   .range {
     flex-direction: column;
   }
