@@ -5,7 +5,7 @@
 <br> 
 
 <div align="center">
-  <strong>Prisma</strong> é o frontend de uma aplicação de finanças pessoais, criada para dar ao usuário uma visão clara e organizada do próprio dinheiro. Reúne contas, cartões, lançamentos, investimentos e planejamento em uma única interface, com dashboard de saldo, fluxo de caixa, gastos por categoria, faturas, compras parceladas, orçamento mensal, despesas recorrentes, previsão financeira, metas de compra e relatórios. A camada de dados já nasce preparada para consumir a API, permitindo que as telas sejam desenvolvidas e validadas antes mesmo do backend existir.
+  <strong>Prisma</strong> é o frontend de uma aplicação de finanças pessoais, criada para dar ao usuário uma visão clara e organizada do próprio dinheiro. Reúne contas, cartões, lançamentos, investimentos e planejamento em uma única interface, com dashboard de saldo, fluxo de caixa, gastos por categoria, faturas, compras parceladas, orçamento mensal, despesas recorrentes, previsão financeira, metas de compra e relatórios. Todo dado vem do PrismaAPI — o backend em Java / Spring Boot / PostgreSQL —, e o que é cálculo (saldo, fatura, previsão, avisos) é resolvido lá, não na tela.
 </div> 
 
  <br> <br> 
@@ -32,15 +32,17 @@
 
 ## 📌 Status do Projeto
 
-O frontend está **completo e pronto para integração**. Todas as telas existem, todos os dados vêm do
-PrismaAPI — o frontend não tem mocks nem dados fictícios. Sem o backend rodando, as telas mostram o
+O frontend está **completo e integrado ao PrismaAPI**. Todas as telas existem e todos os dados vêm
+do backend — não há mocks nem dados fictícios no projeto. Sem a API rodando, as telas mostram o
 estado de erro com a opção de tentar de novo.
 
-O que o backend ainda precisa implementar para acompanhar o frontend está em
-**[API_CONTRACT.md](API_CONTRACT.md)**: endpoints novos, contratos que mudaram, migrações e regras de
-cálculo, com um checklist no fim. O que o PrismaAPI já implementa não aparece ali.
+O contrato está fechado: o PrismaAPI implementa todos os endpoints e regras de cálculo que as telas
+consomem, e por isso o `API_CONTRACT.md` — que listava só as pendências do backend — não existe mais
+na raiz. Ele volta a ser criado quando uma mudança no frontend passar à frente da API, e é apagado
+de novo assim que ela alcançar.
 
-A próxima etapa é o backend em **Java / Spring Boot / PostgreSQL**.
+A imagem já é publicada no Docker Hub pela esteira, com versão e data visíveis em
+**Configurações → Versões**.
 
 
 <br>
@@ -84,8 +86,9 @@ A próxima etapa é o backend em **Java / Spring Boot / PostgreSQL**.
 * Tema claro, escuro e sistema.
 * Busca global em lançamentos, categorias e contas, ignorando acentuação.
 * Painel de avisos derivado dos próprios dados: faturas a vencer, contas e recorrentes próximas, receitas a receber e cartões perto do limite.
-* Máscara monetária brasileira em todos os campos de valor e dezessete categorias com cores fixas e distintas nos dois temas.
+* Máscara monetária brasileira em todos os campos de valor e uma paleta de dezesseis cores fixas por categoria, distintas e legíveis nos dois temas.
 * Página 404 própria, fora do shell do app: o endereço que falhou fica à vista, com atalhos para as telas de entrada e uma série que se desenha em laço até o ponto onde os dados acabam.
+* Notificações de sucesso e de erro num canal único, com tempo proporcional ao texto, pausa ao passar o mouse e dispensa por deslize no toque.
 * Estados de carregamento, vazio e erro em todas as telas, e responsividade do desktop ao celular.
 
 
@@ -169,10 +172,10 @@ O `.env` está no `.gitignore`; só o `.env.example` é versionado, e ele não c
 <br>
 
 ```bash
-# URL base do backend no desenvolvimento (PrismaAPI, perfil dev)
+# URL base da API no desenvolvimento (PrismaAPI, backend Spring Boot, perfil dev)
 VITE_API_URL=http://localhost:9017/PrismaAPI/v1
 
-# URL da API usada pelo container, lida pelo docker-compose-prismaweb.yml
+# URL da API usada pelo container, lida do .env pelo docker-compose-prismaweb.yml ao subir a imagem
 PRISMA_API_URL=http://localhost:9027/PrismaAPI/v1
 ```
 
@@ -241,8 +244,9 @@ versão é a do `package.json`; a partir daí o incremento vem do rótulo do PR:
 | `release:minor` | `0.1.1` → `0.2.0` |
 | `release:major` | `0.2.0` → `1.0.0` |
 
-Cada publicação gera as tags de imagem `X.Y.Z`, `X.Y`, `X` (a partir da `1.0.0`), `sha-<commit>` e
-`latest`. PR fechado sem merge não publica nada.
+Cada publicação gera duas tags de imagem: a versão exata (`X.Y.Z`) e `latest` — fixe `X.Y.Z` para
+reproduzir um ambiente e use `latest` para acompanhar o último. PR fechado sem merge não publica
+nada.
 
 A versão e a data de lançamento vão para a imagem e aparecem em **Configurações → Versões**, ao lado
 das da API (lidas de `GET /sistema/versao`).
@@ -273,21 +277,23 @@ Os rótulos `release:minor` e `release:major` precisam ser criados em *Issues �
 src/
 ├── api/           clienteHttp, ErroApi, rotasApi (única fonte de URLs)
 ├── components/
-│   ├── ui/        Botao, Painel, CampoTexto, AreaTexto, CampoSelecao, SeletorData,
+│   ├── ui/        Botao, Painel, CampoTexto, CampoValor, AreaTexto, CampoSelecao, SeletorData,
 │   │              Interruptor, Modal, DialogoConfirmacao, Selo, Tabela, BarraProgresso,
 │   │              Carregamento, EstadoVazio, Notificacao
-│   ├── comum/     ValorMonetario, MarcaPrisma, IndicadorVariacao, BarraResumo
+│   ├── comum/     ValorMonetario, MarcaPrisma, IndicadorVariacao, BarraResumo,
+│   │              HistoricoMovimentacoes
 │   ├── layout/    MenuLateral, Cabecalho, EspacoCabecalho, CabecalhoPagina, PainelAvisos,
 │   │              BuscaGlobal, SeletorPeriodo
 │   ├── dashboard/ PainelSaldo, BlocoIndicador, GraficoFluxoCaixa, DistribuicaoCategorias,
 │   │              CalendarioGastos, UltimosLancamentos
-│   ├── lancamentos/ filtros, tabela, lista, formulários e consulta em memória
-│   ├── contas/    CartaoConta, ModalFormularioConta
+│   ├── lancamentos/ FiltrosLancamentos, TabelaLancamentos, ListaLancamentos,
+│   │              AlternadorVisualizacao, formulários, aparencia e consulta em memória
+│   ├── contas/    CartaoConta, CartaoReserva, ModalDetalheConta, ModalFormularioConta
 │   ├── cartoes/   BlocoCartao, ModalFormularioCartao
 │   ├── faturas/   EntradaFatura, ModalDetalheFatura
-│   ├── parcelamentos/ CartaoParcelamento, ModalFormularioParcelamento
+│   ├── parcelamentos/ CartaoParcelamento, ModalFormularioParcelamento, consulta
 │   ├── investimentos/ GraficoAlocacao, GraficoCarteira, CartaoInvestimento,
-│   │              ModalFormularioInvestimento
+│   │              ModalFormularioInvestimento, ModalDetalheInvestimento
 │   ├── orcamento/ NavegadorMes, LinhaOrcamento, ModalFormularioOrcamento
 │   ├── recorrentes/ CartaoRecorrente, ModalFormularioRecorrente
 │   ├── metas/     CartaoMeta, ModalFormularioMeta, ModalDetalheMeta, FiltrosMetas,
@@ -295,9 +301,10 @@ src/
 │   ├── previsao/  GraficoPrevisao, TabelaPrevisao, ListaPrevisao
 │   ├── relatorios/ SeletorPeriodoRelatorio, DistribuicaoOrigens, GraficoEvolucaoSaldo,
 │   │              GraficoPatrimonio
-│   └── graficos/  DicaGrafico
-├── constants/     ambiente, aplicacao, navegacao, lancamentos, contas, cartoes, investimentos,
-│                  orcamento, recorrentes, metas, previsao, relatorios, validacao
+│   └── graficos/  DicaGrafico, GraficoEvolucao, MiniCurva
+├── constants/     ambiente, aplicacao, navegacao, avisos, lancamentos, contas, cartoes,
+│                  investimentos, orcamento, recorrentes, metas, previsao, relatorios,
+│                  validacao, notificacoes, cores
 ├── hooks/         useDadosAssincronos, useConsultaMidia, useArmazenamentoLocal,
 │                  useTravarRolagem, usePaletaGrafico, useContagem, useValidacaoFormulario
 ├── layouts/       LayoutAplicacao (shell: sidebar + header + conteúdo)
@@ -308,10 +315,10 @@ src/
 ├── providers/     ProvedorTema, ProvedorNotificacoes, ProvedorPeriodo, ProvedoresAplicacao
 ├── routes/        RotasAplicacao, caminhos (única fonte de rotas)
 ├── services/      dashboard, lancamentos, categorias, contas, cartoes, investimentos,
-│                  orcamento, recorrentes, metas, previsao, relatorios, avisos
+│                  orcamento, recorrentes, metas, previsao, relatorios, avisos, sistema
 ├── styles/        tokens.css (design tokens), global.css
 ├── types/         comum, financas (contratos de domínio)
-└── utils/         juntarClasses, data, formatacao, validacao
+└── utils/         juntarClasses, data, formatacao, validacao, foco, mascaraValor
 ```
 
 
@@ -340,7 +347,7 @@ export const dashboardService = {
 
 * 🧮 **O que é cálculo, é do servidor.** Fatura, limite comprometido, cronograma de parcelas,
   distribuição e evolução da carteira, evolução das reservas, consumo do orçamento, previsão, avisos
-  e análise de meta são derivados pelo PrismaAPI, com as regras descritas no contrato.
+  e análise de meta são derivados pelo PrismaAPI. O frontend apresenta, não recalcula.
 * ⏳ **Carregamento, erro e cancelamento** passam por `useDadosAssincronos`, que usa o `AbortSignal`
   para descartar respostas de uma tela que já foi deixada.
 
@@ -350,10 +357,12 @@ export const dashboardService = {
 
 ## 🔌 Integração com a API
 
-Basta apontar `VITE_API_URL` para o PrismaAPI. Os tipos de `src/types/financas.ts` são os DTOs do
-backend; as mudanças que ele ainda precisa acompanhar estão em **[API_CONTRACT.md](API_CONTRACT.md)**.
+Basta apontar `VITE_API_URL` para o PrismaAPI. Os tipos de `src/types/financas.ts` são os mesmos
+DTOs do backend, e o contrato inteiro é escrito em português: rota em kebab-case sem acento
+(`/contas/origens`, `/despesas-recorrentes`), campo e query param em camelCase sem acento
+(`saldoAtual`, `dataInicial`) e valor de enum em maiúsculas (`RECEITA`, `CARTAO_CREDITO`).
 
-O que já está pronto do lado do cliente:
+Do lado do cliente:
 
 * 🌐 `clienteHttp` com timeout de 15 s, montagem de query string e normalização de erros em `ErroApi`
   (`status`, `codigo`, `detalhes`).
@@ -394,7 +403,7 @@ faz as duas coisas.
 
 * 🖥️ **Desktop**: sidebar fixa, com modo recolhido (76px) persistido em `localStorage`.
 
-* 📲 **Abaixo de 1100px**: a sidebar vira drawer com scrim, fecha ao navegar e trava o scroll do fundo.
+* 📲 **Abaixo de 1100px**: a sidebar vira drawer com scrim, prende o foco como um modal, fecha ao navegar e no Esc, e trava o scroll do fundo.
 
 * 🧩 **Abaixo de 900px**: a listagem de lançamentos e a tabela da previsão trocam a tabela por cartões — rolar de lado até o valor não é leitura. Grids de cartões usam `auto-fill` com largura mínima.
 
@@ -407,8 +416,6 @@ faz as duas coisas.
 
 
 ## 🗺️ Próximas Etapas
-
-* 🟢 Backend em Java / Spring Boot + PostgreSQL, com as pendências do [API_CONTRACT.md](API_CONTRACT.md).
 
 * 🔐 Autenticação com Spring Security, plugada no `obterTokenAutenticacao()`.
 
