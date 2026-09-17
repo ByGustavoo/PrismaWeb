@@ -169,8 +169,11 @@ O `.env` está no `.gitignore`; só o `.env.example` é versionado, e ele não c
 <br>
 
 ```bash
-# URL base do backend (PrismaAPI, perfil dev)
+# URL base do backend no desenvolvimento (PrismaAPI, perfil dev)
 VITE_API_URL=http://localhost:9017/PrismaAPI/v1
+
+# URL da API usada pelo container, lida pelo docker-compose-prismaweb.yml
+PRISMA_API_URL=http://localhost:9027/PrismaAPI/v1
 ```
 
 
@@ -191,24 +194,28 @@ ambiente.
 <br>
 
 ```bash
-# Sobe a partir da imagem publicada
-docker compose up -d
+# Sobe a partir da imagem publicada, com a URL da API vinda do .env
+docker compose -f docker-compose-prismaweb.yml up -d
 
-# Compila a imagem localmente e sobe
-docker compose up -d --build
-
-# Aponta para outra API e outra porta
-PRISMA_API_URL=https://api.exemplo.com/PrismaAPI/v1 PRISMA_WEB_PORT=3000 docker compose up -d
+# Atualiza para a imagem mais recente
+docker compose -f docker-compose-prismaweb.yml pull
+docker compose -f docker-compose-prismaweb.yml up -d
 ```
 
 <br>
 
-| Variável | Padrão | Uso |
+| Onde | Valor | Uso |
 | --- | --- | --- |
-| `PRISMA_API_URL` | `http://localhost:9017/PrismaAPI/v1` | URL da API, lida pelo navegador |
-| `PRISMA_WEB_PORT` | `8080` | Porta publicada no host |
-| `PRISMA_WEB_IMAGE` | `gurudohimalaia/prismaweb` | Repositório da imagem |
-| `PRISMA_WEB_TAG` | `latest` | Versão da imagem |
+| Porta no host | `9030` | Endereço do app: `http://localhost:9030` |
+| Porta no container | `8080` | Porta do `nginx-unprivileged`, não muda |
+| `PRISMA_API_URL` | `http://localhost:9027/PrismaAPI/v1` | URL da API, lida do `.env` ao subir o container |
+
+O compose não traz a URL escrita dentro dele: ele lê `PRISMA_API_URL` do `.env` ao lado do arquivo,
+como o `docker-compose-prismaapi.yml` faz no PrismaAPI. Sem a variável definida, o container sobe
+com a URL vazia — copie o `.env.example` no servidor antes de subir.
+
+O desenvolvimento não passa pelo compose: `npm run dev` serve em `http://localhost:5173` e fala com
+a API local em `http://localhost:9017/PrismaAPI/v1` (`VITE_API_URL`).
 
 > `PRISMA_API_URL` é acessada pelo navegador de quem usa o app, não pelo container: use um endereço
 > que a máquina do usuário alcance.

@@ -896,9 +896,20 @@ num layout deslocado que precisa desfazer a mao.
 
 ## Docker e publicacao
 
-`Dockerfile`, `docker-compose.yml` e `docker/` empacotam o build num `nginx-unprivileged` na porta
-`8080`. As esteiras ficam em `.github/workflows/`: `ci.yml` (build e imagem em todo PR para a `main`)
-e `release.yml` (publicacao no Docker Hub quando um PR e mergeado).
+`Dockerfile`, `docker-compose-prismaweb.yml` e `docker/` empacotam o build num `nginx-unprivileged`
+na porta `8080`. As esteiras ficam em `.github/workflows/`: `ci.yml` (build e imagem em todo PR para
+a `main`) e `release.yml` (publicacao no Docker Hub quando um PR e mergeado).
+
+- **O compose e de execucao, nao de build.** Ele sobe a imagem ja publicada
+  (`gurudohimalaia/prismaweb:latest`), como o `docker-compose-prismaapi.yml` faz no PrismaAPI, e por
+  isso nao tem bloco `build`: quem passa `VERSION`, `REVISION` e `BUILD_DATE` e a esteira, e um build
+  local carimbaria a imagem com uma versao inventada, que Configuracoes mostraria como se fosse a
+  publicada. Em producao a web publica `9030` no host sobre os `8080` do container e aponta para a API
+  em `9027`; o desenvolvimento nao passa pelo compose (`npm run dev` em `5173`, API local em `9017`).
+  A URL da API nao fica escrita dentro do compose: ele le `PRISMA_API_URL` do `.env` ao lado do
+  arquivo, como o `docker-compose-prismaapi.yml` faz no PrismaAPI. O `.env` e ignorado pelo git e o
+  `.env.example` documenta as duas variaveis — `VITE_API_URL`, do desenvolvimento, e
+  `PRISMA_API_URL`, do container.
 
 - **A URL da API e de execucao, nao de build.** `VITE_API_URL` fica preso no bundle, e uma imagem
   publicada precisa servir qualquer ambiente. O `docker/40-prisma-config.sh` roda no entrypoint do
