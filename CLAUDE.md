@@ -61,6 +61,8 @@ Estas sao as invariantes do projeto. Quebra-las e o erro mais caro que se pode c
 
 1. **Variaveis de ambiente so em `src/constants/ambiente.ts`.** Nenhum outro arquivo le
    `import.meta.env`. Precisa de uma flag nova? Adiciona no objeto `ambiente` e consome de la.
+   O mesmo arquivo le `window.__PRISMA_CONFIG__`, escrito pelo `public/config.js` (vazio no
+   desenvolvimento) e regravado pelo container ao subir — ele tem prioridade sobre o `VITE_API_URL`.
 
 2. **URLs da API so em `src/api/rotasApi.ts`.** Nenhuma string de rota de backend escrita fora
    desse arquivo.
@@ -146,6 +148,9 @@ Estas sao as invariantes do projeto. Quebra-las e o erro mais caro que se pode c
 ## Estrutura
 
 ```
+.github/workflows/  ci (PR), release (merge na main -> Docker Hub + tag)
+docker/            nginx.conf, 40-prisma-config.sh (gera config.js no start)
+public/            favicon, config.js (configuracao de execucao, vazia no dev)
 src/
 ├── api/           clienteHttp, ErroApi, rotasApi
 ├── components/
@@ -888,6 +893,33 @@ num layout deslocado que precisa desfazer a mao.
 - Formulario de lancamento marca campo obrigatorio no rotulo e, ao reprovar, leva o foco ao
   primeiro `[aria-invalid="true"]` em vez de so pintar as mensagens.
 - Contraste, foco visivel e navegacao por teclado sao requisito, nao acabamento.
+
+## Docker e publicacao
+
+`Dockerfile`, `docker-compose.yml` e `docker/` empacotam o build num `nginx-unprivileged` na porta
+`8080`. As esteiras ficam em `.github/workflows/`: `ci.yml` (build e imagem em todo PR para a `main`)
+e `release.yml` (publicacao no Docker Hub quando um PR e mergeado).
+
+- **A URL da API e de execucao, nao de build.** `VITE_API_URL` fica preso no bundle, e uma imagem
+  publicada precisa servir qualquer ambiente. O `docker/40-prisma-config.sh` roda no entrypoint do
+  nginx e grava `config.js` a partir de `PRISMA_API_URL`; o `index.html` carrega esse arquivo antes do
+  bundle. O nginx serve `config.js` com `no-store` e `index.html` com `no-cache`, senao um navegador
+  guardaria a URL antiga. Ao acrescentar uma configuracao de execucao, ela entra nos tres pontos:
+  script, tipo `ConfiguracaoExecucaoPrisma` em `vite-env.d.ts` e `ambiente.ts`.
+- **As tags git sao a fonte da versao**, nao o `package.json`: ele so da a primeira versao quando nao
+  ha tag nenhuma. O incremento vem do rotulo do PR (`release:major`, `release:minor`, padrao patch).
+  Gravar a versao de volta no `package.json` exigiria a esteira fazer commit na `main`.
+- **A release so e criada depois da imagem publicada.** Se o push falhar, a tag nao existe e a
+  proxima execucao tenta a mesma versao de novo, em vez de deixar uma tag sem imagem.
+- **Os segredos tem os mesmos nomes da esteira do PrismaAPI**: `DOCKER_USERNAME`, `DOCKER_PASSWORD` e
+  `DOCKER_IMAGE` (`gurudohimalaia/prismaweb`, ao lado de `gurudohimalaia/prismaapi`). Nao invente um
+  segundo conjunto de nomes para o mesmo Docker Hub.
+- **Configuracoes mostra as duas versoes, API primeiro e Web depois**, num painel sem descricao. A da aplicacao web vem de `PRISMA_VERSION` e
+  `PRISMA_RELEASE_DATE`, que a esteira grava na imagem (`VERSION` e `BUILD_DATE`); sem elas, como no
+  `npm run dev`, a linha diz "Versao de desenvolvimento". A da API vem de `GET /sistema/versao`
+  (`sistemaService`) e, se a chamada falhar, a linha oferece "Tentar de novo" em vez de derrubar a
+  tela. O script usa `sed` com escape de aspas e barra — escrito por heredoc no Git Bash do
+  Windows, as barras sumiram e o `config.js` saiu vazio; edite-o pelo editor.
 
 ## Conexao com o PrismaAPI
 
