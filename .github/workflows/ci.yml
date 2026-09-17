@@ -43,5 +43,5 @@ jobs:
           build-args: |
             VERSION=pr-${{ github.event.pull_request.number }}
             REVISION=${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=ci
+          cache-to: type=gha,mode=max,scope=ci

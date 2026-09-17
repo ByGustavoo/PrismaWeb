@@ -121,8 +121,7 @@ jobs:
             VERSION=${{ needs.versao.outputs.versao }}
             REVISION=${{ needs.versao.outputs.commit }}
             BUILD_DATE=${{ needs.versao.outputs.data }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=ci
 
   registrar:
     name: Criar tag e release
