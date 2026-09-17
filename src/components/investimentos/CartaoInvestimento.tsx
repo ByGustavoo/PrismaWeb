@@ -1,26 +1,27 @@
-import { Trash2 } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { ValorMonetario } from '@/components/comum';
 import { BarraProgresso } from '@/components/ui';
 import { iconeClasseAtivo, rotuloClasseAtivo } from '@/constants/investimentos';
 import type { PosicaoDTO } from '@/types';
-import { formatarDataCompleta, formatarPercentualComSinal } from '@/utils/formatacao';
+import { formatarDataNumerica, formatarMesCurto, formatarPercentualComSinal } from '@/utils/formatacao';
 import { corDaClasse, tomRendimento } from './aparencia';
 import styles from './CartaoInvestimento.module.css';
 
 interface CartaoInvestimentoProps {
   posicao: PosicaoDTO;
-  aoEditar: (position: PosicaoDTO) => void;
+  aoAbrir: (position: PosicaoDTO) => void;
+  aoAdicionarAporte: (position: PosicaoDTO) => void;
   aoExcluir: (position: PosicaoDTO) => void;
 }
 
-export function CartaoInvestimento({ posicao, aoEditar, aoExcluir }: CartaoInvestimentoProps) {
+export function CartaoInvestimento({ posicao, aoAbrir, aoAdicionarAporte, aoExcluir }: CartaoInvestimentoProps) {
   const { investimento: investment, rendimento: profit, rentabilidade: profitability, participacao: share } = posicao;
   const Icon = iconeClasseAtivo[investment.classeAtivo];
 
   return (
     <li className={styles.card}>
-      <button type="button" className={styles.open} onClick={() => aoEditar(posicao)}>
-        <span className="visually-hidden">Editar {investment.nome}</span>
+      <button type="button" className={styles.open} onClick={() => aoAbrir(posicao)}>
+        <span className="visually-hidden">Ver histórico de {investment.nome}</span>
       </button>
 
       <div className={styles.content}>
@@ -81,7 +82,20 @@ export function CartaoInvestimento({ posicao, aoEditar, aoExcluir }: CartaoInves
           </span>
         </div>
 
-        <p className={styles.since}>Desde {formatarDataCompleta(investment.dataInicio)}</p>
+        <div className={styles.footer}>
+          <p className={styles.since}>
+            Desde {formatarMesCurto(investment.dataInicio.slice(0, 7))}
+            <span className={styles.separator} aria-hidden="true">
+              ·
+            </span>
+            saldo de {formatarDataNumerica(investment.dataAtualizacao).slice(0, 5)}
+          </p>
+          <button type="button" className={styles.contribute} onClick={() => aoAdicionarAporte(posicao)}>
+            <Plus size={14} strokeWidth={2.25} aria-hidden="true" />
+            Aporte
+            <span className="visually-hidden"> em {investment.nome}</span>
+          </button>
+        </div>
       </div>
     </li>
   );

@@ -26,7 +26,7 @@ export function GraficoPrevisao({ dados }: GraficoPrevisaoProps) {
     <Painel>
       <CabecalhoPainel
         titulo="Entradas, saídas e saldo previsto"
-        descricao="Projeção mês a mês a partir do saldo de hoje"
+        descricao="Projeção a partir do saldo previsto para o fim deste mês. As saídas somam despesas e aportes."
       />
       <CorpoPainel className={styles.chart}>
         <ResponsiveContainer width="100%" height={280}>
@@ -82,7 +82,16 @@ export function GraficoPrevisao({ dados }: GraficoPrevisaoProps) {
               yAxisId="flow"
               dataKey="despesa"
               name="Despesas previstas"
+              stackId="saidas"
               fill={palette.series[2]}
+              maxBarSize={26}
+            />
+            <Bar
+              yAxisId="flow"
+              dataKey="aportes"
+              name="Aportes"
+              stackId="saidas"
+              fill={palette.series[4]}
               radius={[4, 4, 0, 0]}
               maxBarSize={26}
             />

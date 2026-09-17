@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Botao, CampoTexto, Modal, CampoSelecao } from '@/components/ui';
+import { Botao, CampoTexto, Modal, CampoSelecao, CampoValor } from '@/components/ui';
 import { rotuloSituacaoCartao, situacoesCartao, rotuloTipoCartao, tiposCartao } from '@/constants/cartoes';
 import { limitesTexto } from '@/constants/validacao';
 import { useValidacaoFormulario } from '@/hooks/useValidacaoFormulario';
 import type { ErrosCampos } from '@/hooks/useValidacaoFormulario';
 import type { CartaoDTO, ContaDTO, Opcao, SalvarCartaoDTO, Situacao, TipoCartao } from '@/types';
 import { interpretarEntradaValor, paraEntradaValor } from '@/utils/formatacao';
+import { apenasDigitos } from '@/utils/mascaraValor';
 import { erroValor, erroTexto } from '@/utils/validacao';
 import styles from './FormularioCartao.module.css';
 
@@ -224,14 +225,11 @@ export function ModalFormularioCartao({ aberto, cartao, contas, salvando, aoEnvi
 
         {isCredit ? (
           <>
-            <CampoTexto
+            <CampoValor
               required
               rotulo="Limite"
-              prefixo="R$"
-              inputMode="decimal"
-              placeholder="0,00"
-              value={form.limite}
-              onChange={(event) => set('limite', event.target.value)}
+              valor={form.limite}
+              aoMudar={(value) => set('limite', value)}
               onBlur={() => tocar('limite')}
               erro={erros.limite}
             />
@@ -244,7 +242,7 @@ export function ModalFormularioCartao({ aberto, cartao, contas, salvando, aoEnvi
                 maxLength={2}
                 placeholder="28"
                 value={form.diaFechamento}
-                onChange={(event) => set('diaFechamento', event.target.value)}
+                onChange={(event) => set('diaFechamento', apenasDigitos(event.target.value))}
                 onBlur={() => tocar('diaFechamento')}
                 erro={erros.diaFechamento}
               />
@@ -255,7 +253,7 @@ export function ModalFormularioCartao({ aberto, cartao, contas, salvando, aoEnvi
                 maxLength={2}
                 placeholder="8"
                 value={form.diaVencimento}
-                onChange={(event) => set('diaVencimento', event.target.value)}
+                onChange={(event) => set('diaVencimento', apenasDigitos(event.target.value))}
                 onBlur={() => tocar('diaVencimento')}
                 erro={erros.diaVencimento}
               />
@@ -277,14 +275,11 @@ export function ModalFormularioCartao({ aberto, cartao, contas, salvando, aoEnvi
         ) : null}
 
         {isVoucher ? (
-          <CampoTexto
+          <CampoValor
             required
             rotulo="Saldo disponível"
-            prefixo="R$"
-            inputMode="decimal"
-            placeholder="0,00"
-            value={form.saldo}
-            onChange={(event) => set('saldo', event.target.value)}
+            valor={form.saldo}
+            aoMudar={(value) => set('saldo', value)}
             onBlur={() => tocar('saldo')}
             erro={erros.saldo}
           />
@@ -306,7 +301,7 @@ export function ModalFormularioCartao({ aberto, cartao, contas, salvando, aoEnvi
           maxLength={4}
           placeholder="0000"
           value={form.ultimosDigitos}
-          onChange={(event) => set('ultimosDigitos', event.target.value)}
+          onChange={(event) => set('ultimosDigitos', apenasDigitos(event.target.value))}
           onBlur={() => tocar('ultimosDigitos')}
           erro={erros.ultimosDigitos}
           dica="Ajuda a distinguir dois cartões do mesmo banco."

@@ -146,7 +146,7 @@ export function capitalizar(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-const VALOR_BRASILEIRO = /^-?(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d+)?$/;
+const VALOR_BRASILEIRO = /^-?(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d*)?$/;
 const VALOR_DECIMAL_COM_PONTO = /^-?\d+\.\d+$/;
 
 export function interpretarEntradaValor(raw: string): number | undefined {

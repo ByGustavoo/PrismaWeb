@@ -6,6 +6,8 @@ export { Selo } from './Selo';
 export type { SeloProps, TomSelo } from './Selo';
 export { CampoTexto } from './CampoTexto';
 export type { CampoTextoProps } from './CampoTexto';
+export { CampoValor } from './CampoValor';
+export type { CampoValorProps } from './CampoValor';
 export { AreaTexto } from './AreaTexto';
 export type { AreaTextoProps } from './AreaTexto';
 export { CampoSelecao } from './CampoSelecao';

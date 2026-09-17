@@ -19,9 +19,9 @@ export const opcoesSituacaoMeta: Opcao[] = situacoesMeta.map((status) => ({ valo
 }));
 
 export const notificacaoSituacaoMeta: Record<SituacaoMeta, string> = {
-  ACOMPANHANDO: 'Meta de volta em acompanhamento',
-  COMPRADA: 'Meta marcada como comprada',
-  CANCELADA: 'Meta cancelada',
+  ACOMPANHANDO: 'Meta de volta ao acompanhamento!',
+  COMPRADA: 'Meta marcada como comprada!',
+  CANCELADA: 'Meta cancelada!',
 };
 
 export const textoLeituraMeta: Record<LeituraMeta, string> = {
@@ -33,7 +33,3 @@ export const textoLeituraMeta: Record<LeituraMeta, string> = {
   MAIOR: 'O preço atual está próximo do maior valor já registrado. Vale esperar mais uma consulta.',
   ESTAVEL: 'O preço não se moveu desde o primeiro registro.',
 };
-
-export const TOLERANCIA_EXTREMOS_META = 0.05;
-
-export const LIMIAR_ESTABILIDADE_META = 0.005;

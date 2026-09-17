@@ -28,6 +28,3 @@ export function periodoRelatorioDe(key: Exclude<ChavePeriodoRelatorio, 'custom'>
   const months = key === 'quarter' ? 2 : 5;
   return { dataInicial: periodoDaChaveMes(paraChaveMes(somarMeses(base, -months))).from, dataFinal: to };
 }
-
-export const DIAS_MAXIMOS_BALDE_DIARIO = 10;
-export const DIAS_MAXIMOS_BALDE_SEMANAL = 45;

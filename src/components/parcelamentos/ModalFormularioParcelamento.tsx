@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ValorMonetario } from '@/components/comum';
-import { Botao, SeletorData, CampoTexto, Modal, CampoSelecao, AreaTexto } from '@/components/ui';
-import { quantidadesParcelas, ehCartaoCredito } from '@/constants/cartoes';
+import { Botao, SeletorData, CampoTexto, Modal, CampoSelecao, AreaTexto, CampoValor } from '@/components/ui';
+import { quantidadesParcelas, ehCartaoCredito, rotuloQuantidadeParcelas } from '@/constants/cartoes';
 import type { CartaoCredito } from '@/constants/cartoes';
 import { limitesTexto } from '@/constants/validacao';
 import { useValidacaoFormulario } from '@/hooks/useValidacaoFormulario';
@@ -35,14 +35,16 @@ interface EstadoFormulario {
 
 const limites = { descricao: limitesTexto.descricao, observacoes: limitesTexto.observacoes };
 
-const opcoesParcelas: Opcao[] = quantidadesParcelas.map((count) => ({ valor: String(count), rotulo: `${count}x`,
-}));
+function opcoesParcelas(current: number | undefined): Opcao[] {
+  const counts = current && !quantidadesParcelas.includes(current) ? [...quantidadesParcelas, current].sort((a, b) => a - b) : quantidadesParcelas;
+  return counts.map((count) => ({ valor: String(count), rotulo: rotuloQuantidadeParcelas(count) }));
+}
 
 function estadoInicial(purchase: CompraParceladaDTO | null): EstadoFormulario {
   return {
     descricao: purchase?.descricao ?? '',
     valorTotal: purchase ? paraEntradaValor(purchase.valorTotal) : '',
-    parcelas: String(purchase?.parcelas ?? 10),
+    parcelas: String(purchase?.parcelas ?? 1),
     idCartao: purchase?.idCartao ?? '',
     dataCompra: purchase?.dataCompra ?? hojeISO(),
     primeiroMes: purchase?.primeiroMes ?? '',
@@ -105,6 +107,7 @@ export function ModalFormularioParcelamento({
   }, [aberto, compra, reiniciar]);
 
   const creditCards = useMemo(() => cartoes.filter(ehCartaoCredito), [cartoes]);
+  const installmentOptions = useMemo(() => opcoesParcelas(compra?.parcelas), [compra]);
 
   const cardOptions = useMemo<Opcao[]>(
     () =>
@@ -165,8 +168,8 @@ export function ModalFormularioParcelamento({
     <Modal
       aberto={aberto}
       aoFechar={aoFechar}
-      titulo={compra ? 'Editar compra parcelada' : 'Nova compra parcelada'}
-      descricao="As parcelas entram automaticamente nas faturas dos próximos meses."
+      titulo={compra ? 'Editar compra no cartão' : 'Nova compra no cartão'}
+      descricao="À vista ou parcelada: cada parcela entra sozinha na fatura do mês em que cai."
       tamanho="lg"
       rodape={
         <>
@@ -201,14 +204,11 @@ export function ModalFormularioParcelamento({
           autoFocus
         />
 
-        <CampoTexto
+        <CampoValor
           required
           rotulo="Valor total"
-          prefixo="R$"
-          inputMode="decimal"
-          placeholder="0,00"
-          value={form.valorTotal}
-          onChange={(event) => set('valorTotal', event.target.value)}
+          valor={form.valorTotal}
+          aoMudar={(value) => set('valorTotal', value)}
           onBlur={() => tocar('valorTotal')}
           erro={erros.valorTotal}
           dica="O valor cheio da compra, não o da parcela."
@@ -217,7 +217,7 @@ export function ModalFormularioParcelamento({
         <CampoSelecao
           required
           rotulo="Parcelas"
-          opcoes={opcoesParcelas}
+          opcoes={installmentOptions}
           value={form.parcelas}
           onChange={(value) => set('parcelas', value)}
         />
@@ -247,7 +247,7 @@ export function ModalFormularioParcelamento({
         />
 
         <CampoSelecao
-          rotulo="Primeira parcela em"
+          rotulo={count === 1 ? 'Fatura da compra' : 'Primeira parcela em'}
           opcoes={monthOptions}
           value={firstMonth}
           onChange={(month) => set('primeiroMes', month)}
@@ -273,16 +273,30 @@ export function ModalFormularioParcelamento({
           erro={erros.observacoes}
         />
 
-        {total && total > 0 && count > 1 ? (
+        {total && total > 0 ? (
           <p className={styles.preview}>
-            <strong className={styles.previewValue}>
-              <span className="tabular">{count}x</span> de{' '}
-              <ValorMonetario valor={Math.floor((total * 100) / count) / 100} tamanho="md" />
-            </strong>
-            <span>
-              De {formatarMesCurto(firstMonth)} a {formatarMesCurto(lastMonth)}
-              {selectedCard ? `, na fatura do ${selectedCard.nome}` : ''}.
-            </span>
+            {count > 1 ? (
+              <>
+                <strong className={styles.previewValue}>
+                  <span className="tabular">{count}x</span> de{' '}
+                  <ValorMonetario valor={Math.floor((total * 100) / count) / 100} tamanho="md" />
+                </strong>
+                <span>
+                  De {formatarMesCurto(firstMonth)} a {formatarMesCurto(lastMonth)}
+                  {selectedCard ? `, na fatura do ${selectedCard.nome}` : ''}.
+                </span>
+              </>
+            ) : (
+              <>
+                <strong className={styles.previewValue}>
+                  À vista: <ValorMonetario valor={total} tamanho="md" />
+                </strong>
+                <span>
+                  Entra inteira na fatura de {formatarMesCurto(firstMonth)}
+                  {selectedCard ? ` do ${selectedCard.nome}` : ''}.
+                </span>
+              </>
+            )}
           </p>
         ) : null}
 

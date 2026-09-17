@@ -32,13 +32,13 @@
 
 ## 📌 Status do Projeto
 
-O frontend está **completo e pronto para integração**. Todas as telas existem, todos os fluxos de
-cadastro funcionam e a camada de dados responde por mocks enquanto o backend não existe.
+O frontend está **completo e pronto para integração**. Todas as telas existem, todos os dados vêm do
+PrismaAPI — o frontend não tem mocks nem dados fictícios. Sem o backend rodando, as telas mostram o
+estado de erro com a opção de tentar de novo.
 
-O contrato que o backend precisa cumprir está em **[API_CONTRACT.md](API_CONTRACT.md)**: são 41
-endpoints com método, URL, parâmetros, corpo de requisição, corpo de resposta, códigos de status,
-validações e as regras de cálculo de cada um. É a especificação a partir da qual os `@RestController`
-e os DTOs em Java / Spring Boot devem ser escritos.
+O que o backend ainda precisa implementar para acompanhar o frontend está em
+**[API_CONTRACT.md](API_CONTRACT.md)**: endpoints novos, contratos que mudaram, migrações e regras de
+cálculo, com um checklist no fim. O que o PrismaAPI já implementa não aparece ali.
 
 A próxima etapa é o backend em **Java / Spring Boot / PostgreSQL**.
 
@@ -62,18 +62,19 @@ A próxima etapa é o backend em **Java / Spring Boot / PostgreSQL**.
 * Alternância entre tabela e cartões, com a preferência guardada no navegador.
 
 🔹 **Contas e cartões**
-* Cadastro de contas, com saldo, situação e participação no saldo total.
+* Cadastro de contas, separando as do dia a dia das reservas (emergência, poupança, previdência), com evolução, aportes e rendimento das reservas.
 * Um cadastro só para os quatro tipos de cartão: crédito, débito, vale-alimentação e vale-refeição.
 * Faturas derivadas das despesas e das parcelas, em quatro blocos: a pagar, atual, próximas e anteriores.
-* Detalhe da fatura com as compras dentro dela e cadastro de compras parceladas com cronograma.
+* Detalhe da fatura com as compras dentro dela e cadastro de compras no cartão, à vista ou parceladas, com cronograma, filtro por situação, ordenação por parcelas restantes e total mensal comprometido.
 
 🔹 **Patrimônio**
-* Carteira de investimentos com oito classes de ativo, distribuição em rosca, rentabilidade e evolução do patrimônio.
+* Carteira de investimentos com dez classes de ativo (incluindo RDB/caixinhas e previdência privada), distribuição em rosca, rentabilidade e evolução do patrimônio.
+* Aportes e atualização de saldo por investimento, com histórico que separa o dinheiro colocado do rendimento.
 
 🔹 **Planejamento**
 * Orçamento mensal por categoria, com consumo, projeção de ritmo e o que ficou fora do orçamento.
 * Despesas recorrentes com custo mensal equivalente, próximos vencimentos e pausa sem exclusão.
-* Previsão financeira dos próximos seis meses, mês a mês, com o método declarado na própria tela.
+* Previsão financeira: o resto do mês corrente e os próximos seis meses, com recorrentes, parcelas, gasto variável, agendados e aportes em colunas próprias, e o método declarado com os números da base.
 * Metas e desejos: acompanhamento do preço de uma compra pretendida, com histórico completo, menor preço, média, variação e gráfico de evolução.
 
 🔹 **Análise**
@@ -82,7 +83,8 @@ A próxima etapa é o backend em **Java / Spring Boot / PostgreSQL**.
 🔹 **Transversal**
 * Tema claro, escuro e sistema.
 * Busca global em lançamentos, categorias e contas, ignorando acentuação.
-* Painel de avisos derivado dos próprios dados: faturas a vencer, lançamentos próximos e cartões perto do limite.
+* Painel de avisos derivado dos próprios dados: faturas a vencer, contas e recorrentes próximas, receitas a receber e cartões perto do limite.
+* Máscara monetária brasileira em todos os campos de valor e dezessete categorias com cores fixas e distintas nos dois temas.
 * Página 404 própria, fora do shell do app: o endereço que falhou fica à vista, com atalhos para as telas de entrada e uma série que se desenha em laço até o ponto onde os dados acabam.
 * Estados de carregamento, vazio e erro em todas as telas, e responsividade do desktop ao celular.
 
@@ -169,12 +171,6 @@ O `.env` está no `.gitignore`; só o `.env.example` é versionado, e ele não c
 ```bash
 # URL base do backend (PrismaAPI, perfil dev)
 VITE_API_URL=http://localhost:9017/PrismaAPI/v1
-
-# Troque para "false" para falar com o PrismaAPI
-VITE_USE_MOCKS=true
-
-# Latência simulada dos mocks, em milissegundos
-VITE_MOCK_DELAY=450
 ```
 
 
@@ -225,7 +221,6 @@ src/
 ├── routes/        RotasAplicacao, caminhos (única fonte de rotas)
 ├── services/      dashboard, lancamentos, categorias, contas, cartoes, investimentos,
 │                  orcamento, recorrentes, metas, previsao, relatorios, avisos
-│   └── mocks/     dados, stores de escrita e builders de cada domínio
 ├── styles/        tokens.css (design tokens), global.css
 ├── types/         comum, financas (contratos de domínio)
 └── utils/         juntarClasses, data, formatacao, validacao
@@ -237,17 +232,14 @@ src/
 
 ## 🔄 Camada de Dados
 
-Os componentes nunca falam com `fetch` nem sabem de onde vêm os dados. Eles chamam services, e cada
-service decide a origem:
+Os componentes nunca falam com `fetch`. Eles chamam services, e cada service é uma camada fina sobre
+o `clienteHttp`, com a URL vinda de `rotasApi`:
 
 <br>
 
 ```ts
 export const dashboardService = {
   buscarResumo(period?: PeriodoDashboard, signal?: AbortSignal): Promise<DashboardDTO> {
-    if (ambiente.usarMocks) {
-      return respostaMock(montarResumoDashboard(period), signal);
-    }
     return clienteHttp.get<DashboardDTO>(rotasApi.dashboard.resumo, {
       consulta: { dataInicial: period?.dataInicial, dataFinal: period?.dataFinal },
       signal,
@@ -258,28 +250,11 @@ export const dashboardService = {
 
 <br>
 
-### Como os mocks funcionam
-
-* 🕐 **Todo mock passa por `respostaMock`**, que aplica a latência de `VITE_MOCK_DELAY` e respeita o
-  `AbortSignal`. As telas já exercitam carregamento, erro e cancelamento exatamente como farão
-  contra o backend real.
-
-* ✍️ **A escrita é real, só que em memória.** Cadastrar, editar e excluir passa pelos *stores* em
-  `src/services/mocks/`, que mutam os mesmos arrays que abastecem as outras telas: um lançamento
-  novo aparece no dashboard, nos avisos e no relatório na mesma sessão. O estado vive até o reload
-  da página — não há persistência enquanto não houver backend, e isso é proposital.
-
-* 🚦 **Os mocks recusam entrada inválida como a API vai recusar.** Os stores lançam `ErroApi` com
-  status `404`, `409` e `422` e com o mesmo formato de corpo do `clienteHttp`, para que a tela já
-  trate erro do jeito certo antes da integração.
-
-* 🧮 **O que é cálculo, é cálculo.** Fatura, limite comprometido, cronograma de parcelas,
-  distribuição da carteira, consumo do orçamento, previsão e análise de meta são derivados dos
-  dados, não escritos à mão. O formato produzido aqui é exatamente o que o backend vai ter de
-  devolver.
-
-* 📈 **O histórico é determinístico.** As séries longas usam variação fixa por mês, e não aleatória:
-  um gráfico precisa oscilar, mas não pode mudar a cada recarregamento.
+* 🧮 **O que é cálculo, é do servidor.** Fatura, limite comprometido, cronograma de parcelas,
+  distribuição e evolução da carteira, evolução das reservas, consumo do orçamento, previsão, avisos
+  e análise de meta são derivados pelo PrismaAPI, com as regras descritas no contrato.
+* ⏳ **Carregamento, erro e cancelamento** passam por `useDadosAssincronos`, que usa o `AbortSignal`
+  para descartar respostas de uma tela que já foi deixada.
 
 
 <br>
@@ -287,9 +262,8 @@ export const dashboardService = {
 
 ## 🔌 Integração com a API
 
-Basta trocar `VITE_USE_MOCKS` para `false`. Se o backend respeitar os contratos de
-`src/types/financas.ts` — detalhados endpoint a endpoint em **[API_CONTRACT.md](API_CONTRACT.md)** —
-**nenhum componente precisa mudar**.
+Basta apontar `VITE_API_URL` para o PrismaAPI. Os tipos de `src/types/financas.ts` são os DTOs do
+backend; as mudanças que ele ainda precisa acompanhar estão em **[API_CONTRACT.md](API_CONTRACT.md)**.
 
 O que já está pronto do lado do cliente:
 
@@ -346,7 +320,7 @@ faz as duas coisas.
 
 ## 🗺️ Próximas Etapas
 
-* 🟢 Backend em Java / Spring Boot + PostgreSQL, implementando o [API_CONTRACT.md](API_CONTRACT.md).
+* 🟢 Backend em Java / Spring Boot + PostgreSQL, com as pendências do [API_CONTRACT.md](API_CONTRACT.md).
 
 * 🔐 Autenticação com Spring Security, plugada no `obterTokenAutenticacao()`.
 

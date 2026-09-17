@@ -4,6 +4,7 @@ import { ValorMonetario, BarraResumo } from '@/components/comum';
 import { ModalFormularioOrcamento, LinhaOrcamento, NavegadorMes } from '@/components/orcamento';
 import { CabecalhoPagina } from '@/components/layout';
 import { Botao, Painel, CorpoPainel, CabecalhoPainel, DialogoConfirmacao, EstadoVazio, BlocoCarregando, BarraProgresso } from '@/components/ui';
+import { corDaPaleta } from '@/constants/cores';
 import { DIAS_MINIMOS_PROJECAO_ORCAMENTO, tomProgressoOrcamento, situacaoOrcamentoDe } from '@/constants/orcamento';
 import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
 import { useNotificacoes } from '@/providers/ProvedorNotificacoes';
@@ -56,15 +57,18 @@ export function PaginaOrcamento() {
     try {
       if (editing) {
         await orcamentoService.atualizar(editing.id, payload);
-        toast.sucesso('Limite atualizado', editing.categoria.nome);
+        toast.sucesso('Limite atualizado com sucesso!', editing.categoria.nome);
       } else {
         await orcamentoService.criar(payload);
-        toast.sucesso('Limite definido', 'O orçamento vale a partir deste mês.');
+        toast.sucesso(
+          'Limite definido com sucesso!',
+          `${categories.find((category) => category.id === payload.idCategoria)?.nome ?? 'Categoria'} · vale para este mês e os seguintes`,
+        );
       }
       closeForm();
       recarregar();
     } catch (submitError) {
-      toast.erro('Não foi possível salvar o limite', submitError instanceof Error ? submitError.message : undefined);
+      toast.erro('Não foi possível salvar o limite.', submitError);
     } finally {
       setSaving(false);
     }
@@ -76,11 +80,11 @@ export function PaginaOrcamento() {
 
     try {
       await orcamentoService.excluir(removing.orcamento.id);
-      toast.sucesso('Limite excluído', removing.orcamento.categoria.nome);
+      toast.sucesso('Limite excluído com sucesso!', removing.orcamento.categoria.nome);
       setRemoving(null);
       recarregar();
     } catch (deleteError) {
-      toast.erro('Não foi possível excluir o limite', deleteError instanceof Error ? deleteError.message : undefined);
+      toast.erro('Não foi possível excluir o limite.', deleteError);
       setRemoving(null);
     } finally {
       setSaving(false);
@@ -243,7 +247,7 @@ export function PaginaOrcamento() {
                     <li key={entry.categoria.id} className={styles.unplannedItem}>
                       <span
                         className={styles.marker}
-                        style={{ backgroundColor: `var(--chart-${entry.categoria.tokenCor})` }}
+                        style={{ backgroundColor: corDaPaleta(entry.categoria.tokenCor) }}
                         aria-hidden="true"
                       />
                       <span className={styles.unplannedName}>{entry.categoria.nome}</span>

@@ -61,5 +61,13 @@ export const rotuloSituacaoParcela: Record<SituacaoParcela, string> = {
 };
 
 export const quantidadesParcelas: number[] = [
-  2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 18, 24,
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 18, 24,
 ];
+
+export function rotuloQuantidadeParcelas(count: number): string {
+  return count === 1 ? 'À vista (1x)' : `${count}x`;
+}
+
+export function ehCompraAVista(parcelas: number): boolean {
+  return parcelas === 1;
+}

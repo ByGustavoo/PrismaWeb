@@ -1,14 +1,27 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Plus, TrendingUp } from 'lucide-react';
 import { ValorMonetario, BarraResumo } from '@/components/comum';
-import { GraficoAlocacao, CartaoInvestimento, ModalFormularioInvestimento, GraficoCarteira, tomRendimento } from '@/components/investimentos';
+import {
+  GraficoAlocacao,
+  CartaoInvestimento,
+  ModalDetalheInvestimento,
+  ModalFormularioInvestimento,
+  GraficoCarteira,
+  tomRendimento,
+} from '@/components/investimentos';
+import type { AcaoRegistroInvestimento, ResultadoFormularioInvestimento } from '@/components/investimentos';
 import { CabecalhoPagina } from '@/components/layout';
 import { Botao, Painel, DialogoConfirmacao, EstadoVazio, BlocoCarregando } from '@/components/ui';
 import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
 import { useNotificacoes } from '@/providers/ProvedorNotificacoes';
 import { investimentosService } from '@/services';
-import type { InvestimentoDTO, PosicaoDTO, SalvarInvestimentoDTO } from '@/types';
-import { formatarPercentualComSinal } from '@/utils/formatacao';
+import type {
+  InvestimentoDTO,
+  PosicaoDTO,
+  SalvarAporteInvestimentoDTO,
+  SalvarSaldoInvestimentoDTO,
+} from '@/types';
+import { formatarMoeda, formatarPercentualComSinal } from '@/utils/formatacao';
 import styles from './PaginaInvestimentos.module.css';
 
 export function PaginaInvestimentos() {
@@ -16,6 +29,8 @@ export function PaginaInvestimentos() {
   const [creating, setCreating] = useState(false);
   const [removing, setRemoving] = useState<PosicaoDTO | null>(null);
   const [saving, setSaving] = useState(false);
+  const [detail, setDetail] = useState<{ id: string; acao: AcaoRegistroInvestimento } | null>(null);
+  const [detailVersion, setDetailVersion] = useState(0);
   const toast = useNotificacoes();
 
   const fetchData = useCallback((signal: AbortSignal) => investimentosService.buscarCarteira(signal), []);
@@ -30,24 +45,56 @@ export function PaginaInvestimentos() {
     setEditing(null);
   };
 
-  const handleSubmit = async (payload: SalvarInvestimentoDTO) => {
+  const handleSubmit = async (result: ResultadoFormularioInvestimento) => {
     setSaving(true);
 
     try {
-      if (editing) {
-        await investimentosService.atualizar(editing.id, payload);
-        toast.sucesso('Investimento atualizado', payload.nome);
-      } else {
-        await investimentosService.criar(payload);
-        toast.sucesso('Investimento cadastrado', payload.nome);
+      if (result.modo === 'update' && editing) {
+        await investimentosService.atualizar(editing.id, result.dados);
+        toast.sucesso('Investimento atualizado com sucesso!', result.dados.nome);
+      } else if (result.modo === 'create') {
+        await investimentosService.criar(result.dados);
+        toast.sucesso('Investimento cadastrado com sucesso!', result.dados.nome);
       }
       closeForm();
       recarregar();
+      setDetailVersion((value) => value + 1);
     } catch (submitError) {
-      toast.erro(
-        'Não foi possível salvar o investimento',
-        submitError instanceof Error ? submitError.message : undefined,
-      );
+      toast.erro('Não foi possível salvar o investimento.', submitError);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleContribution = async (investment: InvestimentoDTO, payload: SalvarAporteInvestimentoDTO): Promise<boolean> => {
+    setSaving(true);
+
+    try {
+      await investimentosService.adicionarAporte(investment.id, payload);
+      toast.sucesso('Aporte adicionado com sucesso!', `${investment.nome} · ${formatarMoeda(payload.valor)}`);
+      recarregar();
+      setDetailVersion((value) => value + 1);
+      return true;
+    } catch (contributionError) {
+      toast.erro('Não foi possível adicionar o aporte.', contributionError);
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleBalance = async (investment: InvestimentoDTO, payload: SalvarSaldoInvestimentoDTO): Promise<boolean> => {
+    setSaving(true);
+
+    try {
+      await investimentosService.atualizarSaldo(investment.id, payload);
+      toast.sucesso('Saldo atualizado com sucesso!', `${investment.nome} · ${formatarMoeda(payload.valorAtual)}`);
+      recarregar();
+      setDetailVersion((value) => value + 1);
+      return true;
+    } catch (balanceError) {
+      toast.erro('Não foi possível atualizar o saldo.', balanceError);
+      return false;
     } finally {
       setSaving(false);
     }
@@ -59,14 +106,11 @@ export function PaginaInvestimentos() {
 
     try {
       await investimentosService.excluir(removing.investimento.id);
-      toast.sucesso('Investimento excluído', removing.investimento.nome);
+      toast.sucesso('Investimento excluído com sucesso!', removing.investimento.nome);
       setRemoving(null);
       recarregar();
     } catch (deleteError) {
-      toast.erro(
-        'Não foi possível excluir o investimento',
-        deleteError instanceof Error ? deleteError.message : undefined,
-      );
+      toast.erro('Não foi possível excluir o investimento.', deleteError);
       setRemoving(null);
     } finally {
       setSaving(false);
@@ -167,7 +211,8 @@ export function PaginaInvestimentos() {
                 <CartaoInvestimento
                   key={position.investimento.id}
                   posicao={position}
-                  aoEditar={(item) => setEditing(item.investimento)}
+                  aoAbrir={(item) => setDetail({ id: item.investimento.id, acao: 'saldo' })}
+                  aoAdicionarAporte={(item) => setDetail({ id: item.investimento.id, acao: 'aporte' })}
                   aoExcluir={setRemoving}
                 />
               ))}
@@ -175,6 +220,24 @@ export function PaginaInvestimentos() {
           </section>
         </div>
       )}
+
+      <ModalDetalheInvestimento
+        investimentoId={detail?.id ?? null}
+        acaoInicial={detail?.acao ?? 'aporte'}
+        versao={detailVersion}
+        salvando={saving}
+        aoFechar={() => setDetail(null)}
+        aoEditar={(investment) => {
+          setDetail(null);
+          setEditing(investment);
+        }}
+        aoExcluir={(statement) => {
+          setDetail(null);
+          setRemoving(statement.posicao);
+        }}
+        aoRegistrarAporte={handleContribution}
+        aoAtualizarSaldo={handleBalance}
+      />
 
       <ModalFormularioInvestimento
         aberto={formOpen}
@@ -187,7 +250,7 @@ export function PaginaInvestimentos() {
       <DialogoConfirmacao
         aberto={removing !== null}
         titulo="Excluir investimento"
-        descricao="A posição sai da carteira e da evolução do patrimônio. Os aportes já lançados continuam no histórico."
+        descricao="A posição sai da carteira junto com todo o histórico de aportes e rendimentos. Esta ação não pode ser desfeita."
         rotuloConfirmar="Excluir"
         carregando={saving}
         aoConfirmar={handleDelete}

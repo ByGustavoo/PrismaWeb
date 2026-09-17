@@ -8,11 +8,13 @@ export type FormaLancamento = 'CONTA' | 'CARTAO_CREDITO' | 'PIX' | 'DINHEIRO';
 
 export type TipoCategoria = 'RECEITA' | 'DESPESA';
 
+export type TokenCor = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16;
+
 export interface CategoriaDTO {
   id: ID;
   nome: string;
   tipo: TipoCategoria;
-  tokenCor: 1 | 2 | 3 | 4 | 5 | 6;
+  tokenCor: TokenCor;
 }
 
 export interface LancamentoDTO {
@@ -52,7 +54,9 @@ export interface OrigemDTO {
   grupo: GrupoOrigem;
 }
 
-export type TipoConta = 'CORRENTE' | 'SALARIO' | 'EMERGENCIA' | 'OUTRA';
+export type TipoConta = 'CORRENTE' | 'SALARIO' | 'EMERGENCIA' | 'POUPANCA' | 'PREVIDENCIA' | 'OUTRA';
+
+export type FinalidadeConta = 'MOVIMENTACAO' | 'RESERVA';
 
 export type Situacao = 'ATIVO' | 'INATIVO';
 
@@ -64,6 +68,31 @@ export interface ContaDTO {
   saldo: number;
   situacao: Situacao;
   incluirNoTotal: boolean;
+}
+
+export type TipoMovimentacaoConta = 'APORTE' | 'RESGATE' | 'RENDIMENTO';
+
+export interface MovimentacaoContaDTO {
+  id: ID;
+  tipo: TipoMovimentacaoConta;
+  data: string;
+  descricao: string;
+  valor: number;
+  saldoApos: number;
+}
+
+export interface EvolucaoContaDTO {
+  conta: ContaDTO;
+  finalidade: FinalidadeConta;
+  dataInicial: string;
+  saldoInicial: number;
+  aportes: number;
+  resgates: number;
+  rendimentos: number;
+  saldoAtual: number;
+  rentabilidade: number;
+  evolucao: PontoEvolucaoDTO[];
+  movimentacoes: MovimentacaoContaDTO[];
 }
 
 export interface SalvarContaDTO {
@@ -190,7 +219,9 @@ export interface SalvarCompraParceladaDTO {
 export type ClasseAtivo =
   | 'RENDA_FIXA'
   | 'CDB'
+  | 'RDB'
   | 'TESOURO'
+  | 'PREVIDENCIA'
   | 'ACOES'
   | 'ETF'
   | 'FUNDOS'
@@ -205,6 +236,7 @@ export interface InvestimentoDTO {
   aportado: number;
   valorAtual: number;
   dataInicio: string;
+  dataAtualizacao: string;
   observacoes?: string;
 }
 
@@ -216,6 +248,37 @@ export interface SalvarInvestimentoDTO {
   valorAtual: number;
   dataInicio: string;
   observacoes?: string;
+}
+
+export interface AtualizarInvestimentoDTO {
+  nome: string;
+  classeAtivo: ClasseAtivo;
+  instituicao: string;
+  observacoes?: string;
+}
+
+export type TipoMovimentacaoInvestimento = 'APORTE' | 'RENDIMENTO';
+
+export interface MovimentacaoInvestimentoDTO {
+  id: ID;
+  tipo: TipoMovimentacaoInvestimento;
+  data: string;
+  valor: number;
+  saldoApos: number;
+  aportadoApos: number;
+  descricao?: string;
+}
+
+export interface SalvarAporteInvestimentoDTO {
+  valor: number;
+  data: string;
+  descricao?: string;
+}
+
+export interface SalvarSaldoInvestimentoDTO {
+  valorAtual: number;
+  data: string;
+  descricao?: string;
 }
 
 export interface PosicaoDTO {
@@ -234,11 +297,19 @@ export interface AlocacaoDTO {
   quantidade: number;
 }
 
-export interface EvolucaoCarteiraDTO {
+export interface PontoEvolucaoDTO {
   rotulo: string;
   mes: string;
   aportado: number;
   valor: number;
+}
+
+export interface ExtratoInvestimentoDTO {
+  posicao: PosicaoDTO;
+  quantidadeAportes: number;
+  ultimoAporte: string | null;
+  movimentacoes: MovimentacaoInvestimentoDTO[];
+  evolucao: PontoEvolucaoDTO[];
 }
 
 export interface CarteiraDTO {
@@ -248,7 +319,7 @@ export interface CarteiraDTO {
   rentabilidade: number;
   variacaoValorAtual: VariacaoDTO;
   alocacao: AlocacaoDTO[];
-  historico: EvolucaoCarteiraDTO[];
+  historico: PontoEvolucaoDTO[];
   posicoes: PosicaoDTO[];
 }
 
@@ -274,7 +345,13 @@ export interface GastoDiarioDTO {
   valor: number;
 }
 
-export type TipoAviso = 'FATURA_VENCENDO' | 'CONTA_VENCENDO' | 'LANCAMENTO_AGENDADO' | 'LIMITE_CARTAO';
+export type TipoAviso =
+  | 'FATURA_VENCENDO'
+  | 'CONTA_VENCENDO'
+  | 'RECORRENTE_VENCENDO'
+  | 'LANCAMENTO_AGENDADO'
+  | 'RECEITA_PREVISTA'
+  | 'LIMITE_CARTAO';
 
 export type SeveridadeAviso = 'CRITICO' | 'ATENCAO' | 'INFO';
 
@@ -399,7 +476,9 @@ export interface MesPrevisaoDTO {
   recorrentes: number;
   parcelas: number;
   variavel: number;
+  agendados: number;
   despesa: number;
+  aportes: number;
   resultado: number;
   saldoFinal: number;
 }
@@ -409,12 +488,23 @@ export interface MenorSaldoDTO {
   saldo: number;
 }
 
+export interface BaseCalculoPrevisaoDTO {
+  meses: string[];
+  receitaMedia: number;
+  despesaMedia: number;
+  recorrentesMedia: number;
+  aportesMedia: number;
+}
+
 export interface PrevisaoDTO {
+  saldoAtual: number;
+  restanteMesAtual: MesPrevisaoDTO;
   saldoInicial: number;
   meses: MesPrevisaoDTO[];
   saldoFinal: number;
   resultadoMedio: number;
   menorSaldo: MenorSaldoDTO;
+  base: BaseCalculoPrevisaoDTO;
 }
 
 export interface PeriodoRelatorio {

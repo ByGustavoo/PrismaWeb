@@ -1,6 +1,7 @@
 import { ArrowRight, ArrowUpDown, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react';
 import { ValorMonetario } from '@/components/comum';
 import { Selo, Botao, CorpoTabela, CabecaTabela, Tabela, ContainerTabela, Celula, CelulaCabecalho, LinhaTabela } from '@/components/ui';
+import { corDaPaleta } from '@/constants/cores';
 import { rotuloTipoLancamento, rotuloSituacaoLancamento } from '@/constants/lancamentos';
 import type { LancamentoDTO } from '@/types';
 import { formatarDataCurta } from '@/utils/formatacao';
@@ -113,7 +114,7 @@ export function TabelaLancamentos({
                       <span className={styles.category}>
                         <span
                           className={styles.categoryDot}
-                          style={{ backgroundColor: `var(--chart-${transaction.categoria.tokenCor})` }}
+                          style={{ backgroundColor: corDaPaleta(transaction.categoria.tokenCor) }}
                           aria-hidden="true"
                         />
                         {transaction.categoria.nome}

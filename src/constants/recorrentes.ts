@@ -31,26 +31,6 @@ export const ocorrenciasMensais: Record<Frequencia, number> = {
   ANUAL: 1 / 12,
 };
 
-export const passoFrequenciaDias: Record<Frequencia, number> = {
-  SEMANAL: 7,
-  QUINZENAL: 14,
-  MENSAL: 0,
-  BIMESTRAL: 0,
-  TRIMESTRAL: 0,
-  SEMESTRAL: 0,
-  ANUAL: 0,
-};
-
-export const passoFrequenciaMeses: Record<Frequencia, number> = {
-  SEMANAL: 0,
-  QUINZENAL: 0,
-  MENSAL: 1,
-  BIMESTRAL: 2,
-  TRIMESTRAL: 3,
-  SEMESTRAL: 6,
-  ANUAL: 12,
-};
-
 export const rotuloSituacaoRecorrente: Record<SituacaoDespesaRecorrente, string> = {
   ATIVO: 'Ativa',
   PAUSADO: 'Pausada',

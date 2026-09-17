@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { Check, ExternalLink, Pencil, RotateCcw, Trash2, X } from 'lucide-react';
 import { ValorMonetario } from '@/components/comum';
-import { Selo, Botao, SeletorData, CampoTexto, Modal } from '@/components/ui';
+import { Selo, Botao, SeletorData, CampoTexto, Modal, CampoValor } from '@/components/ui';
 import { textoLeituraMeta, rotuloSituacaoMeta, tomSituacaoMeta } from '@/constants/metas';
 import { limitesTexto } from '@/constants/validacao';
 import { useValidacaoFormulario } from '@/hooks/useValidacaoFormulario';
@@ -241,16 +241,13 @@ export function ModalDetalheMeta({
             void handleRegister();
           }}
         >
-          <CampoTexto
+          <CampoValor
             ref={priceRef}
             className={styles.price}
             required
             rotulo="Preço"
-            prefixo="R$"
-            inputMode="decimal"
-            placeholder="0,00"
-            value={form.preco}
-            onChange={(event) => setForm((current) => ({ ...current, preco: event.target.value }))}
+            valor={form.preco}
+            aoMudar={(value) => setForm((current) => ({ ...current, preco: value }))}
             onBlur={() => tocar('preco')}
             erro={erros.preco}
           />

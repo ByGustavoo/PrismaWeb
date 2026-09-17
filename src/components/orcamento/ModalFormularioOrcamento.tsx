@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Botao, CampoTexto, Modal, CampoSelecao } from '@/components/ui';
+import { Botao, Modal, CampoSelecao, CampoValor } from '@/components/ui';
 import { useValidacaoFormulario } from '@/hooks/useValidacaoFormulario';
 import type { ErrosCampos } from '@/hooks/useValidacaoFormulario';
 import type { CategoriaDTO, Opcao, OrcamentoDTO, SalvarOrcamentoDTO } from '@/types';
@@ -117,14 +117,11 @@ export function ModalFormularioOrcamento({
           }
         />
 
-        <CampoTexto
+        <CampoValor
           required
           rotulo="Limite mensal"
-          prefixo="R$"
-          inputMode="decimal"
-          placeholder="0,00"
-          value={form.limite}
-          onChange={(event) => set('limite', event.target.value)}
+          valor={form.limite}
+          aoMudar={(value) => set('limite', value)}
           onBlur={() => tocar('limite')}
           erro={erros.limite}
         />

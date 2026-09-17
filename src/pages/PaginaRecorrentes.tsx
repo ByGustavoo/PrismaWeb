@@ -63,15 +63,15 @@ export function PaginaRecorrentes() {
     try {
       if (editing) {
         await recorrentesService.atualizar(editing.id, payload);
-        toast.sucesso('Despesa atualizada', payload.descricao);
+        toast.sucesso('Despesa recorrente atualizada com sucesso!', payload.descricao);
       } else {
         await recorrentesService.criar(payload);
-        toast.sucesso('Despesa recorrente cadastrada', `${rotuloFrequencia[payload.frequencia]} · ${payload.descricao}`);
+        toast.sucesso('Despesa recorrente cadastrada com sucesso!', `${rotuloFrequencia[payload.frequencia]} · ${payload.descricao}`);
       }
       closeForm();
       recarregar();
     } catch (submitError) {
-      toast.erro('Não foi possível salvar a despesa', submitError instanceof Error ? submitError.message : undefined);
+      toast.erro('Não foi possível salvar a despesa recorrente.', submitError);
     } finally {
       setSaving(false);
     }
@@ -83,10 +83,10 @@ export function PaginaRecorrentes() {
 
     try {
       await recorrentesService.atualizar(expense.id, { ...toPayload(expense), situacao: status });
-      toast.sucesso(status === 'PAUSADO' ? 'Despesa pausada' : 'Despesa retomada', expense.descricao);
+      toast.sucesso(status === 'PAUSADO' ? 'Despesa recorrente pausada!' : 'Despesa recorrente retomada!', expense.descricao);
       recarregar();
     } catch (toggleError) {
-      toast.erro('Não foi possível alterar a despesa', toggleError instanceof Error ? toggleError.message : undefined);
+      toast.erro('Não foi possível alterar a despesa recorrente.', toggleError);
     } finally {
       setSaving(false);
     }
@@ -98,11 +98,11 @@ export function PaginaRecorrentes() {
 
     try {
       await recorrentesService.excluir(removing.id);
-      toast.sucesso('Despesa recorrente excluída', removing.descricao);
+      toast.sucesso('Despesa recorrente excluída com sucesso!', removing.descricao);
       setRemoving(null);
       recarregar();
     } catch (deleteError) {
-      toast.erro('Não foi possível excluir a despesa', deleteError instanceof Error ? deleteError.message : undefined);
+      toast.erro('Não foi possível excluir a despesa recorrente.', deleteError);
       setRemoving(null);
     } finally {
       setSaving(false);

@@ -4,9 +4,9 @@
 
 .body {
   display: grid;
-  grid-template-columns: 232px minmax(0, 1fr);
+  grid-template-columns: 208px minmax(0, 1fr);
   align-items: center;
-  gap: var(--space-5);
+  gap: var(--space-4);
 }
 
 .chart {
@@ -75,17 +75,18 @@
 .name {
   flex: 1;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: var(--lh-snug);
+  overflow-wrap: anywhere;
 }
 
 .share {
+  flex-shrink: 0;
   font-size: var(--fs-xs);
   color: var(--text-subtle);
 }
 
 .value {
+  flex-shrink: 0;
   margin-left: auto;
 }
 
@@ -96,7 +97,7 @@
   }
 
   .chart {
-    width: 232px;
+    width: 208px;
   }
 
   .legend {

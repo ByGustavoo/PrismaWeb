@@ -1,5 +1,5 @@
 export { dashboardService } from './dashboard.service';
-export type { PeriodoDashboard } from './mocks';
+export type { PeriodoDashboard } from './dashboard.service';
 export { lancamentosService } from './lancamentos.service';
 export type { FiltroLancamentoDTO } from './lancamentos.service';
 export { contasService } from './contas.service';
@@ -9,7 +9,7 @@ export { investimentosService } from './investimentos.service';
 export { orcamentoService } from './orcamento.service';
 export { recorrentesService } from './recorrentes.service';
 export { metasService } from './metas.service';
-export type { FiltroMeta } from './mocks';
+export type { FiltroMeta } from './metas.service';
 export { previsaoService } from './previsao.service';
 export { relatoriosService } from './relatorios.service';
 export { avisosService } from './avisos.service';

@@ -50,10 +50,6 @@ export function deChaveMes(monthKey: string): Date {
   return new Date(year ?? 1970, (month ?? 1) - 1, 1);
 }
 
-export function ehChaveMes(value: string | null | undefined): value is string {
-  return typeof value === 'string' && /^\d{4}-(0[1-9]|1[0-2])$/.test(value);
-}
-
 export function deslocarChaveMes(monthKey: string, amount: number): string {
   return paraChaveMes(somarMeses(deChaveMes(monthKey), amount));
 }

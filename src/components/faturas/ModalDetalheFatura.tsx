@@ -3,6 +3,7 @@ import { Receipt } from 'lucide-react';
 import { tomDaFatura } from '@/components/cartoes/aparencia';
 import { ValorMonetario } from '@/components/comum';
 import { Selo, Botao, EstadoVazio, BlocoCarregando, Modal } from '@/components/ui';
+import { corDaPaleta } from '@/constants/cores';
 import { rotuloSituacaoFatura } from '@/constants/cartoes';
 import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
 import { cartoesService } from '@/services';
@@ -87,7 +88,7 @@ export function ModalDetalheFatura({ fatura, aoFechar }: ModalDetalheFaturaProps
               <span className={styles.itemText}>
                 <span className={styles.itemDescription}>
                   {item.descricao}
-                  {item.parcela ? (
+                  {item.parcela && item.parcela.total > 1 ? (
                     <span className={styles.installment}>
                       {item.parcela.numero}/{item.parcela.total}
                     </span>
@@ -98,7 +99,7 @@ export function ModalDetalheFatura({ fatura, aoFechar }: ModalDetalheFaturaProps
                   <span className={styles.category}>
                     <span
                       className={styles.categoryDot}
-                      style={{ backgroundColor: `var(--chart-${item.categoria.tokenCor})` }}
+                      style={{ backgroundColor: corDaPaleta(item.categoria.tokenCor) }}
                       aria-hidden="true"
                     />
                     {item.categoria.nome}

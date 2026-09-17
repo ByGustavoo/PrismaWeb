@@ -21,15 +21,6 @@ export function erroTexto(value: string, { sujeito, ausente, maximo, minimo = TA
   return undefined;
 }
 
-export function cabeNaColunaValor(value: number): boolean {
-  const factor = 10 ** CASAS_DECIMAIS_MAXIMAS_VALOR;
-  return (
-    Number.isFinite(value) &&
-    Math.round(value * factor) / factor === value &&
-    Math.abs(value) < 10 ** DIGITOS_INTEIROS_MAXIMOS_VALOR
-  );
-}
-
 interface RegraValor {
   sujeito: string;
   ausente: string;

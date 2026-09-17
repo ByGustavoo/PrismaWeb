@@ -153,6 +153,45 @@
   display: inline-flex;
 }
 
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+.contribute {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
+  min-height: var(--control-height-sm);
+  padding: 0 var(--space-3);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--accent);
+  background-color: var(--accent-soft);
+  border-radius: var(--radius-pill);
+  pointer-events: auto;
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.contribute:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+@media (hover: hover) {
+  .contribute:hover {
+    color: var(--accent-contrast);
+    background-color: var(--accent);
+  }
+}
+
 .since {
   margin: 0;
   max-width: none;

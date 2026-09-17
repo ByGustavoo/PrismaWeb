@@ -70,18 +70,15 @@ export function PaginaCartoes() {
     try {
       if (editing) {
         await cartoesService.atualizar(editing.id, payload);
-        toast.sucesso('Cartão atualizado', payload.nome);
+        toast.sucesso('Cartão atualizado com sucesso!', payload.nome);
       } else {
         await cartoesService.criar(payload);
-        toast.sucesso('Cartão cadastrado', payload.nome);
+        toast.sucesso('Cartão cadastrado com sucesso!', payload.nome);
       }
       closeForm();
       recarregar();
     } catch (submitError) {
-      toast.erro(
-        'Não foi possível salvar o cartão',
-        submitError instanceof Error ? submitError.message : undefined,
-      );
+      toast.erro('Não foi possível salvar o cartão.', submitError);
     } finally {
       setSaving(false);
     }
@@ -93,14 +90,11 @@ export function PaginaCartoes() {
 
     try {
       await cartoesService.excluir(removing.id);
-      toast.sucesso('Cartão excluído', removing.nome);
+      toast.sucesso('Cartão excluído com sucesso!', removing.nome);
       setRemoving(null);
       recarregar();
     } catch (deleteError) {
-      toast.erro(
-        'Não foi possível excluir o cartão',
-        deleteError instanceof Error ? deleteError.message : undefined,
-      );
+      toast.erro('Não foi possível excluir o cartão.', deleteError);
       setRemoving(null);
     } finally {
       setSaving(false);

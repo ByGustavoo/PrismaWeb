@@ -1,7 +1,7 @@
 import { Check, Monitor, Moon, Sun } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { CabecalhoPagina } from '@/components/layout';
-import { Selo, Painel, CorpoPainel, CabecalhoPainel } from '@/components/ui';
+import { Painel, CorpoPainel, CabecalhoPainel } from '@/components/ui';
 import { ambiente } from '@/constants/ambiente';
 import { useTema } from '@/providers/ProvedorTema';
 import type { ModoTema } from '@/providers/ProvedorTema';
@@ -65,26 +65,6 @@ export function PaginaConfiguracoes() {
                 <dt>VITE_API_URL</dt>
                 <dd className="tabular">{ambiente.urlApi}</dd>
               </div>
-              <div className={styles.detailRow}>
-                <dt>Origem dos dados</dt>
-                <dd>
-                  {ambiente.usarMocks ? (
-                    <Selo tom="warning" ponto>
-                      Dados mockados
-                    </Selo>
-                  ) : (
-                    <Selo tom="positive" ponto>
-                      API real
-                    </Selo>
-                  )}
-                </dd>
-              </div>
-              {ambiente.usarMocks ? (
-                <div className={styles.detailRow}>
-                  <dt>Latência simulada</dt>
-                  <dd className="tabular">{ambiente.atrasoMocks} ms</dd>
-                </div>
-              ) : null}
             </dl>
           </CorpoPainel>
         </Painel>

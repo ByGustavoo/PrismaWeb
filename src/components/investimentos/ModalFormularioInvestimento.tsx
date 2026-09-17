@@ -1,21 +1,25 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ValorMonetario } from '@/components/comum';
-import { Botao, SeletorData, CampoTexto, Modal, CampoSelecao, AreaTexto } from '@/components/ui';
-import { rotuloClasseAtivo, classesAtivo } from '@/constants/investimentos';
+import { Botao, SeletorData, CampoTexto, Modal, CampoSelecao, AreaTexto, CampoValor } from '@/components/ui';
+import { rotuloClasseAtivo, classesAtivo, dicaClasseAtivo } from '@/constants/investimentos';
 import { limitesTexto } from '@/constants/validacao';
 import { useValidacaoFormulario } from '@/hooks/useValidacaoFormulario';
 import type { ErrosCampos } from '@/hooks/useValidacaoFormulario';
-import type { ClasseAtivo, InvestimentoDTO, Opcao, SalvarInvestimentoDTO } from '@/types';
+import type { AtualizarInvestimentoDTO, ClasseAtivo, InvestimentoDTO, Opcao, SalvarInvestimentoDTO } from '@/types';
 import { hojeISO } from '@/utils/data';
-import { formatarPercentualComSinal, interpretarEntradaValor, paraEntradaValor } from '@/utils/formatacao';
+import { formatarPercentualComSinal, interpretarEntradaValor } from '@/utils/formatacao';
 import { erroValor, erroTexto } from '@/utils/validacao';
 import styles from './FormularioInvestimento.module.css';
+
+export type ResultadoFormularioInvestimento =
+  | { modo: 'create'; dados: SalvarInvestimentoDTO }
+  | { modo: 'update'; dados: AtualizarInvestimentoDTO };
 
 interface ModalFormularioInvestimentoProps {
   aberto: boolean;
   investimento: InvestimentoDTO | null;
   salvando: boolean;
-  aoEnviar: (payload: SalvarInvestimentoDTO) => void;
+  aoEnviar: (resultado: ResultadoFormularioInvestimento) => void;
   aoFechar: () => void;
 }
 
@@ -35,22 +39,21 @@ const limites = {
   observacoes: limitesTexto.observacoes,
 };
 
-const opcoesClasse: Opcao[] = classesAtivo.map((assetClass) => ({ valor: assetClass, rotulo: rotuloClasseAtivo[assetClass],
-}));
+const opcoesClasse: Opcao[] = classesAtivo.map((assetClass) => ({ valor: assetClass, rotulo: rotuloClasseAtivo[assetClass] }));
 
 function estadoInicial(investment: InvestimentoDTO | null): EstadoFormulario {
   return {
     nome: investment?.nome ?? '',
     classeAtivo: investment?.classeAtivo ?? 'RENDA_FIXA',
     instituicao: investment?.instituicao ?? '',
-    aportado: investment ? paraEntradaValor(investment.aportado) : '',
-    valorAtual: investment ? paraEntradaValor(investment.valorAtual) : '',
-    dataInicio: investment?.dataInicio ?? hojeISO(),
+    aportado: '',
+    valorAtual: '',
+    dataInicio: hojeISO(),
     observacoes: investment?.observacoes ?? '',
   };
 }
 
-function validar(form: EstadoFormulario): ErrosCampos<EstadoFormulario> {
+function validar(form: EstadoFormulario, editing: boolean): ErrosCampos<EstadoFormulario> {
   const errors: ErrosCampos<EstadoFormulario> = {
     nome: erroTexto(form.nome, {
       sujeito: 'O nome do investimento',
@@ -62,31 +65,39 @@ function validar(form: EstadoFormulario): ErrosCampos<EstadoFormulario> {
       ausente: 'Informe onde o dinheiro está aplicado!',
       maximo: limitesTexto.instituicao,
     }),
-    aportado: erroValor(form.aportado, {
-      sujeito: 'O total aportado',
-      ausente: 'Informe quanto já foi aportado!',
-      sinal: 'positive',
-    }),
-    valorAtual: erroValor(form.valorAtual, {
-      sujeito: 'O valor atual',
-      ausente: 'Informe quanto a posição vale hoje!',
-      sinal: 'non-negative',
-    }),
     observacoes: erroTexto(form.observacoes, { sujeito: 'A observação', maximo: limitesTexto.observacoes }),
   };
 
+  if (editing) return errors;
+
+  errors.aportado = erroValor(form.aportado, {
+    sujeito: 'A aplicação inicial',
+    ausente: 'Informe o valor da aplicação inicial!',
+    sinal: 'positive',
+  });
+  errors.valorAtual = erroValor(form.valorAtual, {
+    sujeito: 'O saldo atual',
+    ausente: 'Informe quanto o investimento vale hoje!',
+    sinal: 'non-negative',
+  });
+
   if (!form.dataInicio) {
-    errors.dataInicio = 'Informe a data do primeiro aporte!';
+    errors.dataInicio = 'Informe a data da aplicação inicial!';
   } else if (form.dataInicio > hojeISO()) {
-    errors.dataInicio = 'O primeiro aporte não pode estar no futuro!';
+    errors.dataInicio = 'A aplicação inicial não pode estar no futuro!';
   }
 
   return errors;
 }
 
 export function ModalFormularioInvestimento({ aberto, investimento, salvando, aoEnviar, aoFechar }: ModalFormularioInvestimentoProps) {
+  const editing = investimento !== null;
   const [form, setForm] = useState<EstadoFormulario>(() => estadoInicial(investimento));
-  const { erros, refFormulario, tocar, enviar, reiniciar } = useValidacaoFormulario(form, validar, { limites });
+  const { erros, refFormulario, tocar, enviar, reiniciar } = useValidacaoFormulario(
+    form,
+    (values) => validar(values, editing),
+    { limites },
+  );
 
   useEffect(() => {
     if (!aberto) return;
@@ -95,12 +106,13 @@ export function ModalFormularioInvestimento({ aberto, investimento, salvando, ao
   }, [aberto, investimento, reiniciar]);
 
   const preview = useMemo(() => {
+    if (editing) return null;
     const invested = interpretarEntradaValor(form.aportado);
     const currentValue = interpretarEntradaValor(form.valorAtual);
     if (invested === undefined || currentValue === undefined || invested <= 0) return null;
 
     return { profit: currentValue - invested, profitability: ((currentValue - invested) / invested) * 100 };
-  }, [form.aportado, form.valorAtual]);
+  }, [editing, form.aportado, form.valorAtual]);
 
   const set = <K extends keyof EstadoFormulario>(field: K, value: EstadoFormulario[K]) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -109,23 +121,41 @@ export function ModalFormularioInvestimento({ aberto, investimento, salvando, ao
   const handleSubmit = () => {
     if (!enviar()) return;
 
-    aoEnviar({
+    const base = {
       nome: form.nome,
       classeAtivo: form.classeAtivo,
       instituicao: form.instituicao,
-      aportado: interpretarEntradaValor(form.aportado) ?? 0,
-      valorAtual: interpretarEntradaValor(form.valorAtual) ?? 0,
-      dataInicio: form.dataInicio,
       observacoes: form.observacoes,
+    };
+
+    if (editing) {
+      aoEnviar({ modo: 'update', dados: base });
+      return;
+    }
+
+    aoEnviar({
+      modo: 'create',
+      dados: {
+        ...base,
+        aportado: interpretarEntradaValor(form.aportado) ?? 0,
+        valorAtual: interpretarEntradaValor(form.valorAtual) ?? 0,
+        dataInicio: form.dataInicio,
+      },
     });
   };
+
+  const classHint = dicaClasseAtivo[form.classeAtivo];
 
   return (
     <Modal
       aberto={aberto}
       aoFechar={aoFechar}
-      titulo={investimento ? 'Editar investimento' : 'Novo investimento'}
-      descricao="O valor atual é o que a posição vale hoje; o aportado é a soma do que você colocou nela."
+      titulo={editing ? 'Editar investimento' : 'Novo investimento'}
+      descricao={
+        editing
+          ? 'Aportes e saldo têm registro próprio, no detalhe do investimento, para o histórico não se perder.'
+          : 'Informe quanto você aplicou no começo e quanto o investimento vale hoje.'
+      }
       tamanho="lg"
       rodape={
         <>
@@ -133,7 +163,7 @@ export function ModalFormularioInvestimento({ aberto, investimento, salvando, ao
             Cancelar
           </Botao>
           <Botao onClick={handleSubmit} carregando={salvando}>
-            {investimento ? 'Salvar alterações' : 'Cadastrar investimento'}
+            {editing ? 'Salvar alterações' : 'Cadastrar investimento'}
           </Botao>
         </>
       }
@@ -151,7 +181,7 @@ export function ModalFormularioInvestimento({ aberto, investimento, salvando, ao
           className={styles.full}
           required
           rotulo="Nome"
-          placeholder="CDB Liquidez Diária, Tesouro IPCA+ 2029..."
+          placeholder="CDB Liquidez Diária, Caixinha da viagem, PGBL..."
           value={form.nome}
           onChange={(event) => set('nome', event.target.value)}
           onBlur={() => tocar('nome')}
@@ -166,6 +196,7 @@ export function ModalFormularioInvestimento({ aberto, investimento, salvando, ao
           opcoes={opcoesClasse}
           value={form.classeAtivo}
           onChange={(value) => set('classeAtivo', value as ClasseAtivo)}
+          {...(classHint ? { dica: classHint } : {})}
         />
 
         <CampoTexto
@@ -179,40 +210,38 @@ export function ModalFormularioInvestimento({ aberto, investimento, salvando, ao
           erro={erros.instituicao}
         />
 
-        <CampoTexto
-          required
-          rotulo="Total aportado"
-          prefixo="R$"
-          inputMode="decimal"
-          placeholder="0,00"
-          value={form.aportado}
-          onChange={(event) => set('aportado', event.target.value)}
-          onBlur={() => tocar('aportado')}
-          erro={erros.aportado}
-          dica="Soma de tudo que já entrou nesta posição."
-        />
+        {editing ? null : (
+          <>
+            <CampoValor
+              required
+              rotulo="Aplicação inicial"
+              valor={form.aportado}
+              aoMudar={(value) => set('aportado', value)}
+              onBlur={() => tocar('aportado')}
+              erro={erros.aportado}
+              dica="O dinheiro que você colocou no começo. Os próximos aportes entram pelo detalhe."
+            />
 
-        <CampoTexto
-          required
-          rotulo="Valor atual"
-          prefixo="R$"
-          inputMode="decimal"
-          placeholder="0,00"
-          value={form.valorAtual}
-          onChange={(event) => set('valorAtual', event.target.value)}
-          onBlur={() => tocar('valorAtual')}
-          erro={erros.valorAtual}
-          dica="Quanto a posição vale hoje, com rendimento."
-        />
+            <CampoValor
+              required
+              rotulo="Saldo atual"
+              valor={form.valorAtual}
+              aoMudar={(value) => set('valorAtual', value)}
+              onBlur={() => tocar('valorAtual')}
+              erro={erros.valorAtual}
+              dica="Quanto vale hoje, já com o rendimento."
+            />
 
-        <SeletorData
-          required
-          rotulo="Primeiro aporte"
-          max={hojeISO()}
-          value={form.dataInicio}
-          onChange={(startDate) => set('dataInicio', startDate)}
-          erro={erros.dataInicio}
-        />
+            <SeletorData
+              required
+              rotulo="Data da aplicação inicial"
+              max={hojeISO()}
+              value={form.dataInicio}
+              onChange={(startDate) => set('dataInicio', startDate)}
+              erro={erros.dataInicio}
+            />
+          </>
+        )}
 
         <AreaTexto
           className={styles.full}
@@ -232,7 +261,8 @@ export function ModalFormularioInvestimento({ aberto, investimento, salvando, ao
               <span className="tabular">{formatarPercentualComSinal(preview.profitability)}</span>
             </strong>
             <span>
-              {preview.profit >= 0 ? 'De rendimento acumulado' : 'De prejuízo acumulado'} sobre o valor aportado.
+              {preview.profit >= 0 ? 'De rendimento' : 'De perda'} sobre a aplicação inicial, registrado hoje como
+              atualização de saldo.
             </span>
           </p>
         ) : null}

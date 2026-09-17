@@ -1,97 +1,232 @@
 .viewport {
   position: fixed;
-  bottom: var(--space-5);
   right: var(--space-5);
+  bottom: calc(var(--space-5) - var(--space-3));
   z-index: var(--z-toast);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  width: min(360px, calc(100vw - var(--space-8)));
+  width: min(400px, calc(100vw - var(--space-8)));
   pointer-events: none;
 }
 
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: grid;
+  grid-template-rows: 1fr;
+  padding-bottom: var(--space-3);
+  pointer-events: auto;
+  animation: expand var(--duration-slow) var(--ease-out);
+}
+
+.clip {
+  min-height: 0;
+}
+
 .toast {
+  --tone: var(--accent);
+  --tone-text: var(--accent);
+  --tone-soft: var(--accent-soft);
+
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-3) var(--space-2) calc(var(--space-3) + 3px) var(--space-3);
+  overflow: hidden;
   background-color: var(--surface-raised);
   border: 1px solid var(--border);
-  border-left: 3px solid var(--border-strong);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-overlay);
-  pointer-events: auto;
-  animation: slide-in var(--duration-base) var(--ease-out);
+  touch-action: pan-y;
+  transform: translateX(var(--deslize, 0px));
+  opacity: calc(1 - var(--deslize-fracao, 0));
+  transition:
+    transform var(--duration-base) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+  animation: enter var(--duration-slow) var(--ease-spring);
+}
+
+.toast.dragging {
+  transition: none;
 }
 
 .success {
-  border-left-color: var(--positive);
-}
-.success .icon {
-  color: var(--positive);
+  --tone: var(--chart-2);
+  --tone-text: var(--positive);
+  --tone-soft: var(--positive-soft);
 }
 
 .error {
-  border-left-color: var(--negative);
-}
-.error .icon {
-  color: var(--negative);
+  --tone: var(--chart-3);
+  --tone-text: var(--negative);
+  --tone-soft: var(--negative-soft);
 }
 
 .warning {
-  border-left-color: var(--warning-graphic);
-}
-.warning .icon {
-  color: var(--warning);
-}
-
-.info {
-  border-left-color: var(--accent);
-}
-.info .icon {
-  color: var(--accent);
+  --tone: var(--warning-graphic);
+  --tone-text: var(--warning);
+  --tone-soft: var(--warning-soft);
 }
 
-.icon {
-  margin-top: 2px;
+.badge {
+  display: grid;
+  place-items: center;
   flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  margin-top: calc((var(--fs-base) * var(--lh-snug) - 24px) / 2);
+  color: var(--tone-text);
+  background-color: var(--tone-soft);
+  border-radius: var(--radius-pill);
 }
 
 .text {
   flex: 1;
   min-width: 0;
+  padding-top: 1px;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
 }
 
 .title {
-  font-weight: 500;
+  margin: 0;
+  color: var(--text);
   font-size: var(--fs-base);
+  font-weight: 600;
+  line-height: var(--lh-snug);
 }
 
 .description {
-  margin-top: 2px;
+  margin: 2px 0 0;
   color: var(--text-muted);
   font-size: var(--fs-sm);
+  line-height: var(--lh-snug);
 }
 
 .close {
+  position: relative;
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  width: var(--tap-size);
-  height: var(--tap-size);
-  margin: calc(var(--space-2) * -1) calc(var(--space-2) * -1) 0 0;
+  width: 28px;
+  height: 28px;
+  margin-top: calc((var(--fs-base) * var(--lh-snug) - 28px) / 2);
   color: var(--text-subtle);
-  border-radius: var(--radius-xs);
-  transition: color var(--duration-fast) var(--ease-out);
+  border-radius: var(--radius-sm);
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
 }
 
-.close:hover {
+.close::after {
+  content: '';
+  position: absolute;
+  width: max(var(--tap-size), 36px);
+  height: max(var(--tap-size), 36px);
+}
+
+.close:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
   color: var(--text);
 }
 
-@keyframes slide-in {
+@media (hover: hover) {
+  .close:hover {
+    color: var(--text);
+    background-color: var(--surface-muted);
+  }
+}
+
+.progress {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background-color: var(--tone);
+  transform-origin: left center;
+  animation-name: drain;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+  transition: opacity var(--duration-base) var(--ease-out);
+}
+
+.progressPaused {
+  animation-play-state: paused;
+  opacity: 0.4;
+}
+
+.leaving {
+  pointer-events: none;
+  animation: collapse var(--duration-slow) var(--ease-out) forwards;
+}
+
+.leaving .toast {
+  animation: leave var(--duration-base) var(--ease-out) forwards;
+}
+
+@keyframes expand {
+  from {
+    grid-template-rows: 0fr;
+    padding-bottom: 0;
+  }
+}
+
+@keyframes enter {
   from {
     opacity: 0;
-    transform: translateX(12px);
+    transform: translateY(16px) scale(0.96);
+  }
+}
+
+@keyframes leave {
+  from {
+    transform: translateX(var(--deslize, 0px));
+  }
+  to {
+    opacity: 0;
+    transform: translateX(calc(var(--deslize, 0px) + 32px));
+  }
+}
+
+@keyframes collapse {
+  0%,
+  35% {
+    grid-template-rows: 1fr;
+    padding-bottom: var(--space-3);
+  }
+  100% {
+    grid-template-rows: 0fr;
+    padding-bottom: 0;
+  }
+}
+
+@keyframes drain {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@media (max-width: 600px) {
+  .viewport {
+    right: var(--space-3);
+    bottom: env(safe-area-inset-bottom, 0px);
+    left: var(--space-3);
+    width: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress {
+    display: none;
   }
 }

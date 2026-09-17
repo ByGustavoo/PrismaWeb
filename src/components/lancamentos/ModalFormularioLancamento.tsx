@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Botao, SeletorData, CampoTexto, Modal, CampoSelecao, AreaTexto } from '@/components/ui';
+import { Botao, SeletorData, CampoTexto, Modal, CampoSelecao, AreaTexto, CampoValor } from '@/components/ui';
 import {
   rotuloFormaLancamento,
   formasLancamento,
@@ -206,14 +206,11 @@ export function ModalFormularioLancamento({
           autoFocus
         />
 
-        <CampoTexto
+        <CampoValor
           required
           rotulo="Valor"
-          prefixo="R$"
-          inputMode="decimal"
-          placeholder="0,00"
-          value={form.valor}
-          onChange={(event) => set('valor', event.target.value)}
+          valor={form.valor}
+          aoMudar={(value) => set('valor', value)}
           onBlur={() => tocar('valor')}
           erro={erros.valor}
         />

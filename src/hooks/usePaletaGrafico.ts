@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { TOKENS_PALETA } from '@/constants/cores';
 import { useTema } from '@/providers/ProvedorTema';
 
 export interface PaletaGrafico {
@@ -8,6 +9,7 @@ export interface PaletaGrafico {
   borda: string;
   textoEixo: string;
   series: string[];
+  paleta: string[];
 }
 
 export function usePaletaGrafico(): PaletaGrafico {
@@ -24,6 +26,7 @@ export function usePaletaGrafico(): PaletaGrafico {
       borda: read('--border-strong'),
       textoEixo: read('--text-subtle'),
       series: [1, 2, 3, 4, 5, 6, 7, 8].map((index) => read(`--chart-${index}`)),
+      paleta: TOKENS_PALETA.map((token) => read(`--palette-${token}`)),
     };
   }, [tema]);
 }

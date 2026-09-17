@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Botao, SeletorData, CampoTexto, Modal, CampoSelecao, AreaTexto } from '@/components/ui';
+import { Botao, SeletorData, CampoTexto, Modal, CampoSelecao, AreaTexto, CampoValor } from '@/components/ui';
 import { opcoesSituacaoMeta } from '@/constants/metas';
 import { limitesTexto } from '@/constants/validacao';
 import { useValidacaoFormulario } from '@/hooks/useValidacaoFormulario';
@@ -187,14 +187,11 @@ export function ModalFormularioMeta({ aberto, meta, salvando, aoEnviar, aoFechar
 
         {editing ? null : (
           <>
-            <CampoTexto
+            <CampoValor
               required
               rotulo="Preço inicial"
-              prefixo="R$"
-              inputMode="decimal"
-              placeholder="0,00"
-              value={form.preco}
-              onChange={(event) => set('preco', event.target.value)}
+              valor={form.preco}
+              aoMudar={(value) => set('preco', value)}
               onBlur={() => tocar('preco')}
               erro={erros.preco}
               dica="Quanto o produto custa hoje."

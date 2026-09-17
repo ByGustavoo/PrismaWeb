@@ -5,7 +5,7 @@ import styles from './BarraResumo.module.css';
 export interface ItemResumo {
   rotulo: string;
   valor: ReactNode;
-  dica?: string;
+  dica?: ReactNode;
 }
 
 export interface BarraResumoProps {

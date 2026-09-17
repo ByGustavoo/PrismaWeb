@@ -10,6 +10,21 @@ import { previsaoService } from '@/services';
 import { capitalizar, formatarRotuloMes } from '@/utils/formatacao';
 import styles from './PaginaPrevisao.module.css';
 
+function nomeMes(monthKey: string): string {
+  return capitalizar(formatarRotuloMes(monthKey)).replace(/ de \d{4}$/, '');
+}
+
+function ultimoDia(monthKey: string): number {
+  const [year, month] = monthKey.split('-').map(Number);
+  return new Date(year ?? 1970, month ?? 1, 0).getDate();
+}
+
+function rotuloBase(months: string[]): string {
+  const names = months.map((month) => nomeMes(month));
+  if (names.length <= 1) return names.join('');
+  return `${names.slice(0, -1).join(', ')} e ${names[names.length - 1]}`;
+}
+
 export function PaginaPrevisao() {
   const compact = useEhCompacto();
 
@@ -60,8 +75,19 @@ export function PaginaPrevisao() {
             itens={[
               {
                 rotulo: 'Saldo de hoje',
-                valor: <ValorMonetario valor={dados.saldoInicial} contarAoAparecer />,
-                dica: 'Ponto de partida da projeção',
+                valor: <ValorMonetario valor={dados.saldoAtual} contarAoAparecer />,
+                dica: 'Contas que entram no saldo total',
+              },
+              {
+                rotulo: `Fim de ${nomeMes(dados.restanteMesAtual.mes)}`,
+                valor: (
+                  <ValorMonetario
+                    valor={dados.saldoInicial}
+                    tom={dados.saldoInicial < 0 ? 'negative' : 'default'}
+                    contarAoAparecer
+                  />
+                ),
+                dica: 'Hoje, mais o que ainda cai neste mês. É o ponto de partida.',
               },
               {
                 rotulo: lastMonth ? `Saldo em ${capitalizar(formatarRotuloMes(lastMonth.mes))}` : 'Saldo previsto',
@@ -74,19 +100,18 @@ export function PaginaPrevisao() {
                     contarAoAparecer
                   />
                 ),
-                dica: `Ao fim dos ${dados.meses.length} meses projetados`,
-              },
-              {
-                rotulo: 'Resultado médio',
-                valor: (
-                  <ValorMonetario
-                    valor={dados.resultadoMedio}
-                    tom={dados.resultadoMedio >= 0 ? 'positive' : 'negative'}
-                    sinal="auto"
-                    contarAoAparecer
-                  />
+                dica: (
+                  <>
+                    Resultado médio de{' '}
+                    <ValorMonetario
+                      valor={dados.resultadoMedio}
+                      tamanho="sm"
+                      tom={dados.resultadoMedio >= 0 ? 'positive' : 'negative'}
+                      sinal="auto"
+                    />{' '}
+                    por mês
+                  </>
                 ),
-                dica: 'Quanto sobra (ou falta) por mês, em média',
               },
               {
                 rotulo: 'Mês mais apertado',
@@ -97,7 +122,10 @@ export function PaginaPrevisao() {
                     contarAoAparecer
                   />
                 ),
-                dica: capitalizar(formatarRotuloMes(dados.menorSaldo.mes)),
+                dica:
+                  dados.menorSaldo.mes === dados.restanteMesAtual.mes
+                    ? `Fim de ${nomeMes(dados.menorSaldo.mes)}, antes do próximo salário`
+                    : capitalizar(formatarRotuloMes(dados.menorSaldo.mes)),
               },
             ]}
           />
@@ -105,16 +133,39 @@ export function PaginaPrevisao() {
           <GraficoPrevisao dados={dados.meses} />
 
           {compact ? (
-            <ListaPrevisao meses={dados.meses} mesMaisBaixo={dados.menorSaldo.mes} />
+            <ListaPrevisao restante={dados.restanteMesAtual} meses={dados.meses} mesMaisBaixo={dados.menorSaldo.mes} />
           ) : (
-            <TabelaPrevisao meses={dados.meses} mesMaisBaixo={dados.menorSaldo.mes} />
+            <TabelaPrevisao restante={dados.restanteMesAtual} meses={dados.meses} mesMaisBaixo={dados.menorSaldo.mes} />
           )}
 
-          <p className={styles.method}>
-            A previsão parte do saldo de hoje e começa no mês que vem — o mês corrente já está no dashboard. As
-            receitas e o gasto variável usam a média dos três meses fechados anteriores; as recorrentes e as parcelas
-            entram no mês exato em que caem.
-          </p>
+          <section className={styles.method} aria-labelledby="titulo-metodo">
+            <h2 id="titulo-metodo" className={styles.methodTitle}>
+              Como a previsão é feita
+            </h2>
+            <ul className={styles.methodList}>
+              <li>
+                <strong>Ponto de partida.</strong> O saldo de hoje, somado ao que ainda falta neste mês: lançamentos
+                agendados ou pendentes, recorrentes que ainda vão vencer, parcelas com vencimento até o dia{' '}
+                {ultimoDia(dados.restanteMesAtual.mes)} e a parte proporcional do gasto variável.
+              </li>
+              <li>
+                <strong>Receitas e gasto variável.</strong> Médias de {rotuloBase(dados.base.meses)}: receitas de{' '}
+                <ValorMonetario valor={dados.base.receitaMedia} tamanho="sm" /> e despesas de{' '}
+                <ValorMonetario valor={dados.base.despesaMedia} tamanho="sm" />. Das despesas sai o que já é recorrente (
+                <ValorMonetario valor={dados.base.recorrentesMedia} tamanho="sm" />
+                ), para o aluguel não contar duas vezes.
+              </li>
+              <li>
+                <strong>Recorrentes e parcelas.</strong> Entram no mês exato em que vencem: o seguro anual aparece no
+                mês dele, e cada parcela no mês em que a fatura vence.
+              </li>
+              <li>
+                <strong>Aportes.</strong> Transferências para contas que ficam fora do saldo total, como a corretora. Em
+                média, <ValorMonetario valor={dados.base.aportesMedia} tamanho="sm" /> por mês: o dinheiro continua seu,
+                mas sai do saldo que a previsão acompanha.
+              </li>
+            </ul>
+          </section>
         </div>
       )}
     </>

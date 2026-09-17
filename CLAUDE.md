@@ -15,14 +15,16 @@ bloco de contas e cartoes — cadastro de contas, cadastro dos quatro tipos de c
 detalhe de compras e compras parceladas — e o bloco de patrimonio e analise: carteira de
 investimentos, orcamento mensal por categoria, despesas recorrentes, previsao financeira, metas e
 desejos com historico de precos, e relatorios. O backend e o PrismaAPI (Java / Spring Boot /
-PostgreSQL); com `VITE_USE_MOCKS=true` a camada de dados responde com mocks, e a escrita vive em
-memoria pelo tempo da sessao.
+PostgreSQL), e o frontend **nao tem camada de mocks**: todo dado vem do PrismaAPI. Sem o backend
+rodando, as telas abrem no estado de erro, com o botao "Tentar de novo".
 
-A Etapa 6 fechou o frontend para integracao: o `API_CONTRACT.md` da raiz especifica os 41 endpoints
-que o backend precisa expor — metodo, URL, parametros, corpo, status, validacoes e as regras de
-calculo de cada um —, e o `README.md` documenta instalacao, variaveis, como os mocks funcionam e
-como virar a chave para a API real. **Ao mudar um contrato em `src/types/financas.ts`, uma rota em
-`src/api/rotasApi.ts` ou uma validacao de store, atualize o `API_CONTRACT.md` no mesmo trabalho.**
+O `API_CONTRACT.md` da raiz **nao e mais a especificacao completa**: ele lista so o que o PrismaAPI
+ainda precisa implementar para acompanhar o frontend (endpoints novos, contratos que mudaram,
+migracoes e regras de calculo), conferido contra o codigo de `D:\Projetos\PrismaAPI`. O que ja existe
+no backend nao entra nele. O `README.md` documenta instalacao e variaveis. **Ao mudar um contrato em
+`src/types/financas.ts`, uma rota em `src/api/rotasApi.ts` ou uma regra que o backend precisa aplicar,
+acrescente a pendencia ao `API_CONTRACT.md` no mesmo trabalho** — e, quando o backend a implementar,
+tire-a de la.
 Tres documentos que divergem valem menos que um so.
 
 ## Comandos
@@ -63,22 +65,23 @@ Estas sao as invariantes do projeto. Quebra-las e o erro mais caro que se pode c
 2. **URLs da API so em `src/api/rotasApi.ts`.** Nenhuma string de rota de backend escrita fora
    desse arquivo.
 
-3. **Componentes nunca chamam `fetch` nem `clienteHttp`.** Eles chamam services. Quem decide entre
-   mock e API real e o service, sempre com o mesmo formato:
+3. **Componentes nunca chamam `fetch` nem `clienteHttp`.** Eles chamam services, e o service e uma
+   camada fina sobre o `clienteHttp`, sempre com o mesmo formato:
 
    ```ts
    export const dashboardService = {
-     buscarResumo(signal?: AbortSignal): Promise<DashboardDTO> {
-       if (ambiente.usarMocks) {
-         return respostaMock(montarResumoDashboard(), signal);
-       }
-       return clienteHttp.get<DashboardDTO>(rotasApi.dashboard.resumo, { signal });
+     buscarResumo(period?: PeriodoDashboard, signal?: AbortSignal): Promise<DashboardDTO> {
+       return clienteHttp.get<DashboardDTO>(rotasApi.dashboard.resumo, {
+         consulta: { dataInicial: period?.dataInicial, dataFinal: period?.dataFinal },
+         signal,
+       });
      },
    };
    ```
 
-   Todo mock passa por `respostaMock`, que aplica latencia artificial e respeita `AbortSignal`.
-   Assim as telas ja exercitam carregamento, erro e cancelamento como fariam contra o backend real.
+   **Nao ha mocks nem dados ficticios no frontend**, e nao devem voltar sem o usuario pedir: a camada
+   `services/mocks` e a flag `VITE_USE_MOCKS` foram removidas a pedido dele. Calculo de saldo, fatura,
+   previsao, avisos e evolucao e trabalho do backend, descrito no `API_CONTRACT.md`.
 
 4. **Nenhum hex em componente.** Toda cor, espacamento, raio e tipografia sai dos tokens em
    `src/styles/tokens.css`, sob `[data-theme='light']` e `[data-theme='dark']`.
@@ -122,9 +125,15 @@ Estas sao as invariantes do projeto. Quebra-las e o erro mais caro que se pode c
 
 8. **Excecao ao token de cor: Recharts.** A biblioteca escreve cor como atributo de SVG, onde
    `var(--token)` nao resolve de forma confiavel. Use o hook `usePaletaGrafico`, que le os tokens
-   computados e recalcula quando o tema muda. A serie tem oito cores (`--chart-1` a `--chart-8`);
-   as duas ultimas entraram com a distribuicao da carteira, que tem oito classes de ativo e nao
-   pode repetir cor entre fatias vizinhas.
+   computados e recalcula quando o tema muda. Ha duas familias de cor de grafico, e elas nao se
+   misturam. As **series** (`--chart-1` a `--chart-8`) sao semanticas: receita, despesa, saldo,
+   aporte. A **paleta categorica** (`--palette-1` a `--palette-16`, lida em `paleta`) da identidade
+   a uma categoria ou a uma classe de ativo, e cada item tem um token fixo — `CategoriaDTO.tokenCor`
+   e `corClasseAtivo`. Fora do Recharts, `corDaPaleta(token)` (`constants/cores.ts`) devolve o
+   `var()`. As dezesseis cores foram escolhidas por script: todas passam de 4:1 sobre a superficie
+   nos dois temas, e a menor distancia OKLab entre duas despesas e 0,076 no claro e 0,084 no escuro.
+   Ao mexer numa cor, refaca a conta — duas categorias parecidas no mesmo grafico e o defeito que a
+   paleta existe para evitar.
 
 ## Estrutura
 
@@ -132,9 +141,9 @@ Estas sao as invariantes do projeto. Quebra-las e o erro mais caro que se pode c
 src/
 ├── api/           clienteHttp, ErroApi, rotasApi
 ├── components/
-│   ├── ui/        Botao, Painel, CampoTexto, AreaTexto, CampoSelecao, SeletorData, Interruptor, Modal,
+│   ├── ui/        Botao, Painel, CampoTexto, CampoValor, AreaTexto, CampoSelecao, SeletorData, Interruptor, Modal,
 │   │              DialogoConfirmacao, Selo, Tabela, BarraProgresso, Carregamento, EstadoVazio, Notificacao
-│   ├── comum/     ValorMonetario, MarcaPrisma, IndicadorVariacao, BarraResumo
+│   ├── comum/     ValorMonetario, MarcaPrisma, IndicadorVariacao, BarraResumo, HistoricoMovimentacoes
 │   ├── layout/    MenuLateral, Cabecalho, EspacoCabecalho, CabecalhoPagina, PainelAvisos,
 │   │              BuscaGlobal, SeletorPeriodo
 │   ├── dashboard/ PainelSaldo, BlocoIndicador, GraficoFluxoCaixa, DistribuicaoCategorias,
@@ -142,21 +151,24 @@ src/
 │   ├── lancamentos/ FiltrosLancamentos, TabelaLancamentos, ListaLancamentos (cartoes),
 │   │              AlternadorVisualizacao (densidade da listagem), formularios de lancamento,
 │   │              aparencia (icone/cor por tipo e situacao) e consulta (filtro, periodo e ordenacao)
-│   ├── contas/    CartaoConta, ModalFormularioConta, aparencia (icone por tipo, tom por situacao)
+│   ├── contas/    CartaoConta, CartaoReserva, ModalDetalheConta, ModalFormularioConta,
+│   │              aparencia (icone por tipo, tom por situacao)
 │   ├── cartoes/   BlocoCartao, ModalFormularioCartao, aparencia (icone, tom de limite, tom de fatura)
 │   ├── faturas/   EntradaFatura (destaque e linha), ModalDetalheFatura
-│   ├── parcelamentos/ CartaoParcelamento (com cronograma), ModalFormularioParcelamento
+│   ├── parcelamentos/ CartaoParcelamento (com cronograma), ModalFormularioParcelamento,
+│   │              consulta (situacao e ordenacao)
 │   ├── investimentos/ GraficoAlocacao (rosca), GraficoCarteira, CartaoInvestimento,
-│   │              ModalFormularioInvestimento, aparencia (cor da classe, tom do resultado)
+│   │              ModalFormularioInvestimento, ModalDetalheInvestimento (aporte, saldo e historico),
+│   │              aparencia (cor da classe, tom do resultado)
 │   ├── orcamento/ NavegadorMes, LinhaOrcamento, ModalFormularioOrcamento
 │   ├── recorrentes/ CartaoRecorrente, ModalFormularioRecorrente
 │   ├── metas/     CartaoMeta, ModalFormularioMeta, ModalDetalheMeta, FiltrosMetas, VariacaoPreco,
 │   │              MiniCurvaPreco, GraficoHistoricoPreco, aparencia e consulta (busca, filtro e ordenacao)
 │   ├── previsao/  GraficoPrevisao, TabelaPrevisao, ListaPrevisao (versao compacta)
 │   ├── relatorios/ SeletorPeriodoRelatorio, DistribuicaoOrigens, GraficoEvolucaoSaldo, GraficoPatrimonio
-│   └── graficos/  DicaGrafico
+│   └── graficos/  DicaGrafico, GraficoEvolucao (valor x aportado), MiniCurva
 ├── constants/     ambiente, aplicacao, navegacao, avisos, lancamentos, contas, cartoes, investimentos,
-│                  orcamento, recorrentes, metas, previsao, relatorios, validacao
+│                  orcamento, recorrentes, metas, previsao, relatorios, validacao, notificacoes, cores
 ├── hooks/         useDadosAssincronos, useConsultaMidia, useArmazenamentoLocal, useTravarRolagem,
 │                  usePaletaGrafico, useContagem, useValidacaoFormulario
 ├── layouts/       LayoutAplicacao (sidebar + header + conteudo)
@@ -167,13 +179,9 @@ src/
 ├── routes/        RotasAplicacao, caminhos
 ├── services/      dashboard, lancamentos, categorias, contas, cartoes, investimentos, orcamento,
 │                  recorrentes, metas, previsao, relatorios, avisos
-│   └── mocks/     dados, saldo, agregacao, lancamentos.store, contas.store, cartoes.store,
-│                  investimentos.store, orcamento.store, recorrentes.store, metas.store,
-│                  dashboard.mock, cartoes.mock, investimentos.mock, orcamento.mock, recorrentes.mock,
-│                  metas.mock, previsao.mock, relatorios.mock, avisos.mock, respostaMock
 ├── styles/        tokens.css, global.css
 ├── types/         comum, financas
-└── utils/         juntarClasses, data, formatacao, validacao, foco
+└── utils/         juntarClasses, data, formatacao, validacao, foco, mascaraValor
 ```
 
 Cada pasta de componentes tem um `index.ts` de barril — ao criar um componente novo, exporte-o la.
@@ -184,12 +192,12 @@ Cada pasta de componentes tem um `index.ts` de barril — ao criar um componente
   Use import absoluto entre pastas; relativo so dentro da mesma pasta.
 - **Um `.module.css` ao lado do componente**, mesmo nome do arquivo.
 - **Texto de interface e portugues brasileiro acentuado.** Titulo, label, descricao, placeholder,
-  `aria-label`, mensagem de erro, texto de toast e dado de mock que chega a tela usam acentuacao
+  `aria-label`, mensagem de erro e texto de toast usam acentuacao
   correta: `Lancamentos` -> `Lançamentos`, `Configuracoes` -> `Configurações`. Titulos e labels
   seguem capitalizacao de frase ("Últimos lançamentos", "Rentabilidade acumulada"), nunca tudo em
   minusculo nem title case ao estilo ingles.
 - **O que nao aparece na tela continua em ASCII puro:** nomes de variaveis, chaves de objeto, ids
-  de mock (`cat-saude`) e as rotas em `src/routes/caminhos.ts` (`/lancamentos`, `/configuracoes`).
+  de categoria (`cat-saude`) e as rotas em `src/routes/caminhos.ts` (`/lancamentos`, `/configuracoes`).
   Manter essa separacao evita quebrar referencias no codigo.
 - **O projeto nao tem comentarios.** Nem de linha, nem de bloco, nem JSDoc — em `.ts`, `.tsx`,
   `.css`, `index.html` e `.gitignore`. A unica excecao sao as explicacoes das variaveis em
@@ -271,41 +279,27 @@ Cada pasta de componentes tem um `index.ts` de barril — ao criar um componente
 - Os tokens `--brand-*` sao a excecao a regra de tema: um logotipo nao muda de cor com o tema,
   entao eles ficam no bloco `:root` e valem para claro e escuro.
 
-## Escrita nos mocks
+## Lancamentos e saldo
 
-Cadastro, edicao e exclusao de lancamentos passam por `lancamentosService`, que no modo mock
-delega a `services/mocks/lancamentos.store.ts`. O store muta o array `lancamentos` de
-`mocks/dados.ts` — a mesma fonte que abastece dashboard e avisos, entao um lancamento novo aparece
-em todas as telas. O estado vive so ate o reload da pagina, de proposito: nao ha persistencia
-enquanto nao houver backend.
+As regras abaixo sao aplicadas pelo PrismaAPI (detalhes no `API_CONTRACT.md`); o frontend so as
+apresenta, e as telas foram desenhadas contando com elas.
 
-Os lancamentos escritos a mao cobrem as ultimas semanas. Os meses anteriores saem de
-`modeloMensal`, um modelo de mes tipico que `montarHistorico()` expande para tras com variacao
-fixa por mes — o grafico precisa oscilar, mas nao pode mudar a cada recarregamento. O tamanho de
-`variacaoMensal` define ate onde o historico vai, e precisa cobrir com folga o mes mais antigo
-que o seletor de periodo oferece (`MESES_PERIODO_PERSONALIZADO`), ja que um mes unico ainda desenha os
-cinco meses anteriores. O mes corrente para no dia de hoje: um lancamento com data futura marcado
-como pago seria incoerente, e os itens pendentes e agendados ja vem da lista escrita a mao.
+**O saldo total so conta o que e do total.** Receita e despesa em conta fora de `incluirNoTotal` nao
+mexem no saldo, nem despesa em vale-alimentacao ou vale-refeicao; despesa no cartao de credito pesa;
+transferencia so pesa quando cruza a fronteira do total. **As parcelas saem do saldo na data de
+vencimento da fatura.** Dashboard, relatorios e previsao contam do mesmo jeito.
 
-**O modelo cede o mes ao que foi escrito a mao.** As datas escritas a mao sao relativas a hoje
-(`diasAtras`), entao a janela delas atravessa o mes corrente e parte do anterior — exatamente os
-meses que `montarHistorico()` tambem gera. Por isso um item do modelo e pulado quando ja existe,
-no mesmo mes, um lancamento escrito a mao com a mesma `descricao`. Sem essa regra setembro tinha
-dois salarios e dois alugueis, e o dashboard mostrava receita e moradia infladas. A regra so funciona
-se o mesmo compromisso tiver o mesmo nome nas duas listas: ao escrever um lancamento fixo a mao,
-use a descricao que ele tem em `modeloMensal`.
+**Gravar um lancamento mexe no saldo da conta.** `ContaDTO.saldo` e o saldo de hoje: o servidor aplica
+o efeito de todo lancamento com data ate hoje ao criar, desfaz o antigo e aplica o novo ao editar, e
+desfaz ao excluir. Sem isso, um rendimento registrado numa reserva aparece na evolucao e o saldo nao
+muda.
 
-`montarResumoDashboard(period)` recorta tudo pelo intervalo pedido e calcula as variacoes contra a
-janela de mesmo tamanho imediatamente anterior, no lugar dos percentuais fixos que existiam antes.
-O saldo de um mes passado e reconstruido a partir dos saldos de hoje, desfazendo o que entrou e
-saiu depois daquela data. Nessa conta a transferencia so pesa quando cruza a fronteira do total:
-o aporte na corretora, que fica fora de `incluirNoTotal`, reduz o saldo visivel, enquanto uma
-transferencia entre duas contas do total nao muda nada.
+**Variacao e saldo passado.** O resumo do dashboard compara com a janela de mesmo tamanho
+imediatamente anterior, e o saldo de um mes passado e reconstruido a partir do saldo de hoje.
 
 O contrato de escrita e `SalvarLancamentoDTO`: o cliente manda ids (`idOrigem`, `idCategoria`,
-`idContaDestino`) e quem resolve nome de conta e de categoria e o servidor. O store tambem devolve
-`ErroApi` nos casos invalidos, com o mesmo formato do `clienteHttp`, para que a tela ja trate erro
-como tratara contra a API real.
+`idContaDestino`) e quem resolve nome de conta e de categoria e o servidor. Erros de regra chegam como
+`ErroApi`, e as telas mostram a mensagem do servidor no toast.
 
 **Transferencia nao e receita nem despesa.** Ela tem `categoria: null`, carrega `idContaDestino` e
 fica fora do total do periodo (`totalLiquido`) e de `gastoPorCategoria`: o dinheiro so troca de conta e nao
@@ -314,7 +308,7 @@ seriam um traco em toda linha.
 
 **A forma de pagamento sai da origem.** Com origem em cartao, o formulario esconde "Forma de
 pagamento" e envia `CARTAO_CREDITO`; com origem em conta, a opcao de cartao nem aparece. Antes dava
-para gravar uma compra no cartao como "Debito em conta", e a API aceitava. Store e PrismaAPI recusam
+para gravar uma compra no cartao como "Debito em conta", e a API aceitava. O PrismaAPI recusa
 com `422` essa combinacao e mais tres: categoria do lado errado, origem em cartao de debito e
 lancamento `PAGO` com data futura. Ao escolher uma data futura com a situacao em "Concluido", o
 formulario troca para "Agendado" na hora, em vez de guardar o erro para o envio.
@@ -336,14 +330,14 @@ parcelamentos sao leitura calculada, exceto o cadastro da compra parcelada.
   `ehCartaoCredito` (`constants/cartoes.ts`), que estreita o tipo — nunca por `card.limiteCredito!`. O
   formulario tambem so envia os campos do tipo escolhido, senao trocar um cartao de credito para
   vale-refeicao deixaria limite e datas para tras.
-- **Fatura nao e cadastro: ela e derivada.** `services/mocks/cartoes.mock.ts` monta as faturas a
+- **Fatura nao e cadastro: ela e derivada.** O servidor monta as faturas a
   partir das despesas lancadas no cartao e das parcelas das compras parceladas, do mesmo jeito que
   os avisos saem dos lancamentos. O ciclo de um mes vai do fechamento anterior (exclusivo) ate o
   deste mes (inclusivo); o vencimento cai no mes seguinte quando o dia de vencimento e anterior ou
   igual ao de fechamento. Uma compra cadastrada agora aparece na fatura, no limite comprometido e
   no cronograma sem nenhum ajuste manual — e o formato calculado aqui e o que o backend vai ter de
   devolver.
-- **`limiteComprometido` do cartao nao fica em `dados.ts`.** Ele e a soma das faturas ainda nao pagas, incluindo
+- **`limiteComprometido` do cartao nao e gravado.** Ele e a soma das faturas ainda nao pagas, incluindo
   as futuras: e o unico numero que responde "quanto ainda posso gastar" sem esconder doze parcelas
   ja assumidas. Guardar o valor a mao faria a barra de limite mentir na primeira compra parcelada.
 - **As parcelas nao sao lancamentos.** Elas vivem em `comprasParceladas` e entram nas faturas
@@ -352,7 +346,7 @@ parcelamentos sao leitura calculada, exceto o cadastro da compra parcelada.
   parcela. As primeiras parcelas levam o valor arredondado para baixo e a ultima absorve a sobra,
   para a soma fechar exatamente com o total da compra.
 - **Excluir nao apaga historico.** Conta ou cartao com lancamentos, despesas recorrentes ou, no
-  cartao, compra parcelada devolve `409` do store, e a mensagem sugere marcar como inativo. Conta
+  cartao, compra parcelada devolve `409` do servidor, e a mensagem sugere marcar como inativo. Conta
   ainda vinculada a cartao de debito tambem devolve `409`, pedindo para trocar a conta do cartao
   antes. As regras e as frases sao as mesmas do PrismaAPI. Inativo sai do saldo total e dos
   seletores de lancamento, mas o passado continua legivel. Por isso `ContaDTO` e `CartaoDTO` tem `situacao`
@@ -361,14 +355,26 @@ parcelamentos sao leitura calculada, exceto o cadastro da compra parcelada.
 - **`listarOrigens()` e funcao, nao array.** Uma conta cadastrada agora precisa aparecer no
   proximo lancamento sem recarregar a pagina. O cartao de debito fica de fora da lista: ele e so o
   meio de acessar a conta, que ja esta la.
+- **Uma parcela e compra a vista.** `parcelas: 1` e valido (`PARCELAS_MINIMAS`), o formulario
+  comeca em "À vista (1x)" e o cartao troca barra e contagem por "Parcela única" e a fatura em que
+  ela cai. A compra a vista fica fora do "Total mensal em parcelas", que soma so o que se repete —
+  mas continua em "Falta pagar", porque ainda sai numa fatura.
+- **"Falta pagar" e "Total mensal em parcelas" sao perguntas diferentes.** O primeiro soma todas as
+  parcelas que ainda vao vencer; o segundo, a parcela atual de cada compra parcelada em aberto — o
+  que as faturas carregam por mes. Os dois ficam lado a lado com a dica dizendo o que somam.
+- **O progresso da compra tem hierarquia.** "Parcela 3 de 10" em destaque, "8 restantes" num selo
+  com a cor de acento, e "2 pagas · última em Abr/2027" em texto menor. Numa linha so, com os tres
+  numeros no mesmo peso, nenhum se destacava.
+- **Situacao e ordenacao ficam no cabecalho da lista**, nao no do `CabecalhoPagina`: so recortam a
+  lista (`components/parcelamentos/consulta.ts`). A ordenacao por parcelas restantes sempre deixa
+  as quitadas no fim — "menos restantes" com as quitadas no topo mostraria zero parcelas primeiro.
 - **Faturas em quatro blocos.** "A pagar" (ciclo fechado), "Fatura atual" (ciclo em andamento),
   "Proximas faturas" e "Faturas anteriores". A fechada e a aberta sao coisas diferentes — uma exige
   pagamento numa data, a outra ainda acumula compras — e junta-las colocava duas faturas do mesmo
   cartao lado a lado sem explicar por que eram duas. Fatura `VENCIDA` fica em "A pagar" so dentro da
   janela dos avisos (`DIAS_HORIZONTE_AVISOS`, em `constants/avisos.ts`, 15 dias) e depois passa para
   "Faturas anteriores": sem registro de pagamento a vencida e tratada como paga, e sem o corte uma
-  fatura de janeiro somava em "A pagar agora" para sempre. Os mocks nunca emitem `VENCIDA` e a API
-  emite — foi por isso que o erro so apareceu contra o backend. Fora da janela, a vencida usa selo
+  fatura de janeiro somava em "A pagar agora" para sempre. A API emite `VENCIDA` — foi por isso que o erro so apareceu contra o backend. Fora da janela, a vencida usa selo
   neutro em toda tela de fatura (`tomDaFatura`, em `components/cartoes/aparencia.ts`): o vermelho
   pedia uma acao que o produto ja considera resolvida.
 - **A barra de limite usa as faixas de `constants/cartoes.ts`**, as mesmas que decidem o aviso do
@@ -383,28 +389,54 @@ parcelamentos sao leitura calculada, exceto o cadastro da compra parcelada.
 
 ## Investimentos
 
-Uma tela em `/investimentos`, sob "Patrimonio" na sidebar. E cadastro (criar, editar, excluir) e
-leitura calculada ao mesmo tempo: a carteira guarda posicoes, e distribuicao, rentabilidade e
+Uma tela em `/investimentos`, sob "Patrimonio" na sidebar. E cadastro (criar, editar, excluir),
+registro de movimentacao (aporte e saldo) e leitura calculada: distribuicao, rentabilidade e
 evolucao saem do calculo.
 
-- **Sao oito classes de ativo** (`ClasseAtivo`), e cada uma tem um token de grafico fixo em
-  `constants/investimentos.ts`. A cor e da classe, nao da posicao dela no ranking: se saisse da ordem
-  das fatias, a mesma classe mudaria de cor ao ganhar ou perder participacao entre uma carga e
-  outra.
-- **`dataInicio` nao e enfeite.** A evolucao do patrimonio distribui os aportes linearmente entre o
-  primeiro deles e hoje — e a suposicao mais honesta sem uma serie de aportes real, e a unica que
-  faz a curva chegar em hoje valendo exatamente o que o cadastro diz. Por isso o store recusa data
-  de primeiro aporte no futuro.
-- **A oscilacao da curva e fixa** (`ondaMercado` em `investimentos.mock.ts`), como a do historico de
-  lancamentos: o grafico precisa balancar, mas nao pode mudar a cada recarregamento. O primeiro
-  valor e 1 porque o mes corrente tem de fechar no valor cadastrado. Cada classe sente a oscilacao
-  numa amplitude propria (`volatilidadeClasse`) — um CDB nao balanca como uma cripto.
-- **A rosca guarda o total no centro.** Sem ele, quem le "32%" teria de procurar o patrimonio em
-  outro bloco para saber de quanto sao esses 32%. A legenda e uma lista ao lado, e nao a `Legend`
-  do Recharts: com oito classes os rotulos em volta do circulo se sobrepoem.
-- **A evolucao desenha duas series**: a area do patrimonio e a linha tracejada do total aportado. A
-  distancia entre elas e o rendimento, e se le sem nenhum numero. A tracejada e deliberada — o
-  aporte e a referencia, nao uma segunda medida de mesmo peso.
+- **Aporte e rendimento nao se misturam.** Um investimento e um cadastro mais uma serie de
+  movimentacoes. `APORTE` e dinheiro novo e soma no saldo
+  e no aportado; `RENDIMENTO` registra o saldo que a instituicao mostra, e o valor da movimentacao e a
+  diferenca para o saldo anterior. `aportado`, `valorAtual`, `dataInicio` e `dataAtualizacao` sao a
+  leitura da serie, nunca gravados.
+- **Editar nao mexe em valor** (`AtualizarInvestimentoDTO`), pelo mesmo motivo da meta: sobrescrever
+  o aportado apagaria a historia. O cadastro pede aplicacao inicial e saldo de hoje e grava as duas
+  movimentacoes; dali em diante, valor so muda pelo detalhe.
+- **O detalhe e onde o investimento vive** (`ModalDetalheInvestimento`). Clicar no cartao abre com
+  "Atualizar saldo"; o botao "Aporte" do cartao abre com "Adicionar aporte" e o foco no valor. O
+  registro fica embutido, com um seletor de dois estados, e nao em outro modal — a mesma razao das
+  metas. A previa diz para quanto o saldo vai, ou quanto rendeu desde a ultima atualizacao.
+- **A data minima do registro e a ultima atualizacao.** Um aporte anterior ao ultimo saldo informado
+  seria engolido por ele. Na mesma data, vale a ordem de gravacao (`ordem`), e por isso "saldo de
+  R$ 20 mil, depois aporte de R$ 2 mil" termina em R$ 22 mil.
+- **Sao dez classes de ativo** (`ClasseAtivo`), e cada uma tem um token fixo da paleta categorica em
+  `corClasseAtivo`. `RDB` cobre as caixinhas de bancos digitais; `PREVIDENCIA`, PGBL e VGBL. As duas
+  tem dica propria no formulario (`dicaClasseAtivo`).
+- **A curva vem das movimentacoes**, nao mais de uma distribuicao linear: em cada fim de mes, o
+  ultimo saldo conhecido mais os aportes feitos depois dele. A serie vem pronta do servidor.
+- **A rosca guarda o total no centro** e a legenda e uma lista ao lado, que quebra o nome em duas
+  linhas em vez de cortar "Previdência privada".
+- **`GraficoEvolucao` (`components/graficos`) e o grafico de valor contra aportado** da carteira, do
+  investimento e das contas de reserva: area para o valor, tracejado para o que foi colocado. A
+  distancia entre as duas e o rendimento, e se le sem numero nenhum.
+
+## Contas de reserva
+
+`/contas` separa **Contas do dia a dia** (`CORRENTE`, `SALARIO`, `OUTRA`) de **Reservas e patrimonio**
+(`EMERGENCIA`, `POUPANCA`, `PREVIDENCIA`). A finalidade sai do tipo (`finalidadeTipoConta`), nao e um
+campo gravado.
+
+- **A reserva responde outra pergunta.** Nao "quanto tenho", e sim "quanto coloquei e quanto rendeu".
+  O `CartaoReserva` mostra saldo, rendimento de doze meses, minicurva e de quanto o periodo partiu; o
+  icone fica sempre em `--accent-soft`, para a secao se distinguir das contas de movimento.
+- **A evolucao nao tem cadastro proprio** (o servidor a deriva dos lancamentos). Transferencia para a conta e
+  aporte; receita na categoria Rendimentos e rendimento; saida e resgate. Registrar aporte ou
+  rendimento e criar um lancamento — o detalhe leva ate o formulario certo. Duas fontes para o mesmo
+  dinheiro divergiriam na primeira edicao.
+- **O detalhe mostra a equacao** `saldo inicial + aportes − resgates + rendimentos = saldo hoje`. Ela
+  tem de fechar no centavo.
+- Contas de reserva com previdencia e investimentos do tipo previdencia sao cadastros diferentes: a
+  conta e dinheiro parado num banco, o investimento tem saldo informado pela seguradora. Cadastrar a mesma
+  previdencia nos dois lugares a contaria duas vezes.
 
 ## Orcamento, recorrentes e previsao
 
@@ -415,8 +447,8 @@ delas, dos parcelamentos e do historico.
 - **O orcamento e recorrente e nao tem mes.** Um `OrcamentoDTO` guarda categoria e limite, e vale de um
   mes para o outro ate ser alterado. Guardar uma linha por mes obrigaria a redigitar o mesmo numero
   doze vezes por ano e deixaria todo mes seguinte comecando sem orcamento. O consumo, esse sim, e
-  por mes: `montarVisaoGeralOrcamento(month)` soma as despesas daquele mes.
-- **Uma categoria tem no maximo um limite.** O store devolve `409` na duplicata e o formulario nem
+  por mes: a visao geral soma as despesas do mes pedido.
+- **Uma categoria tem no maximo um limite.** O servidor devolve `409` na duplicata e o formulario nem
   oferece as categorias ja orcadas — melhor nao oferecer a opcao do que deixar escolher e falhar
   depois de preencher o valor.
 - **O bloco "gasto fora do orcamento" nao e detalhe.** Sem ele, a soma dos limites seria lida como o
@@ -439,16 +471,26 @@ delas, dos parcelamentos e do historico.
 - **Pausar existe para nao apagar.** A recorrente pausada continua no cadastro, sai do custo mensal
   e da previsao, e volta com um clique — por isso o cartao tem o botao proprio, sem passar pelo
   formulario inteiro.
-- **A previsao comeca no mes que vem.** Metade do mes corrente ja aconteceu: somar realizado com
-  previsto na mesma linha produziria um numero que nao e nem um nem outro, e o dashboard ja
-  responde pelo mes em curso. O saldo de partida, esse sim, e o de hoje.
+- **A previsao parte do fim deste mes, nao de hoje.** O que ainda falta no mes corrente vira a linha
+  "Resto de <mes>" (`restanteMesAtual`): agendados e pendentes, recorrentes que ainda vencem sem
+  lancamento, parcelas que vencem ate o fim do mes e o variavel proporcional aos dias restantes. Antes,
+  o saldo de hoje ia direto para o mes seguinte, e a conta de luz pendente e as parcelas do mes
+  simplesmente sumiam. A linha e marcada "Em andamento" e nao mistura o que ja aconteceu.
+- **As recorrentes se calculam para tras tambem** (`ocorrenciasEntre`). A versao anterior so andava
+  para frente a partir de `proximoVencimento`, entao nos meses da base toda recorrente valia zero, o
+  "variavel" engolia aluguel e plano de saude, e a projecao os descontava duas vezes — cerca de
+  R$ 4 mil por mes de saida que nao existia.
+- **Aporte tem coluna propria.** Transferencia para conta fora do total (a corretora) sai do saldo que
+  a previsao acompanha, mas nao e despesa. No grafico ela empilha sobre a despesa em outra cor.
 - **O gasto variavel e um resto, nao uma media solta.** Ele e a media de despesa dos tres meses
   fechados menos a media das recorrentes do mesmo periodo. Sem esse desconto, o aluguel apareceria
   duas vezes — uma na sua linha, outra dentro da media — e a projecao ficaria pessimista o bastante
   para nao servir para nada. As parcelas nao entram no desconto: elas nao sao lancamentos, entao
   nunca estiveram na media de despesa, e desconta-las tiraria o mesmo dinheiro duas vezes.
-- **A tela de previsao diz como ela foi feita.** A nota de metodo ao fim nao e enfeite: um numero
-  apresentado como certeza vira decisao errada quando erra.
+- **A tela de previsao diz como ela foi feita**, com os numeros: a nota de metodo mostra as medias da
+  base (`PrevisaoDTO.base`). Um numero apresentado como certeza vira decisao errada quando erra.
+- As colunas da tabela e as linhas da lista mobile saem da mesma definicao (`linhasPrevisao`), e valor
+  zero aparece como traco.
 
 ## Metas e desejos
 
@@ -529,8 +571,8 @@ Uma tela em `/relatorios`, com o recorte escolhido em `SeletorPeriodoRelatorio`.
 - **A tela reusa `GraficoFluxoCaixa` e `DistribuicaoCategorias` do dashboard**, com titulo e descricao por
   prop. Duplicar o desenho para trocar um rotulo criaria um segundo grafico para o mesmo problema —
   e e assim que dois blocos iguais comecam a divergir.
-- **Saldo, variacao e agrupamento por categoria saem dos mesmos modulos que o dashboard usa**
-  (`mocks/saldo.ts` e `mocks/agregacao.ts`). Duas telas que somam a mesma coisa de dois jeitos
+- **Saldo, variacao e agrupamento por categoria seguem as mesmas regras do dashboard** no
+  servidor. Duas telas que somam a mesma coisa de dois jeitos
   acabam com dois resultados, e o usuario descobre isso antes de nos.
 
 ## Pagina 404
@@ -609,7 +651,7 @@ O `SeletorPeriodo` e a busca global sao os dois pontos em que o header conversa 
   As setas deslocam a janela inteira: de "maio a agosto" chega-se a "janeiro a abril". **As setas
   param nas mesmas bordas do intervalo proprio**: o mes corrente na frente e, atras, o mes mais
   antigo que `MESES_PERIODO_PERSONALIZADO` oferece. Sem esse limite a seta levava a meses futuros
-  com receita zerada e variacao de -100%, e a um passado sem historico no mock. Perto da borda o
+  com receita zerada e variacao de -100%, e a um passado sem historico. Perto da borda o
   deslocamento encosta nela em vez de passar, e a seta que chegou ao fim fica com `aria-disabled` —
   nao `disabled`, que tiraria o foco de quem estava navegando pelo teclado. O seletor
   so aparece no dashboard — as outras telas ou nao tem nocao de periodo ou tem o proprio filtro,
@@ -656,20 +698,63 @@ O `SeletorPeriodo` e a busca global sao os dois pontos em que o header conversa 
   `?busca=<termo>`. A comparacao ignora acento (`normalizarBusca`), porque quem digita "saude" espera achar
   "Saude". Categorias e origens carregam uma vez, ao focar o campo; lancamentos vao ao servidor com
   `?busca=` a cada termo, com 250 ms de espera entre teclas. Baixar a tabela inteira de lancamentos a
-  cada abertura funcionava com o mock e nao escala com historico real. Chegar pela busca **reseta** os filtros da tela antes de aplicar o que veio na URL: um
+  cada abertura nao escala com historico real. Chegar pela busca **reseta** os filtros da tela antes de aplicar o que veio na URL: um
   filtro esquecido da navegacao anterior zeraria o resultado que o usuario acabou de escolher.
 - **Os parametros da busca saem da URL assim que sao lidos**
   (`setSearchParams({}, { replace: true })`), para que voltar no historico nao reabra um
   formulario nem refiltre a lista. Sao os unicos query params do app, e todos transitorios.
 
+## Notificações
+
+Toda confirmação ou falha de ação passa por `useNotificacoes()` (`providers/ProvedorNotificacoes`), que
+desenha `ItemNotificacao` e `AreaNotificacoes` (`components/ui/Notificacao`). Não existe outro caminho
+de toast no app, e não deve passar a existir: comportamento, tempo e visual mudam num lugar só.
+
+- **A API é `sucesso`, `erro`, `aviso` e `informacao`.** `erro(titulo, causa)` recebe o próprio erro
+  capturado e extrai a mensagem; sem mensagem aproveitável, a descrição vira "Tente de novo em alguns
+  instantes." — um toast de erro nunca chega sem dizer o que fazer. A tela não escreve
+  `erro instanceof Error ? erro.message : undefined`.
+- **O texto segue um padrão.** Sucesso termina com `!` e nomeia a coisa e a ação ("Compra parcelada
+  cadastrada com sucesso!", "Despesa recorrente pausada!"); a descrição diz qual item foi (nome,
+  `10x · Notebook`). Erro é uma frase com ponto ("Não foi possível excluir a conta.") e a descrição é a
+  mensagem do servidor.
+- **O tempo depende do tipo e do tamanho** (`constants/notificacoes.ts`): 5 s para sucesso e informação,
+  7 s para aviso, 8 s para erro, mais um acréscimo por caractere acima de 70, até 12 s. Erro fica mais
+  porque costuma trazer a instrução do que fazer.
+- **A barra na base do cartão é o tempo restante.** Ela esvazia por animação de CSS enquanto o
+  `setTimeout` guarda o restante em milissegundos; os dois param e retomam juntos. A pilha inteira pausa
+  com o mouse sobre ela, com o foco dentro dela e com a aba em segundo plano — ninguém perde uma
+  mensagem que chegou enquanto olhava outra janela. Pausada, a barra fica a 40% de opacidade.
+- **No toque não há hover:** segurar o cartão pausa, e deslizar para a direita mais que
+  `DISTANCIA_DESLIZE_DISPENSA_PX` dispensa. O botão de fechar continua lá, com área de toque ampliada.
+- **No máximo três na tela.** A quarta empurra a mais antiga para fora, e uma mensagem idêntica a uma
+  que já está visível reinicia o tempo dela em vez de empilhar uma cópia.
+- **A saída é animada antes da remoção.** O item fica `saindo` por `DURACAO_SAIDA_NOTIFICACAO_MS`: o
+  cartão desliza e some, e a linha colapsa por `grid-template-rows`, para as outras descerem sem salto.
+  O espaço entre cartões é `padding` do item, e não `gap`, para colapsar junto.
+- **Movimento reduzido esconde a barra.** A regra global encerraria a animação no primeiro quadro, e
+  uma barra vazia desde o início diria que o tempo acabou. O tempo continua valendo.
+- **Acessibilidade.** A lista é `aria-live="polite"`; erro usa `role="alert"`, os demais
+  `role="status"`, e o tipo é lido antes do título ("Erro: ..."). Fechar pelo botão leva o foco à
+  notificação seguinte ou, sem nenhuma, ao `<main>`.
+- **A pilha vai por portal para o `body`.** O `#root` tem `isolation: isolate`, então dentro dele o
+  `--z-toast` não passa do modal, que também está num portal: a confirmação de um aporte feito dentro
+  do detalhe aparecia atrás do escurecimento, borrada.
+- Abaixo de 600px a pilha ocupa a largura toda com 12px de margem e respeita a área segura do iPhone.
+
 ## Avisos
 
 O sino do header abre o `PainelAvisos`, alimentado por `avisosService`. Os avisos nao sao
-uma lista fixa: `montarAvisos()` os deriva dos mesmos mocks que abastecem as telas — faturas ainda
-nao pagas que vencem em ate 15 dias ou venceram ha ate 15 dias, lancamentos pendentes ou agendados
-dentro de
-15 dias, e cartoes com 70% ou mais do limite. O PrismaAPI deriva os mesmos avisos com as mesmas
-regras, entao trocar para a API real so muda o service.
+uma lista fixa: o servidor os deriva dos mesmos dados que abastecem as telas — faturas ainda
+nao pagas que vencem em ate 15 dias ou venceram ha ate 15 dias, despesas pendentes, agendamentos e
+receitas a receber dentro de 15 dias, recorrentes que vencem em ate 7 dias sem lancamento no mes, e
+cartoes com 70% ou mais do limite. O PrismaAPI deriva os mesmos avisos com as mesmas regras, entao
+trocar para a API real so muda o service.
+
+**Cada tipo tem o seu texto.** Receita nao "vence" — ela e "a receber"; transferencia agendada diz
+para qual conta vai; a fatura aberta diz ate quando recebe compras. O aviso de limite nao tem
+`valor`: a descricao ja diz quanto sobra, e um numero solto na coluna parecia algo a pagar. A
+porcentagem vem arredondada e o que sobra, formatado — nunca `1127.2799999999997`.
 
 A urgencia aparece na cor do icone (`critical` / `attention` / `info`), nao no fundo da linha: uma
 lista com tres fundos coloridos vira ruido. O ponto no sino conta apenas os avisos que nao sao
@@ -707,11 +792,20 @@ lista com tres fundos coloridos vira ruido. O ponto no sino conta apenas os avis
 
 ## Validacao de formulario
 
+**Todo campo de dinheiro e `CampoValor`** (`components/ui`), nunca `CampoTexto` com prefixo. Ele
+formata enquanto se digita no padrao brasileiro — "1000" vira "1.000", e ao sair do campo
+"1.000,00" —, mantem o cursor no mesmo digito depois de reformatar, pula o ponto de milhar no
+Backspace e no Delete, aceita "," ou "." como separador decimal (o teclado numerico do celular so tem
+um dos dois), ignora um segundo separador e limpa a colagem: "R$ 1.500,50", "1500.50" e "1,500.50"
+viram o mesmo numero, sem "R$" duplicado. O valor continua string no estado do formulario
+(`interpretarEntradaValor` le), e `permitirNegativo` so aparece no saldo da conta. As regras vivem em
+`utils/mascaraValor.ts`. Campo numerico inteiro (dia, ultimos digitos) passa por `apenasDigitos`.
+
 Todo formulario passa por `useValidacaoFormulario` (`hooks/`), com as regras de `utils/validacao.ts`
 (`erroTexto`, `erroValor`) e os limites de `constants/validacao.ts`.
 
 - **Os limites sao os do banco, num lugar so.** `limitesTexto` repete o tamanho das colunas VARCHAR, e
-  `DIGITOS_INTEIROS_MAXIMOS_VALOR` e `CASAS_DECIMAIS_MAXIMAS_VALOR`, o `NUMERIC(14,2)`. Formulario, store e `API_CONTRACT.md` usam a mesma regra: um
+  `DIGITOS_INTEIROS_MAXIMOS_VALOR` e `CASAS_DECIMAIS_MAXIMAS_VALOR`, o `NUMERIC(14,2)`. Formulario e `API_CONTRACT.md` usam a mesma regra: um
   formulario que aceita mais que a coluna so revela o limite com um `500`, depois de tudo preenchido.
   Campo novo com limite entra em `limitesTexto` e nas tres camadas no mesmo trabalho. A excecao e a
   observacao: a coluna e `TEXT`, e os 500 caracteres de `limitesTexto.observacoes` sao regra de produto.
@@ -775,20 +869,20 @@ num layout deslocado que precisa desfazer a mao.
   primeiro `[aria-invalid="true"]` em vez de so pintar as mensagens.
 - Contraste, foco visivel e navegacao por teclado sao requisito, nao acabamento.
 
-## Ao trocar mocks pela API real
+## Conexao com o PrismaAPI
 
-Basta `VITE_USE_MOCKS=false`, com `VITE_API_URL` apontando para o PrismaAPI
-(`http://localhost:9017/PrismaAPI/v1` no perfil `dev`). Os contratos de `src/types/financas.ts` sao
-os mesmos DTOs do backend, entao nenhum componente muda. O `clienteHttp` ja tem timeout de 15s, um
+`VITE_API_URL` aponta para o PrismaAPI (`http://localhost:9017/PrismaAPI/v1` no perfil `dev`). Os
+contratos de `src/types/financas.ts` sao os mesmos DTOs do backend. O `clienteHttp` ja tem timeout de 15s, um
 ponto unico (`obterTokenAutenticacao`) para plugar o token quando entrar o Spring Security e normalizacao de
 erros em `ErroApi`: o corpo de erro do servidor e o `ErrorResponseDTO` (`types/comum.ts`), e o
 `interpretarErro` usa as mensagens de `errors` (validacao de campo) ou `detail` como mensagem, `type` como
 codigo e `errors` como detalhe. Cancelamento pelo `AbortSignal` de quem chamou sai como o proprio
-`AbortError`, igual ao `respostaMock`; so o estouro dos 15 s vira `ErroApi` de `timeout`.
+`AbortError`; so o estouro dos 15 s vira `ErroApi` de `timeout`.
 
 ## Fora de escopo hoje
 
-Autenticacao, ESLint/Prettier, testes e code-splitting por rota ainda nao existem. Por isso a sidebar
+Autenticacao, ESLint/Prettier, testes e code-splitting por rota ainda nao existem. Resgate de
+investimento e debito automatico do aporte numa conta tambem nao. Por isso a sidebar
 nao mostra usuario: o bloco com nome e e-mail ficticios saiu, e volta quando houver login. Nao ha pagamento de fatura nem registro de quitacao — a fatura vencida e tratada como
 paga —, nem historico de cotacao por ativo: a evolucao do patrimonio e reconstruida a partir do
 valor atual e da idade da posicao. Exportacao de relatorio (PDF, CSV) tambem ficou de fora. Nao

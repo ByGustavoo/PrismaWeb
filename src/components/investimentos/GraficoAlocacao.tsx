@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts';
 import { ValorMonetario } from '@/components/comum';
 import { Painel, CorpoPainel, CabecalhoPainel } from '@/components/ui';
-import { rotuloClasseAtivo } from '@/constants/investimentos';
+import { corClasseAtivo, rotuloClasseAtivo } from '@/constants/investimentos';
+import { usePaletaGrafico } from '@/hooks/usePaletaGrafico';
 import type { AlocacaoDTO, ClasseAtivo } from '@/types';
 import { juntarClasses } from '@/utils/juntarClasses';
 import { formatarPercentual } from '@/utils/formatacao';
@@ -17,13 +18,14 @@ interface GraficoAlocacaoProps {
 export function GraficoAlocacao({ dados, total }: GraficoAlocacaoProps) {
   const [active, setActive] = useState<ClasseAtivo | null>(null);
   const activeEntry = dados.find((entry) => entry.classeAtivo === active) ?? null;
+  const palette = usePaletaGrafico();
 
   return (
     <Painel className={styles.card}>
       <CabecalhoPainel titulo="Distribuição por tipo" descricao="Participação de cada classe no patrimônio atual" />
       <CorpoPainel className={styles.body}>
         <div className={styles.chart} onMouseLeave={() => setActive(null)}>
-          <ResponsiveContainer width="100%" height={232}>
+          <ResponsiveContainer width="100%" height={208}>
             <PieChart>
               <Pie
                 data={dados}
@@ -39,7 +41,7 @@ export function GraficoAlocacao({ dados, total }: GraficoAlocacaoProps) {
                 {dados.map((entry) => (
                   <Cell
                     key={entry.classeAtivo}
-                    fill={corDaClasse(entry.classeAtivo)}
+                    fill={palette.paleta[corClasseAtivo[entry.classeAtivo] - 1]}
                     fillOpacity={active && active !== entry.classeAtivo ? 0.4 : 1}
                     onMouseEnter={() => setActive(entry.classeAtivo)}
                   />

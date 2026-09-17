@@ -43,7 +43,7 @@ export function PaginaDashboard() {
     if (carregando || !refreshRequested.current) return;
     refreshRequested.current = false;
     if (erro) return;
-    toast.sucesso('Dados atualizados', `Última consulta às ${formatarHora()}`);
+    toast.sucesso('Dados atualizados!', `Consulta feita às ${formatarHora()}`);
   }, [carregando, erro, toast]);
 
   const periodLabel = formatarRotuloPeriodo(from, to);

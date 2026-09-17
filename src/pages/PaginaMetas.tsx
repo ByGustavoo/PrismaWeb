@@ -19,7 +19,7 @@ import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
 import { useNotificacoes } from '@/providers/ProvedorNotificacoes';
 import { metasService } from '@/services';
 import type { AcompanhamentoMetaDTO, MetaDTO, SalvarMetaPrecoDTO, SituacaoMeta, Tendencia } from '@/types';
-import { formatarPercentual } from '@/utils/formatacao';
+import { formatarMoeda, formatarPercentual } from '@/utils/formatacao';
 import styles from './PaginaMetas.module.css';
 
 function tendenciaTotal(change: number, base: number): Tendencia {
@@ -66,15 +66,15 @@ export function PaginaMetas() {
     try {
       if (result.modo === 'update' && editing) {
         await metasService.atualizar(editing.id, result.dados);
-        toast.sucesso('Meta atualizada', result.dados.nome);
+        toast.sucesso('Meta atualizada com sucesso!', result.dados.nome);
       } else if (result.modo === 'create') {
         await metasService.criar(result.dados);
-        toast.sucesso('Meta cadastrada', result.dados.nome);
+        toast.sucesso('Meta cadastrada com sucesso!', result.dados.nome);
       }
       closeForm();
       recarregar();
     } catch (submitError) {
-      toast.erro('Não foi possível salvar a meta', submitError instanceof Error ? submitError.message : undefined);
+      toast.erro('Não foi possível salvar a meta.', submitError);
     } finally {
       setSaving(false);
     }
@@ -85,11 +85,11 @@ export function PaginaMetas() {
 
     try {
       await metasService.adicionarPreco(tracking.meta.id, payload);
-      toast.sucesso('Preço registrado', tracking.meta.nome);
+      toast.sucesso('Preço registrado com sucesso!', `${tracking.meta.nome} · ${formatarMoeda(payload.preco)}`);
       recarregar();
       return true;
     } catch (priceError) {
-      toast.erro('Não foi possível registrar o preço', priceError instanceof Error ? priceError.message : undefined);
+      toast.erro('Não foi possível registrar o preço.', priceError);
       return false;
     } finally {
       setSaving(false);
@@ -111,7 +111,7 @@ export function PaginaMetas() {
       toast.sucesso(notificacaoSituacaoMeta[status], goal.nome);
       recarregar();
     } catch (statusError) {
-      toast.erro('Não foi possível alterar a meta', statusError instanceof Error ? statusError.message : undefined);
+      toast.erro('Não foi possível alterar a meta.', statusError);
     } finally {
       setSaving(false);
     }
@@ -123,11 +123,11 @@ export function PaginaMetas() {
 
     try {
       await metasService.excluir(removing.meta.id);
-      toast.sucesso('Meta excluída', removing.meta.nome);
+      toast.sucesso('Meta excluída com sucesso!', removing.meta.nome);
       setRemoving(null);
       recarregar();
     } catch (deleteError) {
-      toast.erro('Não foi possível excluir a meta', deleteError instanceof Error ? deleteError.message : undefined);
+      toast.erro('Não foi possível excluir a meta.', deleteError);
       setRemoving(null);
     } finally {
       setSaving(false);

@@ -7,12 +7,30 @@
 }
 
 .table {
-  min-width: 880px;
+  min-width: 1080px;
+}
+
+.monthCell {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .month {
   font-weight: 500;
   white-space: nowrap;
+}
+
+.empty {
+  color: var(--text-subtle);
+}
+
+.partial td {
+  background-color: var(--surface-muted);
+}
+
+.partial .month {
+  color: var(--text-muted);
 }
 
 .lowest td:first-child {

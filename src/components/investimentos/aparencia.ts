@@ -1,9 +1,10 @@
 import type { TomValorMonetario } from '@/components/comum';
+import { corDaPaleta } from '@/constants/cores';
 import { corClasseAtivo } from '@/constants/investimentos';
 import type { ClasseAtivo } from '@/types';
 
 export function corDaClasse(assetClass: ClasseAtivo): string {
-  return `var(--chart-${corClasseAtivo[assetClass]})`;
+  return corDaPaleta(corClasseAtivo[assetClass]);
 }
 
 export function tomRendimento(profit: number): TomValorMonetario {

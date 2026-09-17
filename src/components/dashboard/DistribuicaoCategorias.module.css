@@ -64,3 +64,30 @@
   border-radius: var(--radius-pill);
   opacity: 0.9;
 }
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap-size);
+  margin-top: var(--space-2);
+  padding: 0;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--accent);
+  border-radius: var(--radius-xs);
+}
+
+@media (hover: hover) {
+  .toggle:hover {
+    text-decoration: underline;
+  }
+}
+
+.chevron {
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}

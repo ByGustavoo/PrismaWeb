@@ -1,6 +1,7 @@
 import { Pause, Play, Trash2 } from 'lucide-react';
 import { ValorMonetario } from '@/components/comum';
 import { Selo } from '@/components/ui';
+import { corDaPaleta } from '@/constants/cores';
 import { DIAS_VENCIMENTO_PROXIMO, rotuloFrequencia, rotuloSituacaoRecorrente, tomSituacaoRecorrente } from '@/constants/recorrentes';
 import type { DespesaRecorrenteDTO } from '@/types';
 import { diasEntre, hojeISO } from '@/utils/data';
@@ -34,7 +35,7 @@ export function CartaoRecorrente({ despesa, aoEditar, aoAlternar, aoExcluir }: C
                 <>
                   <span
                     className={styles.marker}
-                    style={{ backgroundColor: `var(--chart-${despesa.categoria.tokenCor})` }}
+                    style={{ backgroundColor: corDaPaleta(despesa.categoria.tokenCor) }}
                     aria-hidden="true"
                   />
                   {despesa.categoria.nome}

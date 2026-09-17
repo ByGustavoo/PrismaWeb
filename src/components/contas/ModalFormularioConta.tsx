@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Botao, CampoTexto, Modal, CampoSelecao, Interruptor } from '@/components/ui';
+import { Botao, CampoTexto, Modal, CampoSelecao, Interruptor, CampoValor } from '@/components/ui';
 import { rotuloSituacaoConta, situacoesConta, rotuloTipoConta, tiposConta } from '@/constants/contas';
 import { limitesTexto } from '@/constants/validacao';
 import { useValidacaoFormulario } from '@/hooks/useValidacaoFormulario';
@@ -156,14 +156,12 @@ export function ModalFormularioConta({ aberto, conta, salvando, aoEnviar, aoFech
           onChange={(type) => set('tipo', type as TipoConta)}
         />
 
-        <CampoTexto
+        <CampoValor
+          permitirNegativo
           required
           rotulo="Saldo atual"
-          prefixo="R$"
-          inputMode="decimal"
-          placeholder="0,00"
-          value={form.saldo}
-          onChange={(event) => set('saldo', event.target.value)}
+          valor={form.saldo}
+          aoMudar={(value) => set('saldo', value)}
           onBlur={() => tocar('saldo')}
           erro={erros.saldo}
           dica="Aceita valor negativo, para conta no cheque especial."

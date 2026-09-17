@@ -1,6 +1,7 @@
 import { Trash2 } from 'lucide-react';
 import { ValorMonetario } from '@/components/comum';
 import { Selo, BarraProgresso } from '@/components/ui';
+import { corDaPaleta } from '@/constants/cores';
 import { tomProgressoOrcamento, rotuloSituacaoOrcamento, tomSituacaoOrcamento } from '@/constants/orcamento';
 import type { ConsumoOrcamentoDTO } from '@/types';
 import { formatarPercentual } from '@/utils/formatacao';
@@ -27,7 +28,7 @@ export function LinhaOrcamento({ consumo, mostrarProjecao, aoEditar, aoExcluir }
         <div className={styles.top}>
           <span
             className={styles.marker}
-            style={{ backgroundColor: `var(--chart-${budget.categoria.tokenCor})` }}
+            style={{ backgroundColor: corDaPaleta(budget.categoria.tokenCor) }}
             aria-hidden="true"
           />
           <span className={styles.name}>{budget.categoria.nome}</span>

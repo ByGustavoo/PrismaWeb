@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
-import { CalendarClock, CreditCard, Receipt, TriangleAlert } from 'lucide-react';
+import { ArrowDownLeft, CalendarClock, CreditCard, Receipt, Repeat, TriangleAlert } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { ValorMonetario } from '@/components/comum';
 import { EstadoVazio, IndicadorGiratorio } from '@/components/ui';
@@ -15,7 +15,9 @@ import styles from './PainelAvisos.module.css';
 const iconePorTipo: Record<TipoAviso, LucideIcon> = {
   FATURA_VENCENDO: Receipt,
   CONTA_VENCENDO: TriangleAlert,
+  RECORRENTE_VENCENDO: Repeat,
   LANCAMENTO_AGENDADO: CalendarClock,
+  RECEITA_PREVISTA: ArrowDownLeft,
   LIMITE_CARTAO: CreditCard,
 };
 

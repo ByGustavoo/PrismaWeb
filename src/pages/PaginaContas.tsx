@@ -1,10 +1,10 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Plus, Wallet } from 'lucide-react';
-import { CartaoConta, ModalFormularioConta } from '@/components/contas';
+import { CartaoConta, CartaoReserva, ModalDetalheConta, ModalFormularioConta } from '@/components/contas';
 import { ValorMonetario, BarraResumo } from '@/components/comum';
 import { CabecalhoPagina } from '@/components/layout';
 import { Botao, Painel, DialogoConfirmacao, EstadoVazio, BlocoCarregando } from '@/components/ui';
-import { rotuloTipoConta } from '@/constants/contas';
+import { MESES_EVOLUCAO_CONTA, ehContaReserva, rotuloTipoConta } from '@/constants/contas';
 import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
 import { useNotificacoes } from '@/providers/ProvedorNotificacoes';
 import { contasService } from '@/services';
@@ -22,22 +22,35 @@ export function PaginaContas() {
   const [creating, setCreating] = useState(false);
   const [removing, setRemoving] = useState<ContaDTO | null>(null);
   const [saving, setSaving] = useState(false);
+  const [detailId, setDetailId] = useState<string | null>(null);
   const toast = useNotificacoes();
 
-  const fetchAccounts = useCallback((signal: AbortSignal) => contasService.listar(signal), []);
+  const fetchAccounts = useCallback(
+    (signal: AbortSignal) => Promise.all([contasService.listar(signal), contasService.listarReservas(signal)]),
+    [],
+  );
   const { dados, carregando, erro, recarregar } = useDadosAssincronos(fetchAccounts);
 
-  const accounts = useMemo(() => dados ?? [], [dados]);
+  const accounts = useMemo(() => dados?.[0] ?? [], [dados]);
+  const reserves = useMemo(() => dados?.[1] ?? [], [dados]);
+  const everyday = useMemo(() => accounts.filter((account) => !ehContaReserva(account.tipo)), [accounts]);
+  const detail = useMemo(() => reserves.find((item) => item.conta.id === detailId) ?? null, [reserves, detailId]);
 
   const summary = useMemo(() => {
     const active = accounts.filter((account) => account.situacao === 'ATIVO');
     return {
       total: active.filter((account) => account.incluirNoTotal).reduce((sum, item) => sum + item.saldo, 0),
       excluded: active.filter((account) => !account.incluirNoTotal).reduce((sum, item) => sum + item.saldo, 0),
+      reserved: active.filter((account) => ehContaReserva(account.tipo)).reduce((sum, item) => sum + item.saldo, 0),
       activeCount: active.length,
       inactiveCount: accounts.length - active.length,
     };
   }, [accounts]);
+
+  const reservesYield = useMemo(
+    () => reserves.filter((item) => item.conta.situacao === 'ATIVO').reduce((sum, item) => sum + item.rendimentos, 0),
+    [reserves],
+  );
 
   const formOpen = creating || editing !== null;
 
@@ -52,18 +65,15 @@ export function PaginaContas() {
     try {
       if (editing) {
         await contasService.atualizar(editing.id, payload);
-        toast.sucesso('Conta atualizada', payload.nome);
+        toast.sucesso('Conta atualizada com sucesso!', payload.nome);
       } else {
         await contasService.criar(payload);
-        toast.sucesso('Conta cadastrada', payload.nome);
+        toast.sucesso('Conta cadastrada com sucesso!', payload.nome);
       }
       closeForm();
       recarregar();
     } catch (submitError) {
-      toast.erro(
-        'Não foi possível salvar a conta',
-        submitError instanceof Error ? submitError.message : undefined,
-      );
+      toast.erro('Não foi possível salvar a conta.', submitError);
     } finally {
       setSaving(false);
     }
@@ -75,14 +85,11 @@ export function PaginaContas() {
 
     try {
       await contasService.excluir(removing.id);
-      toast.sucesso('Conta excluída', removing.nome);
+      toast.sucesso('Conta excluída com sucesso!', removing.nome);
       setRemoving(null);
       recarregar();
     } catch (deleteError) {
-      toast.erro(
-        'Não foi possível excluir a conta',
-        deleteError instanceof Error ? deleteError.message : undefined,
-      );
+      toast.erro('Não foi possível excluir a conta.', deleteError);
       setRemoving(null);
     } finally {
       setSaving(false);
@@ -145,6 +152,16 @@ export function PaginaContas() {
                 dica: 'Soma das contas ativas que entram no total',
               },
               {
+                rotulo: 'Em reservas',
+                valor: <ValorMonetario valor={summary.reserved} contarAoAparecer />,
+                dica: (
+                  <>
+                    Rendeu <ValorMonetario valor={reservesYield} tamanho="sm" tom="positive" sinal="auto" /> em{' '}
+                    {MESES_EVOLUCAO_CONTA} meses
+                  </>
+                ),
+              },
+              {
                 rotulo: 'Fora do saldo total',
                 valor: <ValorMonetario valor={summary.excluded} tom="muted" contarAoAparecer />,
                 dica: 'Contas marcadas para não somar',
@@ -160,19 +177,72 @@ export function PaginaContas() {
             ]}
           />
 
-          <ul className={styles.grid}>
-            {accounts.map((account) => (
-              <CartaoConta
-                key={account.id}
-                conta={account}
-                participacao={participacaoDe(account, summary.total)}
-                aoEditar={setEditing}
-                aoExcluir={setRemoving}
-              />
-            ))}
-          </ul>
+          <section className={styles.section} aria-labelledby="titulo-movimentacao">
+            <div className={styles.sectionHeader}>
+              <h2 id="titulo-movimentacao" className={styles.sectionTitle}>
+                Contas do dia a dia
+              </h2>
+              <p className={styles.sectionHint}>Onde o salário cai e de onde as contas saem.</p>
+            </div>
+            {everyday.length === 0 ? (
+              <Painel espacamento="none">
+                <EstadoVazio
+                  icone={Wallet}
+                  titulo="Nenhuma conta de movimentação"
+                  descricao="Cadastre a conta corrente ou a conta salário para registrar os lançamentos do dia a dia."
+                />
+              </Painel>
+            ) : (
+              <ul className={styles.grid}>
+                {everyday.map((account) => (
+                  <CartaoConta
+                    key={account.id}
+                    conta={account}
+                    participacao={participacaoDe(account, summary.total)}
+                    aoEditar={setEditing}
+                    aoExcluir={setRemoving}
+                  />
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {reserves.length > 0 ? (
+            <section className={styles.section} aria-labelledby="titulo-reservas">
+              <div className={styles.sectionHeader}>
+                <h2 id="titulo-reservas" className={styles.sectionTitle}>
+                  Reservas e patrimônio
+                </h2>
+                <p className={styles.sectionHint}>Contas para guardar dinheiro: acompanhe quanto entrou e quanto rendeu.</p>
+              </div>
+              <ul className={styles.grid}>
+                {reserves.map((evolution) => (
+                  <CartaoReserva
+                    key={evolution.conta.id}
+                    evolucao={evolution}
+                    aoAbrir={(item) => setDetailId(item.conta.id)}
+                    aoExcluir={(item) => setRemoving(item.conta)}
+                  />
+                ))}
+              </ul>
+            </section>
+          ) : null}
         </div>
       )}
+
+      <ModalDetalheConta
+        evolucao={detail}
+        salvando={saving}
+        aoFechar={() => setDetailId(null)}
+        aoEditar={(item) => {
+          setDetailId(null);
+          setEditing(item.conta);
+        }}
+        aoExcluir={(item) => {
+          setDetailId(null);
+          setRemoving(item.conta);
+        }}
+      />
 
       <ModalFormularioConta
         aberto={formOpen}

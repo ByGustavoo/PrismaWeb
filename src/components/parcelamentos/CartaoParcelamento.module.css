@@ -104,14 +104,69 @@
   color: var(--text-muted);
 }
 
-.progressText {
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.progressMain {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: var(--space-1) 0 0;
+  max-width: none;
+  font-size: var(--fs-base);
+  color: var(--text-muted);
+}
+
+.progressMain strong {
+  color: var(--text);
+  font-family: var(--font-figure);
+  font-size: var(--fs-md);
+  font-weight: 600;
+}
+
+.remaining {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  color: var(--accent);
+  background-color: var(--accent-soft);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.remaining strong {
+  color: inherit;
+  font-size: var(--fs-sm);
+}
+
+.progressAside {
+  font-size: var(--fs-sm);
+  color: var(--text-subtle);
+  white-space: nowrap;
+}
+
+.progressSub {
+  margin: 0;
+  max-width: none;
+  font-size: var(--fs-sm);
+  color: var(--text-subtle);
+}
+
+.singleNote {
   margin: 0;
   max-width: none;
   font-size: var(--fs-sm);
   color: var(--text-muted);
 }
 
-.progressText strong {
+.singleNote strong {
   color: var(--text);
   font-weight: 600;
 }

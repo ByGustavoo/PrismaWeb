@@ -167,18 +167,15 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
     try {
       if (editing) {
         await lancamentosService.atualizar(editing.id, payload);
-        toast.sucesso(`${noun} atualizada`, payload.descricao);
+        toast.sucesso(`${noun} atualizada com sucesso!`, payload.descricao);
       } else {
         await lancamentosService.criar(payload);
-        toast.sucesso(`${noun} cadastrada`, payload.descricao);
+        toast.sucesso(`${noun} cadastrada com sucesso!`, payload.descricao);
       }
       closeForm();
       recarregar();
     } catch (submitError) {
-      toast.erro(
-        'Não foi possível salvar o lançamento',
-        submitError instanceof Error ? submitError.message : undefined,
-      );
+      toast.erro('Não foi possível salvar o lançamento.', submitError);
     } finally {
       setSaving(false);
     }
@@ -190,14 +187,11 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
 
     try {
       await lancamentosService.excluir(removing.id);
-      toast.sucesso('Lançamento excluído', removing.descricao);
+      toast.sucesso(`${rotuloTipoLancamento[removing.tipo]} excluída com sucesso!`, removing.descricao);
       setRemoving(null);
       recarregar();
     } catch (deleteError) {
-      toast.erro(
-        'Não foi possível excluir o lançamento',
-        deleteError instanceof Error ? deleteError.message : undefined,
-      );
+      toast.erro('Não foi possível excluir o lançamento.', deleteError);
     } finally {
       setSaving(false);
     }

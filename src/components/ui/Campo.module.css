@@ -118,3 +118,8 @@
   color: var(--negative);
   font-weight: 500;
 }
+
+.money .input {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}

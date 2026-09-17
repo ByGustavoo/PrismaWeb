@@ -4,6 +4,7 @@ import { Receipt } from 'lucide-react';
 import { ValorMonetario } from '@/components/comum';
 import { classePorTipo, iconePorTipo, sinalPorTipo, tomPorTipo, tomPorSituacao } from '@/components/lancamentos/aparencia';
 import { Selo, Painel, CorpoPainel, CabecalhoPainel, CorpoTabela, CabecaTabela, Tabela, ContainerTabela, Celula, CelulaCabecalho, LinhaTabela, EstadoVazio } from '@/components/ui';
+import { corDaPaleta } from '@/constants/cores';
 import { rotuloSituacaoLancamento } from '@/constants/lancamentos';
 import { caminhos } from '@/routes/caminhos';
 import type { LancamentoDTO } from '@/types';
@@ -81,7 +82,7 @@ export function LinhaLancamento({ lancamento, indice = 0 }: LinhaLancamentoProps
           <span className={styles.category}>
             <span
               className={styles.categoryDot}
-              style={{ backgroundColor: `var(--chart-${lancamento.categoria.tokenCor})` }}
+              style={{ backgroundColor: corDaPaleta(lancamento.categoria.tokenCor) }}
               aria-hidden="true"
             />
             {lancamento.categoria.nome}
