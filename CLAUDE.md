@@ -18,13 +18,15 @@ desejos com historico de precos, e relatorios. O backend e o PrismaAPI (Java / S
 PostgreSQL), e o frontend **nao tem camada de mocks**: todo dado vem do PrismaAPI. Sem o backend
 rodando, as telas abrem no estado de erro, com o botao "Tentar de novo".
 
-O `API_CONTRACT.md` da raiz **nao e mais a especificacao completa**: ele lista so o que o PrismaAPI
-ainda precisa implementar para acompanhar o frontend (endpoints novos, contratos que mudaram,
-migracoes e regras de calculo), conferido contra o codigo de `D:\Projetos\PrismaAPI`. O que ja existe
-no backend nao entra nele. O `README.md` documenta instalacao e variaveis. **Ao mudar um contrato em
-`src/types/financas.ts`, uma rota em `src/api/rotasApi.ts` ou uma regra que o backend precisa aplicar,
-acrescente a pendencia ao `API_CONTRACT.md` no mesmo trabalho** — e, quando o backend a implementar,
-tire-a de la.
+O `API_CONTRACT.md` da raiz **so existe enquanto ha pendencia**. Ele nunca foi a especificacao
+completa: lista so o que o PrismaAPI ainda precisa implementar para acompanhar o frontend (endpoints
+novos, contratos que mudaram, migracoes e regras de calculo), conferido contra o codigo de
+`D:\Projetos\PrismaAPI`. O que o backend ja faz nao entra nele — e, quando a ultima pendencia sai, o
+arquivo sai junto. **Hoje ele nao existe no repositorio**, porque o PrismaAPI implementa todo o
+contrato que as telas consomem. **Ao mudar um contrato em
+`src/types/financas.ts`, uma rota em `src/api/rotasApi.ts` ou uma regra que o backend precisa
+aplicar, recrie o `API_CONTRACT.md` na raiz com a pendencia no mesmo trabalho** — e apague-o de novo
+quando o backend a implementar. O `README.md` documenta instalacao e variaveis.
 Tres documentos que divergem valem menos que um so.
 
 ## Comandos
@@ -83,7 +85,7 @@ Estas sao as invariantes do projeto. Quebra-las e o erro mais caro que se pode c
 
    **Nao ha mocks nem dados ficticios no frontend**, e nao devem voltar sem o usuario pedir: a camada
    `services/mocks` e a flag `VITE_USE_MOCKS` foram removidas a pedido dele. Calculo de saldo, fatura,
-   previsao, avisos e evolucao e trabalho do backend, descrito no `API_CONTRACT.md`.
+   previsao, avisos e evolucao e trabalho do backend, nao do frontend.
 
 4. **Nenhum hex em componente.** Toda cor, espacamento, raio e tipografia sai dos tokens em
    `src/styles/tokens.css`, sob `[data-theme='light']` e `[data-theme='dark']`.
@@ -191,7 +193,7 @@ src/
 ├── providers/     ProvedorTema, ProvedorNotificacoes, ProvedorPeriodo, ProvedoresAplicacao
 ├── routes/        RotasAplicacao, caminhos
 ├── services/      dashboard, lancamentos, categorias, contas, cartoes, investimentos, orcamento,
-│                  recorrentes, metas, previsao, relatorios, avisos
+│                  recorrentes, metas, previsao, relatorios, avisos, sistema
 ├── styles/        tokens.css, global.css
 ├── types/         comum, financas
 └── utils/         juntarClasses, data, formatacao, validacao, foco, mascaraValor
@@ -214,7 +216,7 @@ Cada pasta de componentes tem um `index.ts` de barril — ao criar um componente
   Manter essa separacao evita quebrar referencias no codigo.
 - **O projeto nao tem comentarios.** Nem de linha, nem de bloco, nem JSDoc — em `.ts`, `.tsx`,
   `.css`, `index.html` e `.gitignore`. A unica excecao sao as explicacoes das variaveis em
-  `.env.example`. O porque das decisoes vive neste arquivo e no `API_CONTRACT.md`, nao no codigo.
+  `.env.example`. O porque das decisoes vive neste arquivo, nao no codigo.
   A diretiva `/// <reference types="vite/client" />` de `src/vite-env.d.ts` fica: ela nao e
   comentario, e sem ela `import.meta.env` perde o tipo.
 - `tsconfig` roda com `noUnusedLocals`, `noUnusedParameters` e `noUncheckedIndexedAccess`.
@@ -294,8 +296,8 @@ Cada pasta de componentes tem um `index.ts` de barril — ao criar um componente
 
 ## Lancamentos e saldo
 
-As regras abaixo sao aplicadas pelo PrismaAPI (detalhes no `API_CONTRACT.md`); o frontend so as
-apresenta, e as telas foram desenhadas contando com elas.
+As regras abaixo sao aplicadas pelo PrismaAPI; o frontend so as apresenta, e as telas foram
+desenhadas contando com elas.
 
 **O saldo total so conta o que e do total.** Receita e despesa em conta fora de `incluirNoTotal` nao
 mexem no saldo, nem despesa em vale-alimentacao ou vale-refeicao; despesa no cartao de credito pesa;
@@ -830,7 +832,7 @@ Todo formulario passa por `useValidacaoFormulario` (`hooks/`), com as regras de 
 (`erroTexto`, `erroValor`) e os limites de `constants/validacao.ts`.
 
 - **Os limites sao os do banco, num lugar so.** `limitesTexto` repete o tamanho das colunas VARCHAR, e
-  `DIGITOS_INTEIROS_MAXIMOS_VALOR` e `CASAS_DECIMAIS_MAXIMAS_VALOR`, o `NUMERIC(14,2)`. Formulario e `API_CONTRACT.md` usam a mesma regra: um
+  `DIGITOS_INTEIROS_MAXIMOS_VALOR` e `CASAS_DECIMAIS_MAXIMAS_VALOR`, o `NUMERIC(14,2)`. Formulario, contrato e coluna usam a mesma regra: um
   formulario que aceita mais que a coluna so revela o limite com um `500`, depois de tudo preenchido.
   Campo novo com limite entra em `limitesTexto` e nas tres camadas no mesmo trabalho. A excecao e a
   observacao: a coluna e `TEXT`, e os 500 caracteres de `limitesTexto.observacoes` sao regra de produto.
@@ -920,6 +922,11 @@ a `main`) e `release.yml` (publicacao no Docker Hub quando um PR e mergeado).
 - **As tags git sao a fonte da versao**, nao o `package.json`: ele so da a primeira versao quando nao
   ha tag nenhuma. O incremento vem do rotulo do PR (`release:major`, `release:minor`, padrao patch).
   Gravar a versao de volta no `package.json` exigiria a esteira fazer commit na `main`.
+- **Cada publicacao gera duas tags de imagem, e so duas**: a versao exata (`X.Y.Z`) e `latest`. O
+  `docker/metadata-action` oferece de graca `{{major}}.{{minor}}`, `{{major}}` e `type=sha`, e os
+  tres foram removidos: cinco tags por release enchiam o repositorio do Docker Hub de ponteiros
+  moveis que ninguem escreve num compose. Quem quer reproduzir um ambiente fixa `X.Y.Z`; quem quer o
+  ultimo usa `latest`, que e o que o `docker-compose-prismaweb.yml` faz.
 - **A release so e criada depois da imagem publicada.** Se o push falhar, a tag nao existe e a
   proxima execucao tenta a mesma versao de novo, em vez de deixar uma tag sem imagem.
 - **Os segredos tem os mesmos nomes da esteira do PrismaAPI**: `DOCKER_USERNAME`, `DOCKER_PASSWORD` e
