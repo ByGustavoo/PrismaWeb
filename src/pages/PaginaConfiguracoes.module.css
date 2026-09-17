@@ -104,6 +104,29 @@
   font-size: var(--fs-sm);
 }
 
+.versionValue {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-1) var(--space-3);
+  min-height: var(--control-height-sm);
+  text-align: right;
+}
+
+.versionNumber {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.versionMeta {
+  color: var(--text-muted);
+}
+
+.retry {
+  margin-inline-end: calc(-1 * var(--space-3));
+}
+
 @media (max-width: 767px) {
   .themeGrid {
     grid-template-columns: minmax(0, 1fr);

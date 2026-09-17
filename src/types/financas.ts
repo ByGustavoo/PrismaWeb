@@ -620,3 +620,8 @@ export interface ResumoMetasDTO {
   variacaoTotal: number;
   economiaTotal: number;
 }
+
+export interface VersaoSistemaDTO {
+  versao: string;
+  dataLancamento: string;
+}

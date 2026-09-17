@@ -65,4 +65,7 @@ export const rotasApi = {
   avisos: {
     listar: '/avisos',
   },
+  sistema: {
+    versao: '/sistema/versao',
+  },
 } as const;

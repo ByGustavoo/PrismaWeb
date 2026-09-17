@@ -13,3 +13,4 @@ export type { FiltroMeta } from './metas.service';
 export { previsaoService } from './previsao.service';
 export { relatoriosService } from './relatorios.service';
 export { avisosService } from './avisos.service';
+export { sistemaService } from './sistema.service';
