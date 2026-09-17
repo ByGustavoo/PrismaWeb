@@ -105,9 +105,6 @@ jobs:
           images: ${{ env.IMAGEM }}
           tags: |
             type=semver,pattern={{version}},value=${{ needs.versao.outputs.versao }}
-            type=semver,pattern={{major}}.{{minor}},value=${{ needs.versao.outputs.versao }}
-            type=semver,pattern={{major}},value=${{ needs.versao.outputs.versao }},enable=${{ !startsWith(needs.versao.outputs.versao, '0.') }}
-            type=sha,prefix=sha-,format=short
             type=raw,value=latest
 
       - uses: docker/build-push-action@v6
