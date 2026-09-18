@@ -26,7 +26,7 @@ export function CartaoParcelamento({ plano, aoEditar, aoExcluir }: CartaoParcela
   const lastInstallment = plano.cronograma[plano.cronograma.length - 1];
 
   return (
-    <li className={styles.card}>
+    <li className={`${styles.card} card-hover-accent`}>
       <header className={styles.header}>
         <span className={styles.identity}>
           <span className={styles.titleRow}>

@@ -35,7 +35,7 @@ export function PainelSaldo({
   const domainMax = max + padding;
 
   return (
-    <section className={styles.panel} aria-label={rotulo}>
+    <section className={`${styles.panel} card-hover-accent`} aria-label={rotulo}>
       <div className={styles.summary}>
         <p className={styles.label}>{rotulo}</p>
         <ValorMonetario valor={saldo} tamanho="display" animar contarAoAparecer />

@@ -92,11 +92,16 @@ export function PaginaRelatorios() {
               {
                 rotulo: 'Receitas',
                 valor: <ValorMonetario valor={dados.receitas} tom="positive" animar contarAoAparecer />,
-                dica: 'No período selecionado',
+                variacao: (
+                  <IndicadorVariacao variacao={dados.variacaoReceitas} legenda="em relação ao período anterior" />
+                ),
               },
               {
                 rotulo: 'Despesas',
                 valor: <ValorMonetario valor={dados.despesas} tom="negative" animar contarAoAparecer />,
+                variacao: (
+                  <IndicadorVariacao variacao={dados.variacaoDespesas} legenda="em relação ao período anterior" />
+                ),
                 dica: 'Transferências não entram na conta',
               },
               {
@@ -121,17 +126,6 @@ export function PaginaRelatorios() {
             ]}
           />
 
-          <div className={styles.deltas}>
-            <span className={styles.delta}>
-              <span className={styles.deltaLabel}>Receitas</span>
-              <IndicadorVariacao variacao={dados.variacaoReceitas} legenda="em relação ao período anterior" />
-            </span>
-            <span className={styles.delta}>
-              <span className={styles.deltaLabel}>Despesas</span>
-              <IndicadorVariacao variacao={dados.variacaoDespesas} legenda="em relação ao período anterior" />
-            </span>
-          </div>
-
           <GraficoFluxoCaixa
             dados={dados.fluxoCaixa}
             titulo="Receitas e despesas"
@@ -139,23 +133,24 @@ export function PaginaRelatorios() {
             larguraMaximaBarra={dados.fluxoCaixa.length <= 6 ? 56 : 32}
           />
 
-          <div className={styles.grid}>
+          <div className={styles.split}>
             <DistribuicaoCategorias dados={dados.despesasPorCategoria} substantivoPeriodo="período" />
-            <DistribuicaoCategorias
-              dados={dados.receitasPorCategoria}
-              substantivoPeriodo="período"
-              titulo="Receitas por categoria"
-              descricao="Participação no total de receitas do período"
-              rotuloVazio="Nenhuma receita com categoria neste período."
-            />
+            <div className={styles.column}>
+              <DistribuicaoCategorias
+                dados={dados.receitasPorCategoria}
+                substantivoPeriodo="período"
+                titulo="Receitas por categoria"
+                descricao="Participação no total de receitas do período"
+                rotuloVazio="Nenhuma receita com categoria neste período."
+              />
+              <DistribuicaoOrigens dados={dados.despesasPorOrigem} />
+            </div>
           </div>
 
           <div className={styles.grid}>
-            <DistribuicaoOrigens dados={dados.despesasPorOrigem} />
             <GraficoEvolucaoSaldo dados={dados.historicoSaldo} />
+            <GraficoPatrimonio dados={dados.patrimonio} />
           </div>
-
-          <GraficoPatrimonio dados={dados.patrimonio} />
         </div>
       )}
     </>

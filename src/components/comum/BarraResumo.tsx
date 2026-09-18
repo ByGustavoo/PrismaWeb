@@ -5,6 +5,7 @@ import styles from './BarraResumo.module.css';
 export interface ItemResumo {
   rotulo: string;
   valor: ReactNode;
+  variacao?: ReactNode;
   dica?: ReactNode;
 }
 
@@ -20,6 +21,7 @@ export function BarraResumo({ itens, className }: BarraResumoProps) {
         <div key={item.rotulo} className={styles.item}>
           <dt className={styles.label}>{item.rotulo}</dt>
           <dd className={styles.value}>{item.valor}</dd>
+          {item.variacao ? <dd className={styles.delta}>{item.variacao}</dd> : null}
           {item.dica ? <dd className={styles.hint}>{item.dica}</dd> : null}
         </div>
       ))}

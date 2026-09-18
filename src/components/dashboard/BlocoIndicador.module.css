@@ -6,21 +6,13 @@
   background-color: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  transition:
-    border-color var(--duration-fast) var(--ease-out),
-    box-shadow var(--duration-base) var(--ease-out),
-    transform var(--duration-base) var(--ease-out);
 }
 
-.tile:hover {
-  border-color: var(--accent);
-  box-shadow: var(--shadow-accent);
-  transform: translateY(-1px);
-}
-
-.tile:hover .iconBox {
-  background-color: var(--accent-soft);
-  color: var(--accent);
+@media (hover: hover) {
+  .tile:hover .iconBox {
+    background-color: var(--accent-soft);
+    color: var(--accent);
+  }
 }
 
 .header {
@@ -61,8 +53,3 @@
   color: var(--text-subtle);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .tile:hover {
-    transform: none;
-  }
-}

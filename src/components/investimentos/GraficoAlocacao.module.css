@@ -1,16 +1,16 @@
-.card {
-  align-self: start;
-}
-
 .body {
+  --donut-size: 232px;
+  --donut-readout: 132px;
   display: grid;
-  grid-template-columns: 208px minmax(0, 1fr);
+  grid-template-columns: var(--donut-size) minmax(0, 1fr);
   align-items: center;
   gap: var(--space-4);
 }
 
 .chart {
   position: relative;
+  width: var(--donut-size);
+  height: var(--donut-size);
 }
 
 .chart :global(.recharts-sector) {
@@ -19,20 +19,37 @@
 
 .center {
   position: absolute;
-  inset: 0;
+  top: 50%;
+  left: 50%;
+  width: var(--donut-readout);
+  transform: translate(-50%, -50%);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  padding-inline: var(--space-4);
   text-align: center;
   pointer-events: none;
 }
 
+.centerContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  animation: entradaMiolo var(--duration-fast) var(--ease-out);
+}
+
+@keyframes entradaMiolo {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+}
+
 .centerLabel {
   font-size: var(--fs-xs);
+  line-height: var(--lh-snug);
   color: var(--text-subtle);
+  overflow-wrap: anywhere;
 }
 
 .centerShare {
@@ -51,6 +68,7 @@
 
 .item {
   display: flex;
+  width: 100%;
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-1) var(--space-2);
@@ -58,7 +76,19 @@
   border-radius: var(--radius-sm);
   font-size: var(--fs-base);
   min-width: 0;
+  text-align: left;
   transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.item:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+@media (pointer: coarse) {
+  .item {
+    min-height: var(--tap-size);
+  }
 }
 
 .itemActive {
@@ -94,10 +124,6 @@
   .body {
     grid-template-columns: minmax(0, 1fr);
     justify-items: center;
-  }
-
-  .chart {
-    width: 208px;
   }
 
   .legend {
