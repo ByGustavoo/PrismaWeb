@@ -14,7 +14,7 @@ export function GraficoPatrimonio({ dados }: GraficoPatrimonioProps) {
   const palette = usePaletaGrafico();
 
   return (
-    <Painel>
+    <Painel className="card-hover-accent">
       <CabecalhoPainel
         titulo="Evolução do patrimônio"
         descricao="O que está em conta e o que está investido, mês a mês"

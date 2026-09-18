@@ -23,7 +23,7 @@ export function BlocoCartao({ cartao, fatura, saldoConta, aoEditar, aoExcluir, a
   const ratio = credit ? Math.min(used / cartao.limiteCredito, 1) : 0;
 
   return (
-    <li className={styles.tile}>
+    <li className={`${styles.tile} card-hover-accent`}>
       <header className={styles.header}>
         <span className={styles.iconBox} aria-hidden="true">
           <Icon size={18} strokeWidth={1.75} />

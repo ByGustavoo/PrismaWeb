@@ -24,7 +24,7 @@ export function DestaqueFatura({ fatura, aoAbrir }: EntradaFaturaProps) {
   const changed = difference !== undefined && Math.abs(difference) >= 0.01;
 
   return (
-    <article className={styles.highlight}>
+    <article className={`${styles.highlight} card-hover-accent`}>
       <header className={styles.highlightHeader}>
         <span className={styles.cardName}>{fatura.nomeCartao}</span>
         <Selo tom={tomDaFatura(fatura)} ponto>

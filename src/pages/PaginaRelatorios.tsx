@@ -131,10 +131,15 @@ export function PaginaRelatorios() {
             titulo="Receitas e despesas"
             descricao="Entradas e saídas agrupadas dentro do período"
             larguraMaximaBarra={dados.fluxoCaixa.length <= 6 ? 56 : 32}
+            className="card-hover-accent"
           />
 
           <div className={styles.split}>
-            <DistribuicaoCategorias dados={dados.despesasPorCategoria} substantivoPeriodo="período" />
+            <DistribuicaoCategorias
+              dados={dados.despesasPorCategoria}
+              substantivoPeriodo="período"
+              className="card-hover-accent"
+            />
             <div className={styles.column}>
               <DistribuicaoCategorias
                 dados={dados.receitasPorCategoria}
@@ -142,6 +147,7 @@ export function PaginaRelatorios() {
                 titulo="Receitas por categoria"
                 descricao="Participação no total de receitas do período"
                 rotuloVazio="Nenhuma receita com categoria neste período."
+                className="card-hover-accent"
               />
               <DistribuicaoOrigens dados={dados.despesasPorOrigem} />
             </div>
