@@ -12,6 +12,7 @@ interface GraficoFluxoCaixaProps {
   descricao: string;
   titulo?: string;
   larguraMaximaBarra?: number;
+  className?: string;
 }
 
 export function GraficoFluxoCaixa({
@@ -19,12 +20,13 @@ export function GraficoFluxoCaixa({
   descricao,
   titulo = 'Entradas e saídas',
   larguraMaximaBarra = 26,
+  className,
 }: GraficoFluxoCaixaProps) {
   const palette = usePaletaGrafico();
   const semMovimento = dados.every((item) => item.receitas === 0 && item.despesas === 0);
 
   return (
-    <Painel>
+    <Painel className={className}>
       <CabecalhoPainel titulo={titulo} descricao={descricao} />
       {semMovimento ? (
         <CorpoPainel className={styles.empty}>

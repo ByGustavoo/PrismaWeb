@@ -66,6 +66,5 @@
 .bar {
   height: 100%;
   border-radius: var(--radius-pill);
-  background-color: var(--chart-1);
-  opacity: 0.9;
+  background-color: var(--text-subtle);
 }

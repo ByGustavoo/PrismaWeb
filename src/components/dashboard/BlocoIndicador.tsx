@@ -14,7 +14,7 @@ interface BlocoIndicadorProps {
 
 export function BlocoIndicador({ rotulo, valor, icone: Icon, variacao, notaRodape }: BlocoIndicadorProps) {
   return (
-    <article className={styles.tile}>
+    <article className={`${styles.tile} card-hover-accent`}>
       <header className={styles.header}>
         <span className={styles.label}>{rotulo}</span>
         <span className={styles.iconBox} aria-hidden="true">

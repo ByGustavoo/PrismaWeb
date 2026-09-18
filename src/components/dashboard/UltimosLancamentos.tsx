@@ -18,7 +18,7 @@ interface UltimosLancamentosProps {
 
 export function UltimosLancamentos({ lancamentos, descricao }: UltimosLancamentosProps) {
   return (
-    <Painel espacamento="sm">
+    <Painel espacamento="sm" className="card-hover-accent">
       <div className={styles.header}>
         <CabecalhoPainel titulo="Últimos lançamentos" descricao={descricao} />
         <Link className={styles.link} to={caminhos.lancamentos}>

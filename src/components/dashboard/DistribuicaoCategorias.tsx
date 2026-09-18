@@ -16,6 +16,7 @@ interface DistribuicaoCategoriasProps {
   titulo?: string;
   descricao?: string;
   rotuloVazio?: string;
+  className?: string;
 }
 
 export function DistribuicaoCategorias({
@@ -24,6 +25,7 @@ export function DistribuicaoCategorias({
   titulo = 'Gastos por categoria',
   descricao,
   rotuloVazio = 'Nenhuma despesa com categoria neste período.',
+  className,
 }: DistribuicaoCategoriasProps) {
   const [expanded, setExpanded] = useState(false);
   const listId = useId();
@@ -32,7 +34,7 @@ export function DistribuicaoCategorias({
   const visible = expanded ? dados : dados.slice(0, CATEGORIAS_VISIVEIS);
 
   return (
-    <Painel className={styles.card}>
+    <Painel className={className}>
       <CabecalhoPainel
         titulo={titulo}
         descricao={descricao ?? `Participação no total de despesas do ${substantivoPeriodo}`}

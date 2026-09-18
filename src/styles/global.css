@@ -167,6 +167,32 @@ table {
   }
 }
 
+.card-hover-accent {
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out);
+}
+
+.card-hover-accent:focus-within {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-accent);
+}
+
+@media (hover: hover) {
+  .card-hover-accent:hover {
+    border-color: var(--accent);
+    box-shadow: var(--shadow-accent);
+    transform: translateY(-1px);
+  }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: reduce) {
+  .card-hover-accent:hover {
+    transform: none;
+  }
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

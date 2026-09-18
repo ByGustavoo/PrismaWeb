@@ -137,8 +137,13 @@ export function PaginaDashboard() {
                     : `Seis meses até ${capitalizar(formatarRotuloMes(shownTo))}`
                   : `Comparativo mês a mês de ${shownLabel}`
               }
+              className="card-hover-accent"
             />
-            <DistribuicaoCategorias dados={dados.gastoPorCategoria} substantivoPeriodo={periodNoun} />
+            <DistribuicaoCategorias
+              dados={dados.gastoPorCategoria}
+              substantivoPeriodo={periodNoun}
+              className="card-hover-accent"
+            />
           </div>
 
           <CalendarioGastos

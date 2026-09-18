@@ -1,7 +1,3 @@
-.card {
-  align-self: start;
-}
-
 .empty {
   font-size: var(--fs-base);
   color: var(--text-subtle);

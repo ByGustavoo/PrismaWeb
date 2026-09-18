@@ -396,6 +396,17 @@ parcelamentos sao leitura calculada, exceto o cadastro da compra parcelada.
   fatura de janeiro somava em "A pagar agora" para sempre. A API emite `VENCIDA` — foi por isso que o erro so apareceu contra o backend. Fora da janela, a vencida usa selo
   neutro em toda tela de fatura (`tomDaFatura`, em `components/cartoes/aparencia.ts`): o vermelho
   pedia uma acao que o produto ja considera resolvida.
+- **Fechamento vem antes de vencimento, em toda tela.** O destaque da fatura, a linha das faturas
+  futuras e anteriores, o modal de detalhe e o bloco do cartao listam a data de fechamento primeiro
+  e a de vencimento depois, na ordem em que as duas acontecem: o ciclo fecha e so depois a fatura
+  vence. As quatro telas seguem a mesma ordem — inverter uma delas e deixar as outras cria duas
+  leituras para o mesmo par de datas.
+- **O vencimento cai no mes seguinte quando o dia de vencimento e menor ou igual ao de fechamento**
+  (`FaturaService.vencimento`, no PrismaAPI). Um cartao que fecha dia 13 e vence dia 5 tem a fatura
+  de outubro fechando em 13/10 e vencendo em 05/11 — 05/10 seria antes do proprio fechamento. Pelo
+  mesmo motivo a fatura leva o nome do mes em que **fecha**: depois do dia 13 de setembro, a compra
+  ja entra na fatura de outubro, que e a que aparece como "Fatura atual" enquanto ainda e setembro.
+
 - **A barra de limite usa as faixas de `constants/cartoes.ts`**, as mesmas que decidem o aviso do
   sino. Separadas, um dia a barra ficaria ambar sem nenhum aviso correspondente no painel.
 - **Filtro de tela vai na linha de acoes do `CabecalhoPagina`; filtro de bloco, no cabecalho do bloco.**
@@ -432,6 +443,26 @@ evolucao saem do calculo.
   tem dica propria no formulario (`dicaClasseAtivo`).
 - **A curva vem das movimentacoes**, nao mais de uma distribuicao linear: em cada fim de mes, o
   ultimo saldo conhecido mais os aportes feitos depois dele. A serie vem pronta do servidor.
+- **O miolo da rosca e uma caixa medida, nao o quadrado inteiro do grafico.** A leitura central
+  (`--donut-readout`, 132px) cabe dentro do buraco (`--donut-size` 232px com `innerRadius` de 70%,
+  raio de 81px): a meia-diagonal da caixa fica 8px dentro do anel. Antes ela ocupava o quadrado
+  todo menos um respiro lateral, 176px num buraco de 133px, e "Previdencia privada" transbordava
+  por cima das fatias. Ao mexer no tamanho do grafico ou no `innerRadius`, refaca a conta — e por
+  isso a linha da participacao diz "do total", e nao "do patrimonio", que quebrava em duas linhas.
+- **Os dois graficos da linha de Investimentos casam topo e base.** "Evolucao do patrimonio" e
+  "Distribuicao por tipo" dividem a altura da linha: a grade `.charts` nao leva `align-items: start`
+  e o painel da rosca nao leva `align-self: start`. O conteudo da rosca se centraliza na sobra, em
+  vez de o painel encolher ate o proprio conteudo e deixar um degrau na base dos dois cartoes.
+- **A legenda da rosca e feita de botoes, e nao de linhas mortas.** Passar o mouse ou dar Tab num
+  item mostra a leitura daquela classe no miolo; clicar **fixa** a classe (`aria-pressed`), e clicar
+  de novo solta. Sem isso, a leitura por classe so existia no hover — ou seja, nao existia no
+  celular, onde nao ha hover, nem para quem navega por teclado. A previa (mouse ou foco) tem
+  precedencia sobre a fixada, entao passar o mouse sobre outra classe mostra essa outra sem desfazer
+  a escolha. Em `pointer: coarse` o item cresce ate `--tap-size`.
+- **A troca do miolo passa por uma entrada curta** (`entradaMiolo`, `--duration-fast`): o conteudo
+  recebe `key` pela classe ativa, entao o React o remonta e a animacao reexecuta. As keyframes ficam
+  no proprio `.module.css` de propósito — o CSS Modules reescreve o nome da animacao e o da keyframe
+  com o mesmo hash, e so casam quando os dois moram no mesmo arquivo.
 - **A rosca guarda o total no centro** e a legenda e uma lista ao lado, que quebra o nome em duas
   linhas em vez de cortar "Previdência privada".
 - **`GraficoEvolucao` (`components/graficos`) e o grafico de valor contra aportado** da carteira, do
@@ -584,9 +615,25 @@ Uma tela em `/relatorios`, com o recorte escolhido em `SeletorPeriodoRelatorio`.
 - **A evolucao do patrimonio e empilhada em conta e investimento.** O topo continua sendo o total,
   mas a divisao mostra dinheiro migrando de um lado para o outro — que e o que um aporte faz todo
   mes, e o que um total estavel esconderia.
-- **Gasto por origem usa uma cor so.** Ali a comparacao e de tamanho, nao de identidade: dar uma cor
-  a cada conta faria a barra competir com o codigo de cores das categorias, que e o unico do
-  produto.
+- **Gasto por origem usa uma cor so, e ela e neutra** (`--text-subtle`, 4,79:1 no claro e 4,66:1 no
+  escuro sobre o trilho). Ali a comparacao e de tamanho, nao de identidade: dar uma cor a cada conta
+  faria a barra competir com o codigo de cores das categorias, que e o unico do produto. A barra era
+  `--chart-1`, o mesmo valor do `--accent`, e empilhada logo abaixo de "Receitas por categoria" ela
+  parecia mais uma cor de identidade. O cinza diz que aquilo mede tamanho.
+- **Os blocos se agrupam por pergunta, e cada linha junta o que tem a mesma forma.** Depois do
+  resumo vem "Receitas e despesas" em largura total (o ritmo do periodo); depois a composicao, com
+  "Gastos por categoria" a esquerda e, a direita, uma coluna com "Receitas por categoria" e "Gastos
+  por conta e cartao"; por ultimo as duas series temporais lado a lado, "Evolucao do saldo" e
+  "Evolucao do patrimonio". Listas com listas e graficos com graficos: emparelhar uma lista de duas
+  linhas com um grafico de 260px deixava meia coluna vazia, e as duas evolucoes, separadas, nao
+  podiam ser comparadas no mesmo eixo. A coluna da direita leva `.column > * { align-self: stretch }`
+  porque `DistribuicaoCategorias` e `DistribuicaoOrigens` trazem `align-self: start` do proprio
+  modulo — num flex em coluna isso encolhe o cartao ate o conteudo, e os dois saiam com larguras
+  diferentes.
+- **A variacao fica dentro da `BarraResumo`, no bloco a que ela pertence.** O item de resumo aceita
+  um `variacao` opcional, renderizado entre o valor e a dica — as variacoes de receitas e despesas
+  viviam numa faixa solta entre a barra e o primeiro grafico, longe dos numeros que explicavam. Como
+  o campo e opcional, as outras nove telas que usam a `BarraResumo` nao mudaram.
 - **A tela reusa `GraficoFluxoCaixa` e `DistribuicaoCategorias` do dashboard**, com titulo e descricao por
   prop. Duplicar o desenho para trocar um rotulo criaria um segundo grafico para o mesmo problema —
   e e assim que dois blocos iguais comecam a divergir.
@@ -786,6 +833,17 @@ porcentagem vem arredondada e o que sobra, formatado — nunca `1127.27999999999
 A urgencia aparece na cor do icone (`critical` / `attention` / `info`), nao no fundo da linha: uma
 lista com tres fundos coloridos vira ruido. O ponto no sino conta apenas os avisos que nao sao
 `info`, e e calculado no mount do painel — nao depende de o usuario abri-lo.
+
+## Ritmo vertical
+
+Duas medidas valem em todas as telas, e foram unificadas depois de uma auditoria que encontrou
+Cartoes e Faturas fora do padrao: **`--space-5` (20px) entre os blocos de uma tela** (o `.stack` ou
+o `.grid` de topo da pagina) e **`--space-4` (16px) entre o titulo de uma secao e o conteudo dela**
+(o `.section`). Trocar de tela nao pode mudar o espacamento: a diferenca de 4px passava
+despercebida numa tela e aparecia na troca.
+
+Nas telas em que o `h2` da secao e escondido para leitor de tela, como Compras parceladas, o
+segundo numero nao se aplica — nao ha titulo visivel para separar do conteudo.
 
 ## Responsividade
 

@@ -16,22 +16,26 @@ interface GraficoAlocacaoProps {
 }
 
 export function GraficoAlocacao({ dados, total }: GraficoAlocacaoProps) {
-  const [active, setActive] = useState<ClasseAtivo | null>(null);
+  const [fixada, setFixada] = useState<ClasseAtivo | null>(null);
+  const [previa, setPrevia] = useState<ClasseAtivo | null>(null);
+  const active = previa ?? fixada;
   const activeEntry = dados.find((entry) => entry.classeAtivo === active) ?? null;
   const palette = usePaletaGrafico();
 
+  const alternarFixada = (classe: ClasseAtivo) => setFixada((atual) => (atual === classe ? null : classe));
+
   return (
-    <Painel className={styles.card}>
+    <Painel>
       <CabecalhoPainel titulo="Distribuição por tipo" descricao="Participação de cada classe no patrimônio atual" />
       <CorpoPainel className={styles.body}>
-        <div className={styles.chart} onMouseLeave={() => setActive(null)}>
-          <ResponsiveContainer width="100%" height={208}>
+        <div className={styles.chart} onMouseLeave={() => setPrevia(null)}>
+          <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={dados}
                 dataKey="valorAtual"
                 nameKey="classeAtivo"
-                innerRadius="64%"
+                innerRadius="70%"
                 outerRadius="100%"
                 paddingAngle={dados.length > 1 ? 2 : 0}
                 stroke="none"
@@ -43,7 +47,8 @@ export function GraficoAlocacao({ dados, total }: GraficoAlocacaoProps) {
                     key={entry.classeAtivo}
                     fill={palette.paleta[corClasseAtivo[entry.classeAtivo] - 1]}
                     fillOpacity={active && active !== entry.classeAtivo ? 0.4 : 1}
-                    onMouseEnter={() => setActive(entry.classeAtivo)}
+                    onMouseEnter={() => setPrevia(entry.classeAtivo)}
+                    onClick={() => alternarFixada(entry.classeAtivo)}
                   />
                 ))}
               </Pie>
@@ -51,39 +56,47 @@ export function GraficoAlocacao({ dados, total }: GraficoAlocacaoProps) {
           </ResponsiveContainer>
 
           <div className={styles.center} aria-hidden="true">
-            {activeEntry ? (
-              <>
-                <span className={styles.centerLabel}>{rotuloClasseAtivo[activeEntry.classeAtivo]}</span>
-                <ValorMonetario valor={activeEntry.valorAtual} tamanho="md" />
-                <span className={`${styles.centerShare} tabular`}>
-                  {formatarPercentual(activeEntry.participacao * 100, 1)} do patrimônio
-                </span>
-              </>
-            ) : (
-              <>
-                <span className={styles.centerLabel}>Patrimônio</span>
-                <ValorMonetario valor={total} tamanho="md" />
-              </>
-            )}
+            <div key={activeEntry?.classeAtivo ?? 'total'} className={styles.centerContent}>
+              {activeEntry ? (
+                <>
+                  <span className={styles.centerLabel}>{rotuloClasseAtivo[activeEntry.classeAtivo]}</span>
+                  <ValorMonetario valor={activeEntry.valorAtual} tamanho="md" />
+                  <span className={`${styles.centerShare} tabular`}>
+                    {formatarPercentual(activeEntry.participacao * 100, 1)} do total
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className={styles.centerLabel}>Patrimônio</span>
+                  <ValorMonetario valor={total} tamanho="md" />
+                </>
+              )}
+            </div>
           </div>
         </div>
 
         <ul className={styles.legend}>
           {dados.map((entry) => (
-            <li
-              key={entry.classeAtivo}
-              className={juntarClasses(styles.item, active === entry.classeAtivo && styles.itemActive)}
-              onMouseEnter={() => setActive(entry.classeAtivo)}
-              onMouseLeave={() => setActive(null)}
-            >
-              <span
-                className={styles.marker}
-                style={{ backgroundColor: corDaClasse(entry.classeAtivo) }}
-                aria-hidden="true"
-              />
-              <span className={styles.name}>{rotuloClasseAtivo[entry.classeAtivo]}</span>
-              <span className={`${styles.share} tabular`}>{formatarPercentual(entry.participacao * 100, 0)}</span>
-              <ValorMonetario className={styles.value} valor={entry.valorAtual} tamanho="sm" tom="muted" />
+            <li key={entry.classeAtivo}>
+              <button
+                type="button"
+                aria-pressed={fixada === entry.classeAtivo}
+                className={juntarClasses(styles.item, active === entry.classeAtivo && styles.itemActive)}
+                onMouseEnter={() => setPrevia(entry.classeAtivo)}
+                onMouseLeave={() => setPrevia(null)}
+                onFocus={() => setPrevia(entry.classeAtivo)}
+                onBlur={() => setPrevia(null)}
+                onClick={() => alternarFixada(entry.classeAtivo)}
+              >
+                <span
+                  className={styles.marker}
+                  style={{ backgroundColor: corDaClasse(entry.classeAtivo) }}
+                  aria-hidden="true"
+                />
+                <span className={styles.name}>{rotuloClasseAtivo[entry.classeAtivo]}</span>
+                <span className={`${styles.share} tabular`}>{formatarPercentual(entry.participacao * 100, 0)}</span>
+                <ValorMonetario className={styles.value} valor={entry.valorAtual} tamanho="sm" tom="muted" />
+              </button>
             </li>
           ))}
         </ul>

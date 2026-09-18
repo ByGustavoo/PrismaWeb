@@ -107,7 +107,7 @@ export function CalendarioGastos({ dias, descricao }: CalendarioGastosProps) {
     : 'Gastos por dia. Nenhuma despesa no período.';
 
   return (
-    <Painel>
+    <Painel className="card-hover-accent">
       <CabecalhoPainel
         titulo="Gastos por dia"
         descricao={descricao}
