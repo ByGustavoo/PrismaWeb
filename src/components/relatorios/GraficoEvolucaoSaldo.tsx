@@ -14,7 +14,7 @@ export function GraficoEvolucaoSaldo({ dados }: GraficoEvolucaoSaldoProps) {
   const palette = usePaletaGrafico();
 
   return (
-    <Painel>
+    <Painel className="card-hover-accent">
       <CabecalhoPainel titulo="Evolução do saldo" descricao="Saldo somado das contas ao fim de cada intervalo" />
       <CorpoPainel className={styles.chart}>
         <ResponsiveContainer width="100%" height={260}>

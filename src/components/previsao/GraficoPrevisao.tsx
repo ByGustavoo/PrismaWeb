@@ -23,7 +23,7 @@ export function GraficoPrevisao({ dados }: GraficoPrevisaoProps) {
   const compact = useEhCompacto();
 
   return (
-    <Painel>
+    <Painel className="card-hover-accent">
       <CabecalhoPainel
         titulo="Entradas, saídas e saldo previsto"
         descricao="Projeção a partir do saldo previsto para o fim deste mês. As saídas somam despesas e aportes."

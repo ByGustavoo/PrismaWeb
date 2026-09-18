@@ -13,7 +13,7 @@ export function DistribuicaoOrigens({ dados }: DistribuicaoOrigensProps) {
   const largest = dados[0]?.participacao ?? 1;
 
   return (
-    <Painel className={styles.card}>
+    <Painel className={`${styles.card} card-hover-accent`}>
       <CabecalhoPainel titulo="Gastos por conta e cartão" descricao="Participação de cada origem no total de despesas" />
       <CorpoPainel>
         {dados.length === 0 ? (

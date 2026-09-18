@@ -8,7 +8,7 @@ interface GraficoCarteiraProps {
 
 export function GraficoCarteira({ dados }: GraficoCarteiraProps) {
   return (
-    <Painel>
+    <Painel className="card-hover-accent">
       <CabecalhoPainel
         titulo="Evolução do patrimônio"
         descricao="Patrimônio acumulado e total aportado nos últimos doze meses"

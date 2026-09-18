@@ -25,7 +25,7 @@ export function GraficoAlocacao({ dados, total }: GraficoAlocacaoProps) {
   const alternarFixada = (classe: ClasseAtivo) => setFixada((atual) => (atual === classe ? null : classe));
 
   return (
-    <Painel>
+    <Painel className="card-hover-accent">
       <CabecalhoPainel titulo="Distribuição por tipo" descricao="Participação de cada classe no patrimônio atual" />
       <CorpoPainel className={styles.body}>
         <div className={styles.chart} onMouseLeave={() => setPrevia(null)}>
