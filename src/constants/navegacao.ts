@@ -53,18 +53,18 @@ export const navegacao: SecaoNavegacao[] = [
   {
     titulo: 'Patrimônio',
     itens: [
-      { rotulo: 'Investimentos', icone: TrendingUp, destino: caminhos.investimentos },
       {
         rotulo: 'Planejamento',
         icone: Target,
         destino: caminhos.orcamento,
         filhos: [
-          { rotulo: 'Orçamento', destino: caminhos.orcamento },
-          { rotulo: 'Despesas recorrentes', destino: caminhos.recorrentes },
-          { rotulo: 'Previsão financeira', destino: caminhos.previsao },
           { rotulo: 'Metas', destino: caminhos.metas },
+          { rotulo: 'Orçamento', destino: caminhos.orcamento },
+          { rotulo: 'Previsão financeira', destino: caminhos.previsao },
+          { rotulo: 'Despesas recorrentes', destino: caminhos.recorrentes },
         ],
       },
+      { rotulo: 'Investimentos', icone: TrendingUp, destino: caminhos.investimentos },
     ],
   },
   {
