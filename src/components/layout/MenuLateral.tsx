@@ -54,7 +54,7 @@ export function MenuLateral({ recolhido, abertoNoMobile, aoAlternarRecolhido, ao
         aria-label="Navegação principal"
       >
         <div className={styles.brand}>
-          <span className={styles.brandMark}>
+          <span className={juntarClasses(styles.brandMark, 'marca-em-transicao')}>
             <MarcaPrisma tamanho={26} />
           </span>
           <span className={styles.brandText}>

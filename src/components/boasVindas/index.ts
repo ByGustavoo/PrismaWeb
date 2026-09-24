@@ -1,0 +1,1 @@
+export { TelaBoasVindas } from './TelaBoasVindas';

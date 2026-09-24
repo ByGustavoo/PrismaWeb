@@ -49,6 +49,7 @@
   --nav-item-height: max(var(--tap-size), calc(var(--space-2) * 2 + var(--fs-base) * var(--lh-normal)));
 
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in: cubic-bezier(0.55, 0, 1, 0.45);
   --ease-spring: cubic-bezier(0.34, 1.42, 0.54, 1);
   --duration-fast: 120ms;
   --duration-base: 200ms;

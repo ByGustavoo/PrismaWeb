@@ -159,6 +159,7 @@ src/
 │   ├── ui/        Botao, Painel, CampoTexto, CampoValor, AreaTexto, CampoSelecao, SeletorData, Interruptor, Modal,
 │   │              DialogoConfirmacao, Selo, Tabela, BarraProgresso, Carregamento, EstadoVazio, Notificacao
 │   ├── comum/     ValorMonetario, MarcaPrisma, IndicadorVariacao, BarraResumo, HistoricoMovimentacoes
+│   ├── boasVindas/ TelaBoasVindas, LinhaDoSaldo (fundo), transicaoBoasVindas (saida por View Transitions)
 │   ├── layout/    MenuLateral, Cabecalho, EspacoCabecalho, CabecalhoPagina, PainelAvisos,
 │   │              BuscaGlobal, SeletorPeriodo
 │   ├── dashboard/ PainelSaldo, BlocoIndicador, GraficoFluxoCaixa, DistribuicaoCategorias,
@@ -271,7 +272,8 @@ Cada pasta de componentes tem um `index.ts` de barril — ao criar um componente
 - `--heat-0` a `--heat-4` sao a escala do calendario de gastos por dia. Comecam no cinza de
   superficie (dia sem gasto) e terminam em `--negative`. Sao objeto grafico: o requisito e um
   degrau distinguir do vizinho, nao 4.5:1 de texto. Nao os reaproveite para texto nem para badge.
-- Movimento tem tokens proprios: `--ease-out` para cor, borda, sombra e giro de seta;
+- Movimento tem tokens proprios: `--ease-out` para cor, borda, sombra e giro de seta; `--ease-in` para
+  o que sai de cena (a saida da tela de boas-vindas);
   `--ease-spring` — o unico com ultrapassagem — para entrada de item de lista, entrada de popover
   (CampoSelecao, avisos, periodo), curso do Interruptor, rolagem de algarismo e hover do menu lateral;
   `--duration-fast/base/slow` e `--stagger-step`, o intervalo entre um item e o seguinte numa
@@ -640,6 +642,74 @@ Uma tela em `/relatorios`, com o recorte escolhido em `SeletorPeriodoRelatorio`.
 - **Saldo, variacao e agrupamento por categoria seguem as mesmas regras do dashboard** no
   servidor. Duas telas que somam a mesma coisa de dois jeitos
   acabam com dois resultados, e o usuario descobre isso antes de nos.
+
+## Tela de boas-vindas
+
+`components/boasVindas/` desenha a tela que aparece sempre que o Prisma e aberto numa nova aba ou
+janela, antes de qualquer rota — inclusive num link direto para `/faturas`, que continua valendo
+depois do "Começar". Recarregar a mesma aba nao a mostra de novo: a marca fica em `sessionStorage`
+(`CHAVE_BOAS_VINDAS_VISTA`, `prisma:welcome-seen`), e nao em `localStorage`, porque a tela e uma
+abertura, nao um onboarding que se ve uma vez na vida. O portao fica no `Aplicacao.tsx`, dentro do
+`ProvedoresAplicacao`, para a tela herdar o tema.
+
+- **O fundo e uma linha de saldo** (`LinhaDoSaldo`). Uma grade fina de grafico que se apaga para as
+  bordas e uma serie em `--chart-1` que corre baixa sob o conteudo e sobe no espaco livre a direita
+  dos cards ate o ponto "hoje", com o selo "Hoje" como o tooltip dos graficos do app; dali ela segue
+  tracejada como previsao. E a descricao da tela desenhada: quanto tem hoje e quanto ainda vai ter. Duas
+  versoes anteriores foram recusadas por exagero — sete raios coloridos e um Sankey de receitas
+  abrindo em oito categorias. O pedido foi fundo minimalista, com cara de site profissional: uma
+  cor, sem particula, e o grafico como unico destaque.
+- **A entrada conta a serie em ordem e o laco tem causa.** A linha se desenha com a area revelada
+  junto (`clip-path` animado), o ponto pousa, o selo sobe, e o tracejado e a area sob ele se abrem por
+  ultimo. Em laco, um brilho percorre a linha a cada `--ciclo-brilho` e o halo do ponto pulsa no
+  instante em que ele chega: o atraso do halo e `--atraso-brilho + ciclo x --chegada-brilho`, o
+  mesmo 70% do keyframe `brilhar`. Ao mexer num dos tres, mexa no outro. Sob movimento reduzido,
+  brilho e halo saem — congelados no primeiro quadro, seriam um risco solto e um circulo parado.
+- **Depois do "hoje" nada pode parecer corte.** Tres coisas faziam o grafico parecer quebrado ali,
+  e nao devem voltar. O tracejado andava em laco, entao quase sempre havia um vao escuro entre o
+  ponto e o primeiro traco: hoje ele e parado e o primeiro traco nasce no ponto. O tracejado
+  comecava mais apagado que a linha cheia (55% contra 85%): hoje ele parte dos mesmos 85% e esmaece
+  por degrade ate 30% no fim. E havia um cone de previsao, uma faixa que se abria acima e abaixo
+  do tracejado: lida como a area vazando para fora da linha, foi removida. **Nada fica acima do
+  tracejado** — a area sob a previsao termina exatamente nele, e o degrade da area usa
+  `userSpaceOnUse`, para o tom ser o mesmo na emenda com a area realizada. A serie tambem segue
+  subindo quase na mesma inclinacao depois do "hoje" — achatar de repente lia como quebra.
+- **O grafico se ancora na largura, e o conteudo reserva o espaco dele.** O SVG tem
+  `aspect-ratio: 1440 / 900`, largura total e base no rodape; a escala e sempre largura/1440, seja
+  qual for a altura. Por isso o espaco que a parte plana da linha ocupa acima da base e conta
+  exata: ate 126 unidades, o que da `8.75vw` — e o `--folga-grafico` da `.tela` e isso mais 24px.
+  O conteudo fica no topo (`place-items: start center`, 48px de respiro), e a linha passa entre 20 e
+  34px abaixo do "Começar" de 1024 a 1920px de largura; em 1920x935 a tela fecha sem rolagem. Ancorar
+  na altura da tela deixava a linha atras do botao em 1366x768. Ao mexer em `SALDO_Y`, refaca o
+  126 e o `8.75vw`. Abaixo de 600px o grafico vira o fechamento da tela: `.tela` reserva
+  `--altura-grafico-compacto` abaixo do botao, o SVG ocupa essa faixa com 160% de largura para
+  mostrar a subida, e o selo sai.
+- **Selo e ponto tem tamanho de interface, nao de desenho.** O SVG escala com a tela, entao um
+  `ResizeObserver` le `getScreenCTM().a` e grava `--escala-inversa`, que o grupo `.tamanhoFixo`
+  aplica com `scale` em torno do ponto. Sem isso o "Hoje" tinha 8px num tablet e 16px num monitor
+  grande. A entrada do selo usa `translate`, e nao `transform`, para nao brigar com esse `scale`.
+- **Os tres cards e o "Começar" saltam no hover, e isso e da tela, nao do sistema.** O card sobe 4px
+  com `--ease-spring`, ganha borda `--accent`, um toque de `--accent-soft` no fundo, brilho azul
+  embaixo e o icone preenchido em azul; o botao, que ja fica azul pelo `Botao`, sobe 3px com o mesmo
+  brilho. O salto usa a propriedade `translate`, e nao `transform`, para nao brigar com as animacoes
+  de entrada e saida, que animam `transform` nos mesmos elementos. E um retorno mais forte que o do
+  `.card-hover-accent` (1px) de proposito: o usuario pediu que pulasse, e a tela de abertura nao e
+  uma lista de dados densa. Nao leve esse salto para os cards do app.
+- **A frase e `FRASE_BOAS_VINDAS`** ("Veja para onde vai cada real."), em `constants/aplicacao.ts`,
+  com `text-wrap: balance` para nao sobrar uma palavra sozinha na segunda linha.
+- **A saida e em cascata e o logo viaja ate o menu lateral.** O quadrado da marca da tela e o
+  `.brandMark` do `MenuLateral` dividem a classe global `marca-em-transicao`, que da o
+  `view-transition-name` compartilhado; a View Transitions API anima um no outro. As letras de
+  "Prisma" sao absorvidas pelo logo antes da troca (`--dx` medido do centro de cada letra ao centro
+  do logo). **Toda animacao de saida tem de terminar antes de `DURACAO_DESPEDIDA_MS` (760 ms)**, o
+  instante em que a View Transition fotografa a pagina: o que estiver no meio do caminho fica
+  congelado na foto e esmaece parado. Foi assim que o "a" final de "Prisma", que terminava aos
+  805 ms, ficava solto ao lado do logo; hoje a ultima letra termina aos 675 ms. Ao mexer em atraso,
+  duracao ou numero de letras, refaca a conta. Abaixo de 1100px o menu vira gaveta fora da tela, entao a classe perde o nome e a troca
+  e so o esmaecimento da pagina — o logo voaria para um lugar invisivel.
+- **Sem suporte a View Transitions, com a aba oculta ou com movimento reduzido, a aplicacao entra
+  direto**, sem a despedida. A transicao espera o `h1` de `main#conteudo` por ate 600 ms, para nao
+  capturar a pagina nova ainda vazia.
 
 ## Pagina 404
 

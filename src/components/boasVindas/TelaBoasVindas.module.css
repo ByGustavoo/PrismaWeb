@@ -1,0 +1,415 @@
+.tela {
+  --folga-grafico: calc(8.75vw + var(--space-6));
+
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: start center;
+  min-height: 100dvh;
+  padding: calc(var(--space-12) + env(safe-area-inset-top, 0px)) var(--space-6)
+    calc(var(--folga-grafico) + env(safe-area-inset-bottom, 0px));
+  overflow: hidden;
+  background-color: var(--canvas);
+}
+
+.conteudo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 34rem;
+  text-align: center;
+}
+
+.marca {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+.marca::before {
+  content: '';
+  position: absolute;
+  inset: -2.5rem -4rem;
+  z-index: -1;
+  background: radial-gradient(closest-side, var(--canvas) 62%, transparent 100%);
+}
+
+.simbolo {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background-color: var(--brand-surface);
+  animation: logoSurgir 900ms var(--ease-spring) 80ms backwards;
+}
+
+.simbolo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1.5px solid var(--accent);
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+  animation: onda 1.3s var(--ease-out) 420ms;
+}
+
+.prisma path {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: faceEncaixar 700ms var(--ease-spring) backwards;
+}
+
+.prisma path:nth-child(1) {
+  animation-delay: 260ms;
+}
+
+.prisma path:nth-child(2) {
+  animation-delay: 340ms;
+}
+
+.prisma path:nth-child(3) {
+  animation-delay: 420ms;
+}
+
+.nome {
+  position: relative;
+  display: inline-flex;
+  font-family: var(--font-figure);
+  font-size: var(--fs-2xl);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+}
+
+.letra {
+  --dx: -3rem;
+
+  display: inline-block;
+  white-space: pre;
+  text-box: trim-both cap alphabetic;
+  animation: letraEmergir 760ms var(--ease-out) backwards;
+  animation-delay: calc(480ms + var(--i, 0) * 65ms);
+}
+
+.titulo {
+  font-size: var(--fs-display);
+  line-height: var(--lh-tight);
+  text-wrap: balance;
+}
+
+.palavra {
+  display: inline-block;
+  overflow: clip;
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+  vertical-align: top;
+}
+
+.palavraInterna {
+  display: inline-block;
+  animation: palavraSubir 820ms var(--ease-out) backwards;
+  animation-delay: calc(640ms + var(--i, 0) * 70ms);
+}
+
+.descricao {
+  max-width: 30rem;
+  margin-top: var(--space-4);
+  color: var(--text-muted);
+  font-size: var(--fs-md);
+  line-height: var(--lh-normal);
+  text-wrap: pretty;
+}
+
+.entra {
+  animation: blocoEntrar 760ms var(--ease-out) backwards;
+  animation-delay: var(--atraso, 0ms);
+}
+
+.recursos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+  margin-top: var(--space-8);
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.recurso {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background-color: color-mix(in srgb, var(--surface) 88%, transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(6px);
+  transition:
+    translate var(--duration-base) var(--ease-spring),
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out);
+}
+
+.iconeRecurso {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background-color: var(--accent-soft);
+  color: var(--accent);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    scale var(--duration-base) var(--ease-spring);
+}
+
+@media (hover: hover) {
+  .recurso:hover {
+    translate: 0 -4px;
+    border-color: var(--accent);
+    background-color: color-mix(in srgb, var(--accent-soft) 45%, var(--surface));
+    box-shadow: 0 14px 30px -18px color-mix(in srgb, var(--accent) 70%, transparent);
+  }
+
+  .recurso:hover .iconeRecurso {
+    background-color: var(--accent);
+    color: var(--accent-contrast);
+    scale: 1.06;
+  }
+}
+
+.textosRecurso {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tituloRecurso {
+  font-size: var(--fs-md);
+  font-weight: 600;
+}
+
+.descricaoRecurso {
+  color: var(--text-muted);
+  font-size: var(--fs-base);
+  line-height: var(--lh-snug);
+}
+
+.acoes {
+  margin-top: var(--space-8);
+}
+
+.comecar {
+  min-width: 11rem;
+  height: max(44px, var(--control-height));
+  font-size: var(--fs-md);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    translate var(--duration-base) var(--ease-spring),
+    box-shadow var(--duration-base) var(--ease-out);
+}
+
+.comecar svg {
+  transition: transform var(--duration-base) var(--ease-spring);
+}
+
+@media (hover: hover) {
+  .comecar:hover {
+    translate: 0 -3px;
+    box-shadow: 0 12px 24px -12px color-mix(in srgb, var(--accent) 75%, transparent);
+  }
+
+  .comecar:hover svg {
+    transform: translateX(3px);
+  }
+
+  .comecar:active {
+    translate: 0 -1px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recurso:hover,
+  .comecar:hover {
+    translate: none;
+  }
+
+  .recurso:hover .iconeRecurso {
+    scale: none;
+  }
+}
+
+.saindo {
+  pointer-events: none;
+}
+
+.saindo .etapa {
+  animation: blocoSair 340ms var(--ease-in) forwards;
+  animation-delay: calc(var(--ordem-saida, 0) * 30ms);
+}
+
+.saindo .palavraInterna {
+  animation: palavraSair 380ms var(--ease-in) forwards;
+  animation-delay: calc(90ms + var(--i, 0) * 40ms);
+}
+
+.saindo .letra {
+  animation: letraAbsorver 400ms var(--ease-in) forwards;
+  animation-delay: calc(100ms + var(--i, 0) * 35ms);
+}
+
+.saindo .simbolo {
+  animation: antecipar 600ms var(--ease-spring) 220ms forwards;
+}
+
+.saindo .simbolo::after {
+  animation: onda 700ms var(--ease-out) 380ms;
+}
+
+.saindo .comecar svg {
+  animation: flechaPartir 380ms var(--ease-in) forwards;
+}
+
+@keyframes logoSurgir {
+  from {
+    opacity: 0;
+    transform: scale(0.35) rotate(-20deg);
+  }
+  60% {
+    opacity: 1;
+  }
+}
+
+@keyframes faceEncaixar {
+  from {
+    opacity: 0;
+    transform: scale(0.4) translateY(3px);
+  }
+}
+
+@keyframes onda {
+  0% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.2);
+  }
+}
+
+@keyframes letraEmergir {
+  from {
+    opacity: 0;
+    transform: translate(var(--dx), 0) scale(0.2);
+  }
+  55% {
+    opacity: 1;
+    transform: translate(calc(var(--dx) * 0.3), -10px) scale(0.92);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes letraAbsorver {
+  45% {
+    opacity: 1;
+    transform: translate(calc(var(--dx) * 0.35), -12px) scale(0.85);
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--dx), 0) scale(0.1);
+  }
+}
+
+@keyframes palavraSubir {
+  from {
+    transform: translateY(110%);
+  }
+}
+
+@keyframes palavraSair {
+  to {
+    transform: translateY(-110%);
+  }
+}
+
+@keyframes blocoEntrar {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+    filter: blur(4px);
+  }
+}
+
+@keyframes blocoSair {
+  to {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.98);
+    filter: blur(3px);
+  }
+}
+
+@keyframes antecipar {
+  40% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes flechaPartir {
+  to {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+}
+
+@media (max-width: 599px) {
+  .tela {
+    --altura-grafico-compacto: 210px;
+
+    align-items: start;
+    padding-inline: var(--space-4);
+    padding-bottom: calc(var(--altura-grafico-compacto) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .marca {
+    margin-bottom: var(--space-6);
+  }
+
+  .titulo {
+    font-size: var(--fs-2xl);
+  }
+
+  .descricao {
+    font-size: var(--fs-base);
+  }
+
+  .recursos {
+    margin-top: var(--space-6);
+  }
+
+  .acoes {
+    width: 100%;
+  }
+
+  .comecar {
+    width: 100%;
+  }
+}

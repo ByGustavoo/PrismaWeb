@@ -52,6 +52,9 @@ A imagem já é publicada no Docker Hub pela esteira, com versão e data visíve
 
 <br>
 
+🔹 **Boas-vindas**
+* Tela de abertura a cada nova aba, com a frase "Veja para onde vai cada real.", uma linha de saldo animada que segue tracejada depois de hoje e o logo viajando até o menu lateral ao começar.
+
 🔹 **Dashboard**
 * Saldo atual com variação contra o período anterior, receitas, despesas, investimentos e fatura do mês.
 * Fluxo de entradas e saídas, gastos por categoria e calendário de gastos por dia.
@@ -282,6 +285,7 @@ src/
 │   │              Carregamento, EstadoVazio, Notificacao
 │   ├── comum/     ValorMonetario, MarcaPrisma, IndicadorVariacao, BarraResumo,
 │   │              HistoricoMovimentacoes
+│   ├── boasVindas/ TelaBoasVindas e a transição de saída
 │   ├── layout/    MenuLateral, Cabecalho, EspacoCabecalho, CabecalhoPagina, PainelAvisos,
 │   │              BuscaGlobal, SeletorPeriodo
 │   ├── dashboard/ PainelSaldo, BlocoIndicador, GraficoFluxoCaixa, DistribuicaoCategorias,

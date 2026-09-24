@@ -204,6 +204,45 @@ table {
   border: 0;
 }
 
+.marca-em-transicao {
+  view-transition-name: marca-prisma;
+}
+
+@media (max-width: 1099px) {
+  .marca-em-transicao {
+    view-transition-name: none;
+  }
+}
+
+::view-transition-group(marca-prisma),
+::view-transition-old(marca-prisma),
+::view-transition-new(marca-prisma) {
+  animation-duration: 760ms;
+  animation-timing-function: cubic-bezier(0.65, 0, 0.2, 1);
+}
+
+.saindo-das-boas-vindas::view-transition-old(root) {
+  animation: prisma-transicao-sair var(--duration-slow) var(--ease-in) both;
+}
+
+.saindo-das-boas-vindas::view-transition-new(root) {
+  animation: prisma-transicao-entrar 640ms var(--ease-out) 200ms both;
+}
+
+@keyframes prisma-transicao-sair {
+  to {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+@keyframes prisma-transicao-entrar {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(1.01);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
