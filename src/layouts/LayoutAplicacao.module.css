@@ -32,6 +32,12 @@
   margin-inline: auto;
 }
 
+@media (min-width: 1100px) {
+  .content {
+    border-left: 1px solid var(--border);
+  }
+}
+
 @media (max-width: 1099px) {
   .shell,
   .shellCollapsed {

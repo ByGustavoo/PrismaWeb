@@ -86,6 +86,35 @@
   border: 2px solid var(--canvas);
 }
 
+@media (min-width: 1100px) {
+  .header {
+    --content-corner-radius: var(--radius-lg);
+    background-color: var(--surface);
+    backdrop-filter: none;
+  }
+
+  .header::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: var(--content-corner-radius);
+    height: var(--content-corner-radius);
+    background: radial-gradient(
+      circle at 100% 100%,
+      transparent calc(var(--content-corner-radius) - 1.5px),
+      var(--border) calc(var(--content-corner-radius) - 1px),
+      var(--border) calc(var(--content-corner-radius) - 0.5px),
+      var(--surface) var(--content-corner-radius)
+    );
+    pointer-events: none;
+  }
+
+  .badgeDot {
+    border-color: var(--surface);
+  }
+}
+
 @media (max-width: 1099px) {
   .menuButton {
     display: grid;
