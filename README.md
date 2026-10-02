@@ -212,7 +212,7 @@ docker compose -f docker-compose-prismaweb.yml up -d
 
 | Onde | Valor | Uso |
 | --- | --- | --- |
-| Porta no host | `9030` | Endereço do app: `http://localhost:9030` |
+| Porta no host | `5173` | Endereço do app: `http://localhost:5173` |
 | Porta no container | `8080` | Porta do `nginx-unprivileged`, não muda |
 | `PRISMA_API_URL` | `http://localhost:9027/PrismaAPI/v1` | URL da API, lida do `.env` ao subir o container |
 

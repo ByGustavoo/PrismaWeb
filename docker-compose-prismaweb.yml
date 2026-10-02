@@ -6,7 +6,7 @@ services:
     restart: always
 
     ports:
-      - "9030:8080"
+      - "5173:8080"
 
     environment:
       PRISMA_API_URL: ${PRISMA_API_URL}

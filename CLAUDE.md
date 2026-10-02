@@ -1034,7 +1034,7 @@ a `main`) e `release.yml` (publicacao no Docker Hub quando um PR e mergeado).
   (`gurudohimalaia/prismaweb:latest`), como o `docker-compose-prismaapi.yml` faz no PrismaAPI, e por
   isso nao tem bloco `build`: quem passa `VERSION`, `REVISION` e `BUILD_DATE` e a esteira, e um build
   local carimbaria a imagem com uma versao inventada, que Configuracoes mostraria como se fosse a
-  publicada. Em producao a web publica `9030` no host sobre os `8080` do container e aponta para a API
+  publicada. Em producao a web publica `5173` no host sobre os `8080` do container e aponta para a API
   em `9027`; o desenvolvimento nao passa pelo compose (`npm run dev` em `5173`, API local em `9017`).
   A URL da API nao fica escrita dentro do compose: ele le `PRISMA_API_URL` do `.env` ao lado do
   arquivo, como o `docker-compose-prismaapi.yml` faz no PrismaAPI. O `.env` e ignorado pelo git e o
