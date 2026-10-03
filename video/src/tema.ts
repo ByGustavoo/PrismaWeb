@@ -1,0 +1,48 @@
+export const cores = {
+  fundo: '#0e0e10',
+  superficie: '#17181b',
+  superficieSuave: '#212226',
+  superficieElevada: '#1d1e22',
+  superficieInvertida: '#f1f2f3',
+  borda: '#2b2c31',
+  bordaForte: '#3d3f46',
+  texto: '#eceef0',
+  textoSecundario: '#a3a6ad',
+  textoTerciario: '#888b93',
+  textoInvertido: '#0e0e10',
+  destaque: '#7c9aff',
+  destaqueForte: '#97aeff',
+  destaqueSuave: '#1e2540',
+  destaqueContraste: '#0b1020',
+  positivo: '#2fd99a',
+  positivoSuave: '#0f2f24',
+  negativo: '#fa5252',
+  negativoSuave: '#351a1a',
+  aviso: '#e8b44a',
+  avisoSuave: '#322612',
+  neutroSuave: '#26272c',
+  graficoGrade: '#2b2c31',
+  receita: '#35de85',
+  despesa: '#ff5252',
+  aporte: '#b18cff',
+  marcaSuperficie: '#16181d',
+  marcaRaio: '#ffffff',
+  marcaFaceta: '#6e9dff',
+  marcaSombra: '#3f63c9',
+} as const;
+
+export const paleta = {
+  1: '#6f94ff',
+  2: '#45c6e6',
+  4: '#ff8a45',
+  5: '#b08cff',
+  7: '#3fd4a6',
+  9: '#e27ee6',
+  10: '#b6cc42',
+  11: '#f0c040',
+} as const;
+
+export const fontes = {
+  texto: "'Instrument Sans', system-ui, sans-serif",
+  numero: "'Archivo', system-ui, sans-serif",
+} as const;

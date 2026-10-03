@@ -37,6 +37,11 @@ npm run dev         # servidor de desenvolvimento em http://localhost:5173
 npm run build       # tsc -b + build de producao
 npm run preview     # serve o build de producao
 npm run typecheck   # apenas checagem de tipos (tsc -b)
+
+npm install --prefix video       # dependencias do video de apresentacao
+npm run render --prefix video    # trilha + video/out/prisma-apresentacao.mp4 em 4K (3840x2160)
+npm run gif --prefix video       # video/apresentacao.gif do README (800px, 12 fps, abaixo de 10 MB)
+npm run estudio --prefix video   # Remotion Studio
 ```
 
 Nao existe linter, formatter nem suite de testes configurados. **A verificacao antes de dar uma
@@ -153,6 +158,10 @@ Estas sao as invariantes do projeto. Quebra-las e o erro mais caro que se pode c
 .github/workflows/  ci (PR), release (merge na main -> Docker Hub + tag)
 docker/            nginx.conf, 40-prisma-config.sh (gera config.js no start)
 public/            favicon, config.js (configuracao de execucao, vazia no dev)
+video/             pacote Remotion do video de apresentacao, com package.json proprio e fora do build,
+                   da CI e do Docker. src/linhaDoTempo.ts guarda todos os cues de quadro e os valores
+                   ficticios do video; scripts/gerarAudio.ts arranja a trilha sintetizada (150 BPM, toda
+                   cena e acento na grade de 12 quadros) sobre o DSP de scripts/sintese.ts
 src/
 ├── api/           clienteHttp, ErroApi, rotasApi
 ├── components/

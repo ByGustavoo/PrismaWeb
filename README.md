@@ -18,6 +18,8 @@
 
 * 📊 Recharts 2
 
+* 🎬 Remotion 4
+
 * 🔷 TypeScript 5
 
 * 🖼️ Lucide React
@@ -25,6 +27,37 @@
 * 🎨 CSS Modules
 
 * 🧭 React Router 6
+
+
+<br>
+
+
+## 🎬 Apresentação
+
+<div align="center">
+  <img alt="Apresentação do Prisma: dashboard, faturas e parcelas, orçamento, previsão, investimentos e metas" src="video/apresentacao.gif" width="800" />
+</div>
+
+<br>
+
+O vídeo completo tem 42 segundos, em 4K (3840×2160) e com trilha sintetizada. Os valores são
+fictícios, montados seguindo as regras do app: as parcelas fecham no centavo com o total da compra, a
+fatura fecha antes de vencer e a previsão soma mês a mês. É feito com Remotion na pasta `video`, que
+tem `package.json` próprio e fica fora do build, da CI e da imagem Docker.
+
+```bash
+# Instala as dependências do vídeo
+$ npm install --prefix video
+
+# Gera a trilha e renderiza video/out/prisma-apresentacao.mp4 em 4K
+$ npm run render --prefix video
+
+# Gera o video/apresentacao.gif deste README a partir do vídeo renderizado
+$ npm run gif --prefix video
+
+# Abre o Remotion Studio para editar as cenas
+$ npm run estudio --prefix video
+```
 
 
 <br>
