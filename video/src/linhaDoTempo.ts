@@ -6,18 +6,18 @@ export const SOBREPOSICAO = 12;
 
 const inicios = {
   abertura: 0,
-  gancho: 72,
-  dashboard: 192,
-  parcelas: 336,
-  orcamento: 480,
-  previsao: 612,
-  investimentos: 756,
-  metas: 888,
-  confianca: 1020,
-  encerramento: 1140,
+  gancho: 108,
+  dashboard: 288,
+  parcelas: 432,
+  orcamento: 600,
+  previsao: 732,
+  investimentos: 876,
+  metas: 1008,
+  confianca: 1140,
+  encerramento: 1284,
 } as const;
 
-export const DURACAO_TOTAL = 1260;
+export const DURACAO_TOTAL = 1404;
 
 export type NomeCena = keyof typeof inicios;
 
@@ -50,7 +50,7 @@ export const gancho = {
   portas: [22, 27, 32, 37, 42],
   convergencia: 72,
   saldo: 80,
-  conclusao: 88,
+  conclusao: 96,
 } as const;
 
 export const HISTORICO_SALDO = [
@@ -75,14 +75,20 @@ export const dashboard = {
 
 export const PARCELA = 299.83;
 
+export const PARCELAS_TOTAIS = 12;
+export const PARCELAS_PAGAS = 2;
+
 export const parcelas = {
   titulo: 6,
   cartao: 10,
   segmentos: 18,
-  intervaloSegmentos: 1.5,
-  faturas: [30, 36, 42],
-  voos: [60, 72, 84],
+  intervaloSegmentos: 1,
+  faturas: [22, 26, 30],
+  pagamentos: [48, 60],
+  duracaoPagamento: 10,
+  voos: [84, 96, 108],
   duracaoVoo: 12,
+  atrasoRastro: 5,
 } as const;
 
 export const orcamento = {
@@ -119,6 +125,8 @@ export const metas = {
   titulo: 6,
   cartao: 10,
   pontos: [24, 36, 48, 60],
+  duracaoTrecho: 8,
+  duracaoMedia: 20,
   selo: 64,
   leitura: 76,
 } as const;
@@ -126,7 +134,7 @@ export const metas = {
 export const confianca = {
   titulo: 4,
   selos: [20, 25, 30, 35, 40],
-  rodape: 56,
+  rodape: 48,
 } as const;
 
 export const encerramento = {

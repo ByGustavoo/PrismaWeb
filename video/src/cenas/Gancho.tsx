@@ -32,7 +32,6 @@ export function Gancho() {
   const quadro = useCurrentFrame();
   const convergencia = progresso(quadro, gancho.convergencia, 14, curvaEntradaSaida);
   const saldo = mola(quadro, gancho.saldo, 150, 15);
-  const conclusao = progresso(quadro, gancho.conclusao, 18);
   const valorSaldo = interpolate(quadro, [gancho.saldo, gancho.saldo + 18], [0, SALDO_ATUAL], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
   return (
@@ -103,7 +102,7 @@ export function Gancho() {
             borderRadius: 26,
             background: cores.superficie,
             border: `1.5px solid ${cores.destaque}`,
-            boxShadow: `0 0 0 6px rgba(124, 154, 255, ${0.15 * saldo}), 0 40px 80px -30px rgba(0, 0, 0, 0.85)`,
+            boxShadow: `0 0 0 6px rgba(124, 154, 255, ${(0.15 + 0.07 * Math.sin((quadro - gancho.saldo) / 9)) * saldo}), 0 40px 80px -30px rgba(0, 0, 0, 0.85)`,
             fontFamily: fontes.texto,
             opacity: saldo,
             transform: `scale(${misturar(0.6, 1, saldo)})`,
@@ -113,17 +112,12 @@ export function Gancho() {
           <ValorMonetario valor={valorSaldo} tamanho={72} peso={600} estilo={{ minWidth: 420, justifyContent: 'center' }} />
         </div>
       </div>
-      <div
-        style={{
-          fontFamily: fontes.texto,
-          fontSize: 34,
-          color: cores.textoSecundario,
-          opacity: conclusao,
-          transform: `translateY(${misturar(14, 0, conclusao)}px)`,
-        }}
-      >
-        O Prisma junta tudo e mostra para onde vai cada real.
-      </div>
+      <TextoRevelado
+        inicio={gancho.conclusao}
+        intervalo={2}
+        trechos={[{ texto: 'O Prisma junta tudo e mostra' }, { texto: 'para onde vai cada real.', cor: cores.texto }]}
+        estilo={{ fontFamily: fontes.texto, fontSize: 40, fontWeight: 500, letterSpacing: '-0.01em', color: cores.textoSecundario, whiteSpace: 'nowrap' }}
+      />
     </AbsoluteFill>
   );
 }

@@ -40,7 +40,7 @@
 
 <br>
 
-O vídeo completo tem 42 segundos, em 4K (3840×2160) e com trilha sintetizada. Os valores são
+O vídeo completo tem 47 segundos, em 4K (3840×2160) e com trilha sintetizada. Os valores são
 fictícios, montados seguindo as regras do app: as parcelas fecham no centavo com o total da compra, a
 fatura fecha antes de vencer e a previsão soma mês a mês. É feito com Remotion na pasta `video`, que
 tem `package.json` próprio e fica fora do build, da CI e da imagem Docker.

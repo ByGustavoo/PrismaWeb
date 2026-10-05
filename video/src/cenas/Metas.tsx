@@ -1,6 +1,6 @@
 import { ArrowDownRight, ExternalLink, Lightbulb, Monitor } from 'lucide-react';
 import { useCurrentFrame } from 'remotion';
-import { misturar, mola, progresso } from '../animacao';
+import { curvaEntradaSaida, misturar, mola, progresso } from '../animacao';
 import { Cartao } from '../componentes/Cartao';
 import { CenaDividida } from '../componentes/CenaDividida';
 import { formatarMoeda, formatarPercentual, ItemResumo, Selo, ValorMonetario } from '../componentes/Interface';
@@ -28,22 +28,70 @@ const MAXIMO = 2300;
 
 const x = (indice: number) => 40 + (indice / (registros.length - 1)) * (LARGURA - 80);
 const y = (preco: number) => ALTURA - ((preco - MINIMO) / (MAXIMO - MINIMO)) * ALTURA;
+const precoNaAltura = (altura: number) => MINIMO + (1 - altura / ALTURA) * (MAXIMO - MINIMO);
+const linear = (t: number) => t;
+
+const pontos = registros.map((registro, indice) => ({ x: x(indice), y: y(registro.preco) }));
+const PASSO = x(1) - x(0);
+const inclinacoes = pontos.slice(1).map((ponto, indice) => (ponto.y - (pontos[indice]?.y ?? ponto.y)) / PASSO);
+const tangentes = pontos.map((_, indice) => {
+  const antes = inclinacoes[indice - 1];
+  const depois = inclinacoes[indice];
+  if (antes === undefined) return depois ?? 0;
+  if (depois === undefined) return antes;
+  if (antes * depois <= 0) return 0;
+  return Math.sign(antes) * Math.min(Math.abs(antes + depois) / 2, 3 * Math.min(Math.abs(antes), Math.abs(depois)));
+});
+
+const caminhoLinha = pontos
+  .map((ponto, indice) => {
+    const anterior = pontos[indice - 1];
+    if (!anterior) return `M ${ponto.x} ${ponto.y}`;
+    const terco = PASSO / 3;
+    return `C ${anterior.x + terco} ${anterior.y + (tangentes[indice - 1] ?? 0) * terco} ${ponto.x - terco} ${ponto.y - (tangentes[indice] ?? 0) * terco} ${ponto.x} ${ponto.y}`;
+  })
+  .join(' ');
+const caminhoArea = `${caminhoLinha} L ${x(registros.length - 1)} ${ALTURA} L ${x(0)} ${ALTURA} Z`;
+
+function alturaNoAvanco(avanco: number): number {
+  const indice = Math.min(Math.floor(avanco), pontos.length - 2);
+  const de = pontos[indice];
+  const para = pontos[indice + 1];
+  if (!de || !para) return 0;
+  const s = avanco - indice;
+  const cubo = s ** 3;
+  const quadrado = s ** 2;
+  return (
+    (2 * cubo - 3 * quadrado + 1) * de.y +
+    (cubo - 2 * quadrado + s) * PASSO * (tangentes[indice] ?? 0) +
+    (-2 * cubo + 3 * quadrado) * para.y +
+    (cubo - quadrado) * PASSO * (tangentes[indice + 1] ?? 0)
+  );
+}
+
+const mediasParciais = precos.map((_, indice) => precos.slice(0, indice + 1).reduce((soma, preco) => soma + preco, 0) / (indice + 1));
 
 export function Metas() {
   const quadro = useCurrentFrame();
   const visiveis = metas.pontos.filter((inicio) => quadro >= inicio).length;
   const indiceAtual = Math.max(visiveis - 1, 0);
-  const precoAtual = registros[indiceAtual]?.preco ?? INICIAL;
   const selo = mola(quadro, metas.selo, 190, 14);
   const leitura = mola(quadro, metas.leitura, 140, 16);
-  const media = progresso(quadro, metas.pontos[1] ?? 0, 20);
   const queda = INICIAL - ATUAL;
 
-  const segmentos = registros.slice(1).map((registro, indice) => {
-    const anterior = registros[indice] ?? registro;
-    const t = progresso(quadro, metas.pontos[indice + 1] ?? 0, 10);
-    return { x1: x(indice), y1: y(anterior.preco), x2: misturar(x(indice), x(indice + 1), t), y2: misturar(y(anterior.preco), y(registro.preco), t), t };
-  });
+  const avanco = metas.pontos.slice(1).reduce((soma, chegada) => soma + progresso(quadro, chegada - metas.duracaoTrecho, metas.duracaoTrecho, curvaEntradaSaida), 0);
+  const cabecaX = x(avanco);
+  const cabecaY = alturaNoAvanco(avanco);
+  const viajando = avanco % 1 > 0.001 && avanco % 1 < 0.999;
+  const precoAtual = viajando ? precoNaAltura(cabecaY) : (registros[Math.round(avanco)]?.preco ?? INICIAL);
+  const inicioGrafico = progresso(quadro, metas.pontos[0] ?? 0, 8);
+  const fimGrafico = progresso(quadro, (metas.pontos[metas.pontos.length - 1] ?? 0) + 4, 16);
+
+  const media = progresso(quadro, metas.pontos[1] ?? 0, metas.duracaoMedia);
+  const alturaMedia = mediasParciais.slice(2).reduce(
+    (altura, parcial, indice) => altura + (y(parcial) - y(mediasParciais[indice + 1] ?? parcial)) * mola(quadro, metas.pontos[indice + 2] ?? 0, 150, 18),
+    y(mediasParciais[1] ?? MEDIA),
+  );
 
   return (
     <CenaDividida
@@ -105,22 +153,56 @@ export function Metas() {
 
         <div style={{ position: 'relative' }}>
           <svg width={LARGURA} height={ALTURA} style={{ display: 'block', overflow: 'visible' }}>
+            <defs>
+              <linearGradient id="area-metas" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={cores.destaque} stopOpacity={0.3} />
+                <stop offset="100%" stopColor={cores.destaque} stopOpacity={0} />
+              </linearGradient>
+              <clipPath id="recorte-metas">
+                <rect x={0} y={-20} width={cabecaX} height={ALTURA + 20} />
+              </clipPath>
+            </defs>
             {[0, 0.5, 1].map((fracao) => (
               <line key={fracao} x1={0} x2={LARGURA} y1={ALTURA * fracao} y2={ALTURA * fracao} stroke={cores.graficoGrade} strokeWidth={1.5} />
             ))}
-            <line x1={0} x2={LARGURA * media} y1={y(MEDIA)} y2={y(MEDIA)} stroke={cores.textoTerciario} strokeWidth={2} strokeDasharray="7 7" />
-            {segmentos.map((segmento, indice) =>
-              segmento.t > 0 ? (
-                <line key={indice} x1={segmento.x1} y1={segmento.y1} x2={segmento.x2} y2={segmento.y2} stroke={cores.destaque} strokeWidth={4} strokeLinecap="round" />
-              ) : null,
-            )}
+            <line x1={0} x2={LARGURA * media} y1={alturaMedia} y2={alturaMedia} stroke={cores.textoTerciario} strokeWidth={2} strokeDasharray="7 7" />
+            <line
+              x1={cabecaX}
+              x2={cabecaX}
+              y1={cabecaY}
+              y2={ALTURA}
+              stroke={cores.destaque}
+              strokeWidth={2}
+              strokeDasharray="5 6"
+              opacity={0.55 * inicioGrafico * (1 - fimGrafico)}
+            />
+            <g clipPath="url(#recorte-metas)">
+              <path d={caminhoArea} fill="url(#area-metas)" />
+              <path d={caminhoLinha} fill="none" stroke={cores.destaque} strokeWidth={4} strokeLinecap="round" strokeLinejoin="round" />
+            </g>
+            {viajando ? (
+              <g>
+                <circle cx={cabecaX} cy={cabecaY} r={17} fill="rgba(124, 154, 255, 0.22)" />
+                <circle cx={cabecaX} cy={cabecaY} r={7} fill={cores.destaqueForte} />
+              </g>
+            ) : null}
             {registros.map((registro, indice) => {
-              const entrada = mola(quadro, (metas.pontos[indice] ?? 0) + (indice === 0 ? 0 : 8), 200, 13);
+              const chegada = metas.pontos[indice] ?? 0;
+              const entrada = mola(quadro, chegada, 200, 13);
               const menor = registro.preco === MENOR && indice === registros.length - 1;
+              const cor = menor ? cores.positivo : cores.destaque;
+              const escala = indice === 0 ? entrada : 0.75 + 0.25 * entrada;
+              if (quadro < chegada) return null;
               return (
-                <g key={registro.data} opacity={Math.min(entrada * 2, 1)}>
+                <g key={registro.data} opacity={indice === 0 ? Math.min(entrada * 2, 1) : 1}>
+                  {(menor ? [0, 9] : [0]).map((atraso) => {
+                    const onda = progresso(quadro, chegada + atraso, 18, linear);
+                    return onda > 0 && onda < 1 ? (
+                      <circle key={atraso} cx={x(indice)} cy={y(registro.preco)} r={misturar(8, menor ? 38 : 26, onda)} fill="none" stroke={cor} strokeWidth={2.5} opacity={(1 - onda) * 0.75} />
+                    ) : null;
+                  })}
                   {menor ? <circle cx={x(indice)} cy={y(registro.preco)} r={22 * entrada} fill="rgba(47, 217, 154, 0.18)" /> : null}
-                  <circle cx={x(indice)} cy={y(registro.preco)} r={8 * entrada} fill={menor ? cores.positivo : cores.destaque} stroke={cores.superficie} strokeWidth={3} />
+                  <circle cx={x(indice)} cy={y(registro.preco)} r={8 * escala} fill={cor} stroke={cores.superficie} strokeWidth={3} />
                 </g>
               );
             })}
@@ -129,7 +211,7 @@ export function Metas() {
             style={{
               position: 'absolute',
               right: 0,
-              top: y(MEDIA) - 30,
+              top: alturaMedia - 30,
               fontSize: 16,
               color: cores.textoSecundario,
               opacity: media,
@@ -139,7 +221,17 @@ export function Metas() {
           </span>
           <div style={{ position: 'relative', height: 26, marginTop: 10 }}>
             {registros.map((registro, indice) => (
-              <span key={registro.data} style={{ position: 'absolute', left: x(indice), transform: 'translateX(-50%)', fontSize: 16, color: cores.textoSecundario, opacity: quadro >= (metas.pontos[indice] ?? 0) ? 1 : 0.3 }}>
+              <span
+                key={registro.data}
+                style={{
+                  position: 'absolute',
+                  left: x(indice),
+                  transform: 'translateX(-50%)',
+                  fontSize: 16,
+                  color: indice === indiceAtual && visiveis > 0 ? cores.texto : cores.textoSecundario,
+                  opacity: quadro >= (metas.pontos[indice] ?? 0) ? 1 : 0.3,
+                }}
+              >
                 {registro.data}
               </span>
             ))}

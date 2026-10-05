@@ -86,7 +86,7 @@ export function Confianca() {
           textWrap: 'balance',
         }}
       >
-        Saldo, faturas, parcelas e previsão são calculados pelo PrismaAPI. A tela apresenta, não recalcula.
+        Saldo, faturas, parcelas e previsão seguem a mesma regra em todas as telas.
       </div>
     </AbsoluteFill>
   );

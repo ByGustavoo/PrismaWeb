@@ -311,6 +311,9 @@ sinal(segundos('gancho', gancho.saldo) + 0.05, [nota('C6'), nota('F6')], 0.022, 
 
 dashboard.indicadores.forEach((quadro, indice) => tocarToque(efeitosSecos, segundos('dashboard', quadro), 0.05 + aleatorio() * 0.015, 1.05 + indice * 0.07, -0.3 + indice * 0.2));
 
+parcelas.pagamentos.forEach((quadro, indice) => {
+  tocarToque(efeitosSecos, segundos('parcelas', quadro), 0.055, 0.82 + indice * 0.1, -0.35 + indice * 0.12);
+});
 parcelas.voos.forEach((quadro, indice) => {
   tocarToque(efeitosSecos, segundos('parcelas', quadro), 0.045, 1.4 + aleatorio() * 0.1, -0.2);
   sinal(segundos('parcelas', quadro + parcelas.duracaoVoo), [nota(['A5', 'C6', 'E6'][indice] ?? 'A5')], 0.026, -0.1 + indice * 0.2, 0.14);
@@ -352,7 +355,7 @@ investimentos.legenda.forEach((quadro, indice) => tocarToque(efeitosSecos, segun
 const precosMeta = [2199, 2089.8, 2149, 1899];
 metas.pontos.forEach((quadro, indice) => {
   const altura = ((precosMeta[indice] ?? 2000) - 1800) / 500;
-  tocarToque(efeitosSecos, segundos('metas', quadro + (indice === 0 ? 0 : 8)), 0.06, 0.9 + altura * 0.5, -0.3 + indice * 0.2);
+  tocarToque(efeitosSecos, segundos('metas', quadro), 0.06, 0.9 + altura * 0.5, -0.3 + indice * 0.2);
 });
 sinal(segundos('metas', metas.selo), [nota('C6'), nota('E6'), nota('G6')], 0.022, 0.25, 0.2);
 
