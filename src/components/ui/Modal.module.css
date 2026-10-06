@@ -86,6 +86,7 @@
   }
 
   .footer {
+    flex-wrap: wrap;
     padding: var(--space-4);
   }
 

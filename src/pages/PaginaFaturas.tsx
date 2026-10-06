@@ -93,14 +93,15 @@ export function PaginaFaturas() {
   }, [invoices]);
 
   const sum = (list: FaturaCartaoDTO[]) => list.reduce((total, item) => total + item.total, 0);
+  const sumRemaining = (list: FaturaCartaoDTO[]) => list.reduce((total, item) => total + item.valorRestante, 0);
 
   const summary = useMemo(() => {
     const nextDue = groups.toPay[0]?.dataVencimento;
 
     return {
-      toPay: sum(groups.toPay),
-      current: sum(groups.current),
-      upcoming: sum(groups.upcoming),
+      toPay: sumRemaining(groups.toPay),
+      current: sumRemaining(groups.current),
+      upcoming: sumRemaining(groups.upcoming),
       upcomingCount: groups.upcoming.length,
       nextDue,
     };
@@ -311,7 +312,7 @@ export function PaginaFaturas() {
         </div>
       )}
 
-      <ModalDetalheFatura fatura={openInvoice} aoFechar={() => setOpenInvoice(null)} />
+      <ModalDetalheFatura fatura={openInvoice} aoAlterar={recarregar} aoFechar={() => setOpenInvoice(null)} />
     </>
   );
 }

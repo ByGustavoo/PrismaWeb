@@ -5,6 +5,7 @@ import type {
   DetalheFaturaDTO,
   FaturaCartaoDTO,
   ID,
+  PagamentoParcelaDTO,
   PlanoCompraParceladaDTO,
   SalvarCartaoDTO,
   SalvarCompraParceladaDTO,
@@ -38,6 +39,16 @@ export const cartoesService = {
     return clienteHttp.get<DetalheFaturaDTO>(rotasApi.faturas.porId(id), { ...(signal ? { signal } : {}) });
   },
 
+  registrarPagamentoFatura(id: ID, signal?: AbortSignal): Promise<FaturaCartaoDTO> {
+    return clienteHttp.post<FaturaCartaoDTO>(rotasApi.faturas.pagamento(id), undefined, {
+      ...(signal ? { signal } : {}),
+    });
+  },
+
+  desfazerPagamentoFatura(id: ID, signal?: AbortSignal): Promise<void> {
+    return clienteHttp.delete<void>(rotasApi.faturas.pagamento(id), { ...(signal ? { signal } : {}) });
+  },
+
   listarComprasParceladas(cardId?: ID, signal?: AbortSignal): Promise<PlanoCompraParceladaDTO[]> {
     return clienteHttp.get<PlanoCompraParceladaDTO[]>(rotasApi.comprasParceladas.listar, {
       consulta: { idCartao: cardId },
@@ -59,5 +70,17 @@ export const cartoesService = {
 
   excluirCompraParcelada(id: ID, signal?: AbortSignal): Promise<void> {
     return clienteHttp.delete<void>(rotasApi.comprasParceladas.porId(id), { ...(signal ? { signal } : {}) });
+  },
+
+  registrarPagamentoParcela(purchaseId: ID, numero: number, signal?: AbortSignal): Promise<PagamentoParcelaDTO> {
+    return clienteHttp.post<PagamentoParcelaDTO>(rotasApi.comprasParceladas.pagamentoParcela(purchaseId, numero), undefined, {
+      ...(signal ? { signal } : {}),
+    });
+  },
+
+  desfazerPagamentoParcela(purchaseId: ID, numero: number, signal?: AbortSignal): Promise<void> {
+    return clienteHttp.delete<void>(rotasApi.comprasParceladas.pagamentoParcela(purchaseId, numero), {
+      ...(signal ? { signal } : {}),
+    });
   },
 };

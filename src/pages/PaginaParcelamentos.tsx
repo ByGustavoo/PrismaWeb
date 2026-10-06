@@ -5,6 +5,7 @@ import { ValorMonetario, BarraResumo } from '@/components/comum';
 import {
   CartaoParcelamento,
   ModalFormularioParcelamento,
+  ModalParcelasCompra,
   aplicarConsultaCompra,
   consultaCompraPadrao,
   opcoesOrdenacaoCompra,
@@ -15,10 +16,11 @@ import { CabecalhoPagina } from '@/components/layout';
 import { Botao, Painel, DialogoConfirmacao, EstadoVazio, BlocoCarregando, CampoSelecao } from '@/components/ui';
 import { ehCartaoCredito, rotuloQuantidadeParcelas } from '@/constants/cartoes';
 import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
+import { usePagamentoParcela } from '@/hooks/usePagamentoParcela';
 import { useNotificacoes } from '@/providers/ProvedorNotificacoes';
 import { PARAMETRO_CARTAO } from '@/routes/caminhos';
 import { cartoesService, categoriasService } from '@/services';
-import type { CompraParceladaDTO, Opcao, SalvarCompraParceladaDTO } from '@/types';
+import type { CompraParceladaDTO, ID, Opcao, ParcelaDTO, PlanoCompraParceladaDTO, SalvarCompraParceladaDTO } from '@/types';
 import { formatarMesCurto } from '@/utils/formatacao';
 import styles from './PaginaParcelamentos.module.css';
 
@@ -30,6 +32,7 @@ export function PaginaParcelamentos() {
   const [editing, setEditing] = useState<CompraParceladaDTO | null>(null);
   const [creating, setCreating] = useState(false);
   const [removing, setRemoving] = useState<CompraParceladaDTO | null>(null);
+  const [scheduleId, setScheduleId] = useState<ID | null>(null);
   const [saving, setSaving] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const toast = useNotificacoes();
@@ -52,6 +55,7 @@ export function PaginaParcelamentos() {
   );
 
   const { dados, carregando, erro, recarregar } = useDadosAssincronos(fetchData);
+  const pagamento = usePagamentoParcela(dados, recarregar);
 
   const allPlans = useMemo(() => dados?.[0] ?? [], [dados]);
   const cards = useMemo(() => dados?.[1] ?? [], [dados]);
@@ -70,6 +74,11 @@ export function PaginaParcelamentos() {
   const plans = useMemo(
     () => (cardId === TODOS_CARTOES ? allPlans : allPlans.filter((plan) => plan.compra.idCartao === cardId)),
     [allPlans, cardId],
+  );
+
+  const schedulePlan = useMemo(
+    () => allPlans.find((plan) => plan.compra.id === scheduleId) ?? null,
+    [allPlans, scheduleId],
   );
 
   const visiblePlans = useMemo(() => aplicarConsultaCompra(plans, query), [plans, query]);
@@ -141,6 +150,15 @@ export function PaginaParcelamentos() {
       setSaving(false);
     }
   };
+
+  const handleTogglePayment = (plan: PlanoCompraParceladaDTO, installment: ParcelaDTO) =>
+    pagamento.alternar({
+      idCompra: plan.compra.id,
+      descricao: plan.compra.descricao,
+      numero: installment.numero,
+      totalParcelas: plan.compra.parcelas,
+      pagamentoAntecipado: installment.pagamentoAntecipado,
+    });
 
   const noCreditCard = !carregando && !erro && creditCards.length === 0;
 
@@ -251,7 +269,7 @@ export function PaginaParcelamentos() {
                 rotulo: 'Falta pagar',
                 valor: <ValorMonetario valor={summary.remaining} tamanho="lg" contarAoAparecer />,
                 dica: summary.lastMonth
-                  ? `Soma das parcelas que ainda vão vencer, até ${formatarMesCurto(summary.lastMonth)}`
+                  ? `Soma das parcelas ainda não pagas, até ${formatarMesCurto(summary.lastMonth)}`
                   : 'Nenhuma parcela em aberto',
               },
               {
@@ -265,7 +283,7 @@ export function PaginaParcelamentos() {
               {
                 rotulo: 'Já pago',
                 valor: <ValorMonetario valor={summary.paid} tom="positive" contarAoAparecer />,
-                dica: 'Parcelas que já venceram, somando a lista',
+                dica: 'Parcelas vencidas ou marcadas como pagas',
               },
               {
                 rotulo: 'Em andamento',
@@ -310,6 +328,7 @@ export function PaginaParcelamentos() {
                       plano={plan}
                       aoEditar={setEditing}
                       aoExcluir={setRemoving}
+                      aoAbrirParcelas={(opened) => setScheduleId(opened.compra.id)}
                     />
                   ))}
                 </ul>
@@ -318,6 +337,15 @@ export function PaginaParcelamentos() {
           )}
         </div>
       )}
+
+      <ModalParcelasCompra
+        plano={schedulePlan}
+        atualizando={carregando}
+        parcelaEmEspera={pagamento.emEspera?.idCompra === schedulePlan?.compra.id ? (pagamento.emEspera?.numero ?? null) : null}
+        pagamentoBloqueado={pagamento.emEspera !== null}
+        aoAlternarPagamento={handleTogglePayment}
+        aoFechar={() => setScheduleId(null)}
+      />
 
       <ModalFormularioParcelamento
         aberto={formOpen}

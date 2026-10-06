@@ -1,24 +1,20 @@
-import { useId, useState } from 'react';
-import { Check, ChevronDown, Pencil, Trash2 } from 'lucide-react';
+import { ChevronRight, Pencil, Trash2 } from 'lucide-react';
 import { ValorMonetario } from '@/components/comum';
-import { tomSituacaoParcela } from '@/components/cartoes';
 import { Selo, Botao, BarraProgresso } from '@/components/ui';
 import { corDaPaleta } from '@/constants/cores';
-import { ehCompraAVista, rotuloSituacaoParcela } from '@/constants/cartoes';
+import { ehCompraAVista } from '@/constants/cartoes';
 import type { CompraParceladaDTO, PlanoCompraParceladaDTO } from '@/types';
-import { juntarClasses } from '@/utils/juntarClasses';
-import { formatarDataCompleta, formatarDataCurta, formatarMesCurto } from '@/utils/formatacao';
+import { formatarDataCompleta, formatarMesCurto } from '@/utils/formatacao';
 import styles from './CartaoParcelamento.module.css';
 
 interface CartaoParcelamentoProps {
   plano: PlanoCompraParceladaDTO;
   aoEditar: (purchase: CompraParceladaDTO) => void;
   aoExcluir: (purchase: CompraParceladaDTO) => void;
+  aoAbrirParcelas: (plan: PlanoCompraParceladaDTO) => void;
 }
 
-export function CartaoParcelamento({ plano, aoEditar, aoExcluir }: CartaoParcelamentoProps) {
-  const [expanded, setExpanded] = useState(false);
-  const scheduleId = useId();
+export function CartaoParcelamento({ plano, aoEditar, aoExcluir, aoAbrirParcelas }: CartaoParcelamentoProps) {
   const { compra: purchase, parcelaAtual: current } = plano;
 
   const settled = plano.parcelasRestantes === 0;
@@ -100,16 +96,26 @@ export function CartaoParcelamento({ plano, aoEditar, aoExcluir }: CartaoParcela
         />
 
         {settled ? (
-          <p className={styles.progressMain}>
-            <span>
-              <strong className="tabular">{purchase.parcelas}</strong> de{' '}
-              <span className="tabular">{purchase.parcelas}</span>{' '}
-              {singlePayment ? 'parcela paga' : 'parcelas pagas'}
-            </span>
+          <>
+            <p className={styles.progressMain}>
+              <span>
+                <strong className="tabular">{purchase.parcelas}</strong> de{' '}
+                <span className="tabular">{purchase.parcelas}</span>{' '}
+                {singlePayment ? 'parcela paga' : 'parcelas pagas'}
+              </span>
+            </p>
             {lastInstallment ? (
-              <span className={styles.progressAside}>Quitada em {formatarMesCurto(lastInstallment.mes)}</span>
+              <p className={styles.progressSub}>
+                {lastInstallment.pagamentoAntecipado ? (
+                  'Quitada antes do prazo'
+                ) : (
+                  <>
+                    Quitada em <span className="tabular">{formatarMesCurto(lastInstallment.mes)}</span>
+                  </>
+                )}
+              </p>
             ) : null}
-          </p>
+          </>
         ) : (
           <>
             <p className={styles.progressMain}>
@@ -130,7 +136,7 @@ export function CartaoParcelamento({ plano, aoEditar, aoExcluir }: CartaoParcela
                   <span className={styles.separator} aria-hidden="true">
                     ·
                   </span>
-                  última em <span className="tabular">{formatarMesCurto(lastInstallment.mes)}</span>
+                  Última parcela em <span className="tabular">{formatarMesCurto(lastInstallment.mes)}</span>
                 </>
               ) : null}
             </p>
@@ -160,60 +166,14 @@ export function CartaoParcelamento({ plano, aoEditar, aoExcluir }: CartaoParcela
       <button
         type="button"
         className={styles.toggle}
-        aria-expanded={expanded}
-        aria-controls={scheduleId}
-        onClick={() => setExpanded((value) => !value)}
+        data-acao="parcelas"
+        aria-haspopup="dialog"
+        onClick={() => aoAbrirParcelas(plano)}
       >
-        {expanded
-          ? singlePayment
-            ? 'Ocultar parcela'
-            : 'Ocultar parcelas'
-          : singlePayment
-            ? 'Ver a parcela'
-            : `Ver as ${purchase.parcelas} parcelas`}
-        <ChevronDown className={juntarClasses(styles.chevron, expanded && styles.chevronOpen)} size={15} strokeWidth={2} />
-    </button>
+        {singlePayment ? 'Ver a parcela' : `Ver as ${purchase.parcelas} parcelas`}
+        <ChevronRight className={styles.chevron} size={15} strokeWidth={2} />
+      </button>
 
-    <ul id={scheduleId} className={styles.schedule} hidden={!expanded}>
-      {plano.cronograma.map((installment) => {
-        const paid = installment.situacao === 'PAGA';
-
-        return (
-          <li
-            key={installment.numero}
-            className={juntarClasses(
-              styles.installment,
-              paid && styles.installmentPaid,
-              installment.situacao === 'ATUAL' && styles.installmentCurrent,
-            )}
-          >
-            <span className={`${styles.number} tabular`}>
-              {installment.numero}/{purchase.parcelas}
-            </span>
-
-            <span className={styles.when}>
-              <span className={`${styles.month} tabular`}>{formatarMesCurto(installment.mes)}</span>
-              <span className={styles.dueDate}>vence {formatarDataCurta(installment.dataVencimento)}</span>
-            </span>
-
-            <ValorMonetario valor={installment.valor} tamanho="sm" tom={paid ? 'muted' : 'default'} />
-
-            <span className={styles.installmentStatus}>
-              {installment.situacao === 'ATUAL' ? (
-                <Selo tom={tomSituacaoParcela.ATUAL} ponto>
-                  {rotuloSituacaoParcela.ATUAL}
-                </Selo>
-              ) : paid ? (
-                <span className={styles.paidMark}>
-                  <Check size={14} strokeWidth={2.5} aria-hidden="true" />
-                  <span className={styles.paidLabel}>{rotuloSituacaoParcela.PAGA}</span>
-                </span>
-              ) : null}
-            </span>
-          </li>
-        );
-      })}
-    </ul>
-  </li>
-);
+    </li>
+  );
 }

@@ -180,8 +180,8 @@ src/
 │   │              aparencia (icone por tipo, tom por situacao)
 │   ├── cartoes/   BlocoCartao, ModalFormularioCartao, aparencia (icone, tom de limite, tom de fatura)
 │   ├── faturas/   EntradaFatura (destaque e linha), ModalDetalheFatura
-│   ├── parcelamentos/ CartaoParcelamento (com cronograma), ModalFormularioParcelamento,
-│   │              consulta (situacao e ordenacao)
+│   ├── parcelamentos/ CartaoParcelamento, ModalParcelasCompra (cronograma), ModalFormularioParcelamento,
+│   │              ControlePagamentoParcela, consulta (situacao e ordenacao)
 │   ├── investimentos/ GraficoAlocacao (rosca), GraficoCarteira, CartaoInvestimento,
 │   │              ModalFormularioInvestimento, ModalDetalheInvestimento (aporte, saldo e historico),
 │   │              aparencia (cor da classe, tom do resultado)
@@ -195,7 +195,7 @@ src/
 ├── constants/     ambiente, aplicacao, navegacao, avisos, lancamentos, contas, cartoes, investimentos,
 │                  orcamento, recorrentes, metas, previsao, relatorios, validacao, notificacoes, cores
 ├── hooks/         useDadosAssincronos, useConsultaMidia, useArmazenamentoLocal, useTravarRolagem,
-│                  usePaletaGrafico, useContagem, useValidacaoFormulario
+│                  usePaletaGrafico, useContagem, useValidacaoFormulario, usePagamentoParcela
 ├── layouts/       LayoutAplicacao (sidebar + header + conteudo)
 ├── pages/         PaginaDashboard, PaginaLancamentos, PaginaContas, PaginaCartoes, PaginaFaturas,
 │                  PaginaParcelamentos, PaginaInvestimentos, PaginaOrcamento, PaginaRecorrentes,
@@ -371,6 +371,85 @@ parcelamentos sao leitura calculada, exceto o cadastro da compra parcelada.
   lancamentos ilegivel e o resultado do periodo errado, ja que quem sai da conta e a fatura, nao a
   parcela. As primeiras parcelas levam o valor arredondado para baixo e a ultima absorve a sobra,
   para a soma fechar exatamente com o total da compra.
+- **Parcela pode ser marcada como paga antes de vencer, e so parcela.** O servidor guarda a marca em
+  `parcelas_pagas` (`POST` e `DELETE /compras-parceladas/{id}/parcelas/{numero}/pagamento`), com a
+  data de hoje e sem corpo. A parcela continua na fatura do seu mes — apagar a linha esconderia a
+  compra —, mas sai de tudo que significa "ainda devo": `FaturaCartaoDTO.valorRestante`, o limite
+  comprometido do cartao, o aviso de fatura e a previsao; no saldo ela passa a pesar na data do
+  pagamento, e nao mais no vencimento. Sem isso o cartao diria "2 de 3" com o limite preso as tres.
+  A marca e por parcela, entao da para adiantar a 2 sem mexer na 3; a parcela vencida ja e paga pela
+  data e o servidor a recusa com `409`. Despesa comum do cartao nao tem botao proprio: ela nao tem
+  par na tela de compras, e so e paga junto com a fatura inteira.
+- **`pagamentoAntecipado` diz o que pode ser desfeito.** `ParcelaDTO` e `ParcelaItemFaturaDTO` trazem
+  a situacao e esse campo: ele so e verdadeiro na parcela paga a mao que ainda nao venceu. "Desfazer"
+  aparece so nela — a paga pela data nao tem o que desfazer. Reduzir o numero de parcelas ao editar a
+  compra apaga as marcas que ficam alem do novo total.
+- **As duas telas usam o mesmo controle e o mesmo hook.** `ControlePagamentoParcela` desenha "Já
+  paguei" e "Paga · Desfazer" no modal de parcelas da compra (versao discreta, em texto de acento: doze
+  botoes com borda empilhados virariam uma parede) e no modal da fatura (botao com borda). **O cartao
+  da compra nao tem botao de pagamento**: um atalho "Já paguei a parcela N" no rodape foi entregue e
+  o usuario mandou tirar — o cartao so leva a "Ver as N parcelas", e marcar acontece dentro do modal.
+  O `usePagamentoParcela` chama o service, mostra a notificacao e recarrega. A espera dele termina quando o dado novo chega, e nao quando a requisicao volta: entre
+  uma coisa e outra o botao antigo ainda esta na tela, e um segundo clique mandaria um `POST`
+  repetido. Como o botao clicado e trocado pelo controle seguinte, o foco cairia no `body`; os dois
+  modais o levam para o controle novo da mesma linha — e so quando o foco esta mesmo solto, para nao
+  tira-lo de quem ja foi para outro lugar.
+- **O cronograma abre num modal, e nao dentro do cartao.** "Ver as N parcelas" abre o
+  `ModalParcelasCompra`, com ja pago, falta pagar, total, a barra e uma linha por parcela. A versao
+  que expandia o cartao para baixo foi recusada pelo usuario: numa grade de tres colunas, abrir uma
+  compra de doze parcelas triplicava a altura de um cartao e deixava um buraco ao lado dos vizinhos.
+  O modal le a compra pelo id (`scheduleId`, em `PaginaParcelamentos`), para refletir a parcela
+  recem-marcada sem fechar. Nao reintroduza a expansao.
+- **Todo cartao de compra tem a mesma altura.** A grade usa `grid-auto-rows: 1fr` e nao leva
+  `align-items: start`, entao todas as linhas tem a altura do cartao mais alto, e os tres valores e o
+  "Ver as N parcelas" ficam ancorados na base (`margin-top: auto` em `.facts`). O cartao quitado
+  tambem tem as duas linhas de progresso do cartao em andamento — "8 de 8 parcelas pagas" e, abaixo,
+  "Quitada em Mar/2026": com a data ao lado, numa linha so, ele ficava 30px mais baixo que o vizinho,
+  e o usuario pediu todos iguais.
+- **Quem rola e a lista de parcelas, nao o modal.** A lista tem altura maxima (`min(19.5rem, 42dvh)`,
+  cinco linhas e um pedaco) e rolagem propria; o resumo e o "Fechar" ficam sempre a vista. Com doze
+  parcelas o modal ocupava a tela inteira, e o usuario pediu para melhorar. Ao abrir, a lista ja vem
+  rolada ate a parcela atual, com uma paga acima como contexto — so na abertura, e nao a cada
+  pagamento, senao a lista pularia sob o cursor. Um esmaecimento em cima e embaixo aparece so do lado
+  em que ha mais parcelas (`data-acima`, `data-abaixo`), e a lista so vira parada de Tab quando rola,
+  para quem usa teclado alcancar uma compra quitada, que nao tem botao nenhum. `overflow-x` fica
+  `hidden`: `overflow-y: auto` sozinho liga a rolagem horizontal, e 8px de sobra ja desenhavam uma
+  segunda barra no celular.
+- **A barra de parcelas enche, e nao troca de cor.** Cada segmento do `BarraProgresso` tem um
+  preenchimento proprio (`::after`) que corre da esquerda para a direita em `--duration-slow` com
+  `--ease-out`; quando chega, o segmento da um pulso curto — cresce na altura e solta um halo da cor
+  do tom que some (`chegada`). Antes o segmento so mudava de cinza para azul em 120 ms, e marcar uma
+  parcela quase nao se via. Ao desfazer ele esvazia de volta, mais rapido e sem pulso: o pulso e a
+  confirmacao de um pagamento, nao de um recuo. O componente guarda de onde para onde a contagem foi
+  (`change`, em estado, e nao em ref): so os segmentos dessa troca pulsam, com atraso em cascata pela
+  ordem (`--ordem`) quando mais de um muda de uma vez, e a barra que ja nasce preenchida nao anima.
+  Sob movimento reduzido o preenchimento aparece direto e o pulso sai.
+- **A fatura inteira tambem pode ser marcada como paga, e so de dentro do modal.** "Já paguei esta
+  fatura" fica no rodape do `ModalDetalheFatura`, nunca no card: o atalho de pagamento no card de
+  compra ja foi recusado, e a regra e a mesma. `POST /faturas/{id}/pagamento` marca **os itens que a
+  fatura tem naquele momento** — as parcelas ainda em aberto, na mesma `parcelas_pagas` do botao
+  individual, e as compras comuns, numa data gravada no proprio lancamento. O pagamento e dos itens,
+  nao do ciclo: uma compra que entrar depois numa fatura aberta volta a contar em `valorRestante`.
+  Uma marca no ciclo inteiro daria como paga a compra de amanha. Por ser dos itens, pagar a fatura
+  de outubro faz a parcela 5 do Notebook aparecer paga em Compras parceladas, sem regra extra.
+- **"Desfazer pagamento" limpa a fatura toda**, inclusive as parcelas marcadas uma a uma antes: depois
+  dele nada naquela fatura esta pago a mao. O botao aparece com a fatura quitada ou quando ha compra
+  comum paga — que nao tem "Desfazer" proprio, so a marca "Paga" (`ItemFaturaDTO.paga`). Com apenas
+  parcelas marcadas, quem desfaz e o botao de cada linha.
+- **Fatura aberta e quitada diz "Paga até agora", e nao sai de "Fatura atual".** Ela ainda recebe
+  compras: manda-la para "Faturas anteriores" a faria pular de volta na proxima compra, e "anteriores"
+  quer dizer ciclo encerrado. O selo sai de `rotuloDaFatura` e `tomDaFatura` (`components/cartoes/
+  aparencia.ts`), que valem tambem para a fatura futura quitada; a situacao do contrato continua
+  `ABERTA`. So depois do fechamento a fatura sem nada a pagar vira `PAGA` e muda de bloco — inclusive
+  a vencida recente, que sai de "A pagar" assim que e marcada.
+- **`total` e o tamanho da fatura; `valorRestante` e o que se deve.** Destaque, linha e modal mostram o
+  total e, quando ha parcela paga, "ja pago" e "falta" ao lado. Somas que respondem "quanto vou
+  pagar" usam `valorRestante`: "A pagar agora", "Ciclo em aberto" e "Ja comprometido" em Faturas,
+  "Faturas atuais" e "Fatura atual" em Cartoes e o tile de fatura do dashboard. A fatura ja fechada
+  sem nada a pagar sai do servidor como `PAGA` e vai para "Faturas anteriores".
+- **O modal da fatura le o cabecalho do detalhe, nao do retrato.** Ele recebe a `FaturaCartaoDTO` da
+  lista so para abrir; total, pago, restante e situacao saem do `DetalheFaturaDTO` recarregado, senao
+  o cabecalho continuaria com os numeros de antes do clique. E a mesma razao do `detailId` das metas.
 - **Excluir nao apaga historico.** Conta ou cartao com lancamentos, despesas recorrentes ou, no
   cartao, compra parcelada devolve `409` do servidor, e a mensagem sugere marcar como inativo. Conta
   ainda vinculada a cartao de debito tambem devolve `409`, pedindo para trocar a conta do cartao
@@ -390,7 +469,7 @@ parcelamentos sao leitura calculada, exceto o cadastro da compra parcelada.
   parcelas que ainda vao vencer; o segundo, a parcela atual de cada compra parcelada em aberto — o
   que as faturas carregam por mes. Os dois ficam lado a lado com a dica dizendo o que somam.
 - **O progresso da compra tem hierarquia.** "Parcela 3 de 10" em destaque, "8 restantes" num selo
-  com a cor de acento, e "2 pagas · última em Abr/2027" em texto menor. Numa linha so, com os tres
+  com a cor de acento, e "2 pagas · Última parcela em Abr/2027" em texto menor. Numa linha so, com os tres
   numeros no mesmo peso, nenhum se destacava.
 - **Situacao e ordenacao ficam na linha de acoes do `CabecalhoPagina`**, ao lado de "Nova compra", e
   a lista nao tem titulo visivel nem contagem: a faixa de resumo logo acima ja diz quantas compras
@@ -869,15 +948,12 @@ de toast no app, e não deve passar a existir: comportamento, tempo e visual mud
 - **A barra na base do cartão é o tempo restante.** Ela esvazia por animação de CSS enquanto o
   `setTimeout` guarda o restante em milissegundos; os dois param e retomam juntos. A pilha inteira pausa
   com o mouse sobre ela, com o foco dentro dela e com a aba em segundo plano — ninguém perde uma
-  mensagem que chegou enquanto olhava outra janela. Pausada, a barra e a faixa
-  esquerda do cartão, na cor do tipo, esmaecem juntas para 40% da cor (`--tone-edge`) — as duas marcas
-  dizem ao mesmo tempo que o tempo parou. A faixa é colada na borda e desenhada por duas camadas atrás
-  do conteúdo: `::before` pinta a cor e `::after`, na cor do cartão, a cobre a partir de 3px da esquerda e
-  de baixo, com cantos de mesmo centro que a curva da moldura. Em cima a faixa afina até a borda; embaixo
-  ela contorna o canto com 3px constantes e emenda na barra de tempo, e a ponta dessa curva é arredondada
-  para não virar um corte reto quando a barra esvazia. Borda de 3px, faixa reta e sombra interna ficavam assimétricas (somem num canto e engrossam
-  no outro), e a pílula solta foi recusada. A barra esmaece pela cor, e não por `opacity`, para as duas
-  marcas chegarem ao mesmo tom.
+  mensagem que chegou enquanto olhava outra janela. Pausada, a barra esmaece para 40% da cor do tipo
+  (`--tone-edge`), pela cor e não por `opacity`.
+- **A cor do tipo fica só na barra de baixo e no ícone.** O cartão já teve uma faixa colorida na borda
+  esquerda, emendada na barra de tempo, e o usuário pediu para tirá-la: a cor em volta de todo aviso
+  pesava, e a base sozinha já diz o tipo. Não reintroduza borda, faixa lateral nem contorno colorido no
+  toast. Sob movimento reduzido a barra some, e quem diz o tipo é o ícone e o rótulo lido antes do título.
 - **No toque não há hover:** segurar o cartão pausa, e deslizar para a direita mais que
   `DISTANCIA_DESLIZE_DISPENSA_PX` dispensa. O botão de fechar continua lá, com área de toque ampliada.
 - **No máximo três na tela.** A quarta empurra a mais antiga para fora, e uma mensagem idêntica a uma
@@ -1091,7 +1167,8 @@ codigo e `errors` como detalhe. Cancelamento pelo `AbortSignal` de quem chamou s
 Autenticacao, ESLint/Prettier, testes e code-splitting por rota ainda nao existem. Resgate de
 investimento e debito automatico do aporte numa conta tambem nao. Por isso a sidebar
 nao mostra usuario: o bloco com nome e e-mail ficticios saiu, e volta quando houver login. Nao ha pagamento de fatura nem registro de quitacao — a fatura vencida e tratada como
-paga —, nem historico de cotacao por ativo: a evolucao do patrimonio e reconstruida a partir do
+paga, e o pagamento que existe e uma marca manual, na parcela ou na fatura inteira, sem debito em
+conta —, nem historico de cotacao por ativo: a evolucao do patrimonio e reconstruida a partir do
 valor atual e da idade da posicao. Exportacao de relatorio (PDF, CSV) tambem ficou de fora. Nao
 invente configuracao dessas sem o usuario pedir.
 

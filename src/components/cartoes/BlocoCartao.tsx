@@ -91,7 +91,7 @@ export function BlocoCartao({ cartao, fatura, saldoConta, aoEditar, aoExcluir, a
             <div className={styles.fact}>
               <dt>Fatura atual</dt>
               <dd>
-                <ValorMonetario valor={fatura?.total ?? 0} tamanho="sm" />
+                <ValorMonetario valor={fatura?.valorRestante ?? 0} tamanho="sm" />
               </dd>
             </div>
             <div className={styles.fact}>

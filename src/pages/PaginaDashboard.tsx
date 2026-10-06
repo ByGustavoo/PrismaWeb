@@ -117,7 +117,7 @@ export function PaginaDashboard() {
             />
             <BlocoIndicador
               rotulo={shownFrom === shownTo ? 'Fatura do mês' : `Fatura de ${capitalizar(formatarRotuloMes(shownTo))}`}
-              valor={dados.faturaAtual?.total ?? 0}
+              valor={dados.faturaAtual?.valorRestante ?? 0}
               icone={CreditCard}
               notaRodape={
                 dados.faturaAtual

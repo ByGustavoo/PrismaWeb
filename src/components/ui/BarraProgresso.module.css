@@ -21,15 +21,64 @@
 }
 
 .segment {
+  --espera: calc(var(--ordem, 0) * var(--stagger-step) * 2);
+
+  position: relative;
   flex: 1;
   min-width: 3px;
   border-radius: var(--radius-pill);
   background-color: var(--neutral-soft);
-  transition: background-color var(--duration-fast) var(--ease-out);
+  overflow: hidden;
 }
 
-.segmentFilled {
+.segment::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
   background-color: var(--tone);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition:
+    transform var(--duration-base) var(--ease-in) var(--espera),
+    background-color var(--duration-base) var(--ease-out);
+}
+
+.segmentFilled::after {
+  transform: scaleX(1);
+  transition:
+    transform var(--duration-slow) var(--ease-out) var(--espera),
+    background-color var(--duration-base) var(--ease-out);
+}
+
+.segmentArriving {
+  animation: chegada var(--duration-slow) var(--ease-out) calc(var(--espera) + var(--duration-base)) both;
+}
+
+@keyframes chegada {
+  0% {
+    transform: scaleY(1);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--tone) 40%, transparent);
+  }
+  35% {
+    transform: scaleY(1.7);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tone) 22%, transparent);
+  }
+  100% {
+    transform: scaleY(1);
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--tone) 0%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .segment::after,
+  .segmentFilled::after {
+    transition: none;
+  }
+
+  .segmentArriving {
+    animation: none;
+  }
 }
 
 .accent {

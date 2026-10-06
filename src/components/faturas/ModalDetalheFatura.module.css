@@ -20,6 +20,20 @@
   color: var(--text-muted);
 }
 
+.summaryPaid {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0 var(--space-1);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.separator {
+  margin-inline: 5px;
+  color: var(--text-subtle);
+}
+
 .summaryDates {
   display: flex;
   gap: var(--space-6);
@@ -48,6 +62,10 @@
   list-style: none;
 }
 
+.itemsWithPayment {
+  grid-template-columns: minmax(56px, max-content) minmax(0, 1fr) auto auto;
+}
+
 .item {
   display: grid;
   grid-column: 1 / -1;
@@ -65,6 +83,11 @@
   font-size: var(--fs-sm);
   color: var(--text-muted);
   white-space: nowrap;
+}
+
+.itemValue,
+.itemPayment {
+  justify-self: end;
 }
 
 .itemText {
@@ -107,4 +130,25 @@
   height: 8px;
   flex-shrink: 0;
   border-radius: var(--radius-pill);
+}
+
+@media (max-width: 599px) {
+  .itemsWithPayment {
+    grid-template-columns: minmax(48px, max-content) minmax(0, 1fr) auto;
+  }
+
+  .itemsWithPayment .itemDate,
+  .itemsWithPayment .itemText {
+    grid-row: 1 / span 2;
+  }
+
+  .itemsWithPayment .itemValue {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .itemsWithPayment .itemPayment {
+    grid-column: 3;
+    grid-row: 2;
+  }
 }

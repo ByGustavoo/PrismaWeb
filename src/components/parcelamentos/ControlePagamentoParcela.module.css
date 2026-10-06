@@ -1,0 +1,34 @@
+.control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-1);
+  min-height: var(--control-height-sm);
+}
+
+.paid {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  color: var(--positive);
+  white-space: nowrap;
+}
+
+.paid:last-child {
+  padding-inline-end: var(--space-2);
+}
+
+.control .compact {
+  padding-inline: var(--space-2);
+}
+
+.control .quiet {
+  color: var(--accent);
+}
+
+.control .quiet:hover:not(:disabled) {
+  background-color: var(--accent-soft);
+  color: var(--accent);
+}

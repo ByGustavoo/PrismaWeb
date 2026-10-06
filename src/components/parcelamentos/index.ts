@@ -1,5 +1,7 @@
 export { CartaoParcelamento } from './CartaoParcelamento';
+export { ControlePagamentoParcela, MarcaPagamento } from './ControlePagamentoParcela';
 export { ModalFormularioParcelamento } from './ModalFormularioParcelamento';
+export { ModalParcelasCompra } from './ModalParcelasCompra';
 export {
   aplicarConsultaCompra,
   consultaCompraPadrao,

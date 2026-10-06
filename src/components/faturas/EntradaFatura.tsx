@@ -1,8 +1,7 @@
-import { ArrowDownRight, ArrowRight, ArrowUpRight, ChevronRight } from 'lucide-react';
+import { ArrowDownRight, ArrowRight, ArrowUpRight, Check, ChevronRight } from 'lucide-react';
 import { ValorMonetario } from '@/components/comum';
 import { Selo, Botao } from '@/components/ui';
-import { tomDaFatura } from '@/components/cartoes/aparencia';
-import { rotuloSituacaoFatura } from '@/constants/cartoes';
+import { rotuloDaFatura, tomDaFatura } from '@/components/cartoes/aparencia';
 import type { FaturaCartaoDTO } from '@/types';
 import { capitalizar, formatarRotuloVencimento, formatarDataCompleta, formatarRotuloMes, formatarDataCurta } from '@/utils/formatacao';
 import styles from './EntradaFatura.module.css';
@@ -28,7 +27,7 @@ export function DestaqueFatura({ fatura, aoAbrir }: EntradaFaturaProps) {
       <header className={styles.highlightHeader}>
         <span className={styles.cardName}>{fatura.nomeCartao}</span>
         <Selo tom={tomDaFatura(fatura)} ponto>
-          {rotuloSituacaoFatura[fatura.situacao]}
+          {rotuloDaFatura(fatura)}
         </Selo>
       </header>
 
@@ -36,6 +35,21 @@ export function DestaqueFatura({ fatura, aoAbrir }: EntradaFaturaProps) {
 
       <ValorMonetario valor={fatura.total} tamanho="lg" />
       <span className={styles.items}>{empty ? 'Nenhuma compra ainda' : rotuloItens(fatura.quantidadeItens)}</span>
+
+      {fatura.valorPago > 0 ? (
+        <span className={styles.paid}>
+          <Check size={14} strokeWidth={2.5} aria-hidden="true" />
+          <span>
+            <ValorMonetario valor={fatura.valorPago} tamanho="sm" tom="positive" /> já pago
+          </span>
+          <span className={styles.separator} aria-hidden="true">
+            ·
+          </span>
+          <span>
+            falta <ValorMonetario valor={fatura.valorRestante} tamanho="sm" />
+          </span>
+        </span>
+      ) : null}
 
       {changed && difference !== undefined ? (
         <span className={styles.compare}>
@@ -103,11 +117,16 @@ export function LinhaFatura({ fatura, aoAbrir }: EntradaFaturaProps) {
 
         <span className={styles.rowValue}>
           <ValorMonetario valor={fatura.total} tamanho="sm" />
+          {fatura.valorPago > 0 && fatura.valorRestante > 0 ? (
+            <span className={styles.rowRemaining}>
+              falta <ValorMonetario valor={fatura.valorRestante} tamanho="sm" tom="muted" />
+            </span>
+          ) : null}
         </span>
 
         <span className={styles.rowStatus}>
           <Selo tom={tomDaFatura(fatura)} ponto>
-            {rotuloSituacaoFatura[fatura.situacao]}
+            {rotuloDaFatura(fatura)}
           </Selo>
         </span>
 

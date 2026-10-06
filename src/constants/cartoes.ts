@@ -54,6 +54,8 @@ export const rotuloSituacaoFatura: Record<SituacaoFatura, string> = {
   VENCIDA: 'Vencida',
 };
 
+export const ROTULO_FATURA_PAGA_ATE_AGORA = 'Paga até agora';
+
 export const rotuloSituacaoParcela: Record<SituacaoParcela, string> = {
   PAGA: 'Paga',
   ATUAL: 'Atual',

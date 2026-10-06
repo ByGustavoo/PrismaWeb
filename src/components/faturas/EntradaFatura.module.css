@@ -162,3 +162,31 @@
   flex-shrink: 0;
   color: var(--text-subtle);
 }
+
+.paid {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0 var(--space-1);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+.paid svg {
+  flex-shrink: 0;
+  align-self: center;
+  color: var(--positive);
+}
+
+.rowValue {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.rowRemaining {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+}

@@ -53,7 +53,7 @@ export function PaginaCartoes() {
   const summary = useMemo(() => {
     const limit = creditCards.reduce((sum, card) => sum + card.limiteCredito, 0);
     const used = creditCards.reduce((sum, card) => sum + (card.limiteComprometido ?? 0), 0);
-    const openTotal = [...currentInvoices.values()].reduce((sum, invoice) => sum + invoice.total, 0);
+    const openTotal = [...currentInvoices.values()].reduce((sum, invoice) => sum + invoice.valorRestante, 0);
     return { limit, used, available: Math.max(limit - used, 0), openTotal };
   }, [creditCards, currentInvoices]);
 
@@ -181,7 +181,7 @@ export function PaginaCartoes() {
                 {
                   rotulo: 'Faturas atuais',
                   valor: <ValorMonetario valor={summary.openTotal} tom="muted" contarAoAparecer />,
-                  dica: 'Total dos ciclos ainda não pagos',
+                  dica: 'O que falta pagar dos ciclos em aberto',
                 },
               ]}
             />

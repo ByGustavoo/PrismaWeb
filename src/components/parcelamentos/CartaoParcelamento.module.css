@@ -140,12 +140,6 @@
   font-size: var(--fs-sm);
 }
 
-.progressAside {
-  font-size: var(--fs-sm);
-  color: var(--text-subtle);
-  white-space: nowrap;
-}
-
 .progressSub {
   margin: 0;
   max-width: none;
@@ -157,7 +151,7 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-3);
-  margin: 0;
+  margin: auto 0 0;
   padding-top: var(--space-4);
   border-top: 1px solid var(--border);
 }
@@ -201,96 +195,20 @@
   transition: transform var(--duration-fast) var(--ease-out);
 }
 
-.chevronOpen {
-  transform: rotate(180deg);
+@media (hover: hover) {
+  .toggle:hover .chevron {
+    transform: translateX(2px);
+  }
 }
 
-.schedule {
-  display: flex;
-  flex-direction: column;
-  margin: 0;
-  padding: var(--space-2) var(--space-3);
-  list-style: none;
-  background-color: var(--surface-muted);
-  border-radius: var(--radius-sm);
-}
-
-.schedule[hidden] {
-  display: none;
-}
-
-.installment {
-  display: grid;
-  grid-template-columns: 52px minmax(0, 1fr) auto 72px;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2) 0 var(--space-2) var(--space-2);
-  border-bottom: 1px solid var(--border);
-  border-left: 2px solid transparent;
-  font-size: var(--fs-sm);
-}
-
-.installment:last-child {
-  border-bottom: none;
-}
-
-.installmentCurrent {
-  border-left-color: var(--accent);
-}
-
-.installmentPaid .number,
-.installmentPaid .month,
-.installmentPaid .dueDate {
-  color: var(--text-subtle);
-}
-
-.number {
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.when {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-3);
-  min-width: 0;
-  overflow: hidden;
-}
-
-.month {
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.dueDate {
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-
-.installmentStatus {
-  justify-self: end;
-}
-
-.paidMark {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  font-size: var(--fs-xs);
-  color: var(--positive);
+@media (prefers-reduced-motion: reduce) {
+  .toggle:hover .chevron {
+    transform: none;
+  }
 }
 
 @media (max-width: 767px) {
   .facts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .installment {
-    grid-template-columns: 52px minmax(0, 1fr) auto auto;
-    gap: var(--space-2);
-  }
-
-  .dueDate,
-  .paidLabel {
-    display: none;
   }
 }

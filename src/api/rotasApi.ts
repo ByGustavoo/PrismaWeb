@@ -26,11 +26,13 @@ export const rotasApi = {
   faturas: {
     listar: '/faturas',
     porId: (id: string) => `/faturas/${id}`,
+    pagamento: (id: string) => `/faturas/${id}/pagamento`,
   },
   comprasParceladas: {
     listar: '/compras-parceladas',
     criar: '/compras-parceladas',
     porId: (id: string) => `/compras-parceladas/${id}`,
+    pagamentoParcela: (id: string, numero: number) => `/compras-parceladas/${id}/parcelas/${numero}/pagamento`,
   },
   investimentos: {
     criar: '/investimentos',

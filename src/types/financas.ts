@@ -145,6 +145,8 @@ export interface FaturaCartaoDTO {
   nomeCartao: string;
   mes: string;
   total: number;
+  valorPago: number;
+  valorRestante: number;
   situacao: SituacaoFatura;
   dataFechamento: string;
   dataVencimento: string;
@@ -156,6 +158,8 @@ export interface ParcelaItemFaturaDTO {
   numero: number;
   total: number;
   idCompra: ID;
+  situacao: SituacaoParcela;
+  pagamentoAntecipado: boolean;
 }
 
 export interface ItemFaturaDTO {
@@ -165,6 +169,7 @@ export interface ItemFaturaDTO {
   valor: number;
   categoria: CategoriaDTO | null;
   parcela?: ParcelaItemFaturaDTO;
+  paga: boolean;
 }
 
 export interface DetalheFaturaDTO extends FaturaCartaoDTO {
@@ -179,6 +184,13 @@ export interface ParcelaDTO {
   dataVencimento: string;
   valor: number;
   situacao: SituacaoParcela;
+  pagamentoAntecipado: boolean;
+}
+
+export interface PagamentoParcelaDTO {
+  idCompra: ID;
+  numero: number;
+  dataPagamento: string;
 }
 
 export interface CompraParceladaDTO {
@@ -368,6 +380,7 @@ export interface AvisoDTO {
 
 export interface FaturaDTO {
   total: number;
+  valorRestante: number;
   nomeCartao: string;
   dataVencimento: string;
   situacao: SituacaoFatura;
