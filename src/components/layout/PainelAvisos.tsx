@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowDownLeft, CalendarClock, CreditCard, Receipt, Repeat, TriangleAlert } from 'lucide-react';
+import { ArrowDownLeft, CalendarClock, CreditCard, Receipt, Repeat, TrendingUp, TriangleAlert } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { ValorMonetario } from '@/components/comum';
 import { EstadoVazio, IndicadorGiratorio } from '@/components/ui';
 import { avisosService } from '@/services';
 import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
+import { useAvisos } from '@/providers/ProvedorAvisos';
 import type { AvisoDTO, SeveridadeAviso, TipoAviso } from '@/types';
 import { juntarClasses } from '@/utils/juntarClasses';
 import { formatarDataCurta } from '@/utils/formatacao';
@@ -19,6 +20,7 @@ const iconePorTipo: Record<TipoAviso, LucideIcon> = {
   LANCAMENTO_AGENDADO: CalendarClock,
   RECEITA_PREVISTA: ArrowDownLeft,
   LIMITE_CARTAO: CreditCard,
+  INVESTIMENTO_DESATUALIZADO: TrendingUp,
 };
 
 const classePorSeveridade: Record<SeveridadeAviso, string> = {
@@ -35,9 +37,10 @@ interface PainelAvisosProps {
 
 export function PainelAvisos({ aberto, aoFechar, aoMudarQuantidade }: PainelAvisosProps) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const { versaoAvisos } = useAvisos();
 
   const fetchAlerts = useCallback((signal: AbortSignal) => avisosService.listar(signal), []);
-  const { dados, carregando, erro } = useDadosAssincronos(fetchAlerts);
+  const { dados, carregando, erro } = useDadosAssincronos(fetchAlerts, [versaoAvisos]);
 
   const alerts = dados ?? [];
   const urgentCount = alerts.filter((alert) => alert.severidade !== 'INFO').length;
@@ -80,7 +83,7 @@ export function PainelAvisos({ aberto, aoFechar, aoMudarQuantidade }: PainelAvis
         ) : null}
       </header>
 
-      {carregando ? (
+      {carregando && !dados ? (
         <div className={styles.state}>
           <IndicadorGiratorio />
         </div>

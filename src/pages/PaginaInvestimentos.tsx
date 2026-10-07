@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Plus, TrendingUp } from 'lucide-react';
 import { ValorMonetario, BarraResumo } from '@/components/comum';
 import {
@@ -13,7 +14,9 @@ import type { AcaoRegistroInvestimento, ResultadoFormularioInvestimento } from '
 import { CabecalhoPagina } from '@/components/layout';
 import { Botao, Painel, DialogoConfirmacao, EstadoVazio, BlocoCarregando } from '@/components/ui';
 import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
+import { useAvisos } from '@/providers/ProvedorAvisos';
 import { useNotificacoes } from '@/providers/ProvedorNotificacoes';
+import { PARAMETRO_INVESTIMENTO } from '@/routes/caminhos';
 import { investimentosService } from '@/services';
 import type {
   InvestimentoDTO,
@@ -32,6 +35,15 @@ export function PaginaInvestimentos() {
   const [detail, setDetail] = useState<{ id: string; acao: AcaoRegistroInvestimento } | null>(null);
   const [detailVersion, setDetailVersion] = useState(0);
   const toast = useNotificacoes();
+  const { atualizarAvisos } = useAvisos();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    const requested = searchParams.get(PARAMETRO_INVESTIMENTO);
+    if (!requested) return;
+    setDetail({ id: requested, acao: 'saldo' });
+    setSearchParams({}, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   const fetchData = useCallback((signal: AbortSignal) => investimentosService.buscarCarteira(signal), []);
   const { dados, carregando, erro, recarregar } = useDadosAssincronos(fetchData);
@@ -58,6 +70,7 @@ export function PaginaInvestimentos() {
       }
       closeForm();
       recarregar();
+      atualizarAvisos();
       setDetailVersion((value) => value + 1);
     } catch (submitError) {
       toast.erro('Não foi possível salvar o investimento.', submitError);
@@ -73,6 +86,7 @@ export function PaginaInvestimentos() {
       await investimentosService.adicionarAporte(investment.id, payload);
       toast.sucesso('Aporte adicionado com sucesso!', `${investment.nome} · ${formatarMoeda(payload.valor)}`);
       recarregar();
+      atualizarAvisos();
       setDetailVersion((value) => value + 1);
       return true;
     } catch (contributionError) {
@@ -90,6 +104,7 @@ export function PaginaInvestimentos() {
       await investimentosService.atualizarSaldo(investment.id, payload);
       toast.sucesso('Saldo atualizado com sucesso!', `${investment.nome} · ${formatarMoeda(payload.valorAtual)}`);
       recarregar();
+      atualizarAvisos();
       setDetailVersion((value) => value + 1);
       return true;
     } catch (balanceError) {
@@ -109,6 +124,7 @@ export function PaginaInvestimentos() {
       toast.sucesso('Investimento excluído com sucesso!', removing.investimento.nome);
       setRemoving(null);
       recarregar();
+      atualizarAvisos();
     } catch (deleteError) {
       toast.erro('Não foi possível excluir o investimento.', deleteError);
       setRemoving(null);

@@ -143,6 +143,10 @@
 }
 
 @media (max-width: 560px) {
+  .notifications {
+    position: static;
+  }
+
   .newLabel {
     display: none;
   }

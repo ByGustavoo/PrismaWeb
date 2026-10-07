@@ -98,7 +98,7 @@ Estas sao as invariantes do projeto. Quebra-las e o erro mais caro que se pode c
 5. **Rotas so em `src/routes/caminhos.ts`.** Links usam `caminhos.x`, nunca string literal. A raiz `/`
    nao tem tela propria: ela redireciona para `caminhos.dashboard` (`/dashboard`), para que toda tela
    do app tenha um endereco com nome. O mesmo arquivo guarda os nomes dos query params (`busca`,
-   `categoria`, `conta`, `cartao`, `novo`, `editar`) — eles sao contrato entre telas e nao devem
+   `categoria`, `conta`, `cartao`, `investimento`, `novo`, `editar`) — eles sao contrato entre telas e nao devem
    ser escritos a mao em outro lugar. Todos sao transitorios: a tela os le e limpa a URL.
 
 6. **Contratos de dominio em `src/types/financas.ts`.** Sao o contrato do backend (PrismaAPI);
@@ -200,7 +200,7 @@ src/
 ├── pages/         PaginaDashboard, PaginaLancamentos, PaginaContas, PaginaCartoes, PaginaFaturas,
 │                  PaginaParcelamentos, PaginaInvestimentos, PaginaOrcamento, PaginaRecorrentes,
 │                  PaginaPrevisao, PaginaMetas, PaginaRelatorios, PaginaConfiguracoes, PaginaNaoEncontrada
-├── providers/     ProvedorTema, ProvedorNotificacoes, ProvedorPeriodo, ProvedoresAplicacao
+├── providers/     ProvedorTema, ProvedorNotificacoes, ProvedorAvisos, ProvedorPeriodo, ProvedoresAplicacao
 ├── routes/        RotasAplicacao, caminhos
 ├── services/      dashboard, lancamentos, categorias, contas, cartoes, investimentos, orcamento,
 │                  recorrentes, metas, previsao, relatorios, avisos, sistema
@@ -976,9 +976,10 @@ de toast no app, e não deve passar a existir: comportamento, tempo e visual mud
 O sino do header abre o `PainelAvisos`, alimentado por `avisosService`. Os avisos nao sao
 uma lista fixa: o servidor os deriva dos mesmos dados que abastecem as telas — faturas ainda
 nao pagas que vencem em ate 15 dias ou venceram ha ate 15 dias, despesas pendentes, agendamentos e
-receitas a receber dentro de 15 dias, recorrentes que vencem em ate 7 dias sem lancamento no mes, e
-cartoes com 70% ou mais do limite. O PrismaAPI deriva os mesmos avisos com as mesmas regras, entao
-trocar para a API real so muda o service.
+receitas a receber dentro de 15 dias, recorrentes que vencem em ate 7 dias sem lancamento no mes,
+cartoes com 70% ou mais do limite e investimentos sem aporte nem saldo registrado ha 30 dias ou mais.
+O PrismaAPI deriva os mesmos avisos com as mesmas regras, entao trocar para a API real so muda o
+service.
 
 **Cada tipo tem o seu texto.** Receita nao "vence" — ela e "a receber"; transferencia agendada diz
 para qual conta vai; a fatura aberta diz ate quando recebe compras. O aviso de limite nao tem
@@ -988,6 +989,28 @@ porcentagem vem arredondada e o que sobra, formatado — nunca `1127.27999999999
 A urgencia aparece na cor do icone (`critical` / `attention` / `info`), nao no fundo da linha: uma
 lista com tres fundos coloridos vira ruido. O ponto no sino conta apenas os avisos que nao sao
 `info`, e e calculado no mount do painel — nao depende de o usuario abri-lo.
+
+- **O lembrete de investimento e um aviso, e nao um agendamento.** `INVESTIMENTO_DESATUALIZADO`
+  aparece quando a ultima movimentacao do investimento (`dataAtualizacao`, aporte ou saldo) tem 30
+  dias ou mais, e fica no sino ate o usuario registrar um aporte ou um saldo — a contagem recomeca
+  dali, e por isso ele volta "de 30 em 30 dias" sem tabela de lembretes nem tarefa agendada. Um
+  lembrete que sumisse sozinho no dia seguinte deixaria o saldo velho sem ninguem avisar. Ele e
+  sempre `ATENCAO`, para acender o ponto do sino: e um lembrete, nunca uma urgencia, e `INFO` nao
+  contaria. Nao tem `valor`, pela mesma razao do aviso de limite, e a data ao lado e a da ultima
+  atualizacao, que e o que a frase "Sem atualizacao ha 40 dias" conta.
+- **O lembrete leva direto ao registro.** A `rota` dele e `/investimentos?investimento=<id>`
+  (`PARAMETRO_INVESTIMENTO`): a tela abre o `ModalDetalheInvestimento` daquele investimento ja em
+  "Atualizar saldo", com o foco no valor, e limpa a URL. Mandar so para `/investimentos` deixaria o
+  usuario procurando entre os cartoes qual era o do aviso.
+- **Quem muda o que um aviso le avisa o sino.** `useAvisos().atualizarAvisos()`
+  (`providers/ProvedorAvisos`) faz o `PainelAvisos` buscar de novo, sem esqueleto — a lista anterior
+  fica na tela ate a nova chegar. Investimentos chama depois de cadastrar, aportar, atualizar saldo e
+  excluir: sem isso o usuario fazia exatamente o que o lembrete pedia e o ponto do sino continuava
+  aceso ate recarregar a pagina. As outras telas ainda nao chamam; ao mexer nelas, e o mesmo hook.
+- **Abaixo de 560px o painel se ancora no header, e nao no sino.** Nessa faixa o sino deixa de ser o
+  ultimo botao da linha, e um painel de 358px preso a direita dele saia 34px para fora da tela, cortando
+  icone e titulo. O `.notifications` vira `position: static` e o painel ocupa a largura com
+  `--space-4` de cada lado.
 
 ## Ritmo vertical
 

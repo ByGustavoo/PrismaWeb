@@ -363,7 +363,8 @@ export type TipoAviso =
   | 'RECORRENTE_VENCENDO'
   | 'LANCAMENTO_AGENDADO'
   | 'RECEITA_PREVISTA'
-  | 'LIMITE_CARTAO';
+  | 'LIMITE_CARTAO'
+  | 'INVESTIMENTO_DESATUALIZADO';
 
 export type SeveridadeAviso = 'CRITICO' | 'ATENCAO' | 'INFO';
 

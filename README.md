@@ -121,7 +121,7 @@ A imagem já é publicada no Docker Hub pela esteira, com versão e data visíve
 🔹 **Transversal**
 * Tema claro, escuro e sistema.
 * Busca global em lançamentos, categorias e contas, ignorando acentuação.
-* Painel de avisos derivado dos próprios dados: faturas a vencer, contas e recorrentes próximas, receitas a receber e cartões perto do limite.
+* Painel de avisos derivado dos próprios dados: faturas a vencer, contas e recorrentes próximas, receitas a receber, cartões perto do limite e investimentos sem atualização de saldo há 30 dias.
 * Máscara monetária brasileira em todos os campos de valor e uma paleta de dezesseis cores fixas por categoria, distintas e legíveis nos dois temas.
 * Página 404 própria, fora do shell do app: o endereço que falhou fica à vista, com atalhos para as telas de entrada e uma série que se desenha em laço até o ponto onde os dados acabam.
 * Notificações de sucesso e de erro num canal único, com tempo proporcional ao texto, pausa ao passar o mouse e dispensa por deslize no toque.
@@ -349,7 +349,7 @@ src/
 │                  PaginaFaturas, PaginaParcelamentos, PaginaInvestimentos, PaginaOrcamento,
 │                  PaginaRecorrentes, PaginaPrevisao, PaginaMetas, PaginaRelatorios,
 │                  PaginaConfiguracoes, PaginaNaoEncontrada
-├── providers/     ProvedorTema, ProvedorNotificacoes, ProvedorPeriodo, ProvedoresAplicacao
+├── providers/     ProvedorTema, ProvedorNotificacoes, ProvedorAvisos, ProvedorPeriodo, ProvedoresAplicacao
 ├── routes/        RotasAplicacao, caminhos (única fonte de rotas)
 ├── services/      dashboard, lancamentos, categorias, contas, cartoes, investimentos,
 │                  orcamento, recorrentes, metas, previsao, relatorios, avisos, sistema

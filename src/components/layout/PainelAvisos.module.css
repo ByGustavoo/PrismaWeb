@@ -126,6 +126,14 @@ a.item:hover {
   color: var(--text-subtle);
 }
 
+@media (max-width: 560px) {
+  .panel {
+    left: var(--space-4);
+    right: var(--space-4);
+    width: auto;
+  }
+}
+
 @keyframes panelIn {
   from {
     opacity: 0;
