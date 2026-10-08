@@ -121,7 +121,7 @@ export function PaginaDashboard() {
               icone={CreditCard}
               notaRodape={
                 dados.faturaAtual
-                  ? `${dados.faturaAtual.nomeCartao} · vence em ${formatarDataCompleta(dados.faturaAtual.dataVencimento)}`
+                  ? `${dados.faturaAtual.nomeCartao} — Vence em ${formatarDataCompleta(dados.faturaAtual.dataVencimento)}`
                   : 'Sem compras no cartão de crédito'
               }
             />
