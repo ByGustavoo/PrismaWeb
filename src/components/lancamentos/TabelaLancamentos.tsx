@@ -1,8 +1,8 @@
-import { ArrowRight, ArrowUpDown, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react';
+import { ArrowRight, ArrowUpDown, ChevronDown, ChevronUp, Layers, Pencil, Trash2 } from 'lucide-react';
 import { ValorMonetario } from '@/components/comum';
 import { Selo, Botao, CorpoTabela, CabecaTabela, Tabela, ContainerTabela, Celula, CelulaCabecalho, LinhaTabela } from '@/components/ui';
 import { corDaPaleta } from '@/constants/cores';
-import { rotuloTipoLancamento, rotuloSituacaoLancamento } from '@/constants/lancamentos';
+import { NOTA_PAGAMENTO_PARCELA, rotuloTipoLancamento, rotuloSituacaoLancamento } from '@/constants/lancamentos';
 import type { LancamentoDTO } from '@/types';
 import { formatarDataCurta } from '@/utils/formatacao';
 import { classePorTipo, iconePorTipo, sinalPorTipo, tomPorTipo, tomPorSituacao } from './aparencia';
@@ -104,6 +104,7 @@ export function TabelaLancamentos({
                     onClick={() => aoEditar(transaction)}
                   >
                     <span className={styles.description}>{transaction.descricao}</span>
+                    {transaction.parcela ? <span className={styles.notes}>{NOTA_PAGAMENTO_PARCELA}</span> : null}
                     {transaction.observacoes ? <span className={styles.notes}>{transaction.observacoes}</span> : null}
                   </button>
                 </Celula>
@@ -161,21 +162,34 @@ export function TabelaLancamentos({
 
                 <Celula numerico onClick={(event) => event.stopPropagation()}>
                   <div className={styles.actions}>
-                    <Botao
-                      variante="ghost"
-                      tamanho="sm"
-                      icone={Pencil}
-                      aria-label={`Editar ${transaction.descricao}`}
-                      onClick={() => aoEditar(transaction)}
-                    />
-                    <Botao
-                      variante="ghost"
-                      tamanho="sm"
-                      icone={Trash2}
-                      className={styles.delete}
-                      aria-label={`Excluir ${transaction.descricao}`}
-                      onClick={() => aoExcluir(transaction)}
-                    />
+                    {transaction.parcela ? (
+                      <Botao
+                        variante="ghost"
+                        tamanho="sm"
+                        icone={Layers}
+                        aria-label={`Ver as parcelas de ${transaction.descricao}`}
+                        title="Ver as parcelas da compra"
+                        onClick={() => aoEditar(transaction)}
+                      />
+                    ) : (
+                      <>
+                        <Botao
+                          variante="ghost"
+                          tamanho="sm"
+                          icone={Pencil}
+                          aria-label={`Editar ${transaction.descricao}`}
+                          onClick={() => aoEditar(transaction)}
+                        />
+                        <Botao
+                          variante="ghost"
+                          tamanho="sm"
+                          icone={Trash2}
+                          className={styles.delete}
+                          aria-label={`Excluir ${transaction.descricao}`}
+                          onClick={() => aoExcluir(transaction)}
+                        />
+                      </>
+                    )}
                   </div>
                 </Celula>
               </LinhaTabela>

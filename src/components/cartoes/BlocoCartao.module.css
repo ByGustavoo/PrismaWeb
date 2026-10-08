@@ -116,6 +116,15 @@
   font-weight: 500;
 }
 
+.factWide {
+  grid-column: 1 / -1;
+}
+
+.fact dd.factMissing {
+  font-weight: 400;
+  color: var(--text-subtle);
+}
+
 .footer {
   display: flex;
   align-items: center;

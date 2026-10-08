@@ -132,6 +132,11 @@ export function ModalFormularioCartao({ aberto, cartao, contas, salvando, aoEnvi
     [contas, cartao],
   );
 
+  const paymentAccountOptions = useMemo<Opcao[]>(
+    () => [{ valor: '', rotulo: 'Sem conta de pagamento' }, ...accountOptions],
+    [accountOptions],
+  );
+
   const set = <K extends keyof EstadoFormulario>(field: K, value: EstadoFormulario[K]) => {
     setForm((current) => ({ ...current, [field]: value }));
   };
@@ -151,6 +156,7 @@ export function ModalFormularioCartao({ aberto, cartao, contas, salvando, aoEnvi
             limiteCredito: interpretarEntradaValor(form.limite),
             diaFechamento: converterDia(form.diaFechamento),
             diaVencimento: converterDia(form.diaVencimento),
+            ...(form.idConta ? { idConta: form.idConta } : {}),
           }
         : {}),
       ...(form.tipo === 'DEBITO' ? { idConta: form.idConta } : {}),
@@ -169,7 +175,7 @@ export function ModalFormularioCartao({ aberto, cartao, contas, salvando, aoEnvi
       aberto={aberto}
       aoFechar={aoFechar}
       titulo={cartao ? 'Editar cartão' : 'Novo cartão'}
-      descricao="Os campos mudam conforme o tipo: só o crédito tem limite e datas de fatura."
+      descricao="Os campos mudam conforme o tipo: só o crédito tem limite, datas de fatura e conta de pagamento."
       tamanho="lg"
       rodape={
         <>
@@ -258,6 +264,19 @@ export function ModalFormularioCartao({ aberto, cartao, contas, salvando, aoEnvi
                 erro={erros.diaVencimento}
               />
             </div>
+
+            <CampoSelecao
+              className={styles.full}
+              rotulo="Conta de pagamento"
+              opcoes={paymentAccountOptions}
+              value={form.idConta}
+              onChange={(accountId) => set('idConta', accountId)}
+              dica={
+                form.idConta
+                  ? 'Ao pagar uma fatura ou parcela, o valor sai do saldo dessa conta.'
+                  : 'Sem ela, não dá para marcar faturas e parcelas deste cartão como pagas.'
+              }
+            />
           </>
         ) : null}
 

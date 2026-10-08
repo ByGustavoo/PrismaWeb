@@ -22,7 +22,7 @@ export function usePagamentoFatura<T>(dados: T, aoConcluir: () => void) {
           toast.sucesso('Pagamento da fatura desfeito!', item);
         } else {
           await cartoesService.registrarPagamentoFatura(fatura.id);
-          toast.sucesso('Fatura marcada como paga!', item);
+          toast.sucesso('Fatura paga e debitada da conta!', item);
         }
 
         aoConcluir();

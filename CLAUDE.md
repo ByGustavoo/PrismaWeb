@@ -436,6 +436,21 @@ parcelamentos sao leitura calculada, exceto o cadastro da compra parcelada.
   dele nada naquela fatura esta pago a mao. O botao aparece com a fatura quitada ou quando ha compra
   comum paga — que nao tem "Desfazer" proprio, so a marca "Paga" (`ItemFaturaDTO.paga`). Com apenas
   parcelas marcadas, quem desfaz e o botao de cada linha.
+- **Pagar parcela ou fatura debita a conta de pagamento do cartao.** O cartao de credito tem um campo
+  opcional "Conta de pagamento" (`CartaoDTO.idConta`, o mesmo campo que no debito e a conta
+  vinculada), mostrado tambem no `BlocoCartao`. Sem ele o servidor recusa o pagamento com `409` e a
+  frase que manda escolher a conta; a notificacao de erro ja a mostra. Ao pagar uma parcela — sozinha
+  ou dentro da fatura —, o servidor cria uma despesa `PAGO` nessa conta, com a categoria da compra e a
+  descricao seguida de `(n/total)`, e e ela que aparece em Lancamentos, no dashboard e no orcamento,
+  na data do pagamento. Antes o usuario lancava essa despesa a mao para o saldo baixar, e a previsao
+  contava o cartao duas vezes. Compra lancada direto no cartao nao gera outra despesa: ela ja conta na
+  data da compra, e pagar a fatura so debita o valor da conta.
+- **A despesa gerada por parcela nao se edita em Lancamentos.** Ela vem com `LancamentoDTO.parcela`
+  (`idCompra`, `numero`, `total`), e `PUT` e `DELETE` nela respondem `409`. Na tabela e nos cartoes
+  ela leva a nota "Gerada pelo pagamento da parcela" (`NOTA_PAGAMENTO_PARCELA`), nao tem lapis nem
+  lixeira, e o clique leva a `/parcelamentos?compra=<id>` (`PARAMETRO_COMPRA`), que abre o modal de
+  parcelas da compra: e la que o pagamento e desfeito, e desfazer apaga a despesa e devolve o saldo. O
+  atalho `?editar=<id>` da busca global passa pelo mesmo `openEdit`, entao tambem cai no modal.
 - **Fatura aberta e quitada diz "Paga até agora", e nao sai de "Fatura atual".** Ela ainda recebe
   compras: manda-la para "Faturas anteriores" a faria pular de volta na proxima compra, e "anteriores"
   quer dizer ciclo encerrado. O selo sai de `rotuloDaFatura` e `tomDaFatura` (`components/cartoes/

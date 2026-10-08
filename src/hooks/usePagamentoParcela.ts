@@ -39,7 +39,7 @@ export function usePagamentoParcela<T>(dados: T, aoConcluir: () => void) {
           toast.sucesso(aVista ? 'Pagamento da compra desfeito!' : 'Pagamento da parcela desfeito!', item);
         } else {
           await cartoesService.registrarPagamentoParcela(alvo.idCompra, alvo.numero);
-          toast.sucesso(aVista ? 'Compra marcada como paga!' : 'Parcela marcada como paga!', item);
+          toast.sucesso(aVista ? 'Compra paga e lançada em despesas!' : 'Parcela paga e lançada em despesas!', item);
         }
 
         aoConcluir();

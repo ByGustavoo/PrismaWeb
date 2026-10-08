@@ -17,6 +17,12 @@ export interface CategoriaDTO {
   tokenCor: TokenCor;
 }
 
+export interface ParcelaLancamentoDTO {
+  idCompra: ID;
+  numero: number;
+  total: number;
+}
+
 export interface LancamentoDTO {
   id: ID;
   descricao: string;
@@ -30,6 +36,7 @@ export interface LancamentoDTO {
   nomeOrigem: string;
   idContaDestino?: ID;
   nomeContaDestino?: string;
+  parcela?: ParcelaLancamentoDTO;
   observacoes?: string;
 }
 

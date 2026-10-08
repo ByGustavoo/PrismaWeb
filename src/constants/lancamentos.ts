@@ -12,6 +12,8 @@ export const rotuloTipoLancamento: Record<TipoLancamento, string> = {
   TRANSFERENCIA: 'Transferência',
 };
 
+export const NOTA_PAGAMENTO_PARCELA = 'Gerada pelo pagamento da parcela';
+
 export const rotuloPluralTipoLancamento: Record<TipoLancamento, string> = {
   RECEITA: 'Receitas',
   DESPESA: 'Despesas',

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Filter, Plus } from 'lucide-react';
 import { ValorMonetario } from '@/components/comum';
 import { CabecalhoPagina } from '@/components/layout';
@@ -25,6 +25,8 @@ import { useArmazenamentoLocal } from '@/hooks/useArmazenamentoLocal';
 import { useEhCompacto } from '@/hooks/useConsultaMidia';
 import { useNotificacoes } from '@/providers/ProvedorNotificacoes';
 import {
+  caminhos,
+  PARAMETRO_COMPRA,
   PARAMETRO_CONTA,
   PARAMETRO_CATEGORIA,
   PARAMETRO_EDITAR_LANCAMENTO,
@@ -53,6 +55,7 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
   const [pendingEditId, setPendingEditId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const toast = useNotificacoes();
   const isCompact = useEhCompacto();
   const [preferredView, setPreferredView] = useArmazenamentoLocal<VisualizacaoLancamentos>(
@@ -109,17 +112,27 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
   const { dados, carregando, erro, recarregar } = useDadosAssincronos(fetchTransactions, [tipo]);
   const { dados: catalog } = useDadosAssincronos(fetchCatalog);
 
+  const openEdit = useCallback(
+    (transaction: LancamentoDTO) => {
+      if (transaction.parcela) {
+        navigate(`${caminhos.parcelamentos}?${PARAMETRO_COMPRA}=${transaction.parcela.idCompra}`);
+        return;
+      }
+
+      setEditing(transaction);
+      setFormMode(transaction.tipo);
+    },
+    [navigate],
+  );
+
   useEffect(() => {
     if (!pendingEditId || !dados) return;
 
     const found = dados.find((item) => item.id === pendingEditId);
     setPendingEditId(null);
 
-    if (found) {
-      setEditing(found);
-      setFormMode(found.tipo);
-    }
-  }, [pendingEditId, dados]);
+    if (found) openEdit(found);
+  }, [pendingEditId, dados, openEdit]);
 
   const categories = catalog?.[0] ?? [];
   const sources = catalog?.[1] ?? [];
@@ -153,11 +166,6 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
   const openCreate = (mode: ModoFormulario) => {
     setEditing(null);
     setFormMode(mode);
-  };
-
-  const openEdit = (transaction: LancamentoDTO) => {
-    setEditing(transaction);
-    setFormMode(transaction.tipo);
   };
 
   const handleSubmit = async (payload: SalvarLancamentoDTO) => {

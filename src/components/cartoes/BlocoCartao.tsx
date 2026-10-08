@@ -102,6 +102,10 @@ export function BlocoCartao({ cartao, fatura, saldoConta, aoEditar, aoExcluir, a
               <dt>Vencimento</dt>
               <dd className="tabular">Dia {cartao.diaVencimento}</dd>
             </div>
+            <div className={`${styles.fact} ${styles.factWide}`}>
+              <dt>Conta de pagamento</dt>
+              <dd className={cartao.nomeConta ? undefined : styles.factMissing}>{cartao.nomeConta ?? 'Não definida'}</dd>
+            </div>
           </dl>
 
           <footer className={styles.footer}>
