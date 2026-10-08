@@ -57,8 +57,23 @@
   }
 }
 
-.roller {
+.roller,
+.counting {
   --roll-step: 1.12em;
+}
+
+@supports (height: round(1em, 4px)) {
+  .roller,
+  .counting {
+    --roll-step: round(1.12em, 4px);
+  }
+}
+
+.counting {
+  line-height: var(--roll-step);
+}
+
+.roller {
   display: inline-flex;
   align-items: baseline;
 }
@@ -66,7 +81,7 @@
 .slot {
   position: relative;
   display: inline-block;
-  line-height: 1.12;
+  line-height: var(--roll-step);
   clip-path: inset(0);
 }
 
@@ -88,9 +103,9 @@
 
 .face {
   height: var(--roll-step);
-  line-height: 1.12;
+  line-height: var(--roll-step);
 }
 
 .separator {
-  line-height: 1.12;
+  line-height: var(--roll-step);
 }

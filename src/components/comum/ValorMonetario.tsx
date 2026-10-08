@@ -47,7 +47,7 @@ export function ValorMonetario({
       {animar && !executando ? (
         <AlgarismosRolantes digits={algarismos} />
       ) : (
-        <span className={juntarClasses('tabular', styles.digits)}>{algarismos}</span>
+        <span className={juntarClasses('tabular', styles.digits, animar && styles.counting)}>{algarismos}</span>
       )}
     </span>
   );

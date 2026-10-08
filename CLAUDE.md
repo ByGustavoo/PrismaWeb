@@ -244,6 +244,18 @@ Cada pasta de componentes tem um `index.ts` de barril — ao criar um componente
   contando junto seria festa, nao leitura.
   A trava de "ja contou" fecha na **chegada**, nunca na partida: o `StrictMode` monta duas vezes em
   desenvolvimento, e uma trava fechada na partida faria a contagem existir so no build.
+- **O passo da roda de algarismos e um numero inteiro de pixels** (`--roll-step`, em
+  `ValorMonetario.module.css`: `round(1.12em, 4px)`). Cada algarismo para em `digito x passo`, e com
+  o passo cru de `1.12em` (17,92px no corpo de 16px) cada um caia numa fracao de pixel diferente; o
+  navegador encaixa a linha de base no pixel mais proximo, entao o 9 e o 3 de "1.930,00" ficavam um
+  pixel acima do 1 e dos zeros, e o usuario viu numeros "maiores e mais para cima". O multiplo e de
+  4px, e nao de 1px, para o passo continuar inteiro em pixels fisicos nas escalas de 125%, 150% e
+  175% do Windows. Altura da face, `line-height` do encaixe e do separador saem todos do mesmo
+  `--roll-step`: um deles em `1.12` solto traz a fracao de volta. Os algarismos da contagem de
+  entrada usam o mesmo `line-height` (`.counting`), para a linha ter a mesma altura nas duas fases —
+  antes ela encolhia de 24,8px para 21,7px quando as rodas assumiam, e as tres linhas de fluxo do
+  dashboard pulavam 9px. O `@supports` mantem o `1.12em` onde `round()` nao existe: sem ele a roda
+  inteira perderia altura e deslocamento, e todo valor mostraria zero.
 - **Valor monetario na tela sempre pelo componente `ValorMonetario`.** Ele usa `formatarPartesMoeda` para
   separar o simbolo dos algarismos: "R$" fica em um span com a familia de interface e os digitos em
   um span `.tabular` com a familia de numeros. Escrever `{formatarMoeda(x)}` direto no JSX faz o
