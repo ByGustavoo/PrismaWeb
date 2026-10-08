@@ -2,7 +2,7 @@ import { ArrowDown, ArrowRight, ArrowUp, Trash2 } from 'lucide-react';
 import { ValorMonetario } from '@/components/comum';
 import { Selo, CampoSelecao } from '@/components/ui';
 import { corDaPaleta } from '@/constants/cores';
-import { rotuloTipoLancamento, rotuloSituacaoLancamento } from '@/constants/lancamentos';
+import { NOTA_PAGAMENTO_PARCELA, rotuloTipoLancamento, rotuloSituacaoLancamento } from '@/constants/lancamentos';
 import type { LancamentoDTO, Opcao } from '@/types';
 import { formatarDataCurta } from '@/utils/formatacao';
 import { classePorTipo, iconePorTipo, sinalPorTipo, tomPorTipo, tomPorSituacao } from './aparencia';
@@ -67,7 +67,9 @@ export function ListaLancamentos({
           return (
             <li key={transaction.id} className={styles.card}>
               <button type="button" className={styles.open} onClick={() => aoEditar(transaction)}>
-                <span className="visually-hidden">Editar {transaction.descricao}</span>
+                <span className="visually-hidden">
+                  {transaction.parcela ? 'Ver as parcelas de' : 'Editar'} {transaction.descricao}
+                </span>
               </button>
 
               <div className={styles.content}>
@@ -102,6 +104,7 @@ export function ListaLancamentos({
                   />
                 </div>
 
+                {transaction.parcela ? <p className={styles.notes}>{NOTA_PAGAMENTO_PARCELA}</p> : null}
                 {transaction.observacoes ? <p className={styles.notes}>{transaction.observacoes}</p> : null}
 
                 <div className={styles.bottom}>
@@ -124,14 +127,16 @@ export function ListaLancamentos({
                     ) : null}
                   </span>
 
-                  <button
-                    type="button"
-                    className={styles.delete}
-                    aria-label={`Excluir ${transaction.descricao}`}
-                    onClick={() => aoExcluir(transaction)}
-                  >
-                    <Trash2 size={16} strokeWidth={2} />
-                  </button>
+                  {transaction.parcela ? null : (
+                    <button
+                      type="button"
+                      className={styles.delete}
+                      aria-label={`Excluir ${transaction.descricao}`}
+                      onClick={() => aoExcluir(transaction)}
+                    >
+                      <Trash2 size={16} strokeWidth={2} />
+                    </button>
+                  )}
                 </div>
               </div>
             </li>

@@ -104,6 +104,7 @@ A imagem já é publicada no Docker Hub pela esteira, com versão e data visíve
 * Um cadastro só para os quatro tipos de cartão: crédito, débito, vale-alimentação e vale-refeição.
 * Faturas derivadas das despesas e das parcelas, em quatro blocos: a pagar, atual, próximas e anteriores.
 * Detalhe da fatura com as compras dentro dela e cadastro de compras no cartão, à vista ou parceladas, com cronograma, filtro por situação, ordenação por parcelas restantes e total mensal comprometido.
+* Pagamento de parcela ou de fatura debitado da conta de pagamento do cartão: a parcela paga entra em despesas na data do pagamento, e desfazer devolve o saldo.
 
 🔹 **Patrimônio**
 * Carteira de investimentos com dez classes de ativo (incluindo RDB/caixinhas e previdência privada), distribuição em rosca, rentabilidade e evolução do patrimônio.

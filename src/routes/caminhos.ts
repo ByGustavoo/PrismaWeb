@@ -36,5 +36,6 @@ export const PARAMETRO_CONTA = 'conta';
 export const PARAMETRO_EDITAR_LANCAMENTO = 'editar';
 
 export const PARAMETRO_CARTAO = 'cartao';
+export const PARAMETRO_COMPRA = 'compra';
 
 export const PARAMETRO_INVESTIMENTO = 'investimento';

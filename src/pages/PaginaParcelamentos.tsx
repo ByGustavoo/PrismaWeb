@@ -18,7 +18,7 @@ import { ehCartaoCredito, rotuloQuantidadeParcelas } from '@/constants/cartoes';
 import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
 import { usePagamentoParcela } from '@/hooks/usePagamentoParcela';
 import { useNotificacoes } from '@/providers/ProvedorNotificacoes';
-import { PARAMETRO_CARTAO } from '@/routes/caminhos';
+import { PARAMETRO_CARTAO, PARAMETRO_COMPRA } from '@/routes/caminhos';
 import { cartoesService, categoriasService } from '@/services';
 import type { CompraParceladaDTO, ID, Opcao, ParcelaDTO, PlanoCompraParceladaDTO, SalvarCompraParceladaDTO } from '@/types';
 import { formatarMesCurto } from '@/utils/formatacao';
@@ -38,9 +38,11 @@ export function PaginaParcelamentos() {
   const toast = useNotificacoes();
 
   useEffect(() => {
-    const requested = searchParams.get(PARAMETRO_CARTAO);
-    if (!requested) return;
-    setCardId(requested);
+    const requestedCard = searchParams.get(PARAMETRO_CARTAO);
+    const requestedPurchase = searchParams.get(PARAMETRO_COMPRA);
+    if (!requestedCard && !requestedPurchase) return;
+    if (requestedCard) setCardId(requestedCard);
+    if (requestedPurchase) setScheduleId(requestedPurchase);
     setSearchParams({}, { replace: true });
   }, [searchParams, setSearchParams]);
 
