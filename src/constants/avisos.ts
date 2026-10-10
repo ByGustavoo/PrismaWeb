@@ -1,1 +1,2 @@
 export const DIAS_HORIZONTE_AVISOS = 15;
+export const AVISOS_MAXIMO_NO_CONTADOR = 99;

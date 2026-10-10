@@ -43,11 +43,11 @@ export function PainelAvisos({ aberto, aoFechar, aoMudarQuantidade }: PainelAvis
   const { dados, carregando, erro } = useDadosAssincronos(fetchAlerts, [versaoAvisos]);
 
   const alerts = dados ?? [];
-  const urgentCount = alerts.filter((alert) => alert.severidade !== 'INFO').length;
+  const alertCount = alerts.length;
 
   useEffect(() => {
-    aoMudarQuantidade(urgentCount);
-  }, [urgentCount, aoMudarQuantidade]);
+    aoMudarQuantidade(alertCount);
+  }, [alertCount, aoMudarQuantidade]);
 
   useEffect(() => {
     if (!aberto) return;

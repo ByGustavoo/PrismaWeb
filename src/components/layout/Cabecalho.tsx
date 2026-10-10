@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Bell, Menu, Moon, Plus, Search, Sun } from 'lucide-react';
 import { Botao } from '@/components/ui';
+import { AVISOS_MAXIMO_NO_CONTADOR } from '@/constants/avisos';
 import { useEhMobile } from '@/hooks/useConsultaMidia';
 import { useTema } from '@/providers/ProvedorTema';
 import { PARAMETRO_NOVO_LANCAMENTO, caminhos } from '@/routes/caminhos';
@@ -13,6 +14,11 @@ import styles from './Cabecalho.module.css';
 
 interface CabecalhoProps {
   aoAbrirMenu: () => void;
+}
+
+function rotuloAvisos(quantidade: number): string {
+  if (quantidade === 0) return 'Avisos';
+  return quantidade === 1 ? 'Avisos (1 aviso)' : `Avisos (${quantidade} avisos)`;
 }
 
 export function Cabecalho({ aoAbrirMenu }: CabecalhoProps) {
@@ -74,12 +80,16 @@ export function Cabecalho({ aoAbrirMenu }: CabecalhoProps) {
               data-notifications-trigger
               className={styles.iconButton}
               onClick={() => setAlertsOpen((value) => !value)}
-              aria-label={alertCount > 0 ? `Avisos (${alertCount} exigem atenção)` : 'Avisos'}
+              aria-label={rotuloAvisos(alertCount)}
               aria-expanded={alertsOpen}
               aria-haspopup="dialog"
             >
               <Bell size={18} strokeWidth={2} />
-              {alertCount > 0 ? <span className={styles.badgeDot} aria-hidden="true" /> : null}
+              {alertCount > 0 ? (
+                <span key={alertCount} className={styles.badgeCount} aria-hidden="true">
+                  {alertCount > AVISOS_MAXIMO_NO_CONTADOR ? `${AVISOS_MAXIMO_NO_CONTADOR}+` : alertCount}
+                </span>
+              ) : null}
             </button>
 
             <PainelAvisos aberto={alertsOpen} aoFechar={closeAlerts} aoMudarQuantidade={setAlertCount} />
