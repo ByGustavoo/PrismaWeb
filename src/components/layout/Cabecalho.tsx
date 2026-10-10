@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import type { CSSProperties } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Bell, Menu, Moon, Plus, Search, Sun } from 'lucide-react';
 import { Botao } from '@/components/ui';
@@ -21,6 +22,16 @@ function rotuloAvisos(quantidade: number): string {
   return quantidade === 1 ? 'Avisos (1 aviso)' : `Avisos (${quantidade} avisos)`;
 }
 
+function textoContador(quantidade: number): string {
+  return quantidade > AVISOS_MAXIMO_NO_CONTADOR ? `${AVISOS_MAXIMO_NO_CONTADOR}+` : String(quantidade);
+}
+
+function ajusteOpticoContador(texto: string): 'left' | 'right' | undefined {
+  if (texto.startsWith('1')) return 'left';
+  if (texto.endsWith('+')) return 'right';
+  return undefined;
+}
+
 export function Cabecalho({ aoAbrirMenu }: CabecalhoProps) {
   const { tema, alternarTema } = useTema();
   const navigate = useNavigate();
@@ -36,6 +47,8 @@ export function Cabecalho({ aoAbrirMenu }: CabecalhoProps) {
   const showPeriodSwitcher = location.pathname === caminhos.dashboard && !isMobile;
 
   const pageOwnsControls = location.pathname.startsWith(caminhos.lancamentos);
+
+  const countText = textoContador(alertCount);
 
   return (
     <header className={styles.header}>
@@ -86,8 +99,14 @@ export function Cabecalho({ aoAbrirMenu }: CabecalhoProps) {
             >
               <Bell size={18} strokeWidth={2} />
               {alertCount > 0 ? (
-                <span key={alertCount} className={styles.badgeCount} aria-hidden="true">
-                  {alertCount > AVISOS_MAXIMO_NO_CONTADOR ? `${AVISOS_MAXIMO_NO_CONTADOR}+` : alertCount}
+                <span
+                  key={alertCount}
+                  className={styles.badgeCount}
+                  style={{ '--badge-chars': countText.length } as CSSProperties}
+                  data-nudge={ajusteOpticoContador(countText)}
+                  aria-hidden="true"
+                >
+                  {countText}
                 </span>
               ) : null}
             </button>
