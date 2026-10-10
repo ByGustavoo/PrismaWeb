@@ -1,9 +1,14 @@
 .delta {
   display: inline-flex;
-  align-items: center;
+  align-items: baseline;
   gap: var(--space-1);
   font-size: var(--fs-sm);
   font-weight: 500;
+}
+
+.delta svg {
+  flex-shrink: 0;
+  align-self: center;
 }
 
 .good {

@@ -263,6 +263,13 @@ Cada pasta de componentes tem um `index.ts` de barril — ao criar um componente
 - **Cor de variacao segue a seta, sempre.** No `IndicadorVariacao` subir e verde e cair e vermelho, em
   qualquer tela. Nao reintroduza um modo que inverta so a cor: ele produz seta para baixo em verde,
   e o simbolo passa a contradizer a cor.
+- **No `IndicadorVariacao` o percentual e a legenda dividem a linha de base; so o icone e centrado.**
+  O percentual sai na familia de numeros (Archivo) e a legenda na de interface (Instrument Sans), e
+  as duas tem alturas de ascendente diferentes: com `align-items: center` cada uma era centrada pela
+  propria caixa, e o "0,0%" ficava 1px acima de "em relação ao mês anterior" no saldo do dashboard e
+  nas variacoes de Relatorios. O container usa `align-items: baseline` e o `svg` leva
+  `align-self: center` — icone nao tem linha de base, e alinhado por ela subiria ate encostar a base
+  no pe das letras.
 - Dados assincronos nas paginas vao por `useDadosAssincronos`, que ja entrega estados de loading, erro e
   cancelamento.
 
@@ -1036,12 +1043,28 @@ embacado, e o usuario pediu para melhorar a leitura do numero. `--counter` e `#c
 duas contas.
 
 **O contador e menor que o sino, de proposito**: 14px de altura com corpo de 11px em peso 700
-(`--fs-2xs`, o unico uso do token), algarismos proporcionais — os tabulares abriam um vao depois do
-"1" — e subido para cobrir so o canto do sino. A primeira versao tinha 16px com corpo de 12px, e o
+(`--fs-2xs`, o unico uso do token) e subido para cobrir so o canto do sino. A primeira versao tinha
+16px com corpo de 12px, e o
 usuario mandou diminuir: o numero chamava mais atencao que o proprio sino. A segunda, com 13px e
 corpo de 10px em peso 600, ficou dificil de ler. Quem manda na leitura e o icone; o numero e um
 complemento dele, mas precisa ser lido de relance. Nao leve `--fs-2xs` para texto corrido: 11px so
 serve a um ou dois algarismos em negrito.
+
+**O numero e centrado pela tinta, e nao pela casa do algarismo.** No Archivo todo algarismo ocupa a
+mesma largura (6,56px no corpo de 11px, e a fonte carregada nao tem variante proporcional), e
+dentro dessa casa o "1" tem 1,05px livres a esquerda e 0,41px a direita: centrado pela casa, ele
+ficava 0,3px a direita do meio, com 6 pixels vermelhos de um lado da haste e 5 do outro, e o
+usuario viu o "1" fora do centro. Por isso o `Cabecalho` marca o contador com `data-nudge`:
+`left` quando o texto comeca com "1" (1 e 10 a 19) e `right` no "99+", cujo "+" tem folga do outro
+lado. Cada um desloca o texto 0,3px por um `padding` de `0.055em` do lado oposto — o `padding` e o
+dobro do deslocamento porque o texto e centrado no que sobra. A largura tambem deixou de ser a do
+texto: sai de `--badge-chars` (14px, 20px ou 26px para um, dois ou tres caracteres), sempre par,
+para o `translate: -50%` cair em pixel inteiro. Com a largura fracionaria de antes (19,1px) a
+pilula era encaixada no pixel de um jeito e o texto de outro. Medido nos pixels da tela, em 23
+numeros de 1 a 99 mais o "99+", o desvio entre o centro da tinta e o centro da pilula ficou em ate
+0,16px, e em 0,23px no pior caso, o "19"; o "1" sozinho ficou em 0,05px, contra 0,32px antes. Ao
+trocar a fonte, o corpo ou o peso do contador, refaca a medida: a compensacao e do desenho do "1"
+do Archivo, nao uma regra geral.
 
 - **O lembrete de investimento e um aviso, e nao um agendamento.** `INVESTIMENTO_DESATUALIZADO`
   aparece quando a ultima movimentacao do investimento (`dataAtualizacao`, aporte ou saldo) tem 30

@@ -81,9 +81,8 @@
   top: calc(50% - 18px);
   left: calc(50% + 9px);
   translate: -50% 0;
-  min-width: 14px;
+  width: calc(14px + (var(--badge-chars, 1) - 1) * 6px);
   height: 14px;
-  padding-inline: 3px;
   border-radius: var(--radius-pill);
   background-color: var(--counter);
   box-shadow: 0 0 0 2px var(--badge-ring);
@@ -98,6 +97,14 @@
   pointer-events: none;
   animation: entradaContador var(--duration-base) var(--ease-spring);
   transition: box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.badgeCount[data-nudge='left'] {
+  padding-right: 0.055em;
+}
+
+.badgeCount[data-nudge='right'] {
+  padding-left: 0.055em;
 }
 
 .iconButton:hover .badgeCount {
