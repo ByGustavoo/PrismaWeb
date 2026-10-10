@@ -75,15 +75,40 @@
   position: relative;
 }
 
-.badgeDot {
+.badgeCount {
+  --badge-ring: var(--canvas);
   position: absolute;
-  top: 7px;
-  right: 8px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: var(--negative);
-  border: 2px solid var(--canvas);
+  top: calc(50% - 18px);
+  left: calc(50% + 9px);
+  translate: -50% 0;
+  min-width: 14px;
+  height: 14px;
+  padding-inline: 3px;
+  border-radius: var(--radius-pill);
+  background-color: var(--counter);
+  box-shadow: 0 0 0 2px var(--badge-ring);
+  color: var(--counter-contrast);
+  font-family: var(--font-figure);
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  line-height: 14px;
+  letter-spacing: 0;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: entradaContador var(--duration-base) var(--ease-spring);
+  transition: box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.iconButton:hover .badgeCount {
+  --badge-ring: var(--surface-muted);
+}
+
+@keyframes entradaContador {
+  from {
+    opacity: 0;
+    scale: 0.6;
+  }
 }
 
 @media (min-width: 1100px) {
@@ -110,8 +135,8 @@
     pointer-events: none;
   }
 
-  .badgeDot {
-    border-color: var(--surface);
+  .badgeCount {
+    --badge-ring: var(--surface);
   }
 }
 

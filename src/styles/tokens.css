@@ -2,6 +2,7 @@
   --font-ui: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-figure: 'Archivo', ui-sans-serif, system-ui, sans-serif;
 
+  --fs-2xs: 0.6875rem;
   --fs-xs: 0.75rem;
   --fs-sm: 0.8125rem;
   --fs-base: 0.875rem;
@@ -106,6 +107,8 @@
   --negative: #c92a12;
   --negative-soft: #fde4e1;
   --negative-contrast: #ffffff;
+  --counter: #c92a12;
+  --counter-contrast: #ffffff;
   --warning: #8a6000;
   --warning-graphic: #ab7600;
   --warning-soft: #fbeed4;
@@ -178,6 +181,8 @@
   --negative: #fa5252;
   --negative-soft: #351a1a;
   --negative-contrast: #2a0e09;
+  --counter: #d93025;
+  --counter-contrast: #ffffff;
   --warning: #e8b44a;
   --warning-graphic: #e8b44a;
   --warning-soft: #322612;

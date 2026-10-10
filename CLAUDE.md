@@ -1014,16 +1014,41 @@ para qual conta vai; a fatura aberta diz ate quando recebe compras. O aviso de l
 porcentagem vem arredondada e o que sobra, formatado — nunca `1127.2799999999997`.
 
 A urgencia aparece na cor do icone (`critical` / `attention` / `info`), nao no fundo da linha: uma
-lista com tres fundos coloridos vira ruido. O ponto no sino conta apenas os avisos que nao sao
-`info`, e e calculado no mount do painel — nao depende de o usuario abri-lo.
+lista com tres fundos coloridos vira ruido.
+
+**O sino mostra um contador com o total de avisos**, e nao mais um ponto: o usuario pediu o numero
+no lugar da bolinha vermelha. Ele conta todos os avisos, inclusive os `info`, entao e o mesmo
+numero do cabecalho do painel ("3 avisos") — um contador que so somasse os urgentes diria 2 no sino
+e 3 la dentro. Acima de `AVISOS_MAXIMO_NO_CONTADOR` (99) vira "99+", e o `aria-label` do botao
+continua dizendo a quantidade exata. Sem aviso nenhum o contador some. Ele e calculado no mount do
+painel — nao depende de o usuario abri-lo — e se centra num ponto fixo a direita do sino
+(`left` + `translate`), para "9", "12" e "99+" crescerem para os dois lados em vez de cobrirem o
+icone ou o botao vizinho. A entrada usa `scale`, e nao `transform`, e o `key` pela quantidade a
+repete quando o numero muda.
+
+**O contador tem par de cor proprio: `--counter` e `--counter-contrast`.** O numero e sempre branco,
+nos dois temas, e por isso o fundo nao e o `--negative`: no escuro ele e claro (`#fa5252`, feito
+para ser texto sobre superficie escura) e branco sobre ele da 3,28:1. O `--negative-contrast` do
+escuro resolvia a conta com um marrom quase preto, mas algarismo escuro de 10px sobre salmao ficava
+embacado, e o usuario pediu para melhorar a leitura do numero. `--counter` e `#c92a12` no claro
+(5,49:1 com branco) e `#d93025` no escuro (4,77:1 com branco, e 3,3:1 ou mais contra `--surface`,
+`--canvas` e `--surface-muted`, que e o fundo do botao no hover). Ao mexer num dos dois, refaca as
+duas contas.
+
+**O contador e menor que o sino, de proposito**: 14px de altura com corpo de 11px em peso 700
+(`--fs-2xs`, o unico uso do token), algarismos proporcionais — os tabulares abriam um vao depois do
+"1" — e subido para cobrir so o canto do sino. A primeira versao tinha 16px com corpo de 12px, e o
+usuario mandou diminuir: o numero chamava mais atencao que o proprio sino. A segunda, com 13px e
+corpo de 10px em peso 600, ficou dificil de ler. Quem manda na leitura e o icone; o numero e um
+complemento dele, mas precisa ser lido de relance. Nao leve `--fs-2xs` para texto corrido: 11px so
+serve a um ou dois algarismos em negrito.
 
 - **O lembrete de investimento e um aviso, e nao um agendamento.** `INVESTIMENTO_DESATUALIZADO`
   aparece quando a ultima movimentacao do investimento (`dataAtualizacao`, aporte ou saldo) tem 30
   dias ou mais, e fica no sino ate o usuario registrar um aporte ou um saldo — a contagem recomeca
   dali, e por isso ele volta "de 30 em 30 dias" sem tabela de lembretes nem tarefa agendada. Um
   lembrete que sumisse sozinho no dia seguinte deixaria o saldo velho sem ninguem avisar. Ele e
-  sempre `ATENCAO`, para acender o ponto do sino: e um lembrete, nunca uma urgencia, e `INFO` nao
-  contaria. Nao tem `valor`, pela mesma razao do aviso de limite, e a data ao lado e a da ultima
+  sempre `ATENCAO`: e um lembrete, nunca uma urgencia. Nao tem `valor`, pela mesma razao do aviso de limite, e a data ao lado e a da ultima
   atualizacao, que e o que a frase "Sem atualizacao ha 40 dias" conta.
 - **O lembrete leva direto ao registro.** A `rota` dele e `/investimentos?investimento=<id>`
   (`PARAMETRO_INVESTIMENTO`): a tela abre o `ModalDetalheInvestimento` daquele investimento ja em
@@ -1032,8 +1057,8 @@ lista com tres fundos coloridos vira ruido. O ponto no sino conta apenas os avis
 - **Quem muda o que um aviso le avisa o sino.** `useAvisos().atualizarAvisos()`
   (`providers/ProvedorAvisos`) faz o `PainelAvisos` buscar de novo, sem esqueleto — a lista anterior
   fica na tela ate a nova chegar. Investimentos chama depois de cadastrar, aportar, atualizar saldo e
-  excluir: sem isso o usuario fazia exatamente o que o lembrete pedia e o ponto do sino continuava
-  aceso ate recarregar a pagina. As outras telas ainda nao chamam; ao mexer nelas, e o mesmo hook.
+  excluir: sem isso o usuario fazia exatamente o que o lembrete pedia e o contador do sino continuava
+  com o numero antigo ate recarregar a pagina. As outras telas ainda nao chamam; ao mexer nelas, e o mesmo hook.
 - **Abaixo de 560px o painel se ancora no header, e nao no sino.** Nessa faixa o sino deixa de ser o
   ultimo botao da linha, e um painel de 358px preso a direita dele saia 34px para fora da tela, cortando
   icone e titulo. O `.notifications` vira `position: static` e o painel ocupa a largura com
