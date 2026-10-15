@@ -270,7 +270,8 @@ a API local em `http://localhost:9017/PrismaAPI/v1` (`VITE_API_URL`).
   sem publicar.
 - **`release.yml`** roda quando um PR é **mergeado** na `main` (e também manualmente, em
   *Actions → Release → Run workflow*). Ele calcula a próxima versão, publica a imagem no Docker Hub
-  para `linux/amd64` e `linux/arm64` e cria a tag `vX.Y.Z` com uma release no GitHub.
+  para `linux/amd64` e `linux/arm64` e cria a tag `vX.Y.Z` com uma release no GitHub, cujas notas
+  são a descrição do PR.
 
 A versão segue SemVer, e a fonte de verdade são as **tags git**. Sem nenhuma tag, a primeira
 versão é a do `package.json`; a partir daí o incremento vem do rótulo do PR:

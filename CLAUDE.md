@@ -1240,6 +1240,10 @@ a `main`) e `release.yml` (publicacao no Docker Hub quando um PR e mergeado).
   ultimo usa `latest`, que e o que o `docker-compose-prismaweb.yml` faz.
 - **A release so e criada depois da imagem publicada.** Se o push falhar, a tag nao existe e a
   proxima execucao tenta a mesma versao de novo, em vez de deixar uma tag sem imagem.
+- **As notas da release sao a descricao do PR**, seguidas do `docker pull` da versao e da lista que o
+  `--generate-notes` monta com os titulos dos PRs. A descricao entra pela variavel `DESCRICAO_PR`,
+  nunca interpolada no script, para que crase ou `$()` no texto nao sejam executados; a execucao
+  manual, sem PR, sai sem ela.
 - **Os segredos tem os mesmos nomes da esteira do PrismaAPI**: `DOCKER_USERNAME`, `DOCKER_PASSWORD` e
   `DOCKER_IMAGE` (`gurudohimalaia/prismaweb`, ao lado de `gurudohimalaia/prismaapi`). Nao invente um
   segundo conjunto de nomes para o mesmo Docker Hub.
