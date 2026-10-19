@@ -188,6 +188,12 @@ $ npm run preview
 $ npm run typecheck
 ```
 
+🔹 test
+```bash
+# Testes unitários com Vitest
+$ npm test
+```
+
 <br>
 
 > O `typecheck` usa `tsc -b`, e não `tsc --noEmit`. O `tsconfig.json` da raiz é uma solução com

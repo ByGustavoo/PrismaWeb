@@ -118,7 +118,6 @@
 .progressMain strong {
   color: var(--text);
   font-family: var(--font-figure);
-  font-size: var(--fs-md);
   font-weight: 600;
 }
 
