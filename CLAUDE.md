@@ -37,6 +37,7 @@ npm run dev         # servidor de desenvolvimento em http://localhost:5173
 npm run build       # tsc -b + build de producao
 npm run preview     # serve o build de producao
 npm run typecheck   # apenas checagem de tipos (tsc -b)
+npm test            # testes unitarios (vitest run)
 
 npm install --prefix video       # dependencias do video de apresentacao
 npm run render --prefix video    # trilha + video/out/prisma-apresentacao.mp4 em 4K (3840x2160)
@@ -44,8 +45,12 @@ npm run gif --prefix video       # video/apresentacao.gif do README (800px, 12 f
 npm run estudio --prefix video   # Remotion Studio
 ```
 
-Nao existe linter, formatter nem suite de testes configurados. **A verificacao antes de dar uma
-tarefa por concluida e `npm run typecheck`** — rode sempre depois de mexer em `.ts`/`.tsx`.
+Nao existe linter nem formatter configurados. **A verificacao antes de dar uma tarefa por concluida
+e `npm run typecheck`** — rode sempre depois de mexer em `.ts`/`.tsx` — **e `npm test`** quando a
+mudanca toca uma regra coberta por teste. Os testes sao Vitest, ao lado do arquivo testado
+(`utils/mascaraValor.test.ts`), e rodam sobre o proprio `vite.config.ts`, entao o alias `@/` vale
+neles. Hoje so a mascara de valor tem teste: ela concentra a edicao em funcoes puras justamente
+para que digitacao, cursor e exclusao sejam testaveis sem DOM. A CI ainda nao roda `npm test`.
 
 O script usa `tsc -b`, e nao `tsc --noEmit`: o `tsconfig.json` da raiz e uma solucao com
 `references` e `files: []`, entao `tsc --noEmit` nao checa arquivo nenhum e passa sempre. Como
@@ -61,6 +66,7 @@ O script usa `tsc -b`, e nao `tsc --noEmit`: o `tsconfig.json` da raiz e uma sol
 | Estilos | CSS Modules + custom properties (sem framework de UI) |
 | Icones | lucide-react |
 | Graficos | Recharts |
+| Testes | Vitest 2 |
 
 ## Regras de arquitetura
 
@@ -1130,14 +1136,37 @@ segundo numero nao se aplica — nao ha titulo visivel para separar do conteudo.
 
 ## Validacao de formulario
 
-**Todo campo de dinheiro e `CampoValor`** (`components/ui`), nunca `CampoTexto` com prefixo. Ele
-formata enquanto se digita no padrao brasileiro — "1000" vira "1.000", e ao sair do campo
-"1.000,00" —, mantem o cursor no mesmo digito depois de reformatar, pula o ponto de milhar no
-Backspace e no Delete, aceita "," ou "." como separador decimal (o teclado numerico do celular so tem
-um dos dois), ignora um segundo separador e limpa a colagem: "R$ 1.500,50", "1500.50" e "1,500.50"
-viram o mesmo numero, sem "R$" duplicado. O valor continua string no estado do formulario
-(`interpretarEntradaValor` le), e `permitirNegativo` so aparece no saldo da conta. As regras vivem em
-`utils/mascaraValor.ts`. Campo numerico inteiro (dia, ultimos digitos) passa por `apenasDigitos`.
+**Todo campo de dinheiro e `CampoValor`** (`components/ui`), nunca `CampoTexto` com prefixo. **Os dois
+ultimos digitos sao sempre os centavos**: digita-se so numero, e "1", "150", "155083" e "100000000"
+aparecem como "0,01", "1,50", "1.550,83" e "1.000.000,00" a cada tecla, sem o usuario decidir onde
+vai a virgula. A versao anterior, em que "1000" virava "1.000" e a virgula era digitada, foi
+substituida a pedido do usuario. Virgula, ponto e letra sao ignorados; o teclado do celular e o
+numerico (`inputMode="numeric"`), exceto no saldo da conta, o unico com `permitirNegativo`, que
+continua em `decimal` para o hifen alternar o sinal.
+
+- **O estado do formulario continua a string formatada** ("1.550,83", sempre com duas casas, ou
+  vazia), e `interpretarEntradaValor` a le como numero em reais — o mesmo que a API recebe
+  (`1550.83`). Por isso nenhum formulario nem `erroValor` mudou com a mascara: o texto da tela e o
+  numero enviado sao a mesma coisa, e a conversao nao passa por conta de ponto flutuante. Nao troque
+  o estado por centavos inteiros sem mudar os onze formularios e o contrato juntos.
+- **A edicao e uma funcao pura**, `editarEntradaMonetaria` (`utils/mascaraValor.ts`), que recebe o
+  texto anterior, o texto bruto que o navegador produziu, o cursor e o `inputType`. O componente so a
+  chama no `onChange` e aplica o resultado. A formatacao e ancorada na direita, entao o cursor e
+  reposto pela quantidade de digitos a sua direita, colado ao digito da esquerda: inserir ou apagar
+  no meio do valor nao o faz pular para o fim.
+- **Apagar um separador apaga o digito vizinho.** Backspace logo depois da virgula ou do ponto de
+  milhar remove o digito anterior a ele, e Delete antes dele remove o seguinte — sem isso a tecla
+  apagaria o separador, a mascara o devolveria e o campo pareceria travado. A regra fica no
+  `onChange` (pelo `inputType`), e nao no `keydown`: no Android o teclado manda `key` "Unidentified".
+- **Zero digitado mostra "0,00"; zero por exclusao esvazia o campo.** Senao o Backspace prenderia o
+  campo em "0,00" e nunca daria para limpa-lo.
+- **O limite e o `NUMERIC(14,2)`**: catorze digitos (`DIGITOS_MAXIMOS_ENTRADA_VALOR`), e a tecla
+  que passaria disso e recusada sem mexer no cursor.
+- **Colar um valor e colar o valor, nao os digitos.** Com o campo vazio ou todo selecionado,
+  "R$ 1.500,50", "1500.50", "1,500.50" e "1500" viram 1.500,50 e 1.500,00
+  (`centavosDoValorColado`); colado no meio de um valor, entram so os digitos, como se digitados.
+
+Campo numerico inteiro (dia, ultimos digitos) passa por `apenasDigitos`.
 
 Todo formulario passa por `useValidacaoFormulario` (`hooks/`), com as regras de `utils/validacao.ts`
 (`erroTexto`, `erroValor`) e os limites de `constants/validacao.ts`.
@@ -1266,7 +1295,8 @@ codigo e `errors` como detalhe. Cancelamento pelo `AbortSignal` de quem chamou s
 
 ## Fora de escopo hoje
 
-Autenticacao, ESLint/Prettier, testes e code-splitting por rota ainda nao existem. Resgate de
+Autenticacao, ESLint/Prettier, testes de componente e de tela e code-splitting por rota ainda nao
+existem. Resgate de
 investimento e debito automatico do aporte numa conta tambem nao. Por isso a sidebar
 nao mostra usuario: o bloco com nome e e-mail ficticios saiu, e volta quando houver login. Nao ha pagamento de fatura nem registro de quitacao — a fatura vencida e tratada como
 paga, e o pagamento que existe e uma marca manual, na parcela ou na fatura inteira, sem debito em
