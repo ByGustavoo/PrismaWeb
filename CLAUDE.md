@@ -579,7 +579,8 @@ parcelamentos sao leitura calculada, exceto o cadastro da compra parcelada.
   vence. As quatro telas seguem a mesma ordem — inverter uma delas e deixar as outras cria duas
   leituras para o mesmo par de datas. As linhas de "Proximas faturas" e "Faturas anteriores" escrevem
   as datas por extenso (`formatarDataCompleta`, "03 de Dezembro de 2026" — o mes sai com maiuscula, como no "03 de Dez" de
-  `formatarDataCurta`, a pedido do usuario), como o destaque, a pedido do
+  `formatarDataCurta`, a pedido do usuario; `formatarInstanteCompleto`, das datas de versao em
+  Configuracoes, passa pela mesma `formatarDataPorExtenso`), como o destaque, a pedido do
   usuario: antes eram "03 de Dez". Abaixo de 600px "Fecha" e "Vence" passam a ocupar duas linhas.
 - **O vencimento cai no mes seguinte quando o dia de vencimento e menor ou igual ao de fechamento**
   (`FaturaService.vencimento`, no PrismaAPI). Um cartao que fecha dia 13 e vence dia 5 tem a fatura
@@ -1472,7 +1473,11 @@ a `main`) e `release.yml` (publicacao no Docker Hub quando um PR e mergeado).
 - **Os segredos tem os mesmos nomes da esteira do PrismaAPI**: `DOCKER_USERNAME`, `DOCKER_PASSWORD` e
   `DOCKER_IMAGE` (`gurudohimalaia/prismaweb`, ao lado de `gurudohimalaia/prismaapi`). Nao invente um
   segundo conjunto de nomes para o mesmo Docker Hub.
-- **Configuracoes mostra as duas versoes, API primeiro e Web depois**, num painel sem descricao. A da aplicacao web vem de `PRISMA_VERSION` e
+- **Configuracoes mostra as duas versoes, API primeiro e Web depois**, num painel sem descricao. Cada
+  linha diz "1.0.1 — Lancada em 29 de Outubro de 2026" num texto corrido so, e a linha (`.detailRow`)
+  alinha pela linha de base: o numero e Archivo e o resto Instrument Sans, e centrados cada um pela
+  propria caixa o numero ficava 1px acima. A data e `nowrap`, para a quebra, quando faltar largura,
+  vir depois de "Lancada em" e nunca deixar o ano sozinho. A da aplicacao web vem de `PRISMA_VERSION` e
   `PRISMA_RELEASE_DATE`, que a esteira grava na imagem (`VERSION` e `BUILD_DATE`); sem elas, como no
   `npm run dev`, a linha diz "Versao de desenvolvimento". A da API vem de `GET /sistema/versao`
   (`sistemaService`) e, se a chamada falhar, a linha oferece "Tentar de novo" em vez de derrubar a

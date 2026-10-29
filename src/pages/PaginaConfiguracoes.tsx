@@ -24,10 +24,19 @@ function DescricaoVersao({ versao, dataLancamento }: { versao: string; dataLanca
   const data = dataLancamento ? formatarInstanteCompleto(dataLancamento) : null;
 
   return (
-    <>
+    <span>
       <span className={juntarClasses(styles.versionNumber, 'tabular')}>{formatarVersao(versao)}</span>
-      {data ? <span className={styles.versionMeta}>Lançada em {data}</span> : null}
-    </>
+      {data ? (
+        <>
+          <span className={styles.versionSeparator} aria-hidden="true">
+            {' —'}
+          </span>{' '}
+          <span className={styles.versionMeta}>
+            Lançada em <span className={styles.versionDate}>{data}</span>
+          </span>
+        </>
+      ) : null}
+    </span>
   );
 }
 

@@ -105,11 +105,15 @@ export function formatarDataCurta(isoDate: string): string {
   return date.getFullYear() === new Date().getFullYear() ? dayAndMonth : `${dayAndMonth} de ${date.getFullYear()}`;
 }
 
-export function formatarDataCompleta(isoDate: string): string {
+function formatarDataPorExtenso(date: Date): string {
   return formatadorDataCompleta
-    .formatToParts(deDataISO(isoDate))
+    .formatToParts(date)
     .map((part) => (part.type === 'month' ? capitalizar(part.value) : part.value))
     .join('');
+}
+
+export function formatarDataCompleta(isoDate: string): string {
+  return formatarDataPorExtenso(deDataISO(isoDate));
 }
 
 export function formatarVersao(versao: string): string {
@@ -118,7 +122,7 @@ export function formatarVersao(versao: string): string {
 
 export function formatarInstanteCompleto(instante: string): string | null {
   const data = new Date(instante);
-  return Number.isNaN(data.getTime()) ? null : formatadorDataCompleta.format(data);
+  return Number.isNaN(data.getTime()) ? null : formatarDataPorExtenso(data);
 }
 
 export function formatarDataNumerica(isoDate: string): string {
