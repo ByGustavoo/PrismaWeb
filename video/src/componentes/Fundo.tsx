@@ -1,5 +1,5 @@
-import { AbsoluteFill, interpolate, useCurrentFrame } from 'remotion';
-import { curvaEntradaSaida, progresso } from '../animacao';
+import { AbsoluteFill, interpolate } from 'remotion';
+import { curvaEntradaSaida, progresso, usePasso } from '../animacao';
 import { abertura, cenas, DURACAO_TOTAL, ordemCenas } from '../linhaDoTempo';
 import type { NomeCena } from '../linhaDoTempo';
 import { cores } from '../tema';
@@ -30,11 +30,18 @@ const ajustesPorCena: Record<NomeCena, { x: number; y: number; brilho: number; l
   abertura: { x: 50, y: 46, brilho: 0.5, linha: 1 },
   gancho: { x: 50, y: 42, brilho: 0.36, linha: 0.5 },
   dashboard: { x: 70, y: 50, brilho: 0.42, linha: 0.3 },
-  parcelas: { x: 32, y: 50, brilho: 0.4, linha: 0.25 },
+  lancamentos: { x: 32, y: 50, brilho: 0.4, linha: 0.14 },
+  contas: { x: 70, y: 50, brilho: 0.42, linha: 0.3 },
+  cartoes: { x: 32, y: 50, brilho: 0.4, linha: 0.14 },
+  faturas: { x: 70, y: 50, brilho: 0.4, linha: 0.25 },
+  parcelas: { x: 32, y: 50, brilho: 0.4, linha: 0.14 },
   orcamento: { x: 70, y: 50, brilho: 0.4, linha: 0.25 },
-  previsao: { x: 32, y: 50, brilho: 0.42, linha: 0.35 },
+  previsao: { x: 32, y: 50, brilho: 0.42, linha: 0.2 },
+  recorrentes: { x: 70, y: 50, brilho: 0.4, linha: 0.25 },
+  metas: { x: 32, y: 52, brilho: 0.4, linha: 0.14 },
   investimentos: { x: 70, y: 50, brilho: 0.42, linha: 0.3 },
-  metas: { x: 32, y: 52, brilho: 0.4, linha: 0.25 },
+  relatorios: { x: 32, y: 50, brilho: 0.42, linha: 0.14 },
+  avisos: { x: 70, y: 48, brilho: 0.4, linha: 0.25 },
   confianca: { x: 50, y: 46, brilho: 0.48, linha: 0.55 },
   encerramento: { x: 50, y: 44, brilho: 0.62, linha: 1 },
 };
@@ -44,8 +51,8 @@ function valoresPorMarcos(campo: 'x' | 'y' | 'brilho' | 'linha'): number[] {
   return [...valores, valores[valores.length - 1] ?? 0];
 }
 
-function porMarcos(quadro: number, valores: number[]): number {
-  return interpolate(quadro, marcos, valores, {
+function porMarcos(passo: number, valores: number[]): number {
+  return interpolate(passo, marcos, valores, {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
     easing: curvaEntradaSaida,
@@ -53,15 +60,15 @@ function porMarcos(quadro: number, valores: number[]): number {
 }
 
 export function Fundo() {
-  const quadro = useCurrentFrame();
-  const brilhoX = porMarcos(quadro, valoresPorMarcos('x'));
-  const brilhoY = porMarcos(quadro, valoresPorMarcos('y'));
-  const brilhoForca = porMarcos(quadro, valoresPorMarcos('brilho'));
-  const presencaLinha = porMarcos(quadro, valoresPorMarcos('linha'));
-  const traco = progresso(quadro, abertura.linhaFundo, 50);
-  const previsto = progresso(quadro, abertura.linhaFundo + 40, 30);
-  const deriva = interpolate(quadro, [0, DURACAO_TOTAL], [0, -60]);
-  const ciclo = (quadro % 150) / 150;
+  const passo = usePasso();
+  const brilhoX = porMarcos(passo, valoresPorMarcos('x'));
+  const brilhoY = porMarcos(passo, valoresPorMarcos('y'));
+  const brilhoForca = porMarcos(passo, valoresPorMarcos('brilho'));
+  const presencaLinha = porMarcos(passo, valoresPorMarcos('linha'));
+  const traco = progresso(passo, abertura.linhaFundo, 50);
+  const previsto = progresso(passo, abertura.linhaFundo + 40, 30);
+  const deriva = interpolate(passo, [0, DURACAO_TOTAL], [0, -60]);
+  const ciclo = (passo % 150) / 150;
 
   return (
     <AbsoluteFill style={{ background: cores.fundo, overflow: 'hidden' }}>
@@ -70,7 +77,7 @@ export function Fundo() {
           backgroundImage:
             'linear-gradient(rgba(236, 238, 240, 0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(236, 238, 240, 0.035) 1px, transparent 1px)',
           backgroundSize: '64px 64px',
-          backgroundPosition: `${quadro * 0.25}px ${quadro * 0.4}px`,
+          backgroundPosition: `${passo * 0.25}px ${passo * 0.4}px`,
           maskImage: 'radial-gradient(ellipse 70% 65% at 50% 50%, black 20%, transparent 75%)',
           WebkitMaskImage: 'radial-gradient(ellipse 70% 65% at 50% 50%, black 20%, transparent 75%)',
         }}

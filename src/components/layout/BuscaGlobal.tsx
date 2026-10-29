@@ -63,7 +63,7 @@ function montarResultados(catalog: Catalogo, term: string): ResultadoBusca[] {
       chave: `transaction-${item.id}`,
       grupo: 'transaction',
       rotulo: item.descricao,
-      dica: `${formatarDataCurta(item.data)} · ${item.nomeOrigem}`,
+      dica: `${formatarDataCurta(item.data)} — ${item.nomeOrigem}`,
       destino: `${caminhos.lancamentos}?${PARAMETRO_EDITAR_LANCAMENTO}=${item.id}`,
       icone: iconePorTipo[item.tipo],
       lancamento: item,

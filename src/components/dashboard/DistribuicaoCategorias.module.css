@@ -12,6 +12,59 @@
   margin: 0;
 }
 
+.frame {
+  position: relative;
+}
+
+.frame::before,
+.frame::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  left: 0;
+  z-index: 1;
+  height: var(--space-6);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--duration-base) var(--ease-out);
+}
+
+.frame::before {
+  top: 0;
+  background: linear-gradient(to bottom, var(--surface), color-mix(in srgb, var(--surface) 0%, transparent));
+}
+
+.frame::after {
+  bottom: 0;
+  background: linear-gradient(to top, var(--surface), color-mix(in srgb, var(--surface) 0%, transparent));
+}
+
+.frame[data-acima]::before,
+.frame[data-abaixo]::after {
+  opacity: 1;
+}
+
+.listScrolls {
+  position: relative;
+  max-height: var(--altura-recolhida);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  border-radius: var(--radius-xs);
+}
+
+.listScrolls:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+@media (max-width: 1199px) {
+  .listScrolls {
+    max-height: none;
+  }
+}
+
 .row {
   display: flex;
   flex-direction: column;

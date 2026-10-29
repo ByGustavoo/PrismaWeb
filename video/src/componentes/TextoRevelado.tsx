@@ -1,7 +1,6 @@
 import { Fragment } from 'react';
 import type { CSSProperties } from 'react';
-import { useCurrentFrame } from 'remotion';
-import { misturar, progresso } from '../animacao';
+import { misturar, progresso, usePasso } from '../animacao';
 
 interface Trecho {
   texto: string;
@@ -17,7 +16,7 @@ interface TextoReveladoProps {
 }
 
 export function TextoRevelado({ trechos, inicio, intervalo = 2.5, duracao = 16, estilo }: TextoReveladoProps) {
-  const quadro = useCurrentFrame();
+  const passo = usePasso();
   const palavras: Trecho[] = trechos.flatMap((trecho) =>
     trecho.texto
       .split(' ')
@@ -28,7 +27,7 @@ export function TextoRevelado({ trechos, inicio, intervalo = 2.5, duracao = 16, 
   return (
     <div style={estilo}>
       {palavras.map((palavra, indice) => {
-        const t = progresso(quadro, inicio + indice * intervalo, duracao);
+        const t = progresso(passo, inicio + indice * intervalo, duracao);
         return (
           <Fragment key={indice}>
             <span

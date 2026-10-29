@@ -153,7 +153,7 @@ export function ModalDetalheFatura({ fatura, aoAlterar, aoFechar }: ModalDetalhe
                 Já pago <ValorMonetario valor={invoice.valorPago} tamanho="sm" tom="positive" />
               </span>
               <span className={styles.separator} aria-hidden="true">
-                ·
+                —
               </span>
               <span>
                 Falta pagar <ValorMonetario valor={invoice.valorRestante} tamanho="sm" />

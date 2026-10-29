@@ -66,6 +66,13 @@ export const rotasApi = {
   },
   avisos: {
     listar: '/avisos',
+    leitura: (id: string) => `/avisos/${id}/leitura`,
+    adiamento: (id: string) => `/avisos/${id}/adiamento`,
+    leituraDeTodos: '/avisos/leitura',
+    preferencias: '/avisos/preferencias',
+  },
+  telas: {
+    ocultas: '/telas/ocultas',
   },
   sistema: {
     versao: '/sistema/versao',

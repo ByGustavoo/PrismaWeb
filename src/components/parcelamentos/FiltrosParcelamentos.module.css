@@ -1,0 +1,11 @@
+.search {
+  width: 220px;
+}
+
+@media (max-width: 599px) {
+  .search,
+  .filter {
+    flex: 1 1 100%;
+    width: auto;
+  }
+}

@@ -128,7 +128,7 @@ export function ModalFormularioCartao({ aberto, cartao, contas, salvando, aoEnvi
     () =>
       contas
         .filter((account) => account.situacao === 'ATIVO' || account.id === cartao?.idConta)
-        .map((account) => ({ valor: account.id, rotulo: `${account.nome} · ${account.instituicao}` })),
+        .map((account) => ({ valor: account.id, rotulo: `${account.nome} — ${account.instituicao}` })),
     [contas, cartao],
   );
 

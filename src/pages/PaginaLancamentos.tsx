@@ -24,6 +24,7 @@ import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
 import { useArmazenamentoLocal } from '@/hooks/useArmazenamentoLocal';
 import { useEhCompacto } from '@/hooks/useConsultaMidia';
 import { useNotificacoes } from '@/providers/ProvedorNotificacoes';
+import { useTelas } from '@/providers/ProvedorTelas';
 import {
   caminhos,
   PARAMETRO_COMPRA,
@@ -57,6 +58,7 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const toast = useNotificacoes();
+  const { estaOculto } = useTelas();
   const isCompact = useEhCompacto();
   const [preferredView, setPreferredView] = useArmazenamentoLocal<VisualizacaoLancamentos>(
     CHAVE_VISUALIZACAO_LANCAMENTOS,
@@ -115,14 +117,16 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
   const openEdit = useCallback(
     (transaction: LancamentoDTO) => {
       if (transaction.parcela) {
-        navigate(`${caminhos.parcelamentos}?${PARAMETRO_COMPRA}=${transaction.parcela.idCompra}`);
+        if (!estaOculto(caminhos.parcelamentos)) {
+          navigate(`${caminhos.parcelamentos}?${PARAMETRO_COMPRA}=${transaction.parcela.idCompra}`);
+        }
         return;
       }
 
       setEditing(transaction);
       setFormMode(transaction.tipo);
     },
-    [navigate],
+    [navigate, estaOculto],
   );
 
   useEffect(() => {
@@ -350,7 +354,7 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
           <>
             <strong className={styles.confirmTitle}>{removing.descricao}</strong>
             <span className={styles.confirmMeta}>
-              {rotuloTipoLancamento[removing.tipo]} · {formatarDataCompleta(removing.data)} · {removing.nomeOrigem}
+              {rotuloTipoLancamento[removing.tipo]} — {formatarDataCompleta(removing.data)} — {removing.nomeOrigem}
             </span>
             <ValorMonetario valor={removing.valor} tom={removing.tipo === 'DESPESA' ? 'negative' : 'default'} />
           </>

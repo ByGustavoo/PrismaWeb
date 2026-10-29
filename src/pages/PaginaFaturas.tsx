@@ -8,7 +8,7 @@ import { CabecalhoPagina } from '@/components/layout';
 import { Botao, Painel, EstadoVazio, BlocoCarregando, CampoSelecao } from '@/components/ui';
 import { ehCartaoCredito } from '@/constants/cartoes';
 import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
-import { PARAMETRO_CARTAO } from '@/routes/caminhos';
+import { PARAMETRO_CARTAO, PARAMETRO_FATURA } from '@/routes/caminhos';
 import { cartoesService } from '@/services';
 import type { FaturaCartaoDTO, Opcao } from '@/types';
 import { chaveMesPorDeslocamento, hojeISO, mesesEntre } from '@/utils/data';
@@ -47,10 +47,14 @@ export function PaginaFaturas() {
   const [openInvoice, setOpenInvoice] = useState<FaturaCartaoDTO | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
 
+  const [requestedInvoiceId, setRequestedInvoiceId] = useState<string | null>(null);
+
   useEffect(() => {
-    const requested = searchParams.get(PARAMETRO_CARTAO);
-    if (!requested) return;
-    setCardId(requested);
+    const requestedCard = searchParams.get(PARAMETRO_CARTAO);
+    const requestedInvoice = searchParams.get(PARAMETRO_FATURA);
+    if (!requestedCard && !requestedInvoice) return;
+    if (requestedCard) setCardId(requestedCard);
+    if (requestedInvoice) setRequestedInvoiceId(requestedInvoice);
     setSearchParams({}, { replace: true });
   }, [searchParams, setSearchParams]);
 
@@ -63,6 +67,12 @@ export function PaginaFaturas() {
   const { dados, carregando, erro, recarregar } = useDadosAssincronos(fetchData);
 
   const allInvoices = useMemo(() => dados?.[0] ?? [], [dados]);
+
+  useEffect(() => {
+    if (!requestedInvoiceId || !dados) return;
+    setOpenInvoice(allInvoices.find((invoice) => invoice.id === requestedInvoiceId) ?? null);
+    setRequestedInvoiceId(null);
+  }, [requestedInvoiceId, dados, allInvoices]);
   const creditCards = useMemo(() => (dados?.[1] ?? []).filter(ehCartaoCredito), [dados]);
 
   const cardOptions = useMemo<Opcao[]>(
@@ -244,7 +254,7 @@ export function PaginaFaturas() {
                   <span className={styles.sectionMeta}>
                     {rotuloQuantidade(visibleUpcoming.length)}
                     <span className={styles.separator} aria-hidden="true">
-                      ·
+                      —
                     </span>
                     Total <ValorMonetario valor={sum(visibleUpcoming)} tamanho="sm" tom="muted" />
                   </span>
@@ -281,7 +291,7 @@ export function PaginaFaturas() {
                   <span className={styles.sectionMeta}>
                     {rotuloQuantidade(visiblePast.length)}
                     <span className={styles.separator} aria-hidden="true">
-                      ·
+                      —
                     </span>
                     Total <ValorMonetario valor={sum(visiblePast)} tamanho="sm" tom="muted" />
                   </span>

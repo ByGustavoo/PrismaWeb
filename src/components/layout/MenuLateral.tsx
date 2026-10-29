@@ -3,8 +3,10 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { ChevronDown, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react';
 import { NOME_APLICACAO, SLOGAN_APLICACAO } from '@/constants/aplicacao';
 import { navegacao } from '@/constants/navegacao';
+import { navegacaoVisivel } from '@/constants/telas';
 import { MarcaPrisma } from '@/components/comum';
 import type { ItemNavegacao } from '@/constants/navegacao';
+import { useTelas } from '@/providers/ProvedorTelas';
 import { manterTabDentro } from '@/utils/foco';
 import { juntarClasses } from '@/utils/juntarClasses';
 import styles from './MenuLateral.module.css';
@@ -19,6 +21,8 @@ interface MenuLateralProps {
 export function MenuLateral({ recolhido, abertoNoMobile, aoAlternarRecolhido, aoFecharMobile }: MenuLateralProps) {
   const sidebarRef = useRef<HTMLElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const { estaOculto } = useTelas();
+  const secoes = navegacaoVisivel(navegacao, estaOculto);
 
   useEffect(() => {
     if (!abertoNoMobile) return;
@@ -73,7 +77,7 @@ export function MenuLateral({ recolhido, abertoNoMobile, aoAlternarRecolhido, ao
         </div>
 
         <nav className={styles.nav}>
-          {navegacao.map((section, index) => (
+          {secoes.map((section, index) => (
             <div className={styles.section} key={section.titulo ?? `section-${index}`}>
               {section.titulo && !recolhido ? <p className={styles.sectionTitle}>{section.titulo}</p> : null}
               {section.itens.map((item) => (

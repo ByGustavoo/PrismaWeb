@@ -12,7 +12,7 @@ export function usePagamentoFatura<T>(dados: T, aoConcluir: () => void) {
 
   const alternar = useCallback(
     async (fatura: FaturaCartaoDTO, desfazer: boolean): Promise<boolean> => {
-      const item = `${capitalizar(formatarRotuloMes(fatura.mes))} · ${fatura.nomeCartao}`;
+      const item = `${capitalizar(formatarRotuloMes(fatura.mes))} — ${fatura.nomeCartao}`;
 
       setEnvio({ origem: dados });
 

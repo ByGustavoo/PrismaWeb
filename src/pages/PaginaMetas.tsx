@@ -1,6 +1,7 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Plus, ShoppingBag } from 'lucide-react';
-import { ValorMonetario, BarraResumo } from '@/components/comum';
+import { ValorMonetario, BarraResumo, ResultadoFiltros } from '@/components/comum';
 import {
   CartaoMeta,
   ModalDetalheMeta,
@@ -10,13 +11,16 @@ import {
   consultaMetaVazia,
   temFiltrosMetaAtivos,
   tomPreco,
+  rotuloResultadoMetas,
 } from '@/components/metas';
 import type { ResultadoFormularioMeta, ConsultaMeta } from '@/components/metas';
 import { CabecalhoPagina } from '@/components/layout';
 import { Botao, Painel, DialogoConfirmacao, EstadoVazio, BlocoCarregando } from '@/components/ui';
 import { notificacaoSituacaoMeta } from '@/constants/metas';
 import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
+import { useAvisos } from '@/providers/ProvedorAvisos';
 import { useNotificacoes } from '@/providers/ProvedorNotificacoes';
+import { PARAMETRO_META } from '@/routes/caminhos';
 import { metasService } from '@/services';
 import type { AcompanhamentoMetaDTO, MetaDTO, SalvarMetaPrecoDTO, SituacaoMeta, Tendencia } from '@/types';
 import { formatarMoeda, formatarPercentual } from '@/utils/formatacao';
@@ -36,6 +40,22 @@ export function PaginaMetas() {
   const [removing, setRemoving] = useState<AcompanhamentoMetaDTO | null>(null);
   const [saving, setSaving] = useState(false);
   const toast = useNotificacoes();
+  const { atualizarAvisos } = useAvisos();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  const limparFiltros = () => {
+    setQuery(consultaMetaVazia);
+    searchRef.current?.focus();
+  };
+
+  useEffect(() => {
+    const requested = searchParams.get(PARAMETRO_META);
+    if (!requested) return;
+    setDetailId(requested);
+    setFocusPriceForm(true);
+    setSearchParams({}, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   const fetchData = useCallback((signal: AbortSignal) => metasService.listar({}, signal), []);
   const { dados, carregando, erro, recarregar } = useDadosAssincronos(fetchData);
@@ -85,8 +105,9 @@ export function PaginaMetas() {
 
     try {
       await metasService.adicionarPreco(tracking.meta.id, payload);
-      toast.sucesso('Preço registrado com sucesso!', `${tracking.meta.nome} · ${formatarMoeda(payload.preco)}`);
+      toast.sucesso('Preço registrado com sucesso!', `${tracking.meta.nome} — ${formatarMoeda(payload.preco)}`);
       recarregar();
+      atualizarAvisos();
       return true;
     } catch (priceError) {
       toast.erro('Não foi possível registrar o preço.', priceError);
@@ -110,6 +131,7 @@ export function PaginaMetas() {
       });
       toast.sucesso(notificacaoSituacaoMeta[status], goal.nome);
       recarregar();
+      atualizarAvisos();
     } catch (statusError) {
       toast.erro('Não foi possível alterar a meta.', statusError);
     } finally {
@@ -124,6 +146,7 @@ export function PaginaMetas() {
     try {
       await metasService.excluir(removing.meta.id);
       toast.sucesso('Meta excluída com sucesso!', removing.meta.nome);
+      atualizarAvisos();
       setRemoving(null);
       recarregar();
     } catch (deleteError) {
@@ -144,9 +167,18 @@ export function PaginaMetas() {
         titulo="Metas e desejos"
         descricao="O que você pretende comprar, por quanto viu da primeira vez e para onde o preço está indo"
         acoes={
-          <Botao tamanho="sm" icone={Plus} onClick={() => setCreating(true)}>
-            Nova meta
-          </Botao>
+          <>
+            {items.length > 0 ? (
+              <FiltrosMetas
+                consulta={query}
+                aoAlterar={(patch) => setQuery((current) => ({ ...current, ...patch }))}
+                refBusca={searchRef}
+              />
+            ) : null}
+            <Botao tamanho="sm" icone={Plus} onClick={() => setCreating(true)}>
+              Nova meta
+            </Botao>
+          </>
         }
       />
 
@@ -220,11 +252,10 @@ export function PaginaMetas() {
           />
 
           <section className={styles.section}>
-            <FiltrosMetas
-              consulta={query}
-              aoAlterar={(patch) => setQuery((current) => ({ ...current, ...patch }))}
-              aoLimpar={() => setQuery(consultaMetaVazia)}
-              quantidadeResultados={visible.length}
+            <ResultadoFiltros
+              texto={rotuloResultadoMetas(query, visible.length)}
+              visivel={temFiltrosMetaAtivos(query) && visible.length > 0}
+              aoLimpar={limparFiltros}
             />
 
             {visible.length === 0 ? (
@@ -235,7 +266,7 @@ export function PaginaMetas() {
                   descricao="Nenhuma meta corresponde à busca e aos filtros escolhidos."
                   acao={
                     temFiltrosMetaAtivos(query) ? (
-                      <Botao variante="secondary" onClick={() => setQuery(consultaMetaVazia)}>
+                      <Botao variante="secondary" onClick={limparFiltros}>
                         Limpar filtros
                       </Botao>
                     ) : null

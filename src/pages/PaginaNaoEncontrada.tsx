@@ -5,6 +5,7 @@ import { ArrowLeft, LayoutDashboard } from 'lucide-react';
 import { MarcaPrisma } from '@/components/comum';
 import { Botao } from '@/components/ui';
 import { NOME_APLICACAO, SLOGAN_APLICACAO } from '@/constants/aplicacao';
+import { useTelas } from '@/providers/ProvedorTelas';
 import { caminhos } from '@/routes/caminhos';
 import { juntarClasses } from '@/utils/juntarClasses';
 import styles from './PaginaNaoEncontrada.module.css';
@@ -116,12 +117,14 @@ function SerieInterrompida() {
 export function PaginaNaoEncontrada() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { estaOculto } = useTelas();
 
   const canGoBack = location.key !== 'default';
+  const visibleShortcuts = atalhos.filter((shortcut) => !estaOculto(shortcut.to));
 
   useEffect(() => {
     const previous = document.title;
-    document.title = `Página não encontrada · ${NOME_APLICACAO}`;
+    document.title = `Página não encontrada — ${NOME_APLICACAO}`;
     return () => {
       document.title = previous;
     };
@@ -166,22 +169,24 @@ export function PaginaNaoEncontrada() {
             ) : null}
           </div>
 
-          <nav
-            className={juntarClasses(styles.shortcuts, 'list-item-in')}
-            style={{ '--i': 3 } as CSSProperties}
-            aria-label="Atalhos"
-          >
-            <span className={styles.shortcutsLabel}>Talvez você procure</span>
-            <ul className={styles.links}>
-              {atalhos.map((shortcut) => (
-                <li key={shortcut.to}>
-                  <Link className={styles.link} to={shortcut.to}>
-                    {shortcut.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
+          {visibleShortcuts.length > 0 ? (
+            <nav
+              className={juntarClasses(styles.shortcuts, 'list-item-in')}
+              style={{ '--i': 3 } as CSSProperties}
+              aria-label="Atalhos"
+            >
+              <span className={styles.shortcutsLabel}>Talvez você procure</span>
+              <ul className={styles.links}>
+                {visibleShortcuts.map((shortcut) => (
+                  <li key={shortcut.to}>
+                    <Link className={styles.link} to={shortcut.to}>
+                      {shortcut.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ) : null}
         </div>
       </main>
     </div>

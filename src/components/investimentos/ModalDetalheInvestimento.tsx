@@ -192,7 +192,7 @@ export function ModalDetalheInvestimento({
       titulo={investment?.nome ?? 'Investimento'}
       descricao={
         investment
-          ? `${rotuloClasseAtivo[investment.classeAtivo]} · ${investment.instituicao} · saldo atualizado em ${formatarDataNumerica(investment.dataAtualizacao)}`
+          ? `${rotuloClasseAtivo[investment.classeAtivo]} — ${investment.instituicao} — Saldo atualizado em ${formatarDataNumerica(investment.dataAtualizacao)}`
           : undefined
       }
       tamanho="lg"

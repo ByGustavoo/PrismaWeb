@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { Cabecalho, MenuLateral } from '@/components/layout';
+import { Cabecalho, MenuLateral, TelaOculta } from '@/components/layout';
 import { CHAVE_MENU_LATERAL } from '@/constants/aplicacao';
+import { telaDoDestino } from '@/constants/telas';
 import { useArmazenamentoLocal } from '@/hooks/useArmazenamentoLocal';
 import { useEhTablet } from '@/hooks/useConsultaMidia';
 import { useTravarRolagem } from '@/hooks/useTravarRolagem';
+import { useTelas } from '@/providers/ProvedorTelas';
 import { juntarClasses } from '@/utils/juntarClasses';
 import styles from './LayoutAplicacao.module.css';
 
@@ -15,6 +17,8 @@ export function LayoutAplicacao() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const isTablet = useEhTablet();
   const location = useLocation();
+  const { carregado, telasOcultas } = useTelas();
+  const tela = telaDoDestino(location.pathname);
 
   const closeMobile = useCallback(() => setMobileOpen(false), []);
 
@@ -54,7 +58,7 @@ export function LayoutAplicacao() {
         <Cabecalho aoAbrirMenu={() => setMobileOpen(true)} />
         <main className={styles.content} id={ID_CONTEUDO} tabIndex={-1}>
           <div className={styles.container}>
-            <Outlet />
+            {tela && !carregado ? null : tela && telasOcultas.includes(tela) ? <TelaOculta tela={tela} /> : <Outlet />}
           </div>
         </main>
       </div>

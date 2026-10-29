@@ -1,15 +1,18 @@
 import type { Opcao, PlanoCompraParceladaDTO } from '@/types';
+import { normalizarBusca } from '@/utils/formatacao';
 
 export type SituacaoCompraFiltro = 'TODAS' | 'EM_ANDAMENTO' | 'QUITADAS';
 
 export type OrdenacaoCompra = 'recentes' | 'menos-restantes' | 'mais-restantes' | 'maior-restante';
 
 export interface ConsultaCompra {
+  busca: string;
   situacao: SituacaoCompraFiltro;
   ordenacao: OrdenacaoCompra;
 }
 
 export const consultaCompraPadrao: ConsultaCompra = {
+  busca: '',
   situacao: 'TODAS',
   ordenacao: 'recentes',
 };
@@ -28,7 +31,23 @@ export const opcoesOrdenacaoCompra: Opcao[] = [
 ];
 
 export function temConsultaCompraAtiva(query: ConsultaCompra): boolean {
-  return query.situacao !== consultaCompraPadrao.situacao || query.ordenacao !== consultaCompraPadrao.ordenacao;
+  return (
+    query.busca.trim() !== '' ||
+    query.situacao !== consultaCompraPadrao.situacao ||
+    query.ordenacao !== consultaCompraPadrao.ordenacao
+  );
+}
+
+export function rotuloResultadoCompras(query: ConsultaCompra, count: number): string {
+  if (query.busca.trim() === '' && query.situacao === consultaCompraPadrao.situacao) return '';
+  if (count === 0) return 'Nenhuma compra encontrada';
+  return `${count} ${count === 1 ? 'compra encontrada' : 'compras encontradas'}`;
+}
+
+function correspondeBusca(plan: PlanoCompraParceladaDTO, needle: string): boolean {
+  return [plan.compra.descricao, plan.compra.categoria?.nome ?? '', plan.compra.nomeCartao].some((text) =>
+    normalizarBusca(text).includes(needle),
+  );
 }
 
 function quitada(plan: PlanoCompraParceladaDTO): boolean {
@@ -52,11 +71,13 @@ function comparar(a: PlanoCompraParceladaDTO, b: PlanoCompraParceladaDTO, sort: 
 }
 
 export function aplicarConsultaCompra(plans: PlanoCompraParceladaDTO[], query: ConsultaCompra): PlanoCompraParceladaDTO[] {
+  const needle = normalizarBusca(query.busca.trim());
+
   return plans
     .filter((plan) => {
-      if (query.situacao === 'EM_ANDAMENTO') return !quitada(plan);
-      if (query.situacao === 'QUITADAS') return quitada(plan);
-      return true;
+      if (query.situacao === 'EM_ANDAMENTO' && quitada(plan)) return false;
+      if (query.situacao === 'QUITADAS' && !quitada(plan)) return false;
+      return !needle || correspondeBusca(plan, needle);
     })
     .sort((a, b) => comparar(a, b, query.ordenacao));
 }

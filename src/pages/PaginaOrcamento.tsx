@@ -7,6 +7,7 @@ import { Botao, Painel, CorpoPainel, CabecalhoPainel, DialogoConfirmacao, Estado
 import { corDaPaleta } from '@/constants/cores';
 import { DIAS_MINIMOS_PROJECAO_ORCAMENTO, tomProgressoOrcamento, situacaoOrcamentoDe } from '@/constants/orcamento';
 import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
+import { useAvisos } from '@/providers/ProvedorAvisos';
 import { useNotificacoes } from '@/providers/ProvedorNotificacoes';
 import { orcamentoService, categoriasService } from '@/services';
 import type { ConsumoOrcamentoDTO, OrcamentoDTO, SalvarOrcamentoDTO } from '@/types';
@@ -24,6 +25,7 @@ export function PaginaOrcamento() {
   const [removing, setRemoving] = useState<ConsumoOrcamentoDTO | null>(null);
   const [saving, setSaving] = useState(false);
   const toast = useNotificacoes();
+  const { atualizarAvisos } = useAvisos();
 
   const fetchData = useCallback(
     (signal: AbortSignal) =>
@@ -62,11 +64,12 @@ export function PaginaOrcamento() {
         await orcamentoService.criar(payload);
         toast.sucesso(
           'Limite definido com sucesso!',
-          `${categories.find((category) => category.id === payload.idCategoria)?.nome ?? 'Categoria'} · vale para este mês e os seguintes`,
+          `${categories.find((category) => category.id === payload.idCategoria)?.nome ?? 'Categoria'} — Vale para este mês e os seguintes`,
         );
       }
       closeForm();
       recarregar();
+      atualizarAvisos();
     } catch (submitError) {
       toast.erro('Não foi possível salvar o limite.', submitError);
     } finally {
@@ -83,6 +86,7 @@ export function PaginaOrcamento() {
       toast.sucesso('Limite excluído com sucesso!', removing.orcamento.categoria.nome);
       setRemoving(null);
       recarregar();
+      atualizarAvisos();
     } catch (deleteError) {
       toast.erro('Não foi possível excluir o limite.', deleteError);
       setRemoving(null);

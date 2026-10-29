@@ -1,19 +1,20 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { ArrowDownUp, CircleDot, CreditCard, Layers, Plus } from 'lucide-react';
-import { ValorMonetario, BarraResumo } from '@/components/comum';
+import { CreditCard, Layers, Plus } from 'lucide-react';
+import { ValorMonetario, BarraResumo, ResultadoFiltros } from '@/components/comum';
 import {
   CartaoParcelamento,
+  FiltrosParcelamentos,
   ModalFormularioParcelamento,
   ModalParcelasCompra,
   aplicarConsultaCompra,
   consultaCompraPadrao,
-  opcoesOrdenacaoCompra,
-  opcoesSituacaoCompra,
+  rotuloResultadoCompras,
+  temConsultaCompraAtiva,
 } from '@/components/parcelamentos';
-import type { ConsultaCompra, OrdenacaoCompra, SituacaoCompraFiltro } from '@/components/parcelamentos';
+import type { ConsultaCompra } from '@/components/parcelamentos';
 import { CabecalhoPagina } from '@/components/layout';
-import { Botao, Painel, DialogoConfirmacao, EstadoVazio, BlocoCarregando, CampoSelecao } from '@/components/ui';
+import { Botao, Painel, DialogoConfirmacao, EstadoVazio, BlocoCarregando } from '@/components/ui';
 import { ehCartaoCredito, rotuloQuantidadeParcelas } from '@/constants/cartoes';
 import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
 import { usePagamentoParcela } from '@/hooks/usePagamentoParcela';
@@ -36,6 +37,12 @@ export function PaginaParcelamentos() {
   const [saving, setSaving] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const toast = useNotificacoes();
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  const limparFiltros = () => {
+    setQuery(consultaCompraPadrao);
+    searchRef.current?.focus();
+  };
 
   useEffect(() => {
     const requestedCard = searchParams.get(PARAMETRO_CARTAO);
@@ -124,7 +131,7 @@ export function PaginaParcelamentos() {
         await cartoesService.criarCompraParcelada(payload);
         toast.sucesso(
           `${noun} cadastrada com sucesso!`,
-          `${rotuloQuantidadeParcelas(payload.parcelas)} · ${payload.descricao}`,
+          `${rotuloQuantidadeParcelas(payload.parcelas)} — ${payload.descricao}`,
         );
       }
       closeForm();
@@ -171,49 +178,13 @@ export function PaginaParcelamentos() {
         descricao="Quanto já foi pago, quanto falta e em quais faturas as parcelas caem"
         acoes={
           <>
-            {creditCards.length > 1 ? (
-              <CampoSelecao
-                className={styles.filter}
-                larguraPelaMaiorOpcao
-                tamanho="sm"
-                prefixo="Cartão:"
-                icone={CreditCard}
-                opcoes={cardOptions}
-                value={cardId}
-                onChange={setCardId}
-                aria-label="Filtrar compras por cartão"
-              />
-            ) : null}
-            {plans.length > 0 ? (
-              <>
-                <CampoSelecao
-                  className={styles.filter}
-                  larguraPelaMaiorOpcao
-                  tamanho="sm"
-                  icone={CircleDot}
-                  prefixo="Situação:"
-                  opcoes={opcoesSituacaoCompra}
-                  value={query.situacao}
-                  onChange={(situacao) =>
-                    setQuery((current) => ({ ...current, situacao: situacao as SituacaoCompraFiltro }))
-                  }
-                  aria-label="Filtrar compras por situação"
-                />
-                <CampoSelecao
-                  className={styles.filter}
-                  larguraPelaMaiorOpcao
-                  tamanho="sm"
-                  icone={ArrowDownUp}
-                  prefixo="Ordenar:"
-                  opcoes={opcoesOrdenacaoCompra}
-                  value={query.ordenacao}
-                  onChange={(ordenacao) =>
-                    setQuery((current) => ({ ...current, ordenacao: ordenacao as OrdenacaoCompra }))
-                  }
-                  aria-label="Ordenar compras"
-                />
-              </>
-            ) : null}
+            <FiltrosParcelamentos
+              consulta={query}
+              aoAlterar={(patch) => setQuery((current) => ({ ...current, ...patch }))}
+              cartao={creditCards.length > 1 ? { opcoes: cardOptions, valor: cardId, aoAlterar: setCardId } : undefined}
+              mostrarConsulta={plans.length > 0}
+              refBusca={searchRef}
+            />
             <Botao tamanho="sm" icone={Plus} disabled={noCreditCard} onClick={() => setCreating(true)}>
               Nova compra
             </Botao>
@@ -309,18 +280,37 @@ export function PaginaParcelamentos() {
                 Compras
               </h2>
 
+              <ResultadoFiltros
+                texto={rotuloResultadoCompras(query, visiblePlans.length)}
+                visivel={temConsultaCompraAtiva(query) && visiblePlans.length > 0}
+                aoLimpar={limparFiltros}
+              />
+
               {visiblePlans.length === 0 ? (
                 <Painel espacamento="none">
-                  <EstadoVazio
-                    icone={Layers}
-                    titulo={query.situacao === 'QUITADAS' ? 'Nenhuma compra quitada' : 'Nenhuma compra em andamento'}
-                    descricao="Troque a situação no filtro acima para ver as demais compras."
-                    acao={
-                      <Botao variante="secondary" onClick={() => setQuery(consultaCompraPadrao)}>
-                        Mostrar todas
-                      </Botao>
-                    }
-                  />
+                  {query.busca.trim() ? (
+                    <EstadoVazio
+                      icone={Layers}
+                      titulo="Nenhuma compra encontrada"
+                      descricao="Nenhuma compra corresponde à busca e aos filtros escolhidos."
+                      acao={
+                        <Botao variante="secondary" onClick={limparFiltros}>
+                          Limpar filtros
+                        </Botao>
+                      }
+                    />
+                  ) : (
+                    <EstadoVazio
+                      icone={Layers}
+                      titulo={query.situacao === 'QUITADAS' ? 'Nenhuma compra quitada' : 'Nenhuma compra em andamento'}
+                      descricao="Troque a situação no filtro acima para ver as demais compras."
+                      acao={
+                        <Botao variante="secondary" onClick={limparFiltros}>
+                          Mostrar todas
+                        </Botao>
+                      }
+                    />
+                  )}
                 </Painel>
               ) : (
                 <ul className={styles.list}>
@@ -372,7 +362,7 @@ export function PaginaParcelamentos() {
           <>
             <strong className={styles.confirmTitle}>{removing.descricao}</strong>
             <span className={styles.confirmMeta}>
-              {rotuloQuantidadeParcelas(removing.parcelas)} · {removing.nomeCartao}
+              {rotuloQuantidadeParcelas(removing.parcelas)} — {removing.nomeCartao}
             </span>
             <ValorMonetario valor={removing.valorTotal} />
           </>

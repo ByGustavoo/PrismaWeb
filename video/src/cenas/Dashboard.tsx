@@ -1,6 +1,6 @@
 import { CreditCard, PiggyBank, TrendingDown, TrendingUp } from 'lucide-react';
-import { interpolate, useCurrentFrame } from 'remotion';
-import { misturar, mola, progresso } from '../animacao';
+import { interpolate } from 'remotion';
+import { misturar, mola, progresso, usePasso } from '../animacao';
 import { Cartao } from '../componentes/Cartao';
 import { CenaDividida } from '../componentes/CenaDividida';
 import { IndicadorVariacao, ValorMonetario } from '../componentes/Interface';
@@ -20,7 +20,7 @@ const indicadores = [
   { rotulo: 'Receitas do mês', icone: TrendingUp, valor: 7850, variacao: 4.1, apoio: '' },
   { rotulo: 'Despesas do mês', icone: TrendingDown, valor: 5912.4, variacao: -6.3, apoio: '' },
   { rotulo: 'Investimentos', icone: PiggyBank, valor: 48320.5, variacao: 12.6, apoio: 'Rentabilidade acumulada' },
-  { rotulo: 'Fatura do mês', icone: CreditCard, valor: 2346.9, variacao: null, apoio: 'Cartão Azul · vence em 05 de novembro de 2026' },
+  { rotulo: 'Fatura do mês', icone: CreditCard, valor: 490, variacao: null, apoio: 'Horizonte Gold — Vence em 05 de novembro de 2026' },
 ];
 
 function pontosGrafico() {
@@ -48,14 +48,14 @@ function curva(): string {
 const CURVA = curva();
 
 export function Dashboard() {
-  const quadro = useCurrentFrame();
+  const passo = usePasso();
   const contagem = (valor: number) =>
-    interpolate(quadro, [dashboard.contagem, dashboard.contagem + dashboard.duracaoContagem], [0, valor], {
+    interpolate(passo, [dashboard.contagem, dashboard.contagem + dashboard.duracaoContagem], [0, valor], {
       extrapolateLeft: 'clamp',
       extrapolateRight: 'clamp',
       easing: (t) => 1 - (1 - t) ** 3,
     });
-  const grafico = progresso(quadro, dashboard.grafico, dashboard.duracaoGrafico);
+  const grafico = progresso(passo, dashboard.grafico, dashboard.duracaoGrafico);
   const ultimo = PONTOS[PONTOS.length - 1] ?? { x: 0, y: 0 };
 
   return (
@@ -81,7 +81,7 @@ export function Dashboard() {
             </span>
             <div style={{ height: 1.5, background: cores.borda, margin: '6px 0' }} />
             {fluxo.map(({ rotulo, valor, cor, sinal }, indice) => {
-              const t = progresso(quadro, dashboard.linhas[indice] ?? 0, 14);
+              const t = progresso(passo, dashboard.linhas[indice] ?? 0, 14);
               return (
                 <div key={rotulo} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', opacity: t, transform: `translateY(${misturar(10, 0, t)}px)` }}>
                   <span style={{ fontSize: 20, color: cores.textoSecundario }}>{rotulo}</span>
@@ -119,7 +119,7 @@ export function Dashboard() {
         </Cartao>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
           {indicadores.map(({ rotulo, icone: Icone, valor, variacao, apoio }, indice) => {
-            const entrada = mola(quadro, dashboard.indicadores[indice] ?? 0, 160, 16);
+            const entrada = mola(passo, dashboard.indicadores[indice] ?? 0, 160, 16);
             return (
               <div
                 key={rotulo}

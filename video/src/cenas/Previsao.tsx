@@ -1,5 +1,4 @@
-import { useCurrentFrame } from 'remotion';
-import { misturar, mola, progresso } from '../animacao';
+import { misturar, mola, progresso, usePasso } from '../animacao';
 import { Cartao } from '../componentes/Cartao';
 import { CenaDividida } from '../componentes/CenaDividida';
 import { formatarMoeda, ItemResumo, ValorMonetario } from '../componentes/Interface';
@@ -41,9 +40,9 @@ const PONTOS_SALDO = saldos.map((saldo, indice) => ({ x: COLUNA * (indice + 0.5)
 const LINHA_SALDO = PONTOS_SALDO.map((ponto, indice) => `${indice === 0 ? 'M' : 'L'}${ponto.x} ${ponto.y}`).join(' ');
 
 export function Previsao() {
-  const quadro = useCurrentFrame();
-  const linha = progresso(quadro, previsao.linha, previsao.duracaoLinha);
-  const apertado = mola(quadro, previsao.mesApertado, 140, 16);
+  const passo = usePasso();
+  const linha = progresso(passo, previsao.linha, previsao.duracaoLinha);
+  const apertado = mola(passo, previsao.mesApertado, 140, 16);
   const ultimoSaldo = saldos[saldos.length - 1] ?? 0;
 
   const resumo = [
@@ -68,7 +67,7 @@ export function Previsao() {
       <Cartao estilo={{ display: 'flex', flexDirection: 'column', gap: 26, padding: 36, fontFamily: fontes.texto }}>
         <div style={{ display: 'flex', borderRadius: 16, border: `1.5px solid ${cores.borda}`, background: cores.superficieElevada }}>
           {resumo.map(({ rotulo, valor, apoio, cor }, indice) => (
-            <ItemResumo key={rotulo} rotulo={rotulo} apoio={apoio} opacidade={progresso(quadro, previsao.resumo[indice] ?? 0, 14)} primeiro={indice === 0}>
+            <ItemResumo key={rotulo} rotulo={rotulo} apoio={apoio} opacidade={progresso(passo, previsao.resumo[indice] ?? 0, 14)} primeiro={indice === 0}>
               <ValorMonetario valor={valor} tamanho={25} cor={cor} />
             </ItemResumo>
           ))}
@@ -93,7 +92,7 @@ export function Previsao() {
               <line key={fracao} x1={0} x2={LARGURA} y1={ALTURA * fracao} y2={ALTURA * fracao} stroke={cores.graficoGrade} strokeWidth={1.5} />
             ))}
             {meses.map((mes, indice) => {
-              const t = progresso(quadro, previsao.barras + indice * previsao.intervaloBarras, 18);
+              const t = progresso(passo, previsao.barras + indice * previsao.intervaloBarras, 18);
               const alturaReceita = (mes.receitas / ESCALA_BARRAS) * ALTURA * t;
               const alturaDespesa = (mes.despesas / ESCALA_BARRAS) * ALTURA * t;
               const alturaAporte = (APORTE / ESCALA_BARRAS) * ALTURA * t;

@@ -371,9 +371,14 @@ export type TipoAviso =
   | 'LANCAMENTO_AGENDADO'
   | 'RECEITA_PREVISTA'
   | 'LIMITE_CARTAO'
-  | 'INVESTIMENTO_DESATUALIZADO';
+  | 'INVESTIMENTO_DESATUALIZADO'
+  | 'ORCAMENTO_NO_LIMITE'
+  | 'SALDO_NEGATIVO_PREVISTO'
+  | 'META_SEM_PRECO';
 
 export type SeveridadeAviso = 'CRITICO' | 'ATENCAO' | 'INFO';
+
+export type EstadoAviso = 'NOVO' | 'LIDO' | 'ADIADO';
 
 export interface AvisoDTO {
   id: ID;
@@ -384,6 +389,40 @@ export interface AvisoDTO {
   data: string;
   valor?: number;
   rota?: string;
+  estado: EstadoAviso;
+  adiadoAte?: string;
+}
+
+export interface AdiarAvisoDTO {
+  dias: number;
+}
+
+export type Tela =
+  | 'LANCAMENTOS'
+  | 'RECEITAS'
+  | 'DESPESAS'
+  | 'TRANSFERENCIAS'
+  | 'CONTAS'
+  | 'CARTOES'
+  | 'FATURAS'
+  | 'PARCELAMENTOS'
+  | 'METAS'
+  | 'ORCAMENTO'
+  | 'PREVISAO'
+  | 'RECORRENTES'
+  | 'INVESTIMENTOS'
+  | 'RELATORIOS';
+
+export interface TelasOcultasDTO {
+  telas: Tela[];
+}
+
+export interface PreferenciasAvisosDTO {
+  tiposDesligados: TipoAviso[];
+  diasAntecedencia: number;
+  percentualLimiteCartao: number;
+  diasLembreteInvestimento: number;
+  diasLembreteMeta: number;
 }
 
 export interface FaturaDTO {

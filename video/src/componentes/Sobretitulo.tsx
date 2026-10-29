@@ -1,5 +1,4 @@
-import { useCurrentFrame } from 'remotion';
-import { misturar, progresso } from '../animacao';
+import { misturar, progresso, usePasso } from '../animacao';
 import { cores, fontes } from '../tema';
 
 interface SobretituloProps {
@@ -8,8 +7,8 @@ interface SobretituloProps {
 }
 
 export function Sobretitulo({ texto, inicio }: SobretituloProps) {
-  const quadro = useCurrentFrame();
-  const t = progresso(quadro, inicio, 18);
+  const passo = usePasso();
+  const t = progresso(passo, inicio, 18);
   return (
     <div
       style={{

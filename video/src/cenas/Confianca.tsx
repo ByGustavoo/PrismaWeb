@@ -1,17 +1,17 @@
-import { Bell, MonitorSmartphone, Palette, Search, SunMoon } from 'lucide-react';
-import { AbsoluteFill, useCurrentFrame } from 'remotion';
-import { estiloTransicaoCena, misturar, mola, progresso } from '../animacao';
+import { Keyboard, MonitorSmartphone, Palette, Search, Server } from 'lucide-react';
+import { AbsoluteFill } from 'remotion';
+import { estiloTransicaoCena, misturar, mola, progresso, usePasso } from '../animacao';
 import { Sobretitulo } from '../componentes/Sobretitulo';
 import { TextoRevelado } from '../componentes/TextoRevelado';
 import { cenas, confianca } from '../linhaDoTempo';
 import { cores, fontes } from '../tema';
 
 const selos = [
-  { icone: Bell, rotulo: 'Avisos antes do vencimento' },
   { icone: Search, rotulo: 'Busca em lançamentos, contas e categorias' },
   { icone: Palette, rotulo: 'Uma cor fixa por categoria' },
-  { icone: SunMoon, rotulo: 'Tema claro, escuro e sistema' },
   { icone: MonitorSmartphone, rotulo: 'Do desktop ao celular' },
+  { icone: Keyboard, rotulo: 'Teclado e leitor de tela' },
+  { icone: Server, rotulo: 'Imagem Docker para o seu servidor' },
 ];
 
 const estiloTitulo = {
@@ -25,12 +25,12 @@ const estiloTitulo = {
 };
 
 export function Confianca() {
-  const quadro = useCurrentFrame();
+  const passo = usePasso();
 
   return (
     <AbsoluteFill
       style={{
-        ...estiloTransicaoCena(quadro, cenas.confianca.duracao),
+        ...estiloTransicaoCena(passo, cenas.confianca.duracao),
         alignItems: 'center',
         justifyContent: 'center',
         flexDirection: 'column',
@@ -44,7 +44,7 @@ export function Confianca() {
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 22, maxWidth: 1560, marginTop: 20 }}>
         {selos.map(({ icone: Icone, rotulo }, indice) => {
-          const entrada = mola(quadro, confianca.selos[indice] ?? 0, 170, 15);
+          const entrada = mola(passo, confianca.selos[indice] ?? 0, 170, 15);
           return (
             <span
               key={rotulo}
@@ -82,7 +82,7 @@ export function Confianca() {
           lineHeight: 1.45,
           textAlign: 'center',
           color: cores.textoSecundario,
-          opacity: progresso(quadro, confianca.rodape, 18),
+          opacity: progresso(passo, confianca.rodape, 18),
           textWrap: 'balance',
         }}
       >

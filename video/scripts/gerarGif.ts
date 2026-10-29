@@ -4,9 +4,9 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const LARGURA_GIF = 800;
-const QUADROS_POR_SEGUNDO_GIF = 12;
-const CORES_PALETA = 96;
+const LARGURA_GIF = 640;
+const QUADROS_POR_SEGUNDO_GIF = 8;
+const CORES_PALETA = 64;
 
 const raiz = fileURLToPath(new URL('..', import.meta.url));
 const cli = join(raiz, 'node_modules', '@remotion', 'cli', 'remotion-cli.js');

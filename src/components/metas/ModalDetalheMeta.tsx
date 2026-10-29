@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react';
 import { Check, ExternalLink, Pencil, RotateCcw, Trash2, X } from 'lucide-react';
 import { ValorMonetario } from '@/components/comum';
 import { Selo, Botao, SeletorData, CampoTexto, Modal, CampoValor } from '@/components/ui';
-import { textoLeituraMeta, rotuloSituacaoMeta, tomSituacaoMeta } from '@/constants/metas';
+import { LEGENDA_VARIACAO_TOTAL_META, textoLeituraMeta, rotuloSituacaoMeta, tomSituacaoMeta } from '@/constants/metas';
 import { limitesTexto } from '@/constants/validacao';
 import { useValidacaoFormulario } from '@/hooks/useValidacaoFormulario';
 import type { ErrosCampos } from '@/hooks/useValidacaoFormulario';
@@ -134,7 +134,7 @@ export function ModalDetalheMeta({
       aberto
       aoFechar={aoFechar}
       titulo={goal.nome}
-      descricao={`${analysis.quantidadeRegistros} ${analysis.quantidadeRegistros === 1 ? 'registro' : 'registros'} · atualizado em ${formatarDataNumerica(analysis.ultimaAtualizacao)}`}
+      descricao={`${analysis.quantidadeRegistros} ${analysis.quantidadeRegistros === 1 ? 'registro' : 'registros'} — Atualizado em ${formatarDataNumerica(analysis.ultimaAtualizacao)}`}
       tamanho="lg"
       rodape={
         <>
@@ -159,7 +159,12 @@ export function ModalDetalheMeta({
           <span className={styles.headLabel}>Preço atual</span>
           <ValorMonetario valor={analysis.precoAtual} tamanho="lg" />
           {analysis.quantidadeRegistros > 1 ? (
-            <VariacaoPreco variacao={analysis.variacao} percentual={analysis.variacaoPercentual} tendencia={analysis.tendencia} />
+            <VariacaoPreco
+              variacao={analysis.variacao}
+              percentual={analysis.variacaoPercentual}
+              tendencia={analysis.tendencia}
+              legenda={LEGENDA_VARIACAO_TOTAL_META}
+            />
           ) : (
             <span className={styles.headHint}>Primeiro registro</span>
           )}

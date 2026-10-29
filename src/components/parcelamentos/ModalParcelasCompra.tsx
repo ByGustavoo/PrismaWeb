@@ -97,7 +97,7 @@ export function ModalParcelasCompra({
       aberto
       aoFechar={aoFechar}
       titulo={purchase.descricao}
-      descricao={`${purchase.nomeCartao} · ${rotuloQuantidadeParcelas(purchase.parcelas)}`}
+      descricao={`${purchase.nomeCartao} — ${rotuloQuantidadeParcelas(purchase.parcelas)}`}
       tamanho="md"
       rodape={
         <Botao variante="secondary" onClick={aoFechar}>

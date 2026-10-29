@@ -104,7 +104,7 @@ export function formatarDataCompleta(isoDate: string): string {
 }
 
 export function formatarVersao(versao: string): string {
-  return /^\d/.test(versao) ? `v${versao}` : versao;
+  return versao.replace(/^v(?=\d)/i, '');
 }
 
 export function formatarInstanteCompleto(instante: string): string | null {

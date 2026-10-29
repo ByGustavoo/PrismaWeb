@@ -13,10 +13,11 @@ export interface CampoTextoProps extends InputHTMLAttributes<HTMLInputElement> {
   icone?: LucideIcon;
   prefixo?: string;
   limiteCaracteres?: number;
+  tamanho?: 'sm' | 'md';
 }
 
 export const CampoTexto = forwardRef<HTMLInputElement, CampoTextoProps>(function Input(
-  { rotulo, dica, erro, icone: Icon, prefixo, limiteCaracteres, className, id, required, ...rest },
+  { rotulo, dica, erro, icone: Icon, prefixo, limiteCaracteres, tamanho = 'md', className, id, required, ...rest },
   ref,
 ) {
   const generatedId = useId();
@@ -52,7 +53,7 @@ export const CampoTexto = forwardRef<HTMLInputElement, CampoTextoProps>(function
         </label>
       ) : null}
 
-      <div className={juntarClasses(styles.control, erro && styles.controlError)}>
+      <div className={juntarClasses(styles.control, tamanho === 'sm' && styles.controlSm, erro && styles.controlError)}>
         {Icon ? <Icon className={styles.icon} size={16} strokeWidth={2} /> : null}
         {prefixo ? (
           <span className={styles.prefix} aria-hidden="true">

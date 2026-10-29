@@ -3,18 +3,27 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   abertura,
+  avisos,
+  cartoes,
   cenas,
+  contas,
   dashboard,
+  DESCRICAO_LANCAMENTO,
   DURACAO_TOTAL,
   encerramento,
+  faturas,
   gancho,
   investimentos,
+  lancamentos,
   metas,
   orcamento,
   parcelas,
+  passoDaLetra,
+  PASSOS_POR_BATIDA,
+  PASSOS_POR_SEGUNDO,
   previsao,
-  QUADROS_POR_BATIDA,
-  QUADROS_POR_SEGUNDO,
+  recorrentes,
+  relatorios,
 } from '../src/linhaDoTempo.ts';
 import type { NomeCena } from '../src/linhaDoTempo.ts';
 import {
@@ -34,20 +43,22 @@ import {
   swellReverso,
   TAXA,
   tocarBumbo,
+  tocarCliqueBotao,
   tocarGrave,
   tocarPad,
   tocarPluck,
   tocarSeno,
+  tocarTecla,
   tocarToque,
 } from './sintese.ts';
 
-const DURACAO = DURACAO_TOTAL / QUADROS_POR_SEGUNDO;
-const BATIDA = QUADROS_POR_BATIDA / QUADROS_POR_SEGUNDO;
+const DURACAO = DURACAO_TOTAL / PASSOS_POR_SEGUNDO;
+const BATIDA = PASSOS_POR_BATIDA / PASSOS_POR_SEGUNDO;
 const AMOSTRAS = Math.ceil(DURACAO * TAXA);
 const RMS_MUSICA_DB = -24;
 
-function segundos(cena: NomeCena, quadroLocal: number): number {
-  return (cenas[cena].inicio + quadroLocal) / QUADROS_POR_SEGUNDO;
+function segundos(cena: NomeCena, passoLocal: number): number {
+  return (cenas[cena].inicio + passoLocal) / PASSOS_POR_SEGUNDO;
 }
 
 const inicioCena = (cena: NomeCena) => segundos(cena, 0);
@@ -63,29 +74,53 @@ type Padrao = 'SUBINDO' | 'ONDA' | 'QUEBRADO';
 interface Acorde {
   inicio: number;
   baixo: string | null;
-  pad: string[];
+  pad: readonly string[];
   padrao: Padrao;
   notasPorBatida: 0 | 1 | 2 | 4;
   oitava?: 1 | 2;
   baixoPulsante?: boolean;
 }
 
+type Par = [Omit<Acorde, 'inicio'>, Omit<Acorde, 'inicio'>];
+
+const F_SUBINDO = { baixo: 'F1', pad: ['A3', 'C4', 'F4', 'G4'], padrao: 'SUBINDO', notasPorBatida: 2, baixoPulsante: true } as const;
+const C_ONDA = { baixo: 'C2', pad: ['G3', 'C4', 'E4', 'A4'], padrao: 'ONDA', notasPorBatida: 2, baixoPulsante: true } as const;
+const C_QUEBRADO = { baixo: 'C2', pad: ['G3', 'C4', 'E4', 'A4'], padrao: 'QUEBRADO', notasPorBatida: 2, baixoPulsante: true } as const;
+const DM_QUEBRADO = { baixo: 'D2', pad: ['D4', 'F4', 'A4', 'C5'], padrao: 'QUEBRADO', notasPorBatida: 1, oitava: 2, baixoPulsante: true } as const;
+const BB_ONDA = { baixo: 'Bb1', pad: ['Bb3', 'D4', 'F4', 'A4'], padrao: 'ONDA', notasPorBatida: 1, oitava: 2, baixoPulsante: true } as const;
+const BB_SUBINDO = { baixo: 'Bb1', pad: ['Bb3', 'C4', 'D4', 'F4'], padrao: 'SUBINDO', notasPorBatida: 2, oitava: 2, baixoPulsante: true } as const;
+const C_ONDA_ALTO = { baixo: 'C2', pad: ['G3', 'C4', 'E4', 'G4'], padrao: 'ONDA', notasPorBatida: 2, oitava: 2, baixoPulsante: true } as const;
+const C_SUBINDO_ALTO = { baixo: 'C2', pad: ['G3', 'C4', 'E4', 'G4'], padrao: 'SUBINDO', notasPorBatida: 1, oitava: 2, baixoPulsante: true } as const;
+
+const pares: Partial<Record<NomeCena, Par>> = {
+  dashboard: [F_SUBINDO, C_ONDA],
+  lancamentos: [DM_QUEBRADO, BB_ONDA],
+  contas: [BB_SUBINDO, C_ONDA_ALTO],
+  cartoes: [F_SUBINDO, C_QUEBRADO],
+  faturas: [DM_QUEBRADO, BB_ONDA],
+  parcelas: [BB_SUBINDO, C_ONDA_ALTO],
+  previsao: [BB_SUBINDO, C_ONDA_ALTO],
+  recorrentes: [F_SUBINDO, C_ONDA],
+  metas: [BB_ONDA, C_SUBINDO_ALTO],
+  investimentos: [F_SUBINDO, C_QUEBRADO],
+  relatorios: [DM_QUEBRADO, BB_ONDA],
+  avisos: [BB_SUBINDO, C_ONDA_ALTO],
+};
+
 const acordes: Acorde[] = [
-  { inicio: entradaMusica, baixo: 'F1', pad: ['A3', 'C4', 'F4', 'G4'], padrao: 'SUBINDO', notasPorBatida: 2, baixoPulsante: true },
-  { inicio: entradaMusica + 6 * BATIDA, baixo: 'C2', pad: ['G3', 'C4', 'E4', 'A4'], padrao: 'ONDA', notasPorBatida: 2, baixoPulsante: true },
-  { inicio: inicioCena('parcelas'), baixo: 'D2', pad: ['D4', 'F4', 'A4', 'C5'], padrao: 'QUEBRADO', notasPorBatida: 1, oitava: 2, baixoPulsante: true },
-  { inicio: inicioCena('parcelas') + 6 * BATIDA, baixo: 'Bb1', pad: ['Bb3', 'D4', 'F4', 'A4'], padrao: 'ONDA', notasPorBatida: 1, oitava: 2, baixoPulsante: true },
-  { inicio: saidaMusica, baixo: null, pad: [], padrao: 'SUBINDO', notasPorBatida: 0 },
-  { inicio: retornoMusica, baixo: 'Bb1', pad: ['Bb3', 'C4', 'D4', 'F4'], padrao: 'SUBINDO', notasPorBatida: 2, oitava: 2, baixoPulsante: true },
-  { inicio: retornoMusica + 6 * BATIDA, baixo: 'C2', pad: ['G3', 'C4', 'E4', 'G4'], padrao: 'ONDA', notasPorBatida: 2, oitava: 2, baixoPulsante: true },
-  { inicio: inicioCena('investimentos'), baixo: 'F1', pad: ['A3', 'C4', 'F4', 'G4'], padrao: 'SUBINDO', notasPorBatida: 2, baixoPulsante: true },
-  { inicio: inicioCena('investimentos') + 6 * BATIDA, baixo: 'C2', pad: ['G3', 'C4', 'E4', 'A4'], padrao: 'QUEBRADO', notasPorBatida: 2, baixoPulsante: true },
-  { inicio: inicioCena('metas'), baixo: 'Bb1', pad: ['Bb3', 'D4', 'F4', 'A4'], padrao: 'ONDA', notasPorBatida: 1, oitava: 2, baixoPulsante: true },
-  { inicio: inicioCena('metas') + 6 * BATIDA, baixo: 'C2', pad: ['G3', 'C4', 'E4', 'G4'], padrao: 'SUBINDO', notasPorBatida: 1, oitava: 2, baixoPulsante: true },
-  { inicio: inicioCena('confianca'), baixo: 'D2', pad: ['D4', 'F4', 'A4', 'C5'], padrao: 'QUEBRADO', notasPorBatida: 1, oitava: 2 },
-  { inicio: inicioConstrucao, baixo: 'C2', pad: ['E4', 'G4', 'C5', 'D5'], padrao: 'SUBINDO', notasPorBatida: 4 },
-  { inicio: final, baixo: 'F1', pad: ['A4', 'C5', 'E5', 'G5'], padrao: 'SUBINDO', notasPorBatida: 0 },
-];
+  ...Object.entries(pares).flatMap(([cena, par]) => {
+    const inicio = inicioCena(cena as NomeCena);
+    const [primeiro, segundo] = par as Par;
+    return [
+      { ...primeiro, inicio },
+      { ...segundo, inicio: inicio + 6 * BATIDA },
+    ];
+  }),
+  { inicio: saidaMusica, baixo: null, pad: [], padrao: 'SUBINDO' as const, notasPorBatida: 0 as const },
+  { inicio: inicioCena('confianca'), baixo: 'D2', pad: ['D4', 'F4', 'A4', 'C5'], padrao: 'QUEBRADO' as const, notasPorBatida: 1 as const, oitava: 2 as const },
+  { inicio: inicioConstrucao, baixo: 'C2', pad: ['E4', 'G4', 'C5', 'D5'], padrao: 'SUBINDO' as const, notasPorBatida: 4 as const },
+  { inicio: final, baixo: 'F1', pad: ['A4', 'C5', 'E5', 'G5'], padrao: 'SUBINDO' as const, notasPorBatida: 0 as const },
+].sort((a, b) => a.inicio - b.inicio);
 
 const ordensPadrao: Record<Padrao, number[]> = {
   SUBINDO: [0, 1, 2, 3, 2, 3, 1, 2],
@@ -159,7 +194,8 @@ function tocarBatida(tempo: number, ganho: number): void {
 for (let tempo = entradaMusica; tempo < saidaMusica - 0.01; tempo += 2 * BATIDA) tocarBatida(tempo, 0.36);
 for (let tempo = retornoMusica, indice = 0; tempo < inicioCena('confianca') - 0.01; tempo += 2 * BATIDA, indice += 1) {
   const nasMetas = tempo >= inicioCena('metas') - 0.01 && tempo < inicioCena('metas') + 6 * BATIDA;
-  if (!nasMetas || indice % 2 === 0) tocarBatida(tempo, 0.36);
+  const nosAvisos = tempo >= inicioCena('avisos') - 0.01 && tempo < inicioCena('avisos') + 4 * BATIDA;
+  if ((!nasMetas && !nosAvisos) || indice % 2 === 0) tocarBatida(tempo, 0.36);
 }
 for (let tempo = inicioConstrucao; tempo < final - 0.01; tempo += BATIDA) {
   tocarBatida(tempo, 0.2 + 0.18 * ((tempo - inicioConstrucao) / (final - inicioConstrucao)));
@@ -198,9 +234,14 @@ function automacaoFiltro(t: number): number {
   const pontos: [number, number][] = [
     [0, 1800],
     [entradaMusica, 4200],
+    [inicioCena('lancamentos'), 3400],
+    [inicioCena('cartoes'), 4200],
     [inicioCena('parcelas'), 3400],
     [saidaMusica, 1600],
     [retornoMusica, 4200],
+    [inicioCena('metas'), 3200],
+    [inicioCena('investimentos'), 4200],
+    [inicioCena('avisos'), 3000],
     [inicioCena('confianca'), 2600],
     [final, 8000],
     [DURACAO, 3500],
@@ -274,9 +315,9 @@ function curvaSaida(t: number): number {
   return bezier((inferior + superior) / 2, 1, 1);
 }
 
-function quadroAoCruzar(inicio: number, duracao: number, gasto: number, limite: number, proporcao: number): number | null {
-  for (let quadro = 0; quadro <= duracao; quadro += 0.25) {
-    if ((gasto * curvaSaida(quadro / duracao)) / limite >= proporcao) return inicio + quadro;
+function passoAoCruzar(inicio: number, duracao: number, gasto: number, limite: number, proporcao: number): number | null {
+  for (let passo = 0; passo <= duracao; passo += 0.25) {
+    if ((gasto * curvaSaida(passo / duracao)) / limite >= proporcao) return inicio + passo;
   }
   return null;
 }
@@ -299,25 +340,59 @@ function sinal(inicio: number, frequencias: number[], ganho: number, panorama: n
   );
 }
 
+function confirmacao(inicio: number, notas: string[], panorama: number): void {
+  sinal(inicio, notas.map(nota), 0.022, panorama, 0.16);
+}
+
+function clique(cena: NomeCena, passo: number, panorama = 0.15): void {
+  tocarCliqueBotao(efeitosSecos, segundos(cena, passo), 0.2, panorama);
+}
+
 tocarGrave(efeitos, segundos('abertura', abertura.marca), 0.3, 1.6);
 swellReverso(efeitos, segundos('abertura', abertura.marca), [nota('A4'), nota('E5')], 0.5, 0.02);
-abertura.faces.forEach((quadro, indice) => tocarToque(efeitosSecos, segundos('abertura', quadro), 0.06, 1.1 + indice * 0.12, -0.25 + indice * 0.25));
+abertura.faces.forEach((passo, indice) => tocarToque(efeitosSecos, segundos('abertura', passo), 0.06, 1.1 + indice * 0.12, -0.25 + indice * 0.25));
 
-gancho.portas.forEach((quadro, indice) => {
-  tocarToque(efeitosSecos, segundos('gancho', quadro), 0.065 + aleatorio() * 0.02, 0.95 + indice * 0.05 + aleatorio() * 0.04, -0.4 + indice * 0.2);
+gancho.portas.forEach((passo, indice) => {
+  tocarToque(efeitosSecos, segundos('gancho', passo), 0.065 + aleatorio() * 0.02, 0.95 + indice * 0.05 + aleatorio() * 0.04, -0.4 + indice * 0.2);
 });
 tocarGrave(efeitos, segundos('gancho', gancho.saldo), 0.16, 1.1);
 sinal(segundos('gancho', gancho.saldo) + 0.05, [nota('C6'), nota('F6')], 0.022, 0.1, 0.22);
 
-dashboard.indicadores.forEach((quadro, indice) => tocarToque(efeitosSecos, segundos('dashboard', quadro), 0.05 + aleatorio() * 0.015, 1.05 + indice * 0.07, -0.3 + indice * 0.2));
+dashboard.indicadores.forEach((passo, indice) => tocarToque(efeitosSecos, segundos('dashboard', passo), 0.05 + aleatorio() * 0.015, 1.05 + indice * 0.07, -0.3 + indice * 0.2));
 
-parcelas.pagamentos.forEach((quadro, indice) => {
-  tocarToque(efeitosSecos, segundos('parcelas', quadro), 0.055, 0.82 + indice * 0.1, -0.35 + indice * 0.12);
+DESCRICAO_LANCAMENTO.split('').forEach((letra, indice) => {
+  if (letra === ' ') return;
+  tocarTecla(efeitosSecos, segundos('lancamentos', passoDaLetra(indice)), 0.11, aleatorio(), 0.1 + (aleatorio() - 0.5) * 0.3);
 });
-parcelas.voos.forEach((quadro, indice) => {
-  tocarToque(efeitosSecos, segundos('parcelas', quadro), 0.045, 1.4 + aleatorio() * 0.1, -0.2);
-  sinal(segundos('parcelas', quadro + parcelas.duracaoVoo), [nota(['A5', 'C6', 'E6'][indice] ?? 'A5')], 0.026, -0.1 + indice * 0.2, 0.14);
+lancamentos.digitos.forEach((passo, indice) => {
+  tocarTecla(efeitosSecos, segundos('lancamentos', passo), 0.15, 0.3 + indice * 0.12 + aleatorio() * 0.05, 0.2);
 });
+clique('lancamentos', lancamentos.salvar, 0.25);
+tocarToque(efeitosSecos, segundos('lancamentos', lancamentos.novaLinha + 2), 0.045, 1.25, 0.1);
+confirmacao(segundos('lancamentos', lancamentos.notificacao + 2), ['A5', 'E6'], 0.3);
+
+contas.contas.forEach((passo, indice) => tocarToque(efeitosSecos, segundos('contas', passo), 0.05 + aleatorio() * 0.012, 1 + indice * 0.08, 0.1 + indice * 0.15));
+contas.equacao.forEach((passo, indice) => {
+  const ultimo = indice === contas.equacao.length - 1;
+  tocarToque(efeitosSecos, segundos('contas', passo), ultimo ? 0.06 : 0.04, 1.1 + indice * 0.09 + aleatorio() * 0.03, -0.2 + indice * 0.12);
+  if (ultimo) sinal(segundos('contas', passo) + 0.02, [nota('G5'), nota('C6')], 0.022, 0.25, 0.16);
+});
+
+cartoes.blocos.forEach((passo, indice) => tocarToque(efeitosSecos, segundos('cartoes', passo), 0.055, 0.95 + indice * 0.12, -0.3 + indice * 0.3));
+sinal(segundos('cartoes', cartoes.contaPagamento), [nota('F5'), nota('A5')], 0.024, -0.2, 0.15);
+
+clique('faturas', faturas.clique, 0.3);
+faturas.pagos.forEach((passo, indice) => {
+  tocarToque(efeitosSecos, segundos('faturas', passo), 0.05, 1.15 + indice * 0.14 + aleatorio() * 0.03, 0.15 + indice * 0.05);
+});
+sinal(segundos('faturas', faturas.selo), [nota('D6'), nota('F6')], 0.024, 0.3, 0.18);
+confirmacao(segundos('faturas', faturas.notificacao + 2), ['A5', 'D6'], 0.35);
+
+clique('parcelas', parcelas.clique, 0.3);
+const chegadaParcela = parcelas.pagamento + parcelas.duracaoPagamento * 0.6;
+sinal(segundos('parcelas', chegadaParcela), [nota('C6'), nota('E6')], 0.026, 0.1, 0.16);
+tocarGrave(efeitos, segundos('parcelas', chegadaParcela), 0.08, 0.7);
+confirmacao(segundos('parcelas', parcelas.notificacao + 2), ['G5', 'C6'], -0.3);
 
 const linhasOrcamento = [
   { gasto: 1180.4, limite: 1400 },
@@ -328,9 +403,9 @@ const linhasOrcamento = [
 linhasOrcamento.forEach(({ gasto, limite }, indice) => {
   const entrada = orcamento.linhas[indice] ?? 0;
   tocarToque(efeitosSecos, segundos('orcamento', entrada), 0.04, 1.2 + indice * 0.05, 0.2);
-  const alerta = quadroAoCruzar(entrada + 4, orcamento.duracaoBarra, gasto, limite, 0.8);
+  const alerta = passoAoCruzar(entrada + 4, orcamento.duracaoBarra, gasto, limite, 0.8);
   if (alerta !== null) sinal(segundos('orcamento', alerta), [nota('E5'), nota('C5')], 0.03, -0.15, 0.12);
-  const estouro = quadroAoCruzar(entrada + 4, orcamento.duracaoBarra, gasto, limite, 1);
+  const estouro = passoAoCruzar(entrada + 4, orcamento.duracaoBarra, gasto, limite, 1);
   if (estouro === null) return;
   tocarSeno({
     faixa: efeitos,
@@ -350,14 +425,46 @@ linhasOrcamento.forEach(({ gasto, limite }, indice) => {
 
 sinal(segundos('previsao', previsao.mesApertado), [nota('D5'), nota('Bb4')], 0.026, 0.2, 0.16);
 
-investimentos.legenda.forEach((quadro, indice) => tocarToque(efeitosSecos, segundos('investimentos', quadro), 0.04, 1.15 + indice * 0.08, -0.2 + indice * 0.15));
+recorrentes.cartoes.forEach((passo, indice) => tocarToque(efeitosSecos, segundos('recorrentes', passo), 0.035 + aleatorio() * 0.01, 1.05 + (indice % 3) * 0.08 + aleatorio() * 0.04, 0.1 + (indice % 2) * 0.25));
+clique('recorrentes', recorrentes.clique, 0.35);
+sinal(segundos('recorrentes', recorrentes.pausa + 2), [nota('E5'), nota('C5')], 0.024, 0.3, 0.14);
 
 const precosMeta = [2199, 2089.8, 2149, 1899];
-metas.pontos.forEach((quadro, indice) => {
+metas.pontos.forEach((passo, indice) => {
   const altura = ((precosMeta[indice] ?? 2000) - 1800) / 500;
-  tocarToque(efeitosSecos, segundos('metas', quadro), 0.06, 0.9 + altura * 0.5, -0.3 + indice * 0.2);
+  tocarToque(efeitosSecos, segundos('metas', passo), 0.06, 0.9 + altura * 0.5, -0.3 + indice * 0.2);
 });
 sinal(segundos('metas', metas.selo), [nota('C6'), nota('E6'), nota('G6')], 0.022, 0.25, 0.2);
+
+investimentos.legenda.forEach((passo, indice) => tocarToque(efeitosSecos, segundos('investimentos', passo), 0.04, 1.15 + indice * 0.08, -0.2 + indice * 0.15));
+
+const barrasPorRecorte = [4, 3, 6, 10];
+[relatorios.dados, ...relatorios.cliques].forEach((passo, recorte) => {
+  if (recorte > 0) clique('relatorios', passo, 0.3 - recorte * 0.08);
+  const partida = recorte === 0 ? passo : passo + relatorios.troca + 6;
+  const barras = barrasPorRecorte[recorte] ?? 4;
+  for (let indice = 0; indice < barras; indice += 2) {
+    tocarToque(efeitosSecos, segundos('relatorios', partida + indice * relatorios.intervaloBarras + 4), 0.026, 0.95 + recorte * 0.08 + indice * 0.03 + aleatorio() * 0.03, -0.25 + indice * 0.05);
+  }
+});
+
+tocarSeno({
+  faixa: efeitos,
+  inicio: segundos('avisos', avisos.sino),
+  duracao: 1.2,
+  frequencia: (t) => nota('A5') * (1 + 0.004 * Math.sin(t * 60)),
+  harmonicos: [
+    [1, 1],
+    [2.76, 0.18],
+  ],
+  envelope: percussivo(0.004, 0.32),
+  ganho: 0.022,
+  panorama: 0.3,
+});
+tocarToque(efeitosSecos, segundos('avisos', avisos.contador), 0.06, 1.35, 0.3);
+avisos.itens.forEach((passo, indice) => tocarToque(efeitosSecos, segundos('avisos', passo), 0.035 + aleatorio() * 0.01, 1.1 + indice * 0.06, 0.15 - indice * 0.1));
+sinal(segundos('avisos', avisos.destaque), [nota('E5'), nota('A5')], 0.022, -0.1, 0.14);
+
 
 tocarGrave(efeitos, final, 0.28, 2.2);
 sinal(segundos('encerramento', encerramento.fechoSlogan), [nota('C6'), nota('A6')], 0.022, 0.2, 0.7);

@@ -84,7 +84,7 @@ export function PaginaInvestimentos() {
 
     try {
       await investimentosService.adicionarAporte(investment.id, payload);
-      toast.sucesso('Aporte adicionado com sucesso!', `${investment.nome} · ${formatarMoeda(payload.valor)}`);
+      toast.sucesso('Aporte adicionado com sucesso!', `${investment.nome} — ${formatarMoeda(payload.valor)}`);
       recarregar();
       atualizarAvisos();
       setDetailVersion((value) => value + 1);
@@ -102,7 +102,7 @@ export function PaginaInvestimentos() {
 
     try {
       await investimentosService.atualizarSaldo(investment.id, payload);
-      toast.sucesso('Saldo atualizado com sucesso!', `${investment.nome} · ${formatarMoeda(payload.valorAtual)}`);
+      toast.sucesso('Saldo atualizado com sucesso!', `${investment.nome} — ${formatarMoeda(payload.valorAtual)}`);
       recarregar();
       atualizarAvisos();
       setDetailVersion((value) => value + 1);

@@ -1,5 +1,5 @@
 import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react';
-import type { VariacaoDTO } from '@/types';
+import type { Tendencia, VariacaoDTO } from '@/types';
 import { juntarClasses } from '@/utils/juntarClasses';
 import { formatarPercentualComSinal } from '@/utils/formatacao';
 import styles from './IndicadorVariacao.module.css';
@@ -7,11 +7,13 @@ import styles from './IndicadorVariacao.module.css';
 export interface IndicadorVariacaoProps {
   variacao: VariacaoDTO;
   legenda?: string;
+  sentidoFavoravel?: Exclude<Tendencia, 'ESTAVEL'>;
 }
 
-export function IndicadorVariacao({ variacao, legenda }: IndicadorVariacaoProps) {
+export function IndicadorVariacao({ variacao, legenda, sentidoFavoravel = 'ALTA' }: IndicadorVariacaoProps) {
   const Icon = variacao.tendencia === 'ALTA' ? ArrowUpRight : variacao.tendencia === 'BAIXA' ? ArrowDownRight : Minus;
-  const tone = variacao.tendencia === 'ESTAVEL' ? 'flat' : variacao.tendencia === 'ALTA' ? 'good' : 'bad';
+  const tone =
+    variacao.tendencia === 'ESTAVEL' ? 'flat' : variacao.tendencia === sentidoFavoravel ? 'good' : 'bad';
 
   return (
     <span className={juntarClasses(styles.delta, styles[tone])}>

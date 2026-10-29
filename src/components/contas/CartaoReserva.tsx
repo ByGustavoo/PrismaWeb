@@ -36,7 +36,7 @@ export function CartaoReserva({ evolucao, aoAbrir, aoExcluir }: CartaoReservaPro
             <span className={styles.meta}>
               {account.instituicao}
               <span className={styles.separator} aria-hidden="true">
-                ·
+                —
               </span>
               {rotuloTipoConta[account.tipo]}
             </span>

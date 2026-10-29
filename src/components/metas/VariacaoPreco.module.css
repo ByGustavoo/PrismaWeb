@@ -1,7 +1,8 @@
 .delta {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: baseline;
-  gap: var(--space-2);
+  gap: var(--space-1) var(--space-2);
   font-size: var(--fs-sm);
   font-weight: 500;
 }
@@ -13,7 +14,7 @@
 
 .sm {
   font-size: var(--fs-xs);
-  gap: var(--space-1);
+  column-gap: var(--space-1);
 }
 
 .down {
@@ -32,8 +33,38 @@
   white-space: nowrap;
 }
 
-.percent {
-  font-size: 0.92em;
-  font-weight: 500;
-  opacity: 0.85;
+.amount > :first-child {
+  font-size: 1em;
+}
+
+.delta .percent {
+  padding: 1px 6px;
+}
+
+.sm .percent {
+  margin-left: var(--space-1);
+}
+
+.caption {
+  color: var(--text-subtle);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.captionBelow {
+  flex-basis: 100%;
+}
+
+.separator {
+  margin-right: var(--space-2);
+}
+
+@media (max-width: 599px) {
+  .caption {
+    flex-basis: 100%;
+  }
+
+  .separator {
+    display: none;
+  }
 }

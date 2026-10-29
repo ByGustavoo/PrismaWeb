@@ -265,7 +265,7 @@ export function PaginaContas() {
           <>
             <strong className={styles.confirmTitle}>{removing.nome}</strong>
             <span className={styles.confirmMeta}>
-              {removing.instituicao} · {rotuloTipoConta[removing.tipo]}
+              {removing.instituicao} — {rotuloTipoConta[removing.tipo]}
             </span>
             <ValorMonetario valor={removing.saldo} />
           </>

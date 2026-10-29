@@ -1,6 +1,6 @@
 import { CreditCard, Landmark, Layers, Repeat, UtensilsCrossed } from 'lucide-react';
-import { AbsoluteFill, interpolate, useCurrentFrame } from 'remotion';
-import { curvaEntradaSaida, estiloTransicaoCena, misturar, mola, progresso } from '../animacao';
+import { AbsoluteFill, interpolate } from 'remotion';
+import { curvaEntradaSaida, estiloTransicaoCena, misturar, mola, progresso, usePasso } from '../animacao';
 import { ValorMonetario } from '../componentes/Interface';
 import { Sobretitulo } from '../componentes/Sobretitulo';
 import { TextoRevelado } from '../componentes/TextoRevelado';
@@ -10,7 +10,7 @@ import { cores, fontes } from '../tema';
 const portas = [
   { icone: Landmark, origem: 'Conta corrente', descricao: 'Aluguel', valor: -1850 },
   { icone: CreditCard, origem: 'Cartão de crédito', descricao: 'Fatura de outubro', valor: -2346.9 },
-  { icone: Layers, origem: 'Parcela 3 de 12', descricao: 'Notebook', valor: -299.83 },
+  { icone: Layers, origem: 'Parcela 7 de 10', descricao: 'Notebook', valor: -540 },
   { icone: Repeat, origem: 'Recorrente', descricao: 'Academia', valor: -119.9 },
   { icone: UtensilsCrossed, origem: 'Vale-refeição', descricao: 'Almoço', valor: -42 },
 ];
@@ -29,15 +29,15 @@ const estiloTitulo = {
 };
 
 export function Gancho() {
-  const quadro = useCurrentFrame();
-  const convergencia = progresso(quadro, gancho.convergencia, 14, curvaEntradaSaida);
-  const saldo = mola(quadro, gancho.saldo, 150, 15);
-  const valorSaldo = interpolate(quadro, [gancho.saldo, gancho.saldo + 18], [0, SALDO_ATUAL], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  const passo = usePasso();
+  const convergencia = progresso(passo, gancho.convergencia, 14, curvaEntradaSaida);
+  const saldo = mola(passo, gancho.saldo, 150, 15);
+  const valorSaldo = interpolate(passo, [gancho.saldo, gancho.saldo + 18], [0, SALDO_ATUAL], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
   return (
     <AbsoluteFill
       style={{
-        ...estiloTransicaoCena(quadro, cenas.gancho.duracao),
+        ...estiloTransicaoCena(passo, cenas.gancho.duracao),
         alignItems: 'center',
         justifyContent: 'center',
         flexDirection: 'column',
@@ -51,7 +51,7 @@ export function Gancho() {
       </div>
       <div style={{ position: 'relative', width: portas.length * LARGURA_PORTA + (portas.length - 1) * VAO, height: 170, marginTop: 20 }}>
         {portas.map(({ icone: Icone, origem, descricao, valor }, indice) => {
-          const entrada = mola(quadro, gancho.portas[indice] ?? 0, 160, 15);
+          const entrada = mola(passo, gancho.portas[indice] ?? 0, 160, 15);
           const deslocamento = (indice - (portas.length - 1) / 2) * (LARGURA_PORTA + VAO);
           return (
             <div
@@ -102,7 +102,7 @@ export function Gancho() {
             borderRadius: 26,
             background: cores.superficie,
             border: `1.5px solid ${cores.destaque}`,
-            boxShadow: `0 0 0 6px rgba(124, 154, 255, ${(0.15 + 0.07 * Math.sin((quadro - gancho.saldo) / 9)) * saldo}), 0 40px 80px -30px rgba(0, 0, 0, 0.85)`,
+            boxShadow: `0 0 0 6px rgba(124, 154, 255, ${(0.15 + 0.07 * Math.sin((passo - gancho.saldo) / 9)) * saldo}), 0 40px 80px -30px rgba(0, 0, 0, 0.85)`,
             fontFamily: fontes.texto,
             opacity: saldo,
             transform: `scale(${misturar(0.6, 1, saldo)})`,

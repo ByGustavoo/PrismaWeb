@@ -124,7 +124,7 @@ export function ModalFormularioLancamento({
     () =>
       origens
         .filter((item) => (isExpense ? true : item.grupo === 'CONTA'))
-        .map((item) => ({ valor: item.id, rotulo: item.grupo === 'CARTAO' ? `${item.nome} · cartão` : item.nome,
+        .map((item) => ({ valor: item.id, rotulo: item.grupo === 'CARTAO' ? `${item.nome} — Cartão` : item.nome,
         })),
     [origens, isExpense],
   );

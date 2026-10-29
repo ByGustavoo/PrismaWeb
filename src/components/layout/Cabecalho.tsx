@@ -5,6 +5,7 @@ import { Bell, Menu, Moon, Plus, Search, Sun } from 'lucide-react';
 import { Botao } from '@/components/ui';
 import { AVISOS_MAXIMO_NO_CONTADOR } from '@/constants/avisos';
 import { useEhMobile } from '@/hooks/useConsultaMidia';
+import { useTelas } from '@/providers/ProvedorTelas';
 import { useTema } from '@/providers/ProvedorTema';
 import { PARAMETRO_NOVO_LANCAMENTO, caminhos } from '@/routes/caminhos';
 import { BuscaGlobal } from './BuscaGlobal';
@@ -19,7 +20,7 @@ interface CabecalhoProps {
 
 function rotuloAvisos(quantidade: number): string {
   if (quantidade === 0) return 'Avisos';
-  return quantidade === 1 ? 'Avisos (1 aviso)' : `Avisos (${quantidade} avisos)`;
+  return quantidade === 1 ? 'Avisos (1 novo)' : `Avisos (${quantidade} novos)`;
 }
 
 function textoContador(quantidade: number): string {
@@ -46,7 +47,9 @@ export function Cabecalho({ aoAbrirMenu }: CabecalhoProps) {
 
   const showPeriodSwitcher = location.pathname === caminhos.dashboard && !isMobile;
 
-  const pageOwnsControls = location.pathname.startsWith(caminhos.lancamentos);
+  const { estaOculto } = useTelas();
+  const transactionsHidden = estaOculto(caminhos.lancamentos);
+  const pageOwnsControls = location.pathname.startsWith(caminhos.lancamentos) && !estaOculto(location.pathname);
 
   const countText = textoContador(alertCount);
 
@@ -61,12 +64,14 @@ export function Cabecalho({ aoAbrirMenu }: CabecalhoProps) {
 
         {pageOwnsControls ? (
           <div id={ID_ESPACO_CABECALHO} className={styles.slot} />
+        ) : transactionsHidden ? (
+          <div className={styles.slot} />
         ) : (
           <BuscaGlobal expandido={searchOpen} aoRecolher={closeSearch} />
         )}
 
         <div className={styles.actions}>
-          {pageOwnsControls ? null : (
+          {pageOwnsControls || transactionsHidden ? null : (
             <button
               type="button"
               className={`${styles.iconButton} ${styles.searchButton}`}
@@ -114,7 +119,7 @@ export function Cabecalho({ aoAbrirMenu }: CabecalhoProps) {
             <PainelAvisos aberto={alertsOpen} aoFechar={closeAlerts} aoMudarQuantidade={setAlertCount} />
           </div>
 
-          {pageOwnsControls ? null : (
+          {pageOwnsControls || transactionsHidden ? null : (
             <Botao
               className={styles.newButton}
               tamanho="sm"
