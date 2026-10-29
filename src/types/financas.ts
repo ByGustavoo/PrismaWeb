@@ -23,6 +23,11 @@ export interface ParcelaLancamentoDTO {
   total: number;
 }
 
+export interface InvestimentoLancamentoDTO {
+  idInvestimento: ID;
+  tipo: TipoMovimentacaoInvestimento;
+}
+
 export interface LancamentoDTO {
   id: ID;
   descricao: string;
@@ -37,6 +42,7 @@ export interface LancamentoDTO {
   idContaDestino?: ID;
   nomeContaDestino?: string;
   parcela?: ParcelaLancamentoDTO;
+  investimento?: InvestimentoLancamentoDTO;
   observacoes?: string;
 }
 
@@ -61,9 +67,7 @@ export interface OrigemDTO {
   grupo: GrupoOrigem;
 }
 
-export type TipoConta = 'CORRENTE' | 'SALARIO' | 'EMERGENCIA' | 'POUPANCA' | 'PREVIDENCIA' | 'OUTRA';
-
-export type FinalidadeConta = 'MOVIMENTACAO' | 'RESERVA';
+export type TipoConta = 'CORRENTE' | 'SALARIO' | 'OUTRA';
 
 export type Situacao = 'ATIVO' | 'INATIVO';
 
@@ -75,31 +79,6 @@ export interface ContaDTO {
   saldo: number;
   situacao: Situacao;
   incluirNoTotal: boolean;
-}
-
-export type TipoMovimentacaoConta = 'APORTE' | 'RESGATE' | 'RENDIMENTO';
-
-export interface MovimentacaoContaDTO {
-  id: ID;
-  tipo: TipoMovimentacaoConta;
-  data: string;
-  descricao: string;
-  valor: number;
-  saldoApos: number;
-}
-
-export interface EvolucaoContaDTO {
-  conta: ContaDTO;
-  finalidade: FinalidadeConta;
-  dataInicial: string;
-  saldoInicial: number;
-  aportes: number;
-  resgates: number;
-  rendimentos: number;
-  saldoAtual: number;
-  rentabilidade: number;
-  evolucao: PontoEvolucaoDTO[];
-  movimentacoes: MovimentacaoContaDTO[];
 }
 
 export interface SalvarContaDTO {
@@ -240,6 +219,7 @@ export type ClasseAtivo =
   | 'CDB'
   | 'RDB'
   | 'TESOURO'
+  | 'POUPANCA'
   | 'PREVIDENCIA'
   | 'ACOES'
   | 'ETF'
@@ -252,6 +232,7 @@ export interface InvestimentoDTO {
   nome: string;
   classeAtivo: ClasseAtivo;
   instituicao: string;
+  reservaEmergencia: boolean;
   aportado: number;
   valorAtual: number;
   dataInicio: string;
@@ -266,6 +247,8 @@ export interface SalvarInvestimentoDTO {
   aportado: number;
   valorAtual: number;
   dataInicio: string;
+  reservaEmergencia: boolean;
+  idConta?: ID;
   observacoes?: string;
 }
 
@@ -273,10 +256,11 @@ export interface AtualizarInvestimentoDTO {
   nome: string;
   classeAtivo: ClasseAtivo;
   instituicao: string;
+  reservaEmergencia: boolean;
   observacoes?: string;
 }
 
-export type TipoMovimentacaoInvestimento = 'APORTE' | 'RENDIMENTO';
+export type TipoMovimentacaoInvestimento = 'APORTE' | 'RESGATE' | 'RENDIMENTO';
 
 export interface MovimentacaoInvestimentoDTO {
   id: ID;
@@ -285,13 +269,30 @@ export interface MovimentacaoInvestimentoDTO {
   valor: number;
   saldoApos: number;
   aportadoApos: number;
+  idConta?: ID;
+  nomeConta?: string;
   descricao?: string;
 }
 
 export interface SalvarAporteInvestimentoDTO {
   valor: number;
   data: string;
+  idConta?: ID;
   descricao?: string;
+}
+
+export interface SalvarResgateInvestimentoDTO {
+  valor: number;
+  data: string;
+  idConta?: ID;
+  descricao?: string;
+}
+
+export interface ReservaEmergenciaDTO {
+  aportado: number;
+  valorAtual: number;
+  rendimento: number;
+  quantidade: number;
 }
 
 export interface SalvarSaldoInvestimentoDTO {
@@ -337,6 +338,7 @@ export interface CarteiraDTO {
   rendimento: number;
   rentabilidade: number;
   variacaoValorAtual: VariacaoDTO;
+  reserva: ReservaEmergenciaDTO;
   alocacao: AlocacaoDTO[];
   historico: PontoEvolucaoDTO[];
   posicoes: PosicaoDTO[];
@@ -444,6 +446,8 @@ export interface DashboardDTO {
   variacaoDespesas: VariacaoDTO;
   totalInvestido: number;
   variacaoInvestimentos: VariacaoDTO;
+  patrimonio: number;
+  variacaoPatrimonio: VariacaoDTO;
   faturaAtual: FaturaDTO | null;
   historicoSaldo: SaldoDTO[];
   fluxoCaixa: FluxoDTO[];

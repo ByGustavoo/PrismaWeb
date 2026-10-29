@@ -9,6 +9,8 @@ interface PainelSaldoProps {
   rotulo: string;
   saldo: number;
   variacao: VariacaoDTO;
+  patrimonio: number;
+  variacaoPatrimonio: VariacaoDTO;
   entradas: number;
   saidas: number;
   substantivoPeriodo: string;
@@ -19,6 +21,8 @@ export function PainelSaldo({
   rotulo,
   saldo,
   variacao,
+  patrimonio,
+  variacaoPatrimonio,
   entradas,
   saidas,
   substantivoPeriodo,
@@ -40,6 +44,17 @@ export function PainelSaldo({
         <p className={styles.label}>{rotulo}</p>
         <ValorMonetario valor={saldo} tamanho="display" animar contarAoAparecer />
         <IndicadorVariacao variacao={variacao} legenda={`em relação ao ${substantivoPeriodo} anterior`} />
+
+        <div className={styles.wealth}>
+          <div className={styles.wealthText}>
+            <span className={styles.wealthLabel}>Patrimônio</span>
+            <span className={styles.wealthHint}>Saldo somado aos investimentos</span>
+          </div>
+          <div className={styles.wealthFigure}>
+            <ValorMonetario valor={patrimonio} tamanho="md" animar contarAoAparecer />
+            <IndicadorVariacao variacao={variacaoPatrimonio} />
+          </div>
+        </div>
 
         <dl className={styles.flows}>
           <div className={styles.flow}>

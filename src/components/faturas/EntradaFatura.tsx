@@ -3,7 +3,7 @@ import { ValorMonetario } from '@/components/comum';
 import { Selo, Botao } from '@/components/ui';
 import { rotuloDaFatura, tomDaFatura } from '@/components/cartoes/aparencia';
 import type { FaturaCartaoDTO } from '@/types';
-import { capitalizar, formatarRotuloVencimento, formatarDataCompleta, formatarRotuloMes, formatarDataCurta } from '@/utils/formatacao';
+import { capitalizar, formatarRotuloVencimento, formatarDataCompleta, formatarRotuloMes } from '@/utils/formatacao';
 import styles from './EntradaFatura.module.css';
 
 interface EntradaFaturaProps {
@@ -39,13 +39,13 @@ export function DestaqueFatura({ fatura, aoAbrir }: EntradaFaturaProps) {
       {fatura.valorPago > 0 ? (
         <span className={styles.paid}>
           <Check size={14} strokeWidth={2.5} aria-hidden="true" />
-          <span>
+          <span className={styles.paidPart}>
             <ValorMonetario valor={fatura.valorPago} tamanho="sm" tom="positive" /> já pago
           </span>
           <span className={styles.separator} aria-hidden="true">
             —
           </span>
-          <span>
+          <span className={styles.paidPart}>
             Falta <ValorMonetario valor={fatura.valorRestante} tamanho="sm" />
           </span>
         </span>
@@ -54,12 +54,15 @@ export function DestaqueFatura({ fatura, aoAbrir }: EntradaFaturaProps) {
       {changed && difference !== undefined ? (
         <span className={styles.compare}>
           {difference > 0 ? (
-            <ArrowUpRight size={14} strokeWidth={2.25} aria-hidden="true" />
+            <ArrowUpRight className={styles.compareUp} size={14} strokeWidth={2.25} aria-hidden="true" />
           ) : (
-            <ArrowDownRight size={14} strokeWidth={2.25} aria-hidden="true" />
+            <ArrowDownRight className={styles.compareDown} size={14} strokeWidth={2.25} aria-hidden="true" />
           )}
           <ValorMonetario valor={Math.abs(difference)} tamanho="sm" tom="muted" />
-          {difference > 0 ? 'acima da fatura anterior' : 'abaixo da fatura anterior'}
+          <span className={styles.separator} aria-hidden="true">
+            —
+          </span>
+          {difference > 0 ? 'Acima da fatura anterior' : 'Abaixo da fatura anterior'}
         </span>
       ) : null}
 
@@ -108,10 +111,10 @@ export function LinhaFatura({ fatura, aoAbrir }: EntradaFaturaProps) {
 
         <span className={styles.rowDates}>
           <span>
-            Fecha <span className="tabular">{formatarDataCurta(fatura.dataFechamento)}</span>
+            Fecha <span className="tabular">{formatarDataCompleta(fatura.dataFechamento)}</span>
           </span>
           <span>
-            Vence <span className="tabular">{formatarDataCurta(fatura.dataVencimento)}</span>
+            Vence <span className="tabular">{formatarDataCompleta(fatura.dataVencimento)}</span>
           </span>
         </span>
 

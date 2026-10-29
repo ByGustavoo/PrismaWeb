@@ -28,6 +28,7 @@ import { useTelas } from '@/providers/ProvedorTelas';
 import {
   caminhos,
   PARAMETRO_COMPRA,
+  PARAMETRO_INVESTIMENTO,
   PARAMETRO_CONTA,
   PARAMETRO_CATEGORIA,
   PARAMETRO_EDITAR_LANCAMENTO,
@@ -119,6 +120,13 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
       if (transaction.parcela) {
         if (!estaOculto(caminhos.parcelamentos)) {
           navigate(`${caminhos.parcelamentos}?${PARAMETRO_COMPRA}=${transaction.parcela.idCompra}`);
+        }
+        return;
+      }
+
+      if (transaction.investimento) {
+        if (!estaOculto(caminhos.investimentos)) {
+          navigate(`${caminhos.investimentos}?${PARAMETRO_INVESTIMENTO}=${transaction.investimento.idInvestimento}`);
         }
         return;
       }

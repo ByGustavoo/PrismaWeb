@@ -153,8 +153,20 @@
   align-items: start;
 }
 
+.registerFieldsWithAccount {
+  grid-template-columns: minmax(130px, 1fr) minmax(140px, 1fr) minmax(0, 1.4fr);
+}
+
+.registerFieldsWithAccount .note {
+  grid-column: span 2;
+}
+
 .registerButton {
   margin-top: 25px;
+}
+
+.registerFieldsWithAccount .registerButton {
+  justify-self: start;
 }
 
 .preview {
@@ -179,9 +191,14 @@
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 
-  .note,
+  .registerFields .account,
+  .registerFields .note,
   .registerButton {
     grid-column: 1 / -1;
+  }
+
+  .registerFieldsWithAccount .registerButton {
+    justify-self: stretch;
   }
 
   .registerButton {
@@ -193,7 +210,9 @@
   }
 
   .segment {
-    flex: 1;
+    flex: 1 1 auto;
     min-height: var(--tap-size);
+    padding: 0 var(--space-2);
+    white-space: nowrap;
   }
 }

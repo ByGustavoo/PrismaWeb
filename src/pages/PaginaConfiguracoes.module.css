@@ -87,7 +87,7 @@
 
 .detailRow {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: var(--space-4);
   padding-bottom: var(--space-3);
@@ -124,8 +124,16 @@
   color: var(--text);
 }
 
+.versionSeparator {
+  color: var(--text-subtle);
+}
+
 .versionMeta {
   color: var(--text-muted);
+}
+
+.versionDate {
+  white-space: nowrap;
 }
 
 .retry {

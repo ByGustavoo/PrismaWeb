@@ -1,8 +1,8 @@
-import { ArrowRight, ArrowUpDown, ChevronDown, ChevronUp, Layers, Pencil, Trash2 } from 'lucide-react';
+import { ArrowRight, ArrowUpDown, ChevronDown, ChevronUp, Layers, Pencil, Trash2, TrendingUp } from 'lucide-react';
 import { ValorMonetario } from '@/components/comum';
 import { Selo, Botao, CorpoTabela, CabecaTabela, Tabela, ContainerTabela, Celula, CelulaCabecalho, LinhaTabela } from '@/components/ui';
 import { corDaPaleta } from '@/constants/cores';
-import { NOTA_PAGAMENTO_PARCELA, rotuloTipoLancamento, rotuloSituacaoLancamento } from '@/constants/lancamentos';
+import { notaLancamentoGerado, rotuloTipoLancamento, rotuloSituacaoLancamento } from '@/constants/lancamentos';
 import type { LancamentoDTO } from '@/types';
 import { formatarDataCurta } from '@/utils/formatacao';
 import { classePorTipo, iconePorTipo, sinalPorTipo, tomPorTipo, tomPorSituacao } from './aparencia';
@@ -91,6 +91,7 @@ export function TabelaLancamentos({
 
         <CorpoTabela>
           {lancamentos.map((transaction) => {
+            const generatedNote = notaLancamentoGerado(transaction);
             const Icon = iconePorTipo[transaction.tipo];
 
             return (
@@ -104,7 +105,7 @@ export function TabelaLancamentos({
                     onClick={() => aoEditar(transaction)}
                   >
                     <span className={styles.description}>{transaction.descricao}</span>
-                    {transaction.parcela ? <span className={styles.notes}>{NOTA_PAGAMENTO_PARCELA}</span> : null}
+                    {generatedNote ? <span className={styles.notes}>{generatedNote}</span> : null}
                     {transaction.observacoes ? <span className={styles.notes}>{transaction.observacoes}</span> : null}
                   </button>
                 </Celula>
@@ -169,6 +170,15 @@ export function TabelaLancamentos({
                         icone={Layers}
                         aria-label={`Ver as parcelas de ${transaction.descricao}`}
                         title="Ver as parcelas da compra"
+                        onClick={() => aoEditar(transaction)}
+                      />
+                    ) : transaction.investimento ? (
+                      <Botao
+                        variante="ghost"
+                        tamanho="sm"
+                        icone={TrendingUp}
+                        aria-label={`Ver o investimento de ${transaction.descricao}`}
+                        title="Ver o investimento"
                         onClick={() => aoEditar(transaction)}
                       />
                     ) : (

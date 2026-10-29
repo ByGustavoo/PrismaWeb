@@ -10,11 +10,11 @@ export function GraficoCarteira({ dados }: GraficoCarteiraProps) {
   return (
     <Painel className="card-hover-accent">
       <CabecalhoPainel
-        titulo="Evolução do patrimônio"
-        descricao="Patrimônio acumulado e total aportado nos últimos doze meses"
+        titulo="Evolução da carteira"
+        descricao="Valor da carteira e total aportado nos últimos doze meses"
       />
       <CorpoPainel>
-        <GraficoEvolucao dados={dados} />
+        <GraficoEvolucao dados={dados} rotuloValor="Carteira" />
       </CorpoPainel>
     </Painel>
   );

@@ -83,9 +83,15 @@ export function formatarPercentual(value: number, fractionDigits = 1): string {
   return `${value.toFixed(fractionDigits).replace('.', ',')}%`;
 }
 
+export function formatarPartesPercentualComSinal(value: number): { sinal: string; numero: string } {
+  const rounded = Number(value.toFixed(1));
+  const sinal = rounded > 0 ? '+' : rounded < 0 ? '−' : '';
+  return { sinal, numero: formatarPercentual(Math.abs(rounded)) };
+}
+
 export function formatarPercentualComSinal(value: number): string {
-  const sign = value > 0 ? '+' : '';
-  return `${sign}${formatarPercentual(value)}`;
+  const { sinal, numero } = formatarPartesPercentualComSinal(value);
+  return sinal + numero;
 }
 
 export function formatarDataCurta(isoDate: string): string {
@@ -99,8 +105,15 @@ export function formatarDataCurta(isoDate: string): string {
   return date.getFullYear() === new Date().getFullYear() ? dayAndMonth : `${dayAndMonth} de ${date.getFullYear()}`;
 }
 
+function formatarDataPorExtenso(date: Date): string {
+  return formatadorDataCompleta
+    .formatToParts(date)
+    .map((part) => (part.type === 'month' ? capitalizar(part.value) : part.value))
+    .join('');
+}
+
 export function formatarDataCompleta(isoDate: string): string {
-  return formatadorDataCompleta.format(deDataISO(isoDate));
+  return formatarDataPorExtenso(deDataISO(isoDate));
 }
 
 export function formatarVersao(versao: string): string {
@@ -109,7 +122,7 @@ export function formatarVersao(versao: string): string {
 
 export function formatarInstanteCompleto(instante: string): string | null {
   const data = new Date(instante);
-  return Number.isNaN(data.getTime()) ? null : formatadorDataCompleta.format(data);
+  return Number.isNaN(data.getTime()) ? null : formatarDataPorExtenso(data);
 }
 
 export function formatarDataNumerica(isoDate: string): string {

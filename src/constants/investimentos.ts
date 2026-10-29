@@ -1,4 +1,4 @@
-import { Bitcoin, Boxes, Building2, CandlestickChart, Coins, Landmark, LineChart, PiggyBank, Sprout, Wallet } from 'lucide-react';
+import { Bitcoin, Boxes, Building2, CandlestickChart, Coins, HandCoins, Landmark, LineChart, PiggyBank, Sprout, Wallet } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { ClasseAtivo, TokenCor } from '@/types';
 
@@ -7,6 +7,7 @@ export const rotuloClasseAtivo: Record<ClasseAtivo, string> = {
   CDB: 'CDB',
   RDB: 'RDB e caixinhas',
   TESOURO: 'Tesouro',
+  POUPANCA: 'Poupança',
   PREVIDENCIA: 'Previdência privada',
   ACOES: 'Ações',
   ETF: 'ETFs',
@@ -20,6 +21,7 @@ export const classesAtivo: ClasseAtivo[] = [
   'CDB',
   'RDB',
   'TESOURO',
+  'POUPANCA',
   'PREVIDENCIA',
   'ACOES',
   'ETF',
@@ -33,6 +35,7 @@ export const corClasseAtivo: Record<ClasseAtivo, TokenCor> = {
   CDB: 2,
   RDB: 7,
   TESOURO: 5,
+  POUPANCA: 12,
   PREVIDENCIA: 10,
   ACOES: 4,
   ETF: 11,
@@ -43,6 +46,7 @@ export const corClasseAtivo: Record<ClasseAtivo, TokenCor> = {
 
 export const dicaClasseAtivo: Partial<Record<ClasseAtivo, string>> = {
   RDB: 'Caixinhas e cofrinhos de bancos digitais costumam ser RDBs com resgate a qualquer momento — boas para reservas.',
+  POUPANCA: 'Rende todo mês no aniversário da aplicação. Atualize o saldo quando conferir o extrato.',
   PREVIDENCIA: 'PGBL ou VGBL. Registre as contribuições como aportes e atualize o saldo quando consultar o extrato.',
 };
 
@@ -51,6 +55,7 @@ export const iconeClasseAtivo: Record<ClasseAtivo, LucideIcon> = {
   CDB: Landmark,
   RDB: Wallet,
   TESOURO: Building2,
+  POUPANCA: HandCoins,
   PREVIDENCIA: Sprout,
   ACOES: CandlestickChart,
   ETF: LineChart,

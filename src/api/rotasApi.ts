@@ -14,9 +14,7 @@ export const rotasApi = {
     listar: '/contas',
     criar: '/contas',
     origens: '/contas/origens',
-    reservas: '/contas/reservas',
     porId: (id: string) => `/contas/${id}`,
-    evolucao: (id: string) => `/contas/${id}/evolucao`,
   },
   cartoes: {
     listar: '/cartoes',
@@ -40,6 +38,7 @@ export const rotasApi = {
     carteira: '/investimentos/carteira',
     extrato: (id: string) => `/investimentos/${id}/extrato`,
     aportes: (id: string) => `/investimentos/${id}/aportes`,
+    resgates: (id: string) => `/investimentos/${id}/resgates`,
     saldos: (id: string) => `/investimentos/${id}/saldos`,
   },
   orcamentos: {

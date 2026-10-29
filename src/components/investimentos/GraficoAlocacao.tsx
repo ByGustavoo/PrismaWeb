@@ -26,7 +26,7 @@ export function GraficoAlocacao({ dados, total }: GraficoAlocacaoProps) {
 
   return (
     <Painel className="card-hover-accent">
-      <CabecalhoPainel titulo="Distribuição por tipo" descricao="Participação de cada classe no patrimônio atual" />
+      <CabecalhoPainel titulo="Distribuição por tipo" descricao="Participação de cada classe no valor atual da carteira" />
       <CorpoPainel className={styles.body}>
         <div className={styles.chart} onMouseLeave={() => setPrevia(null)}>
           <ResponsiveContainer width="100%" height="100%">
@@ -67,7 +67,7 @@ export function GraficoAlocacao({ dados, total }: GraficoAlocacaoProps) {
                 </>
               ) : (
                 <>
-                  <span className={styles.centerLabel}>Patrimônio</span>
+                  <span className={styles.centerLabel}>Carteira</span>
                   <ValorMonetario valor={total} tamanho="md" />
                 </>
               )}
