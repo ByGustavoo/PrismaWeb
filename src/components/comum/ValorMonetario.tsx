@@ -19,9 +19,9 @@ export interface ValorMonetarioProps {
 
 function resolverSinal(value: number, sign: ValorMonetarioProps['sinal']): string {
   if (sign === 'plus') return '+';
-  if (sign === 'minus') return '-';
-  if (sign === 'auto') return value > 0 ? '+' : value < 0 ? '-' : '';
-  return value < 0 ? '-' : '';
+  if (sign === 'minus') return '−';
+  if (sign === 'auto') return value > 0 ? '+' : value < 0 ? '−' : '';
+  return value < 0 ? '−' : '';
 }
 
 export function ValorMonetario({
@@ -40,9 +40,11 @@ export function ValorMonetario({
 
   return (
     <span className={juntarClasses(styles.amount, styles[tom], styles[tamanho], className)}>
-      <span className={styles.symbol}>
-        {prefix}
-        {simbolo}
+      <span className={styles.prefix}>
+        {prefix ? (
+          <span className={juntarClasses('tabular', styles.sign, prefix === '+' && styles.plus)}>{prefix}</span>
+        ) : null}
+        <span className={styles.symbol}>{simbolo}</span>
       </span>
       {animar && !executando ? (
         <AlgarismosRolantes digits={algarismos} />

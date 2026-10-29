@@ -2,7 +2,7 @@ import { ArrowDown, ArrowRight, ArrowUp, Trash2 } from 'lucide-react';
 import { ValorMonetario } from '@/components/comum';
 import { Selo, CampoSelecao } from '@/components/ui';
 import { corDaPaleta } from '@/constants/cores';
-import { NOTA_PAGAMENTO_PARCELA, rotuloTipoLancamento, rotuloSituacaoLancamento } from '@/constants/lancamentos';
+import { ehLancamentoGerado, notaLancamentoGerado, rotuloTipoLancamento, rotuloSituacaoLancamento } from '@/constants/lancamentos';
 import type { LancamentoDTO, Opcao } from '@/types';
 import { formatarDataCurta } from '@/utils/formatacao';
 import { classePorTipo, iconePorTipo, sinalPorTipo, tomPorTipo, tomPorSituacao } from './aparencia';
@@ -63,12 +63,14 @@ export function ListaLancamentos({
       <ul className={styles.list}>
         {lancamentos.map((transaction) => {
           const Icon = iconePorTipo[transaction.tipo];
+          const generatedNote = notaLancamentoGerado(transaction);
 
           return (
             <li key={transaction.id} className={styles.card}>
               <button type="button" className={styles.open} onClick={() => aoEditar(transaction)}>
                 <span className="visually-hidden">
-                  {transaction.parcela ? 'Ver as parcelas de' : 'Editar'} {transaction.descricao}
+                  {transaction.parcela ? 'Ver as parcelas de' : transaction.investimento ? 'Ver o investimento de' : 'Editar'}{' '}
+                  {transaction.descricao}
                 </span>
               </button>
 
@@ -104,7 +106,7 @@ export function ListaLancamentos({
                   />
                 </div>
 
-                {transaction.parcela ? <p className={styles.notes}>{NOTA_PAGAMENTO_PARCELA}</p> : null}
+                {generatedNote ? <p className={styles.notes}>{generatedNote}</p> : null}
                 {transaction.observacoes ? <p className={styles.notes}>{transaction.observacoes}</p> : null}
 
                 <div className={styles.bottom}>
@@ -127,7 +129,7 @@ export function ListaLancamentos({
                     ) : null}
                   </span>
 
-                  {transaction.parcela ? null : (
+                  {ehLancamentoGerado(transaction) ? null : (
                     <button
                       type="button"
                       className={styles.delete}

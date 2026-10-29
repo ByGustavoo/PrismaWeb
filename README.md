@@ -91,7 +91,7 @@ A imagem já é publicada no Docker Hub pela esteira, com versão e data visíve
 * Tela de abertura a cada nova aba, com a frase "Veja para onde vai cada real.", uma linha de saldo animada que segue tracejada depois de hoje e o logo viajando até o menu lateral ao começar.
 
 🔹 **Dashboard**
-* Saldo atual com variação contra o período anterior, receitas, despesas, investimentos e fatura do mês.
+* Saldo atual e patrimônio (saldo somado aos investimentos), com variação contra o período anterior, receitas, despesas, investimentos e fatura do mês.
 * Fluxo de entradas e saídas, gastos por categoria e calendário de gastos por dia.
 * Seletor de período no header: mês a mês pelas setas, atalhos ("Últimos 3 meses", "Este ano") e intervalo próprio.
 
@@ -102,15 +102,16 @@ A imagem já é publicada no Docker Hub pela esteira, com versão e data visíve
 * Alternância entre tabela e cartões, com a preferência guardada no navegador.
 
 🔹 **Contas e cartões**
-* Cadastro de contas, separando as do dia a dia das reservas (emergência, poupança, previdência), com evolução, aportes e rendimento das reservas.
+* Cadastro das contas do dia a dia (corrente, salário e outras), com a participação de cada uma no saldo total.
 * Um cadastro só para os quatro tipos de cartão: crédito, débito, vale-alimentação e vale-refeição.
 * Faturas derivadas das despesas e das parcelas, em quatro blocos: a pagar, atual, próximas e anteriores.
 * Detalhe da fatura com as compras dentro dela e cadastro de compras no cartão, à vista ou parceladas, com cronograma, filtro por situação, ordenação por parcelas restantes e total mensal comprometido.
 * Pagamento de parcela ou de fatura debitado da conta de pagamento do cartão: a parcela paga entra em despesas na data do pagamento, e desfazer devolve o saldo.
 
 🔹 **Patrimônio**
-* Carteira de investimentos com dez classes de ativo (incluindo RDB/caixinhas e previdência privada), distribuição em rosca, rentabilidade e evolução do patrimônio.
-* Aportes e atualização de saldo por investimento, com histórico que separa o dinheiro colocado do rendimento.
+* Carteira de investimentos com onze classes de ativo (incluindo RDB/caixinhas, poupança e previdência privada), distribuição em rosca, rentabilidade e evolução da carteira.
+* Reserva de emergência como marca em qualquer investimento, com o total da reserva no resumo da tela.
+* Aportes, resgates e atualização de saldo por investimento, com histórico que separa o dinheiro colocado do rendimento. Aporte e resgate podem sair de uma conta ou voltar para ela, e o saldo da conta acompanha.
 
 🔹 **Planejamento**
 * Orçamento mensal por categoria, com consumo, projeção de ritmo e o que ficou fora do orçamento.
@@ -335,7 +336,7 @@ src/
 │   │              CalendarioGastos, UltimosLancamentos
 │   ├── lancamentos/ FiltrosLancamentos, TabelaLancamentos, ListaLancamentos,
 │   │              AlternadorVisualizacao, formulários, aparencia e consulta em memória
-│   ├── contas/    CartaoConta, CartaoReserva, ModalDetalheConta, ModalFormularioConta
+│   ├── contas/    CartaoConta, ModalFormularioConta
 │   ├── cartoes/   BlocoCartao, ModalFormularioCartao
 │   ├── faturas/   EntradaFatura, ModalDetalheFatura
 │   ├── parcelamentos/ CartaoParcelamento, ModalFormularioParcelamento, consulta
@@ -393,7 +394,7 @@ export const dashboardService = {
 <br>
 
 * 🧮 **O que é cálculo, é do servidor.** Fatura, limite comprometido, cronograma de parcelas,
-  distribuição e evolução da carteira, evolução das reservas, consumo do orçamento, previsão, avisos
+  distribuição e evolução da carteira, reserva de emergência, patrimônio, consumo do orçamento, previsão, avisos
   e análise de meta são derivados pelo PrismaAPI. O frontend apresenta, não recalcula.
 * ⏳ **Carregamento, erro e cancelamento** passam por `useDadosAssincronos`, que usa o `AbortSignal`
   para descartar respostas de uma tela que já foi deixada.

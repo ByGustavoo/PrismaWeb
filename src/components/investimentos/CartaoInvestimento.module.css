@@ -77,6 +77,11 @@
   color: var(--text-subtle);
 }
 
+.reserve {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
 .delete {
   display: grid;
   place-items: center;

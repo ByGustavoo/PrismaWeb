@@ -33,7 +33,7 @@
   white-space: nowrap;
 }
 
-.amount > :first-child {
+.amount > :first-child > * {
   font-size: 1em;
 }
 

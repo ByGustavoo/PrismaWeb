@@ -14,7 +14,7 @@ import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
 import { useEhMobile } from '@/hooks/useConsultaMidia';
 import { usePeriodo } from '@/providers/ProvedorPeriodo';
 import { useNotificacoes } from '@/providers/ProvedorNotificacoes';
-import { legendaVariacaoGasto } from '@/constants/lancamentos';
+import { legendaVariacaoGasto, legendaVariacaoReceita } from '@/constants/lancamentos';
 import { dashboardService } from '@/services';
 import { chaveMesPorDeslocamento } from '@/utils/data';
 import { capitalizar, formatarDataCompleta, formatarRotuloMes, formatarRotuloPeriodo, formatarHora } from '@/utils/formatacao';
@@ -90,6 +90,8 @@ export function PaginaDashboard() {
             rotulo={isCurrentMonth ? 'Saldo atual' : `Saldo no fim de ${capitalizar(formatarRotuloMes(shownTo))}`}
             saldo={dados.saldoAtual}
             variacao={dados.variacaoSaldo}
+            patrimonio={dados.patrimonio}
+            variacaoPatrimonio={dados.variacaoPatrimonio}
             entradas={dados.receitasMes}
             saidas={dados.despesasMes}
             substantivoPeriodo={periodNoun}
@@ -102,6 +104,7 @@ export function PaginaDashboard() {
               valor={dados.receitasMes}
               icone={TrendingUp}
               variacao={dados.variacaoReceitas}
+              legendaVariacao={legendaVariacaoReceita(dados.variacaoReceitas.tendencia)}
             />
             <BlocoIndicador
               rotulo={`Despesas do ${periodNoun}`}

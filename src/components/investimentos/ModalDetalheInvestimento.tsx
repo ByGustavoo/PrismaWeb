@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowDownToLine, Pencil, Trash2, TrendingDown, TrendingUp } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpFromLine, Pencil, Trash2, TrendingDown, TrendingUp } from 'lucide-react';
 import { HistoricoMovimentacoes, ValorMonetario } from '@/components/comum';
 import type { ItemMovimentacao } from '@/components/comum';
 import { GraficoEvolucao } from '@/components/graficos';
-import { BlocoCarregando, Botao, CampoTexto, CampoValor, EstadoVazio, Modal, SeletorData } from '@/components/ui';
+import { BlocoCarregando, Botao, CampoSelecao, CampoTexto, CampoValor, EstadoVazio, Modal, SeletorData } from '@/components/ui';
 import { QUANTIDADE_INICIAL_MOVIMENTACOES, iconeClasseAtivo, rotuloClasseAtivo } from '@/constants/investimentos';
 import { limitesTexto } from '@/constants/validacao';
 import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
@@ -11,41 +11,79 @@ import { useValidacaoFormulario } from '@/hooks/useValidacaoFormulario';
 import type { ErrosCampos } from '@/hooks/useValidacaoFormulario';
 import { investimentosService } from '@/services';
 import type {
+  ContaDTO,
   ExtratoInvestimentoDTO,
   InvestimentoDTO,
   MovimentacaoInvestimentoDTO,
   SalvarAporteInvestimentoDTO,
+  SalvarResgateInvestimentoDTO,
   SalvarSaldoInvestimentoDTO,
 } from '@/types';
 import { hojeISO } from '@/utils/data';
-import { formatarDataNumerica, formatarPercentualComSinal, interpretarEntradaValor } from '@/utils/formatacao';
+import { formatarDataNumerica, formatarMoeda, formatarPercentualComSinal, interpretarEntradaValor } from '@/utils/formatacao';
 import { juntarClasses } from '@/utils/juntarClasses';
 import { erroTexto, erroValor } from '@/utils/validacao';
 import { corDaClasse, tomRendimento } from './aparencia';
+import { OPCAO_SEM_CONTA, opcoesContaMovimentacao } from './contaMovimentacao';
 import styles from './ModalDetalheInvestimento.module.css';
 
-export type AcaoRegistroInvestimento = 'aporte' | 'saldo';
+export type AcaoRegistroInvestimento = 'aporte' | 'resgate' | 'saldo';
 
 interface ModalDetalheInvestimentoProps {
   investimentoId: string | null;
   acaoInicial: AcaoRegistroInvestimento;
   versao: number;
+  contas: ContaDTO[];
   salvando: boolean;
   aoFechar: () => void;
   aoEditar: (investment: InvestimentoDTO) => void;
   aoExcluir: (statement: ExtratoInvestimentoDTO) => void;
   aoRegistrarAporte: (investment: InvestimentoDTO, payload: SalvarAporteInvestimentoDTO) => Promise<boolean>;
+  aoRegistrarResgate: (investment: InvestimentoDTO, payload: SalvarResgateInvestimentoDTO) => Promise<boolean>;
   aoAtualizarSaldo: (investment: InvestimentoDTO, payload: SalvarSaldoInvestimentoDTO) => Promise<boolean>;
 }
 
 interface FormularioRegistro {
   valor: string;
   data: string;
+  idConta: string;
   descricao: string;
 }
 
+const segmentos: { acao: AcaoRegistroInvestimento; rotulo: string }[] = [
+  { acao: 'aporte', rotulo: 'Aportar' },
+  { acao: 'resgate', rotulo: 'Resgatar' },
+  { acao: 'saldo', rotulo: 'Atualizar saldo' },
+];
+
+const textoAcao: Record<AcaoRegistroInvestimento, { dica: string; valor: string; botao: string; data: string }> = {
+  aporte: {
+    dica: 'Dinheiro novo que você colocou. Soma no saldo e no total aportado; não conta como rendimento.',
+    valor: 'Valor do aporte',
+    botao: 'Adicionar',
+    data: 'Informe a data do aporte!',
+  },
+  resgate: {
+    dica: 'Dinheiro que você tirou. Sai do saldo e do total aportado na mesma proporção, então a rentabilidade não muda.',
+    valor: 'Valor do resgate',
+    botao: 'Resgatar',
+    data: 'Informe a data do resgate!',
+  },
+  saldo: {
+    dica: 'O saldo que a instituição mostra hoje. A diferença para o saldo anterior vira rendimento.',
+    valor: 'Saldo atual',
+    botao: 'Atualizar',
+    data: 'Informe a data do saldo!',
+  },
+};
+
 function formularioVazio(): FormularioRegistro {
-  return { valor: '', data: hojeISO(), descricao: '' };
+  return { valor: '', data: hojeISO(), idConta: OPCAO_SEM_CONTA, descricao: '' };
+}
+
+function aportadoDepoisDoResgate(investment: InvestimentoDTO, amount: number): number {
+  if (investment.valorAtual <= 0 || amount >= investment.valorAtual) return 0;
+  return investment.aportado * ((investment.valorAtual - amount) / investment.valorAtual);
 }
 
 function validarRegistro(
@@ -57,12 +95,19 @@ function validarRegistro(
     valor:
       action === 'aporte'
         ? erroValor(form.valor, { sujeito: 'O valor do aporte', ausente: 'Informe o valor do aporte!', sinal: 'positive' })
-        : erroValor(form.valor, { sujeito: 'O saldo atual', ausente: 'Informe o saldo que a instituição mostra hoje!', sinal: 'non-negative' }),
+        : action === 'resgate'
+          ? erroValor(form.valor, { sujeito: 'O valor do resgate', ausente: 'Informe o valor do resgate!', sinal: 'positive' })
+          : erroValor(form.valor, { sujeito: 'O saldo atual', ausente: 'Informe o saldo que a instituição mostra hoje!', sinal: 'non-negative' }),
     descricao: erroTexto(form.descricao, { sujeito: 'A descrição', maximo: limitesTexto.descricao }),
   };
 
+  const amount = interpretarEntradaValor(form.valor);
+  if (!errors.valor && action === 'resgate' && investment && amount !== undefined && amount > investment.valorAtual) {
+    errors.valor = `O resgate não pode passar do saldo atual, de ${formatarMoeda(investment.valorAtual)}!`;
+  }
+
   if (!form.data) {
-    errors.data = action === 'aporte' ? 'Informe a data do aporte!' : 'Informe a data do saldo!';
+    errors.data = textoAcao[action].data;
   } else if (form.data > hojeISO()) {
     errors.data = 'A data não pode estar no futuro!';
   } else if (investment && form.data < investment.dataAtualizacao) {
@@ -72,17 +117,25 @@ function validarRegistro(
   return errors;
 }
 
+function detalheMovimentacao(movement: MovimentacaoInvestimentoDTO, preposicao: string): string | undefined {
+  const account = movement.nomeConta ? `${preposicao} ${movement.nomeConta}` : undefined;
+  const parts = [account, movement.descricao].filter((part): part is string => Boolean(part));
+  return parts.length > 0 ? parts.join(' — ') : undefined;
+}
+
 function paraItem(movement: MovimentacaoInvestimentoDTO): ItemMovimentacao {
-  if (movement.tipo === 'APORTE') {
+  if (movement.tipo === 'APORTE' || movement.tipo === 'RESGATE') {
+    const contribution = movement.tipo === 'APORTE';
+    const detail = detalheMovimentacao(movement, contribution ? 'De' : 'Para');
     return {
       id: movement.id,
       data: movement.data,
-      titulo: 'Aporte',
-      ...(movement.descricao ? { detalhe: movement.descricao } : {}),
+      titulo: contribution ? 'Aporte' : 'Resgate',
+      ...(detail ? { detalhe: detail } : {}),
       valor: movement.valor,
-      sinal: 'plus',
-      tom: 'accent',
-      icone: ArrowDownToLine,
+      sinal: contribution ? 'plus' : 'auto',
+      tom: contribution ? 'accent' : 'neutral',
+      icone: contribution ? ArrowDownToLine : ArrowUpFromLine,
       saldoApos: movement.saldoApos,
     };
   }
@@ -105,11 +158,13 @@ export function ModalDetalheInvestimento({
   investimentoId,
   acaoInicial,
   versao,
+  contas,
   salvando,
   aoFechar,
   aoEditar,
   aoExcluir,
   aoRegistrarAporte,
+  aoRegistrarResgate,
   aoAtualizarSaldo,
 }: ModalDetalheInvestimentoProps) {
   const [action, setAction] = useState<AcaoRegistroInvestimento>(acaoInicial);
@@ -149,6 +204,12 @@ export function ModalDetalheInvestimento({
   const balancePreview =
     action === 'saldo' && investment && typedValue !== undefined ? typedValue - investment.valorAtual : null;
   const contributionPreview = action === 'aporte' && investment && typedValue !== undefined && typedValue > 0 ? investment.valorAtual + typedValue : null;
+  const withdrawalPreview =
+    action === 'resgate' && investment && typedValue !== undefined && typedValue > 0 && typedValue <= investment.valorAtual
+      ? { saldo: investment.valorAtual - typedValue, aportado: aportadoDepoisDoResgate(investment, typedValue) }
+      : null;
+  const accountOptions = useMemo(() => opcoesContaMovimentacao(contas, 'Nenhuma — Fora do Prisma'), [contas]);
+  const chosenAccount = contas.find((account) => account.id === form.idConta);
 
   if (!investimentoId) return null;
 
@@ -164,18 +225,22 @@ export function ModalDetalheInvestimento({
 
     const amount = interpretarEntradaValor(form.valor) ?? 0;
     const description = form.descricao.trim();
+    const movement = {
+      valor: amount,
+      data: form.data,
+      ...(chosenAccount ? { idConta: chosenAccount.id } : {}),
+      ...(description ? { descricao: description } : {}),
+    };
     const ok =
       action === 'aporte'
-        ? await aoRegistrarAporte(investment, {
-            valor: amount,
-            data: form.data,
-            ...(description ? { descricao: description } : {}),
-          })
-        : await aoAtualizarSaldo(investment, {
-            valorAtual: amount,
-            data: form.data,
-            ...(description ? { descricao: description } : {}),
-          });
+        ? await aoRegistrarAporte(investment, movement)
+        : action === 'resgate'
+          ? await aoRegistrarResgate(investment, movement)
+          : await aoAtualizarSaldo(investment, {
+              valorAtual: amount,
+              data: form.data,
+              ...(description ? { descricao: description } : {}),
+            });
 
     if (ok) {
       setForm(formularioVazio());
@@ -296,33 +361,24 @@ export function ModalDetalheInvestimento({
                 Registrar movimentação
               </h3>
               <div className={styles.segmented} role="group" aria-label="Tipo de registro">
-                <button
-                  type="button"
-                  className={juntarClasses(styles.segment, action === 'aporte' && styles.segmentActive)}
-                  aria-pressed={action === 'aporte'}
-                  onClick={() => switchAction('aporte')}
-                >
-                  Adicionar aporte
-                </button>
-                <button
-                  type="button"
-                  className={juntarClasses(styles.segment, action === 'saldo' && styles.segmentActive)}
-                  aria-pressed={action === 'saldo'}
-                  onClick={() => switchAction('saldo')}
-                >
-                  Atualizar saldo
-                </button>
+                {segmentos.map((segment) => (
+                  <button
+                    key={segment.acao}
+                    type="button"
+                    className={juntarClasses(styles.segment, action === segment.acao && styles.segmentActive)}
+                    aria-pressed={action === segment.acao}
+                    onClick={() => switchAction(segment.acao)}
+                  >
+                    {segment.rotulo}
+                  </button>
+                ))}
               </div>
             </div>
-            <p className={styles.sectionHint}>
-              {action === 'aporte'
-                ? 'Dinheiro novo que você colocou. Soma no saldo e no total aportado; não conta como rendimento.'
-                : 'O saldo que a instituição mostra hoje. A diferença para o saldo anterior vira rendimento.'}
-            </p>
+            <p className={styles.sectionHint}>{textoAcao[action].dica}</p>
 
             <form
               ref={refFormulario}
-              className={styles.registerFields}
+              className={juntarClasses(styles.registerFields, action !== 'saldo' && styles.registerFieldsWithAccount)}
               noValidate
               onSubmit={(event) => {
                 event.preventDefault();
@@ -332,7 +388,7 @@ export function ModalDetalheInvestimento({
               <CampoValor
                 ref={valueRef}
                 required
-                rotulo={action === 'aporte' ? 'Valor do aporte' : 'Saldo atual'}
+                rotulo={textoAcao[action].valor}
                 valor={form.valor}
                 aoMudar={(value) => setForm((current) => ({ ...current, valor: value }))}
                 onBlur={() => tocar('valor')}
@@ -349,10 +405,22 @@ export function ModalDetalheInvestimento({
                 erro={erros.data}
               />
 
+              {action === 'saldo' ? null : (
+                <CampoSelecao
+                  className={styles.account}
+                  rotulo={action === 'aporte' ? 'Saiu de qual conta?' : 'Voltou para qual conta?'}
+                  opcoes={accountOptions}
+                  value={form.idConta}
+                  onChange={(idConta) => setForm((current) => ({ ...current, idConta }))}
+                />
+              )}
+
               <CampoTexto
                 className={styles.note}
                 rotulo="Descrição"
-                placeholder={action === 'aporte' ? 'Salário, 13º, bônus...' : 'Extrato, app do banco...'}
+                placeholder={
+                  action === 'aporte' ? 'Salário, 13º, bônus...' : action === 'resgate' ? 'Conserto do carro, viagem...' : 'Extrato, app do banco...'
+                }
                 value={form.descricao}
                 onChange={(event) => setForm((current) => ({ ...current, descricao: event.target.value }))}
                 onBlur={() => tocar('descricao')}
@@ -361,14 +429,22 @@ export function ModalDetalheInvestimento({
               />
 
               <Botao type="submit" className={styles.registerButton} carregando={salvando}>
-                {action === 'aporte' ? 'Adicionar' : 'Atualizar'}
+                {textoAcao[action].botao}
               </Botao>
             </form>
 
             {contributionPreview !== null ? (
               <p className={styles.preview}>
                 O saldo passa para <ValorMonetario valor={contributionPreview} tamanho="sm" /> e o total aportado para{' '}
-                <ValorMonetario valor={investment.aportado + (typedValue ?? 0)} tamanho="sm" />.
+                <ValorMonetario valor={investment.aportado + (typedValue ?? 0)} tamanho="sm" />
+                {chosenAccount ? `, e ${chosenAccount.nome} perde o mesmo valor` : ''}.
+              </p>
+            ) : null}
+            {withdrawalPreview !== null ? (
+              <p className={styles.preview}>
+                O saldo passa para <ValorMonetario valor={withdrawalPreview.saldo} tamanho="sm" /> e o total aportado para{' '}
+                <ValorMonetario valor={withdrawalPreview.aportado} tamanho="sm" />
+                {chosenAccount ? `, e o valor volta para ${chosenAccount.nome}` : ''}.
               </p>
             ) : null}
             {balancePreview !== null && form.valor ? (
@@ -384,7 +460,7 @@ export function ModalDetalheInvestimento({
             <h3 className={styles.sectionTitle} id="investment-history-title">
               Histórico
             </h3>
-            <p className={styles.sectionHint}>Aportes e rendimentos em linhas separadas, do mais recente ao mais antigo.</p>
+            <p className={styles.sectionHint}>Aportes, resgates e rendimentos em linhas separadas, do mais recente ao mais antigo.</p>
             <HistoricoMovimentacoes itens={items} quantidadeInicial={QUANTIDADE_INICIAL_MOVIMENTACOES} />
           </section>
         </div>

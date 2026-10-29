@@ -1,6 +1,6 @@
 import { Plus, Trash2 } from 'lucide-react';
 import { ValorMonetario } from '@/components/comum';
-import { BarraProgresso } from '@/components/ui';
+import { BarraProgresso, Selo } from '@/components/ui';
 import { iconeClasseAtivo, rotuloClasseAtivo } from '@/constants/investimentos';
 import type { PosicaoDTO } from '@/types';
 import { formatarDataNumerica, formatarMesCurto, formatarPercentualComSinal } from '@/utils/formatacao';
@@ -45,6 +45,12 @@ export function CartaoInvestimento({ posicao, aoAbrir, aoAdicionarAporte, aoExcl
             </span>
           </span>
 
+          {investment.reservaEmergencia ? (
+            <Selo tom="accent" className={styles.reserve}>
+              Reserva
+            </Selo>
+          ) : null}
+
           <button
             type="button"
             className={styles.delete}
@@ -73,7 +79,7 @@ export function CartaoInvestimento({ posicao, aoAbrir, aoAdicionarAporte, aoExcl
         <div className={styles.share}>
           <BarraProgresso
             valor={share}
-            rotulo={`Participação de ${investment.nome} no patrimônio`}
+            rotulo={`Participação de ${investment.nome} na carteira`}
             className={styles.shareBar}
           />
           <span className={styles.shareLabel}>

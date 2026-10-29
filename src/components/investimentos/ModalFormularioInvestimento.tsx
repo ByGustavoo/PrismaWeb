@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ValorMonetario } from '@/components/comum';
-import { Botao, SeletorData, CampoTexto, Modal, CampoSelecao, AreaTexto, CampoValor } from '@/components/ui';
+import { Botao, SeletorData, CampoTexto, Modal, CampoSelecao, AreaTexto, CampoValor, Interruptor } from '@/components/ui';
 import { rotuloClasseAtivo, classesAtivo, dicaClasseAtivo } from '@/constants/investimentos';
 import { limitesTexto } from '@/constants/validacao';
 import { useValidacaoFormulario } from '@/hooks/useValidacaoFormulario';
 import type { ErrosCampos } from '@/hooks/useValidacaoFormulario';
-import type { AtualizarInvestimentoDTO, ClasseAtivo, InvestimentoDTO, Opcao, SalvarInvestimentoDTO } from '@/types';
+import type { AtualizarInvestimentoDTO, ClasseAtivo, ContaDTO, InvestimentoDTO, Opcao, SalvarInvestimentoDTO } from '@/types';
 import { hojeISO } from '@/utils/data';
 import { formatarPercentualComSinal, interpretarEntradaValor } from '@/utils/formatacao';
 import { erroValor, erroTexto } from '@/utils/validacao';
+import { OPCAO_SEM_CONTA, opcoesContaMovimentacao } from './contaMovimentacao';
 import styles from './FormularioInvestimento.module.css';
 
 export type ResultadoFormularioInvestimento =
@@ -18,6 +19,7 @@ export type ResultadoFormularioInvestimento =
 interface ModalFormularioInvestimentoProps {
   aberto: boolean;
   investimento: InvestimentoDTO | null;
+  contas: ContaDTO[];
   salvando: boolean;
   aoEnviar: (resultado: ResultadoFormularioInvestimento) => void;
   aoFechar: () => void;
@@ -30,6 +32,8 @@ interface EstadoFormulario {
   aportado: string;
   valorAtual: string;
   dataInicio: string;
+  idConta: string;
+  reservaEmergencia: boolean;
   observacoes: string;
 }
 
@@ -49,6 +53,8 @@ function estadoInicial(investment: InvestimentoDTO | null): EstadoFormulario {
     aportado: '',
     valorAtual: '',
     dataInicio: hojeISO(),
+    idConta: OPCAO_SEM_CONTA,
+    reservaEmergencia: investment?.reservaEmergencia ?? false,
     observacoes: investment?.observacoes ?? '',
   };
 }
@@ -90,7 +96,7 @@ function validar(form: EstadoFormulario, editing: boolean): ErrosCampos<EstadoFo
   return errors;
 }
 
-export function ModalFormularioInvestimento({ aberto, investimento, salvando, aoEnviar, aoFechar }: ModalFormularioInvestimentoProps) {
+export function ModalFormularioInvestimento({ aberto, investimento, contas, salvando, aoEnviar, aoFechar }: ModalFormularioInvestimentoProps) {
   const editing = investimento !== null;
   const [form, setForm] = useState<EstadoFormulario>(() => estadoInicial(investimento));
   const { erros, refFormulario, tocar, enviar, reiniciar } = useValidacaoFormulario(
@@ -114,6 +120,9 @@ export function ModalFormularioInvestimento({ aberto, investimento, salvando, ao
     return { profit: currentValue - invested, profitability: ((currentValue - invested) / invested) * 100 };
   }, [editing, form.aportado, form.valorAtual]);
 
+  const accountOptions = useMemo(() => opcoesContaMovimentacao(contas, 'Nenhuma — Já estava investido'), [contas]);
+  const chosenAccount = contas.find((account) => account.id === form.idConta);
+
   const set = <K extends keyof EstadoFormulario>(field: K, value: EstadoFormulario[K]) => {
     setForm((current) => ({ ...current, [field]: value }));
   };
@@ -125,6 +134,7 @@ export function ModalFormularioInvestimento({ aberto, investimento, salvando, ao
       nome: form.nome,
       classeAtivo: form.classeAtivo,
       instituicao: form.instituicao,
+      reservaEmergencia: form.reservaEmergencia,
       observacoes: form.observacoes,
     };
 
@@ -140,6 +150,7 @@ export function ModalFormularioInvestimento({ aberto, investimento, salvando, ao
         aportado: interpretarEntradaValor(form.aportado) ?? 0,
         valorAtual: interpretarEntradaValor(form.valorAtual) ?? 0,
         dataInicio: form.dataInicio,
+        ...(chosenAccount ? { idConta: chosenAccount.id } : {}),
       },
     });
   };
@@ -240,8 +251,28 @@ export function ModalFormularioInvestimento({ aberto, investimento, salvando, ao
               onChange={(startDate) => set('dataInicio', startDate)}
               erro={erros.dataInicio}
             />
+
+            <CampoSelecao
+              rotulo="Saiu de qual conta?"
+              opcoes={accountOptions}
+              value={form.idConta}
+              onChange={(value) => set('idConta', value)}
+              dica={
+                chosenAccount
+                  ? `A aplicação inicial sai do saldo de ${chosenAccount.nome} e aparece como transferência em Lançamentos.`
+                  : 'O saldo das suas contas não muda.'
+              }
+            />
           </>
         )}
+
+        <Interruptor
+          className={styles.full}
+          rotulo="Faz parte da reserva de emergência"
+          checked={form.reservaEmergencia}
+          onChange={(checked) => set('reservaEmergencia', checked)}
+          dica="Dinheiro guardado para imprevistos. Ele soma no total da reserva, no topo de Investimentos."
+        />
 
         <AreaTexto
           className={styles.full}

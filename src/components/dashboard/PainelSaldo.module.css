@@ -19,6 +19,43 @@
   color: var(--text-muted);
 }
 
+.wealth {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-top: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--surface-muted);
+  border-radius: var(--radius-md);
+}
+
+.wealthText,
+.wealthFigure {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.wealthText {
+  min-width: 0;
+}
+
+.wealthFigure {
+  flex-shrink: 0;
+  align-items: flex-end;
+}
+
+.wealthLabel {
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+
+.wealthHint {
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+
 .flows {
   display: flex;
   flex-direction: column;

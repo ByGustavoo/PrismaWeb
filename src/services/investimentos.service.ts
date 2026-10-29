@@ -7,6 +7,7 @@ import type {
   InvestimentoDTO,
   SalvarAporteInvestimentoDTO,
   SalvarInvestimentoDTO,
+  SalvarResgateInvestimentoDTO,
   SalvarSaldoInvestimentoDTO,
 } from '@/types';
 
@@ -29,6 +30,10 @@ export const investimentosService = {
 
   adicionarAporte(id: ID, payload: SalvarAporteInvestimentoDTO, signal?: AbortSignal): Promise<InvestimentoDTO> {
     return clienteHttp.post<InvestimentoDTO>(rotasApi.investimentos.aportes(id), payload, { ...(signal ? { signal } : {}) });
+  },
+
+  registrarResgate(id: ID, payload: SalvarResgateInvestimentoDTO, signal?: AbortSignal): Promise<InvestimentoDTO> {
+    return clienteHttp.post<InvestimentoDTO>(rotasApi.investimentos.resgates(id), payload, { ...(signal ? { signal } : {}) });
   },
 
   atualizarSaldo(id: ID, payload: SalvarSaldoInvestimentoDTO, signal?: AbortSignal): Promise<InvestimentoDTO> {

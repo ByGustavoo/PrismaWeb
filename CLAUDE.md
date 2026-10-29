@@ -186,15 +186,15 @@ src/
 │   ├── lancamentos/ FiltrosLancamentos, TabelaLancamentos, ListaLancamentos (cartoes),
 │   │              AlternadorVisualizacao (densidade da listagem), formularios de lancamento,
 │   │              aparencia (icone/cor por tipo e situacao) e consulta (filtro, periodo e ordenacao)
-│   ├── contas/    CartaoConta, CartaoReserva, ModalDetalheConta, ModalFormularioConta,
-│   │              aparencia (icone por tipo, tom por situacao)
+│   ├── contas/    CartaoConta, ModalFormularioConta, aparencia (icone por tipo, tom por situacao)
 │   ├── cartoes/   BlocoCartao, ModalFormularioCartao, aparencia (icone, tom de limite, tom de fatura)
 │   ├── faturas/   EntradaFatura (destaque e linha), ModalDetalheFatura
 │   ├── parcelamentos/ CartaoParcelamento, ModalParcelasCompra (cronograma), ModalFormularioParcelamento,
 │   │              ControlePagamentoParcela, FiltrosParcelamentos, consulta (busca, situacao e ordenacao)
 │   ├── investimentos/ GraficoAlocacao (rosca), GraficoCarteira, CartaoInvestimento,
-│   │              ModalFormularioInvestimento, ModalDetalheInvestimento (aporte, saldo e historico),
-│   │              aparencia (cor da classe, tom do resultado)
+│   │              ModalFormularioInvestimento, ModalDetalheInvestimento (aporte, resgate, saldo e
+│   │              historico), aparencia (cor da classe, tom do resultado) e contaMovimentacao
+│   │              (opcoes de conta do aporte e do resgate)
 │   ├── orcamento/ NavegadorMes, LinhaOrcamento, ModalFormularioOrcamento
 │   ├── recorrentes/ CartaoRecorrente, ModalFormularioRecorrente
 │   ├── metas/     CartaoMeta, ModalFormularioMeta, ModalDetalheMeta, FiltrosMetas, VariacaoPreco,
@@ -254,7 +254,7 @@ Cada pasta de componentes tem um `index.ts` de barril — ao criar um componente
   rolarem quando o valor **muda**. Durante a contagem os digitos sao texto comum e as rodas so
   assumem no fim, ja no valor final: as rodas assentam por transicao de CSS, que precisa de um alvo
   parado. Os dois modos valem so para os indicadores que dao o titulo da tela: no dashboard, o saldo,
-  as tres linhas de fluxo e os quatro tiles; em Contas, Cartoes, Faturas e Parcelamentos, os valores
+  o patrimonio, as tres linhas de fluxo e os quatro tiles; em Contas, Cartoes, Faturas e Parcelamentos, os valores
   da `BarraResumo` do topo. O que esta nos cartoes da lista abaixo dela nao conta — uma tela inteira
   contando junto seria festa, nao leitura.
   A trava de "ja contou" fecha na **chegada**, nunca na partida: o `StrictMode` monta duas vezes em
@@ -275,6 +275,20 @@ Cada pasta de componentes tem um `index.ts` de barril — ao criar um componente
   separar o simbolo dos algarismos: "R$" fica em um span com a familia de interface e os digitos em
   um span `.tabular` com a familia de numeros. Escrever `{formatarMoeda(x)}` direto no JSX faz o
   cifrao herdar o tracking negativo da familia de numeros e desalinhar em relacao ao resto do app.
+  **O sinal nao fica dentro do "R$"**: ele vai num span proprio, na familia dos algarismos, com
+  0,8em e 0,12em de respiro ate o "R$", e o negativo e o `−` tipografico (U+2212), nao o hifen. No
+  tamanho cheio dos algarismos o usuario achou o sinal grande demais. O `+` leva peso 700 (`.plus`)
+  e o `−` herda o peso do valor: nos mesmos 0,8em, o `+` de traco fino sumia ao lado do "R$" em
+  "Entradas do mes" e "Resultado", e o usuario pediu so ele mais visivel. Engrossar, e nao crescer. Dentro do simbolo reduzido
+  (0,68em) e com o hifen, que no Archivo tem metade da largura do `+`, o "-R$ 480,00" de "Saidas do
+  mes" mal se via, e o usuario pediu os dois sinais mais visiveis. `formatarPercentualComSinal` usa o
+  mesmo `−`, para "+8,4%" e "−68,9%" terem sinais do mesmo tamanho, e o `IndicadorVariacao` separa o
+  sinal do numero (`formatarPartesPercentualComSinal`) com o mesmo respiro de 0,12em. O sinal fica
+  na posicao do desenho da fonte, sem deslocamento. No Archivo o `+` e o `−` sao centrados na altura
+  do "x" (3,33px acima da base no corpo de 13px, contra 4,45px do centro do "8"), e subir o sinal ate
+  o meio dos algarismos foi testado e recusado: com DPR 1 o texto e desenhado em pixel inteiro, entao
+  so existem duas posicoes, a original e 1px acima (0,04em arredonda para 0, e 0,0865em para 1px), e
+  o usuario achou a de cima alta demais. Nao volte a deslocar o sinal.
 - **Cor de variacao segue a noticia, e a palavra explica a cor.** No `IndicadorVariacao` a seta
   sempre aponta a direcao do numero, e a cor diz se ela e boa: `sentidoFavoravel` (padrao `ALTA`)
   e o sentido que pinta de verde. Saldo, receitas e rentabilidade sobem verde; despesa e
@@ -283,8 +297,10 @@ Cada pasta de componentes tem um `index.ts` de barril — ao criar um componente
   como erro; a regra passou a ser "cor segue a seta", que por sua vez deixava "Despesas do mes"
   verde com o gasto subindo 38%, e o usuario apontou o mesmo erro do outro lado. Por isso a despesa
   nunca mostra a cor invertida sem a palavra: `legendaVariacaoGasto` (`constants/lancamentos.ts`)
-  escreve "gastou mais" ou "gastou menos" no bloco do dashboard e "a mais" ou "a menos que no
-  periodo anterior" em Relatorios — o mesmo arranjo do `VariacaoPreco` das metas. Indicador novo de
+  escreve "Gastou mais" ou "Gastou menos" no bloco do dashboard e "a mais" ou "a menos que no
+  periodo anterior" em Relatorios — o mesmo arranjo do `VariacaoPreco` das metas. O bloco de receitas
+  do dashboard tem o par `legendaVariacaoReceita` ("Recebeu mais" ou "Recebeu menos"; as duas legendas do dashboard comecam em maiuscula a pedido do usuario): era o unico
+  dos tres blocos com variacao sem frase ao lado, e o usuario apontou a falta. Indicador novo de
   algo em que menos e melhor passa `sentidoFavoravel="BAIXA"` e uma legenda com a palavra.
 - **No `IndicadorVariacao` o percentual e a legenda dividem a linha de base; so o icone e centrado.**
   O percentual sai na familia de numeros (Archivo) e a legenda na de interface (Instrument Sans), e
@@ -359,7 +375,7 @@ vencimento da fatura.** Dashboard, relatorios e previsao contam do mesmo jeito.
 
 **Gravar um lancamento mexe no saldo da conta.** `ContaDTO.saldo` e o saldo de hoje: o servidor aplica
 o efeito de todo lancamento com data ate hoje ao criar, desfaz o antigo e aplica o novo ao editar, e
-desfaz ao excluir. Sem isso, um rendimento registrado numa reserva aparece na evolucao e o saldo nao
+desfaz ao excluir. Sem isso, uma receita registrada hoje aparece nos totais e o saldo da conta nao
 muda.
 
 **Variacao e saldo passado.** O resumo do dashboard compara com a janela de mesmo tamanho
@@ -493,6 +509,12 @@ parcelamentos sao leitura calculada, exceto o cadastro da compra parcelada.
   lixeira, e o clique leva a `/parcelamentos?compra=<id>` (`PARAMETRO_COMPRA`), que abre o modal de
   parcelas da compra: e la que o pagamento e desfeito, e desfazer apaga a despesa e devolve o saldo. O
   atalho `?editar=<id>` da busca global passa pelo mesmo `openEdit`, entao tambem cai no modal.
+- **A transferencia gerada por aporte ou resgate de investimento segue a mesma regra.** Ela vem com
+  `LancamentoDTO.investimento` (`idInvestimento`, `tipo`), leva a nota "Gerada pelo aporte no
+  investimento" ou "Gerada pelo resgate do investimento" (`notaLancamentoGerado`), troca lapis e lixeira
+  por um botao que abre o investimento e o clique leva a `/investimentos?investimento=<id>`. No aporte o
+  investimento aparece como destino; no resgate, como origem — por isso o `idOrigem` do resgate e o id
+  do investimento, e nao de uma conta. `ehLancamentoGerado` diz quem nao pode ser editado nem excluido.
 - **Fatura aberta e quitada diz "Paga até agora", e nao sai de "Fatura atual".** Ela ainda recebe
   compras: manda-la para "Faturas anteriores" a faria pular de volta na proxima compra, e "anteriores"
   quer dizer ciclo encerrado. O selo sai de `rotuloDaFatura` e `tomDaFatura` (`components/cartoes/
@@ -504,6 +526,10 @@ parcelamentos sao leitura calculada, exceto o cadastro da compra parcelada.
   pagar" usam `valorRestante`: "A pagar agora", "Ciclo em aberto" e "Ja comprometido" em Faturas,
   "Faturas atuais" e "Fatura atual" em Cartoes e o tile de fatura do dashboard. A fatura ja fechada
   sem nada a pagar sai do servidor como `PAGA` e vai para "Faturas anteriores".
+- **A comparacao com a fatura anterior segue a regra da despesa.** No destaque, "R$ 190,00 — Abaixo da
+  fatura anterior" leva a seta verde (`--positive`) quando a fatura caiu e vermelha (`--negative`)
+  quando subiu, e a frase comeca em maiuscula depois do travessao. O valor continua em `muted`: a
+  seta ja da a noticia, e a frase diz o sentido.
 - **O modal da fatura le o cabecalho do detalhe, nao do retrato.** Ele recebe a `FaturaCartaoDTO` da
   lista so para abrir; total, pago, restante e situacao saem do `DetalheFaturaDTO` recarregado, senao
   o cabecalho continuaria com os numeros de antes do clique. E a mesma razao do `detailId` das metas.
@@ -551,7 +577,10 @@ parcelamentos sao leitura calculada, exceto o cadastro da compra parcelada.
   futuras e anteriores, o modal de detalhe e o bloco do cartao listam a data de fechamento primeiro
   e a de vencimento depois, na ordem em que as duas acontecem: o ciclo fecha e so depois a fatura
   vence. As quatro telas seguem a mesma ordem — inverter uma delas e deixar as outras cria duas
-  leituras para o mesmo par de datas.
+  leituras para o mesmo par de datas. As linhas de "Proximas faturas" e "Faturas anteriores" escrevem
+  as datas por extenso (`formatarDataCompleta`, "03 de Dezembro de 2026" — o mes sai com maiuscula, como no "03 de Dez" de
+  `formatarDataCurta`, a pedido do usuario), como o destaque, a pedido do
+  usuario: antes eram "03 de Dez". Abaixo de 600px "Fecha" e "Vence" passam a ocupar duas linhas.
 - **O vencimento cai no mes seguinte quando o dia de vencimento e menor ou igual ao de fechamento**
   (`FaturaService.vencimento`, no PrismaAPI). Um cartao que fecha dia 13 e vence dia 5 tem a fatura
   de outubro fechando em 13/10 e vencendo em 05/11 — 05/10 seria antes do proprio fechamento. Pelo
@@ -579,27 +608,59 @@ parcelamentos sao leitura calculada, exceto o cadastro da compra parcelada.
 ## Investimentos
 
 Uma tela em `/investimentos`, sob "Patrimonio" na sidebar. E cadastro (criar, editar, excluir),
-registro de movimentacao (aporte e saldo) e leitura calculada: distribuicao, rentabilidade e
+registro de movimentacao (aporte, resgate e saldo) e leitura calculada: distribuicao, rentabilidade e
 evolucao saem do calculo.
 
-- **Aporte e rendimento nao se misturam.** Um investimento e um cadastro mais uma serie de
-  movimentacoes. `APORTE` e dinheiro novo e soma no saldo
-  e no aportado; `RENDIMENTO` registra o saldo que a instituicao mostra, e o valor da movimentacao e a
-  diferenca para o saldo anterior. `aportado`, `valorAtual`, `dataInicio` e `dataAtualizacao` sao a
-  leitura da serie, nunca gravados.
+- **Reserva, poupanca e previdencia sao investimentos, e nao contas.** Ate a PRM-49, Contas tinha os
+  tipos `EMERGENCIA`, `POUPANCA` e `PREVIDENCIA` e uma secao "Reservas e patrimonio" com evolucao
+  propria. O usuario apontou que eram duas coisas parecidas em lugares diferentes, e a previdencia
+  existia nos dois cadastros e era contada duas vezes. Hoje Contas so tem o dinheiro do dia a dia
+  (`CORRENTE`, `SALARIO`, `OUTRA`), sem secoes, e tudo o que se guarda mora aqui. Sairam junto o
+  `CartaoReserva`, o `ModalDetalheConta`, `EvolucaoContaDTO` e as rotas `/contas/reservas` e
+  `/contas/{id}/evolucao`. Nao reintroduza tipo de conta para dinheiro guardado.
+- **A reserva de emergencia e uma marca, e nao uma classe** (`reservaEmergencia`, o interruptor "Faz
+  parte da reserva de emergencia" do formulario). Ela e finalidade, nao produto: a reserva fica num
+  CDB, numa caixinha ou na poupanca, e a rosca continua dizendo onde o dinheiro esta. O usuario
+  escolheu essa opcao contra a de uma classe propria. O item "Reserva de emergencia" da `BarraResumo`
+  soma os marcados (`CarteiraDTO.reserva`), e o cartao marcado leva o selo "Reserva".
+- **Aporte, resgate e rendimento nao se misturam.** Um investimento e um cadastro mais uma serie de
+  movimentacoes. `APORTE` e dinheiro novo e soma no saldo e no aportado; `RESGATE` e dinheiro que saiu e
+  tira do saldo e do aportado **na mesma proporcao** — resgatar metade deixa metade do aportado e a
+  rentabilidade igual, e a previa do detalhe faz a mesma conta; `RENDIMENTO` registra o saldo que a
+  instituicao mostra, e o valor da movimentacao e a diferenca para o saldo anterior. `aportado`,
+  `valorAtual`, `dataInicio` e `dataAtualizacao` sao a leitura da serie, nunca gravados. O resgate nao
+  passa do saldo: o formulario acusa antes, e o servidor recusa com `422`.
+- **Aporte e resgate podem mexer numa conta, e e opcional.** "Saiu de qual conta?" e "Voltou para qual
+  conta?" comecam em "Nenhuma — Fora do Prisma"; escolhida uma conta, o servidor grava uma
+  transferencia paga e o saldo da conta muda na hora. O cadastro tem o mesmo campo para a aplicacao
+  inicial, e ali o padrao e "Nenhuma — Já estava investido": quem registra um investimento antigo nao
+  quer ver a conta corrente perder um dinheiro que saiu ha meses. O usuario escolheu esse padrao.
+  As opcoes saem de `opcoesContaMovimentacao` (so contas ativas, "nome — instituicao"), e a lista de
+  contas e carregada uma vez pela `PaginaInvestimentos` e passada aos dois modais. Excluir um
+  investimento apaga essas transferencias e devolve o saldo das contas, e o dialogo diz isso.
+- **Aqui "patrimonio" nao aparece.** Patrimonio e o do dashboard, contas mais investimentos; nesta tela
+  o numero e so a carteira. Por isso o resumo diz "Valor atual", o grafico "Evolucao da carteira", o
+  miolo da rosca "Carteira" e a participacao do cartao e "na carteira".
 - **Editar nao mexe em valor** (`AtualizarInvestimentoDTO`), pelo mesmo motivo da meta: sobrescrever
   o aportado apagaria a historia. O cadastro pede aplicacao inicial e saldo de hoje e grava as duas
   movimentacoes; dali em diante, valor so muda pelo detalhe.
 - **O detalhe e onde o investimento vive** (`ModalDetalheInvestimento`). Clicar no cartao abre com
-  "Atualizar saldo"; o botao "Aporte" do cartao abre com "Adicionar aporte" e o foco no valor. O
-  registro fica embutido, com um seletor de dois estados, e nao em outro modal — a mesma razao das
-  metas. A previa diz para quanto o saldo vai, ou quanto rendeu desde a ultima atualizacao.
+  "Atualizar saldo"; o botao "Aporte" do cartao abre com "Aportar" e o foco no valor. O registro fica
+  embutido, com um seletor de tres estados ("Aportar", "Resgatar", "Atualizar saldo"), e nao em outro
+  modal — a mesma razao das metas. Os rotulos sao curtos de proposito: com "Adicionar aporte" o
+  seletor quebrava em duas linhas a 390px. Com conta, os campos vao em tres colunas (valor, data,
+  conta) e a descricao desce para a segunda linha com o botao. A previa diz para quanto o saldo e o
+  aportado vao, ou quanto rendeu desde a ultima atualizacao.
 - **A data minima do registro e a ultima atualizacao.** Um aporte anterior ao ultimo saldo informado
   seria engolido por ele. Na mesma data, vale a ordem de gravacao (`ordem`), e por isso "saldo de
   R$ 20 mil, depois aporte de R$ 2 mil" termina em R$ 22 mil.
-- **Sao dez classes de ativo** (`ClasseAtivo`), e cada uma tem um token fixo da paleta categorica em
-  `corClasseAtivo`. `RDB` cobre as caixinhas de bancos digitais; `PREVIDENCIA`, PGBL e VGBL. As duas
-  tem dica propria no formulario (`dicaClasseAtivo`).
+- **Sao onze classes de ativo** (`ClasseAtivo`), e cada uma tem um token fixo da paleta categorica em
+  `corClasseAtivo`. `RDB` cobre as caixinhas de bancos digitais; `PREVIDENCIA`, PGBL e VGBL; `POUPANCA`
+  entrou com a saida das contas de reserva. As tres tem dica propria no formulario (`dicaClasseAtivo`).
+  A poupanca usa `--palette-12` e o icone `HandCoins` (o cofrinho ja era da renda fixa). O token saiu
+  por conta: entre os seis livres, o 12 e o 6 eram os mais distantes das dez classes (menor distancia
+  OKLab de 0,086 no claro e 0,084 no escuro, contra 0,089 e 0,098 do 6), e o 6 e o vermelho, parente
+  do `--negative`, que numa carteira seria lido como perda.
 - **A curva vem das movimentacoes**, nao mais de uma distribuicao linear: em cada fim de mes, o
   ultimo saldo conhecido mais os aportes feitos depois dele. A serie vem pronta do servidor.
 - **O miolo da rosca e uma caixa medida, nao o quadrado inteiro do grafico.** A leitura central
@@ -608,7 +669,7 @@ evolucao saem do calculo.
   todo menos um respiro lateral, 176px num buraco de 133px, e "Previdencia privada" transbordava
   por cima das fatias. Ao mexer no tamanho do grafico ou no `innerRadius`, refaca a conta — e por
   isso a linha da participacao diz "do total", e nao "do patrimonio", que quebrava em duas linhas.
-- **Os dois graficos da linha de Investimentos casam topo e base.** "Evolucao do patrimonio" e
+- **Os dois graficos da linha de Investimentos casam topo e base.** "Evolucao da carteira" e
   "Distribuicao por tipo" dividem a altura da linha: a grade `.charts` nao leva `align-items: start`
   e o painel da rosca nao leva `align-self: start`. O conteudo da rosca se centraliza na sobra, em
   vez de o painel encolher ate o proprio conteudo e deixar um degrau na base dos dois cartoes.
@@ -624,28 +685,9 @@ evolucao saem do calculo.
   com o mesmo hash, e so casam quando os dois moram no mesmo arquivo.
 - **A rosca guarda o total no centro** e a legenda e uma lista ao lado, que quebra o nome em duas
   linhas em vez de cortar "Previdência privada".
-- **`GraficoEvolucao` (`components/graficos`) e o grafico de valor contra aportado** da carteira, do
-  investimento e das contas de reserva: area para o valor, tracejado para o que foi colocado. A
-  distancia entre as duas e o rendimento, e se le sem numero nenhum.
-
-## Contas de reserva
-
-`/contas` separa **Contas do dia a dia** (`CORRENTE`, `SALARIO`, `OUTRA`) de **Reservas e patrimonio**
-(`EMERGENCIA`, `POUPANCA`, `PREVIDENCIA`). A finalidade sai do tipo (`finalidadeTipoConta`), nao e um
-campo gravado.
-
-- **A reserva responde outra pergunta.** Nao "quanto tenho", e sim "quanto coloquei e quanto rendeu".
-  O `CartaoReserva` mostra saldo, rendimento de doze meses, minicurva e de quanto o periodo partiu; o
-  icone fica sempre em `--accent-soft`, para a secao se distinguir das contas de movimento.
-- **A evolucao nao tem cadastro proprio** (o servidor a deriva dos lancamentos). Transferencia para a conta e
-  aporte; receita na categoria Rendimentos e rendimento; saida e resgate. Registrar aporte ou
-  rendimento e criar um lancamento — o detalhe leva ate o formulario certo. Duas fontes para o mesmo
-  dinheiro divergiriam na primeira edicao.
-- **O detalhe mostra a equacao** `saldo inicial + aportes − resgates + rendimentos = saldo hoje`. Ela
-  tem de fechar no centavo.
-- Contas de reserva com previdencia e investimentos do tipo previdencia sao cadastros diferentes: a
-  conta e dinheiro parado num banco, o investimento tem saldo informado pela seguradora. Cadastrar a mesma
-  previdencia nos dois lugares a contaria duas vezes.
+- **`GraficoEvolucao` (`components/graficos`) e o grafico de valor contra aportado** da carteira e do
+  investimento: area para o valor, tracejado para o que foi colocado. A distancia entre as duas e o
+  rendimento, e se le sem numero nenhum.
 
 ## Orcamento, recorrentes e previsao
 
@@ -1003,6 +1045,13 @@ O `SeletorPeriodo` e a busca global sao os dois pontos em que o header conversa 
   para o calendario de gastos por dia (`CalendarioGastos`): trinta quadradinhos sozinhos nao
   mostram habito nenhum, e seis meses lado a lado tambem preenchem a faixa de largura inteira em
   vez de deixar dois tercos do cartao vazios.
+- **O patrimonio fica no painel de saldo, logo abaixo da variacao.** E `DashboardDTO.patrimonio`, o
+  saldo do total somado a carteira no mesmo corte, com `variacaoPatrimonio`: o usuario pediu os dois
+  juntos depois que as reservas viraram investimento, porque o saldo sozinho deixou de mostrar o
+  dinheiro guardado. Ele e um estoque, e nao um fluxo, entao nao entra na lista de "Entradas" e
+  "Saidas": vai numa faixa propria em `--surface-muted`, com "Saldo somado aos investimentos" e a
+  variacao sem legenda, que ja esta escrita na linha do saldo. Rotulo e valor ficam na mesma linha em
+  qualquer largura (`flex-shrink: 0` no valor); com quebra, a variacao saia desalinhada a 390px.
 - **Rotulo segue o recorte.** Fora do mes corrente, "Saldo atual" vira "Saldo no fim de agosto de
   2026"; num intervalo, "Receitas do mes" vira "Receitas do periodo" e a variacao passa a ser "em
   relacao ao periodo anterior", comparada com a janela de mesmo tamanho imediatamente anterior.
@@ -1055,8 +1104,8 @@ oculto.
   tudo aparece, e o card mostra o erro com "Tentar de novo".
 - **O que leva a uma tela oculta some junto.** Avisos do sino cuja `rota` cai numa tela oculta saem da
   lista e do contador (o filtro e do frontend: o servidor continua calculando-os); "Ver todos" de
-  Ultimos lancamentos, "Ver faturas" do cartao, os atalhos da conta de reserva e os da pagina 404 somem; a
-  despesa gerada por parcela deixa de abrir Compras parceladas. Com "Todas" de Lancamentos oculta, a busca
+  Ultimos lancamentos, "Ver faturas" do cartao e os atalhos da pagina 404 somem; a despesa gerada por
+  parcela deixa de abrir Compras parceladas, e a transferencia gerada por investimento, Investimentos. Com "Todas" de Lancamentos oculta, a busca
   global e "Novo lancamento" saem do header, porque todo destino deles e `/lancamentos`. Os numeros do
   dashboard continuam: ocultar a tela nao apaga nem esconde dado.
 
@@ -1443,8 +1492,7 @@ codigo e `errors` como detalhe. Cancelamento pelo `AbortSignal` de quem chamou s
 ## Fora de escopo hoje
 
 Autenticacao, ESLint/Prettier, testes de componente e de tela e code-splitting por rota ainda nao
-existem. Resgate de
-investimento e debito automatico do aporte numa conta tambem nao. Por isso a sidebar
+existem. Por isso a sidebar
 nao mostra usuario: o bloco com nome e e-mail ficticios saiu, e volta quando houver login. Nao ha pagamento de fatura nem registro de quitacao — a fatura vencida e tratada como
 paga, e o pagamento que existe e uma marca manual, na parcela ou na fatura inteira, sem debito em
 conta —, nem historico de cotacao por ativo: a evolucao do patrimonio e reconstruida a partir do

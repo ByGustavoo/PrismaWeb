@@ -163,6 +163,18 @@
   color: var(--text-subtle);
 }
 
+.compare .compareUp {
+  color: var(--negative);
+}
+
+.compare .compareDown {
+  color: var(--positive);
+}
+
+.compare .separator {
+  margin-inline: 0;
+}
+
 .paid {
   display: inline-flex;
   align-items: baseline;
@@ -176,6 +188,12 @@
   flex-shrink: 0;
   align-self: center;
   color: var(--positive);
+}
+
+.paidPart {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
 }
 
 .rowValue {

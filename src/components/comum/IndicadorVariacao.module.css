@@ -11,6 +11,10 @@
   align-self: center;
 }
 
+.sign {
+  margin-right: 0.12em;
+}
+
 .good {
   color: var(--positive);
 }

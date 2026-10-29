@@ -17,11 +17,12 @@ import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
 import { useAvisos } from '@/providers/ProvedorAvisos';
 import { useNotificacoes } from '@/providers/ProvedorNotificacoes';
 import { PARAMETRO_INVESTIMENTO } from '@/routes/caminhos';
-import { investimentosService } from '@/services';
+import { contasService, investimentosService } from '@/services';
 import type {
   InvestimentoDTO,
   PosicaoDTO,
   SalvarAporteInvestimentoDTO,
+  SalvarResgateInvestimentoDTO,
   SalvarSaldoInvestimentoDTO,
 } from '@/types';
 import { formatarMoeda, formatarPercentualComSinal } from '@/utils/formatacao';
@@ -47,6 +48,10 @@ export function PaginaInvestimentos() {
 
   const fetchData = useCallback((signal: AbortSignal) => investimentosService.buscarCarteira(signal), []);
   const { dados, carregando, erro, recarregar } = useDadosAssincronos(fetchData);
+
+  const fetchAccounts = useCallback((signal: AbortSignal) => contasService.listar(signal), []);
+  const { dados: contas } = useDadosAssincronos(fetchAccounts);
+  const accounts = useMemo(() => contas ?? [], [contas]);
 
   const positions = useMemo(() => dados?.posicoes ?? [], [dados]);
 
@@ -91,6 +96,24 @@ export function PaginaInvestimentos() {
       return true;
     } catch (contributionError) {
       toast.erro('Não foi possível adicionar o aporte.', contributionError);
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleWithdrawal = async (investment: InvestimentoDTO, payload: SalvarResgateInvestimentoDTO): Promise<boolean> => {
+    setSaving(true);
+
+    try {
+      await investimentosService.registrarResgate(investment.id, payload);
+      toast.sucesso('Resgate registrado com sucesso!', `${investment.nome} — ${formatarMoeda(payload.valor)}`);
+      recarregar();
+      atualizarAvisos();
+      setDetailVersion((value) => value + 1);
+      return true;
+    } catch (withdrawalError) {
+      toast.erro('Não foi possível registrar o resgate.', withdrawalError);
       return false;
     } finally {
       setSaving(false);
@@ -194,7 +217,7 @@ export function PaginaInvestimentos() {
                 dica: `${positions.length} ${positions.length === 1 ? 'posição' : 'posições'} em ${dados.alocacao.length} ${dados.alocacao.length === 1 ? 'tipo de ativo' : 'tipos de ativo'}`,
               },
               {
-                rotulo: 'Patrimônio atual',
+                rotulo: 'Valor atual',
                 valor: <ValorMonetario valor={dados.valorAtual} tamanho="lg" animar contarAoAparecer />,
                 dica: 'Soma do valor de mercado das posições',
               },
@@ -211,6 +234,24 @@ export function PaginaInvestimentos() {
                   </span>
                 ),
                 dica: 'Sobre o total aportado, desde o primeiro aporte',
+              },
+              {
+                rotulo: 'Reserva de emergência',
+                valor: <ValorMonetario valor={dados.reserva.valorAtual} animar contarAoAparecer />,
+                dica:
+                  dados.reserva.quantidade === 0 ? (
+                    'Nenhum investimento marcado como reserva'
+                  ) : (
+                    <>
+                      {dados.reserva.quantidade} {dados.reserva.quantidade === 1 ? 'investimento' : 'investimentos'} — Rendeu{' '}
+                      <ValorMonetario
+                        valor={dados.reserva.rendimento}
+                        tamanho="sm"
+                        tom={tomRendimento(dados.reserva.rendimento)}
+                        sinal="auto"
+                      />
+                    </>
+                  ),
               },
             ]}
           />
@@ -241,6 +282,7 @@ export function PaginaInvestimentos() {
         investimentoId={detail?.id ?? null}
         acaoInicial={detail?.acao ?? 'aporte'}
         versao={detailVersion}
+        contas={accounts}
         salvando={saving}
         aoFechar={() => setDetail(null)}
         aoEditar={(investment) => {
@@ -252,12 +294,14 @@ export function PaginaInvestimentos() {
           setRemoving(statement.posicao);
         }}
         aoRegistrarAporte={handleContribution}
+        aoRegistrarResgate={handleWithdrawal}
         aoAtualizarSaldo={handleBalance}
       />
 
       <ModalFormularioInvestimento
         aberto={formOpen}
         investimento={editing}
+        contas={accounts}
         salvando={saving}
         aoEnviar={handleSubmit}
         aoFechar={closeForm}
@@ -266,7 +310,7 @@ export function PaginaInvestimentos() {
       <DialogoConfirmacao
         aberto={removing !== null}
         titulo="Excluir investimento"
-        descricao="A posição sai da carteira junto com todo o histórico de aportes e rendimentos. Esta ação não pode ser desfeita."
+        descricao="A posição sai da carteira com todo o histórico, e as transferências que ela fez nas suas contas também saem. Esta ação não pode ser desfeita."
         rotuloConfirmar="Excluir"
         carregando={saving}
         aoConfirmar={handleDelete}
