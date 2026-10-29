@@ -1,6 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useCurrentFrame } from 'remotion';
-import { misturar, progresso } from '../animacao';
+import { misturar, progresso, usePasso } from '../animacao';
 import { Cartao } from '../componentes/Cartao';
 import { CenaDividida } from '../componentes/CenaDividida';
 import { BarraProgresso, ItemResumo, Selo, ValorMonetario } from '../componentes/Interface';
@@ -36,8 +35,8 @@ const resumo = [
 ];
 
 export function Orcamento() {
-  const quadro = useCurrentFrame();
-  const entradaResumo = progresso(quadro, orcamento.resumo, 16);
+  const passo = usePasso();
+  const entradaResumo = progresso(passo, orcamento.resumo, 16);
 
   return (
     <CenaDividida
@@ -73,8 +72,8 @@ export function Orcamento() {
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           {linhas.map(({ categoria, cor, gasto, limite }, indice) => {
             const inicio = orcamento.linhas[indice] ?? 0;
-            const entrada = progresso(quadro, inicio, 12);
-            const t = progresso(quadro, inicio + 4, orcamento.duracaoBarra);
+            const entrada = progresso(passo, inicio, 12);
+            const t = progresso(passo, inicio + 4, orcamento.duracaoBarra);
             const atual = gasto * t;
             const proporcao = atual / limite;
             const situacao = situacaoDe(proporcao);

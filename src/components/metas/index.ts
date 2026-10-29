@@ -7,5 +7,13 @@ export { VariacaoPreco } from './VariacaoPreco';
 export { GraficoHistoricoPreco } from './GraficoHistoricoPreco';
 export { MiniCurvaPreco } from './MiniCurvaPreco';
 export { tomLeitura, tomPreco, rotuloTendenciaPreco } from './aparencia';
-export { TODOS, aplicarConsultaMeta, consultaMetaVazia, temFiltrosMetaAtivos, opcoesOrdenacao, opcoesSituacao } from './consulta';
+export {
+  TODOS,
+  aplicarConsultaMeta,
+  consultaMetaVazia,
+  temFiltrosMetaAtivos,
+  opcoesOrdenacao,
+  opcoesSituacao,
+  rotuloResultadoMetas,
+} from './consulta';
 export type { ConsultaMeta, OrdenacaoMeta } from './consulta';

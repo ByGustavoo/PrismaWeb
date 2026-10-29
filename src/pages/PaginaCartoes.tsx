@@ -8,6 +8,7 @@ import { Botao, Painel, DialogoConfirmacao, EstadoVazio, BlocoCarregando } from 
 import { rotuloTipoCartao, ehCartaoCredito } from '@/constants/cartoes';
 import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
 import { useNotificacoes } from '@/providers/ProvedorNotificacoes';
+import { useTelas } from '@/providers/ProvedorTelas';
 import { PARAMETRO_CARTAO, caminhos } from '@/routes/caminhos';
 import { contasService, cartoesService } from '@/services';
 import type { CartaoDTO as CardModel, FaturaCartaoDTO, SalvarCartaoDTO } from '@/types';
@@ -19,6 +20,7 @@ export function PaginaCartoes() {
   const [removing, setRemoving] = useState<CardModel | null>(null);
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
+  const { estaOculto } = useTelas();
   const toast = useNotificacoes();
 
   const fetchData = useCallback(
@@ -113,7 +115,7 @@ export function PaginaCartoes() {
       saldoConta={card.idConta ? accountBalances.get(card.idConta) : undefined}
       aoEditar={setEditing}
       aoExcluir={setRemoving}
-      aoAbrirFaturas={openInvoices}
+      {...(estaOculto(caminhos.faturas) ? {} : { aoAbrirFaturas: openInvoices })}
     />
   );
 
@@ -225,7 +227,7 @@ export function PaginaCartoes() {
           <>
             <strong className={styles.confirmTitle}>{removing.nome}</strong>
             <span className={styles.confirmMeta}>
-              {removing.instituicao} · {rotuloTipoCartao[removing.tipo]}
+              {removing.instituicao} — {rotuloTipoCartao[removing.tipo]}
             </span>
           </>
         ) : null}

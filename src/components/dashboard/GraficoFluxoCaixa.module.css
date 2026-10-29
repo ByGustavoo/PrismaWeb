@@ -1,5 +1,12 @@
 .chart {
+  position: relative;
+  min-height: 260px;
   margin-inline: calc(var(--space-2) * -1);
+}
+
+.chartArea {
+  position: absolute;
+  inset: 0;
 }
 
 .empty {

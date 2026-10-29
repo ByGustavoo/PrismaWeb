@@ -1,4 +1,4 @@
-import type { FormaLancamento, SituacaoLancamento, TipoLancamento } from '@/types';
+import type { FormaLancamento, SituacaoLancamento, Tendencia, TipoLancamento } from '@/types';
 
 export const rotuloSituacaoLancamento: Record<SituacaoLancamento, string> = {
   PAGO: 'Concluído',
@@ -13,6 +13,17 @@ export const rotuloTipoLancamento: Record<TipoLancamento, string> = {
 };
 
 export const NOTA_PAGAMENTO_PARCELA = 'Gerada pelo pagamento da parcela';
+
+export function legendaVariacaoGasto(tendencia: Tendencia, substantivoPeriodo?: string): string | undefined {
+  if (!substantivoPeriodo) {
+    if (tendencia === 'ALTA') return 'gastou mais';
+    if (tendencia === 'BAIXA') return 'gastou menos';
+    return undefined;
+  }
+  if (tendencia === 'ALTA') return `a mais que no ${substantivoPeriodo} anterior`;
+  if (tendencia === 'BAIXA') return `a menos que no ${substantivoPeriodo} anterior`;
+  return `em relação ao ${substantivoPeriodo} anterior`;
+}
 
 export const rotuloPluralTipoLancamento: Record<TipoLancamento, string> = {
   RECEITA: 'Receitas',

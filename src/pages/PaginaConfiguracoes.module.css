@@ -2,7 +2,12 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
-  max-width: 860px;
+}
+
+.topRow {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--space-5);
 }
 
 .themeGrid {
@@ -125,6 +130,12 @@
 
 .retry {
   margin-inline-end: calc(-1 * var(--space-3));
+}
+
+@media (max-width: 1279px) {
+  .topRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 767px) {

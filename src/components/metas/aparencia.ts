@@ -14,6 +14,12 @@ export const rotuloTendenciaPreco: Record<Tendencia, string> = {
   ESTAVEL: 'Estável',
 };
 
+export const tomSeloPreco: Record<Tendencia, TomSelo> = {
+  BAIXA: 'positive',
+  ALTA: 'negative',
+  ESTAVEL: 'neutral',
+};
+
 export const classeTendenciaPreco: Record<Tendencia, string> = {
   BAIXA: 'down',
   ALTA: 'up',

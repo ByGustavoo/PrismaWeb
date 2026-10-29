@@ -14,6 +14,7 @@ import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
 import { useEhMobile } from '@/hooks/useConsultaMidia';
 import { usePeriodo } from '@/providers/ProvedorPeriodo';
 import { useNotificacoes } from '@/providers/ProvedorNotificacoes';
+import { legendaVariacaoGasto } from '@/constants/lancamentos';
 import { dashboardService } from '@/services';
 import { chaveMesPorDeslocamento } from '@/utils/data';
 import { capitalizar, formatarDataCompleta, formatarRotuloMes, formatarRotuloPeriodo, formatarHora } from '@/utils/formatacao';
@@ -107,6 +108,8 @@ export function PaginaDashboard() {
               valor={dados.despesasMes}
               icone={TrendingDown}
               variacao={dados.variacaoDespesas}
+              legendaVariacao={legendaVariacaoGasto(dados.variacaoDespesas.tendencia)}
+              sentidoFavoravel="BAIXA"
             />
             <BlocoIndicador
               rotulo="Investimentos"
@@ -142,6 +145,7 @@ export function PaginaDashboard() {
             <DistribuicaoCategorias
               dados={dados.gastoPorCategoria}
               substantivoPeriodo={periodNoun}
+              manterAlturaAoExpandir
               className="card-hover-accent"
             />
           </div>

@@ -1,5 +1,4 @@
-import { useCurrentFrame } from 'remotion';
-import { misturar, progresso } from '../animacao';
+import { misturar, progresso, usePasso } from '../animacao';
 import { Cartao } from '../componentes/Cartao';
 import { CenaDividida } from '../componentes/CenaDividida';
 import { formatarMoeda, IndicadorVariacao, ItemResumo, ValorMonetario } from '../componentes/Interface';
@@ -39,9 +38,9 @@ const ESPESSURA = 30;
 const CIRCUNFERENCIA = 2 * Math.PI * RAIO;
 
 export function Investimentos() {
-  const quadro = useCurrentFrame();
-  const grafico = progresso(quadro, investimentos.grafico, investimentos.duracaoGrafico);
-  const rosca = progresso(quadro, investimentos.rosca, investimentos.duracaoRosca);
+  const passo = usePasso();
+  const grafico = progresso(passo, investimentos.grafico, investimentos.duracaoGrafico);
+  const rosca = progresso(passo, investimentos.rosca, investimentos.duracaoRosca);
   let acumulado = 0;
 
   const resumo = [
@@ -66,7 +65,7 @@ export function Investimentos() {
       <Cartao estilo={{ display: 'flex', flexDirection: 'column', gap: 28, padding: 36, fontFamily: fontes.texto }}>
         <div style={{ display: 'flex', borderRadius: 16, border: `1.5px solid ${cores.borda}`, background: cores.superficieElevada }}>
           {resumo.map(({ rotulo, conteudo, apoio }, indice) => (
-            <ItemResumo key={rotulo} rotulo={rotulo} apoio={apoio} opacidade={progresso(quadro, investimentos.resumo[indice] ?? 0, 14)} primeiro={indice === 0}>
+            <ItemResumo key={rotulo} rotulo={rotulo} apoio={apoio} opacidade={progresso(passo, investimentos.resumo[indice] ?? 0, 14)} primeiro={indice === 0}>
               {conteudo}
             </ItemResumo>
           ))}
@@ -141,7 +140,7 @@ export function Investimentos() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {classes.map(({ rotulo, valor, cor }, indice) => {
-                const t = progresso(quadro, investimentos.legenda[indice] ?? 0, 12);
+                const t = progresso(passo, investimentos.legenda[indice] ?? 0, 12);
                 return (
                   <span key={rotulo} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 18, color: cores.texto, opacity: t, transform: `translateX(${misturar(-12, 0, t)}px)` }}>
                     <span style={{ width: 10, height: 10, borderRadius: 3, background: cor }} />

@@ -33,6 +33,12 @@ export const opcoesOrdenacao: Opcao[] = [
   { valor: 'name', rotulo: 'Nome (A–Z)' },
 ];
 
+export function rotuloResultadoMetas(query: ConsultaMeta, count: number): string {
+  if (query.busca.trim() === '' && query.situacao === TODOS) return '';
+  if (count === 0) return 'Nenhuma meta encontrada';
+  return `${count} ${count === 1 ? 'meta encontrada' : 'metas encontradas'}`;
+}
+
 export function temFiltrosMetaAtivos(query: ConsultaMeta): boolean {
   return query.busca.trim() !== '' || query.situacao !== TODOS || query.ordenacao !== consultaMetaVazia.ordenacao;
 }

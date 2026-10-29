@@ -40,7 +40,7 @@ export function CartaoRecorrente({ despesa, aoEditar, aoAlternar, aoExcluir }: C
                   />
                   {despesa.categoria.nome}
                   <span className={styles.separator} aria-hidden="true">
-                    ·
+                    —
                   </span>
                 </>
               ) : null}
@@ -81,7 +81,7 @@ export function CartaoRecorrente({ despesa, aoEditar, aoAlternar, aoExcluir }: C
               <>
                 {formatarDataNumerica(despesa.proximoVencimento)}
                 <span className={styles.separator} aria-hidden="true">
-                  ·
+                  —
                 </span>
                 {capitalizar(formatarRotuloVencimento(despesa.proximoVencimento))}
               </>

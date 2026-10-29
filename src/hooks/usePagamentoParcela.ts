@@ -29,7 +29,7 @@ export function usePagamentoParcela<T>(dados: T, aoConcluir: () => void) {
   const alternar = useCallback(
     async (alvo: ParcelaAlvo): Promise<boolean> => {
       const aVista = alvo.totalParcelas === 1;
-      const item = aVista ? alvo.descricao : `${alvo.numero}/${alvo.totalParcelas} · ${alvo.descricao}`;
+      const item = aVista ? alvo.descricao : `${alvo.numero}/${alvo.totalParcelas} — ${alvo.descricao}`;
 
       setEnvio({ idCompra: alvo.idCompra, numero: alvo.numero, origem: dados });
 

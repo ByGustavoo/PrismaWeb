@@ -83,7 +83,7 @@ export function ListaLancamentos({
                     <span className={styles.meta}>
                       <span className="tabular">{formatarDataCurta(transaction.data)}</span>
                       <span className={styles.separator} aria-hidden="true">
-                        ·
+                        —
                       </span>
                       {transaction.nomeContaDestino ? (
                         <span className={styles.route}>

@@ -39,7 +39,7 @@ export function CartaoInvestimento({ posicao, aoAbrir, aoAdicionarAporte, aoExcl
             <span className={styles.meta}>
               {rotuloClasseAtivo[investment.classeAtivo]}
               <span className={styles.separator} aria-hidden="true">
-                ·
+                —
               </span>
               {investment.instituicao}
             </span>
@@ -77,7 +77,7 @@ export function CartaoInvestimento({ posicao, aoAbrir, aoAdicionarAporte, aoExcl
             className={styles.shareBar}
           />
           <span className={styles.shareLabel}>
-            <span className="tabular">{Math.round(share * 100)}%</span> da carteira · aportado{' '}
+            <span className="tabular">{Math.round(share * 100)}%</span> da carteira — Aportado{' '}
             <ValorMonetario className={styles.inline} valor={investment.aportado} tamanho="sm" tom="muted" />
           </span>
         </div>
@@ -86,9 +86,9 @@ export function CartaoInvestimento({ posicao, aoAbrir, aoAdicionarAporte, aoExcl
           <p className={styles.since}>
             Desde {formatarMesCurto(investment.dataInicio.slice(0, 7))}
             <span className={styles.separator} aria-hidden="true">
-              ·
+              —
             </span>
-            saldo de {formatarDataNumerica(investment.dataAtualizacao).slice(0, 5)}
+            Saldo de {formatarDataNumerica(investment.dataAtualizacao).slice(0, 5)}
           </p>
           <button type="button" className={styles.contribute} onClick={() => aoAdicionarAporte(posicao)}>
             <Plus size={14} strokeWidth={2.25} aria-hidden="true" />

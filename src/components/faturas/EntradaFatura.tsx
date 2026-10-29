@@ -43,10 +43,10 @@ export function DestaqueFatura({ fatura, aoAbrir }: EntradaFaturaProps) {
             <ValorMonetario valor={fatura.valorPago} tamanho="sm" tom="positive" /> já pago
           </span>
           <span className={styles.separator} aria-hidden="true">
-            ·
+            —
           </span>
           <span>
-            falta <ValorMonetario valor={fatura.valorRestante} tamanho="sm" />
+            Falta <ValorMonetario valor={fatura.valorRestante} tamanho="sm" />
           </span>
         </span>
       ) : null}
@@ -100,7 +100,7 @@ export function LinhaFatura({ fatura, aoAbrir }: EntradaFaturaProps) {
           <span className={styles.rowCard}>
             {fatura.nomeCartao}
             <span className={styles.separator} aria-hidden="true">
-              ·
+              —
             </span>
             {rotuloItens(fatura.quantidadeItens)}
           </span>
@@ -119,7 +119,7 @@ export function LinhaFatura({ fatura, aoAbrir }: EntradaFaturaProps) {
           <ValorMonetario valor={fatura.total} tamanho="sm" />
           {fatura.valorPago > 0 && fatura.valorRestante > 0 ? (
             <span className={styles.rowRemaining}>
-              falta <ValorMonetario valor={fatura.valorRestante} tamanho="sm" tom="muted" />
+              Falta <ValorMonetario valor={fatura.valorRestante} tamanho="sm" tom="muted" />
             </span>
           ) : null}
         </span>

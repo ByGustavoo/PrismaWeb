@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import { AbsoluteFill, useCurrentFrame } from 'remotion';
-import { estiloTransicaoCena, misturar, mola, progresso } from '../animacao';
+import { AbsoluteFill } from 'remotion';
+import { estiloTransicaoCena, misturar, mola, progresso, usePasso } from '../animacao';
 import { cores, fontes } from '../tema';
 import { Sobretitulo } from './Sobretitulo';
 import { TextoRevelado } from './TextoRevelado';
@@ -17,6 +17,7 @@ interface CenaDivididaProps {
   larguraTexto?: number;
   children: ReactNode;
   complemento?: ReactNode;
+  sobreposicao?: ReactNode;
 }
 
 export function CenaDividida({
@@ -31,11 +32,12 @@ export function CenaDividida({
   larguraTexto = 640,
   children,
   complemento,
+  sobreposicao,
 }: CenaDivididaProps) {
-  const quadro = useCurrentFrame();
-  const entradaCartao = mola(quadro, inicioCartao, 90, 18);
+  const passo = usePasso();
+  const entradaCartao = mola(passo, inicioCartao, 90, 18);
   const sinal = ladoTexto === 'esquerda' ? -1 : 1;
-  const rotacao = misturar(14, 4, entradaCartao) - progresso(quadro, 0, duracao, (t) => t) * 3;
+  const rotacao = misturar(14, 4, entradaCartao) - progresso(passo, 0, duracao, (t) => t) * 3;
 
   const texto = (
     <div style={{ width: larguraTexto, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 32 }}>
@@ -71,7 +73,7 @@ export function CenaDividida({
   return (
     <AbsoluteFill
       style={{
-        ...estiloTransicaoCena(quadro, duracao),
+        ...estiloTransicaoCena(passo, duracao),
         padding: '0 140px',
         flexDirection: 'row',
         alignItems: 'center',
@@ -80,6 +82,7 @@ export function CenaDividida({
     >
       {ladoTexto === 'esquerda' ? texto : cartao}
       {ladoTexto === 'esquerda' ? cartao : texto}
+      {sobreposicao}
     </AbsoluteFill>
   );
 }

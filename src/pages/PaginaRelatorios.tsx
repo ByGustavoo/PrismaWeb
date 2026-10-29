@@ -5,6 +5,7 @@ import { GraficoFluxoCaixa, DistribuicaoCategorias } from '@/components/dashboar
 import { CabecalhoPagina } from '@/components/layout';
 import { GraficoEvolucaoSaldo, GraficoPatrimonio, SeletorPeriodoRelatorio, DistribuicaoOrigens } from '@/components/relatorios';
 import { Botao, Painel, EstadoVazio, BlocoCarregando } from '@/components/ui';
+import { legendaVariacaoGasto } from '@/constants/lancamentos';
 import { periodoRelatorioDe } from '@/constants/relatorios';
 import type { ChavePeriodoRelatorio } from '@/constants/relatorios';
 import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
@@ -100,7 +101,11 @@ export function PaginaRelatorios() {
                 rotulo: 'Despesas',
                 valor: <ValorMonetario valor={dados.despesas} tom="negative" animar contarAoAparecer />,
                 variacao: (
-                  <IndicadorVariacao variacao={dados.variacaoDespesas} legenda="em relação ao período anterior" />
+                  <IndicadorVariacao
+                    variacao={dados.variacaoDespesas}
+                    legenda={legendaVariacaoGasto(dados.variacaoDespesas.tendencia, 'período')}
+                    sentidoFavoravel="BAIXA"
+                  />
                 ),
                 dica: 'Transferências não entram na conta',
               },

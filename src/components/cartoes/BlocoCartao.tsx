@@ -13,7 +13,7 @@ interface BlocoCartaoProps {
   saldoConta?: number | undefined;
   aoEditar: (card: CartaoDTO) => void;
   aoExcluir: (card: CartaoDTO) => void;
-  aoAbrirFaturas: (card: CartaoDTO) => void;
+  aoAbrirFaturas?: (card: CartaoDTO) => void;
 }
 
 export function BlocoCartao({ cartao, fatura, saldoConta, aoEditar, aoExcluir, aoAbrirFaturas }: BlocoCartaoProps) {
@@ -59,7 +59,7 @@ export function BlocoCartao({ cartao, fatura, saldoConta, aoEditar, aoExcluir, a
         <span className={styles.meta}>
           {[cartao.instituicao, cartao.bandeira, cartao.ultimosDigitos ? `•••• ${cartao.ultimosDigitos}` : null]
             .filter(Boolean)
-            .join(' · ')}
+            .join(' — ')}
         </span>
       </header>
 
@@ -112,15 +112,17 @@ export function BlocoCartao({ cartao, fatura, saldoConta, aoEditar, aoExcluir, a
             <span className={styles.due}>
               {fatura ? `Vence em ${formatarDataCompleta(fatura.dataVencimento)}` : 'Sem fatura em aberto'}
             </span>
-            <Botao
-              variante="secondary"
-              tamanho="sm"
-              icone={ArrowRight}
-              posicaoIcone="right"
-              onClick={() => aoAbrirFaturas(cartao)}
-            >
-              Ver faturas
-            </Botao>
+            {aoAbrirFaturas ? (
+              <Botao
+                variante="secondary"
+                tamanho="sm"
+                icone={ArrowRight}
+                posicaoIcone="right"
+                onClick={() => aoAbrirFaturas(cartao)}
+              >
+                Ver faturas
+              </Botao>
+            ) : null}
           </footer>
         </>
       ) : (

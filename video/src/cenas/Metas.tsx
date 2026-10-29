@@ -1,6 +1,5 @@
 import { ArrowDownRight, ExternalLink, Lightbulb, Monitor } from 'lucide-react';
-import { useCurrentFrame } from 'remotion';
-import { curvaEntradaSaida, misturar, mola, progresso } from '../animacao';
+import { curvaEntradaSaida, misturar, mola, progresso, usePasso } from '../animacao';
 import { Cartao } from '../componentes/Cartao';
 import { CenaDividida } from '../componentes/CenaDividida';
 import { formatarMoeda, formatarPercentual, ItemResumo, Selo, ValorMonetario } from '../componentes/Interface';
@@ -72,24 +71,24 @@ function alturaNoAvanco(avanco: number): number {
 const mediasParciais = precos.map((_, indice) => precos.slice(0, indice + 1).reduce((soma, preco) => soma + preco, 0) / (indice + 1));
 
 export function Metas() {
-  const quadro = useCurrentFrame();
-  const visiveis = metas.pontos.filter((inicio) => quadro >= inicio).length;
+  const passo = usePasso();
+  const visiveis = metas.pontos.filter((inicio) => passo >= inicio).length;
   const indiceAtual = Math.max(visiveis - 1, 0);
-  const selo = mola(quadro, metas.selo, 190, 14);
-  const leitura = mola(quadro, metas.leitura, 140, 16);
+  const selo = mola(passo, metas.selo, 190, 14);
+  const leitura = mola(passo, metas.leitura, 140, 16);
   const queda = INICIAL - ATUAL;
 
-  const avanco = metas.pontos.slice(1).reduce((soma, chegada) => soma + progresso(quadro, chegada - metas.duracaoTrecho, metas.duracaoTrecho, curvaEntradaSaida), 0);
+  const avanco = metas.pontos.slice(1).reduce((soma, chegada) => soma + progresso(passo, chegada - metas.duracaoTrecho, metas.duracaoTrecho, curvaEntradaSaida), 0);
   const cabecaX = x(avanco);
   const cabecaY = alturaNoAvanco(avanco);
   const viajando = avanco % 1 > 0.001 && avanco % 1 < 0.999;
   const precoAtual = viajando ? precoNaAltura(cabecaY) : (registros[Math.round(avanco)]?.preco ?? INICIAL);
-  const inicioGrafico = progresso(quadro, metas.pontos[0] ?? 0, 8);
-  const fimGrafico = progresso(quadro, (metas.pontos[metas.pontos.length - 1] ?? 0) + 4, 16);
+  const inicioGrafico = progresso(passo, metas.pontos[0] ?? 0, 8);
+  const fimGrafico = progresso(passo, (metas.pontos[metas.pontos.length - 1] ?? 0) + 4, 16);
 
-  const media = progresso(quadro, metas.pontos[1] ?? 0, metas.duracaoMedia);
+  const media = progresso(passo, metas.pontos[1] ?? 0, metas.duracaoMedia);
   const alturaMedia = mediasParciais.slice(2).reduce(
-    (altura, parcial, indice) => altura + (y(parcial) - y(mediasParciais[indice + 1] ?? parcial)) * mola(quadro, metas.pontos[indice + 2] ?? 0, 150, 18),
+    (altura, parcial, indice) => altura + (y(parcial) - y(mediasParciais[indice + 1] ?? parcial)) * mola(passo, metas.pontos[indice + 2] ?? 0, 150, 18),
     y(mediasParciais[1] ?? MEDIA),
   );
 
@@ -188,15 +187,15 @@ export function Metas() {
             ) : null}
             {registros.map((registro, indice) => {
               const chegada = metas.pontos[indice] ?? 0;
-              const entrada = mola(quadro, chegada, 200, 13);
+              const entrada = mola(passo, chegada, 200, 13);
               const menor = registro.preco === MENOR && indice === registros.length - 1;
               const cor = menor ? cores.positivo : cores.destaque;
               const escala = indice === 0 ? entrada : 0.75 + 0.25 * entrada;
-              if (quadro < chegada) return null;
+              if (passo < chegada) return null;
               return (
                 <g key={registro.data} opacity={indice === 0 ? Math.min(entrada * 2, 1) : 1}>
                   {(menor ? [0, 9] : [0]).map((atraso) => {
-                    const onda = progresso(quadro, chegada + atraso, 18, linear);
+                    const onda = progresso(passo, chegada + atraso, 18, linear);
                     return onda > 0 && onda < 1 ? (
                       <circle key={atraso} cx={x(indice)} cy={y(registro.preco)} r={misturar(8, menor ? 38 : 26, onda)} fill="none" stroke={cor} strokeWidth={2.5} opacity={(1 - onda) * 0.75} />
                     ) : null;
@@ -229,7 +228,7 @@ export function Metas() {
                   transform: 'translateX(-50%)',
                   fontSize: 16,
                   color: indice === indiceAtual && visiveis > 0 ? cores.texto : cores.textoSecundario,
-                  opacity: quadro >= (metas.pontos[indice] ?? 0) ? 1 : 0.3,
+                  opacity: passo >= (metas.pontos[indice] ?? 0) ? 1 : 0.3,
                 }}
               >
                 {registro.data}
@@ -244,7 +243,7 @@ export function Metas() {
             { rotulo: 'Preço médio', valor: MEDIA, cor: cores.texto },
             { rotulo: 'Maior preço', valor: MAIOR, cor: cores.texto },
           ].map(({ rotulo, valor, cor }, indice) => (
-            <ItemResumo key={rotulo} rotulo={rotulo} opacidade={progresso(quadro, metas.selo + indice * 4, 14)} primeiro={indice === 0}>
+            <ItemResumo key={rotulo} rotulo={rotulo} opacidade={progresso(passo, metas.selo + indice * 4, 14)} primeiro={indice === 0}>
               <ValorMonetario valor={valor} tamanho={24} cor={cor} />
             </ItemResumo>
           ))}

@@ -1,0 +1,162 @@
+.saveState {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: var(--control-height-sm);
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.layout {
+  container-type: inline-size;
+}
+
+.groups {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-5) var(--space-6);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.groupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  box-sizing: content-box;
+  min-height: var(--control-height-sm);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.groupTitle {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block: var(--space-1);
+}
+
+.switch {
+  flex: 1;
+}
+
+.switch > p {
+  padding-left: calc(42px + var(--space-3));
+}
+
+.itemControl {
+  flex-shrink: 0;
+}
+
+.restore {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background-color: var(--surface-muted);
+}
+
+.restoreIcon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: var(--radius-xs);
+  background-color: var(--surface);
+  color: var(--text-muted);
+}
+
+.restoreText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.restoreTitle {
+  font-weight: 500;
+}
+
+.restoreDescription {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+@container (min-width: 640px) {
+  .groups {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .group:first-child {
+    grid-row: span 2;
+  }
+}
+
+@container (min-width: 1200px) {
+  .groups {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .group:first-child {
+    grid-row: auto;
+  }
+}
+
+@media (max-width: 599px) {
+  .item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-1);
+    padding-block: var(--space-2);
+  }
+
+  .itemControl {
+    align-self: flex-start;
+    margin-left: calc(42px + var(--space-3));
+  }
+
+  .groupHeader {
+    flex-wrap: wrap;
+  }
+
+  .restore {
+    flex-wrap: wrap;
+  }
+
+  .restore > :last-child {
+    width: 100%;
+  }
+}

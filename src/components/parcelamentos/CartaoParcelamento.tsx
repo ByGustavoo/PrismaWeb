@@ -39,7 +39,7 @@ export function CartaoParcelamento({ plano, aoEditar, aoExcluir, aoAbrirParcelas
             {purchase.categoria ? (
               <>
                 <span className={styles.separator} aria-hidden="true">
-                  ·
+                  —
                 </span>
                 <span className={styles.category}>
                   <span
@@ -52,7 +52,7 @@ export function CartaoParcelamento({ plano, aoEditar, aoExcluir, aoAbrirParcelas
               </>
             ) : null}
             <span className={styles.separator} aria-hidden="true">
-              ·
+              —
             </span>
             {formatarDataCompleta(purchase.dataCompra)}
           </span>
@@ -134,7 +134,7 @@ export function CartaoParcelamento({ plano, aoEditar, aoExcluir, aoAbrirParcelas
               {lastInstallment ? (
                 <>
                   <span className={styles.separator} aria-hidden="true">
-                    ·
+                    —
                   </span>
                   Última parcela em <span className="tabular">{formatarMesCurto(lastInstallment.mes)}</span>
                 </>

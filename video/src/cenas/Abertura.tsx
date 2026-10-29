@@ -1,5 +1,5 @@
-import { AbsoluteFill, useCurrentFrame } from 'remotion';
-import { estiloTransicaoCena, misturar, mola, progresso } from '../animacao';
+import { AbsoluteFill } from 'remotion';
+import { estiloTransicaoCena, misturar, mola, progresso, usePasso } from '../animacao';
 import { MarcaAnimada } from '../componentes/MarcaAnimada';
 import { abertura, cenas } from '../linhaDoTempo';
 import { cores, fontes } from '../tema';
@@ -7,15 +7,15 @@ import { cores, fontes } from '../tema';
 const NOME = 'Prisma';
 
 export function Abertura() {
-  const quadro = useCurrentFrame();
-  const entradaMarca = mola(quadro, abertura.marca, 120, 13);
-  const faces = abertura.faces.map((inicio) => mola(quadro, inicio, 150, 14)) as [number, number, number];
-  const pulso = progresso(quadro, abertura.brilho, 30);
-  const legenda = progresso(quadro, abertura.legenda, 18);
-  const deslocamentoMarca = progresso(quadro, abertura.nome - 4, 22);
+  const passo = usePasso();
+  const entradaMarca = mola(passo, abertura.marca, 120, 13);
+  const faces = abertura.faces.map((inicio) => mola(passo, inicio, 150, 14)) as [number, number, number];
+  const pulso = progresso(passo, abertura.brilho, 30);
+  const legenda = progresso(passo, abertura.legenda, 18);
+  const deslocamentoMarca = progresso(passo, abertura.nome - 4, 22);
 
   return (
-    <AbsoluteFill style={{ ...estiloTransicaoCena(quadro, cenas.abertura.duracao), alignItems: 'center', justifyContent: 'center' }}>
+    <AbsoluteFill style={{ ...estiloTransicaoCena(passo, cenas.abertura.duracao), alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: misturar(0, 40, deslocamentoMarca) }}>
         <div style={{ position: 'relative' }}>
           <div
@@ -62,7 +62,7 @@ export function Abertura() {
           }}
         >
           {NOME.split('').map((letra, indice) => {
-            const t = progresso(quadro, abertura.nome + indice * abertura.intervaloLetras, 20);
+            const t = progresso(passo, abertura.nome + indice * abertura.intervaloLetras, 20);
             return (
               <span key={indice} style={{ display: 'inline-block', transform: `translateY(${misturar(110, 0, t)}%)`, opacity: t }}>
                 {letra}

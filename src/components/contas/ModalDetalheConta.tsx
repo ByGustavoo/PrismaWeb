@@ -6,6 +6,7 @@ import type { ItemMovimentacao } from '@/components/comum';
 import { GraficoEvolucao } from '@/components/graficos';
 import { Botao, EstadoVazio, Modal } from '@/components/ui';
 import { MESES_EVOLUCAO_CONTA, rotuloTipoConta } from '@/constants/contas';
+import { useTelas } from '@/providers/ProvedorTelas';
 import { PARAMETRO_CONTA, PARAMETRO_NOVO_LANCAMENTO, caminhos } from '@/routes/caminhos';
 import type { EvolucaoContaDTO, MovimentacaoContaDTO } from '@/types';
 import { formatarDataNumerica, formatarPercentualComSinal } from '@/utils/formatacao';
@@ -51,6 +52,7 @@ function paraItem(movement: MovimentacaoContaDTO): ItemMovimentacao {
 
 export function ModalDetalheConta({ evolucao, salvando, aoFechar, aoEditar, aoExcluir }: ModalDetalheContaProps) {
   const navigate = useNavigate();
+  const { estaOculto } = useTelas();
   const items = useMemo(() => (evolucao ? evolucao.movimentacoes.map(paraItem) : []), [evolucao]);
 
   if (!evolucao) return null;
@@ -69,7 +71,7 @@ export function ModalDetalheConta({ evolucao, salvando, aoFechar, aoEditar, aoEx
       aberto
       aoFechar={aoFechar}
       titulo={account.nome}
-      descricao={`${rotuloTipoConta[account.tipo]} · ${account.instituicao}`}
+      descricao={`${rotuloTipoConta[account.tipo]} — ${account.instituicao}`}
       tamanho="lg"
       rodape={
         <>
@@ -161,36 +163,40 @@ export function ModalDetalheConta({ evolucao, salvando, aoFechar, aoEditar, aoEx
           />
         </section>
 
-        <div className={styles.actions}>
-          <Botao
-            variante="secondary"
-            tamanho="sm"
-            icone={ArrowDownToLine}
-            onClick={() => goTo(`${caminhos.lancamentos}?${PARAMETRO_NOVO_LANCAMENTO}=transferencia`)}
-          >
-            Registrar aporte
-          </Botao>
-          <Botao
-            variante="secondary"
-            tamanho="sm"
-            icone={ArrowDownLeft}
-            onClick={() => goTo(`${caminhos.lancamentos}?${PARAMETRO_NOVO_LANCAMENTO}=receita`)}
-          >
-            Registrar rendimento
-          </Botao>
-          <Botao
-            variante="ghost"
-            tamanho="sm"
-            icone={ListFilter}
-            onClick={() => goTo(`${caminhos.lancamentos}?${PARAMETRO_CONTA}=${account.id}`)}
-          >
-            Ver lançamentos
-          </Botao>
-        </div>
-        <p className={styles.actionsHint}>
-          Aporte é uma transferência para esta conta; rendimento é uma receita na categoria Rendimentos. Os dois viram
-          lançamentos, e a evolução se atualiza sozinha.
-        </p>
+        {estaOculto(caminhos.lancamentos) ? null : (
+          <>
+            <div className={styles.actions}>
+              <Botao
+                variante="secondary"
+                tamanho="sm"
+                icone={ArrowDownToLine}
+                onClick={() => goTo(`${caminhos.lancamentos}?${PARAMETRO_NOVO_LANCAMENTO}=transferencia`)}
+              >
+                Registrar aporte
+              </Botao>
+              <Botao
+                variante="secondary"
+                tamanho="sm"
+                icone={ArrowDownLeft}
+                onClick={() => goTo(`${caminhos.lancamentos}?${PARAMETRO_NOVO_LANCAMENTO}=receita`)}
+              >
+                Registrar rendimento
+              </Botao>
+              <Botao
+                variante="ghost"
+                tamanho="sm"
+                icone={ListFilter}
+                onClick={() => goTo(`${caminhos.lancamentos}?${PARAMETRO_CONTA}=${account.id}`)}
+              >
+                Ver lançamentos
+              </Botao>
+            </div>
+            <p className={styles.actionsHint}>
+              Aporte é uma transferência para esta conta; rendimento é uma receita na categoria Rendimentos. Os dois viram
+              lançamentos, e a evolução se atualiza sozinha.
+            </p>
+          </>
+        )}
 
         <section className={styles.block} aria-labelledby="account-history-title">
           <h3 className={styles.sectionTitle} id="account-history-title">

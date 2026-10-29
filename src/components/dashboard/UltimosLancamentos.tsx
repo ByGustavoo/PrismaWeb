@@ -6,6 +6,7 @@ import { classePorTipo, iconePorTipo, sinalPorTipo, tomPorTipo, tomPorSituacao }
 import { Selo, Painel, CorpoPainel, CabecalhoPainel, CorpoTabela, CabecaTabela, Tabela, ContainerTabela, Celula, CelulaCabecalho, LinhaTabela, EstadoVazio } from '@/components/ui';
 import { corDaPaleta } from '@/constants/cores';
 import { rotuloSituacaoLancamento } from '@/constants/lancamentos';
+import { useTelas } from '@/providers/ProvedorTelas';
 import { caminhos } from '@/routes/caminhos';
 import type { LancamentoDTO } from '@/types';
 import { formatarDataCurta } from '@/utils/formatacao';
@@ -17,13 +18,17 @@ interface UltimosLancamentosProps {
 }
 
 export function UltimosLancamentos({ lancamentos, descricao }: UltimosLancamentosProps) {
+  const { estaOculto } = useTelas();
+
   return (
     <Painel espacamento="sm" className="card-hover-accent">
       <div className={styles.header}>
         <CabecalhoPainel titulo="Últimos lançamentos" descricao={descricao} />
-        <Link className={styles.link} to={caminhos.lancamentos}>
-          Ver todos
-        </Link>
+        {estaOculto(caminhos.lancamentos) ? null : (
+          <Link className={styles.link} to={caminhos.lancamentos}>
+            Ver todos
+          </Link>
+        )}
       </div>
 
       <CorpoPainel>

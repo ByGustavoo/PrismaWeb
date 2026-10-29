@@ -1,7 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { ValorMonetario, IndicadorVariacao } from '@/components/comum';
-import type { VariacaoDTO } from '@/types';
+import type { Tendencia, VariacaoDTO } from '@/types';
 import styles from './BlocoIndicador.module.css';
 
 interface BlocoIndicadorProps {
@@ -9,10 +9,20 @@ interface BlocoIndicadorProps {
   valor: number;
   icone: LucideIcon;
   variacao?: VariacaoDTO;
+  legendaVariacao?: string;
+  sentidoFavoravel?: Exclude<Tendencia, 'ESTAVEL'>;
   notaRodape?: ReactNode;
 }
 
-export function BlocoIndicador({ rotulo, valor, icone: Icon, variacao, notaRodape }: BlocoIndicadorProps) {
+export function BlocoIndicador({
+  rotulo,
+  valor,
+  icone: Icon,
+  variacao,
+  legendaVariacao,
+  sentidoFavoravel,
+  notaRodape,
+}: BlocoIndicadorProps) {
   return (
     <article className={`${styles.tile} card-hover-accent`}>
       <header className={styles.header}>
@@ -25,7 +35,9 @@ export function BlocoIndicador({ rotulo, valor, icone: Icon, variacao, notaRodap
       <ValorMonetario valor={valor} tamanho="lg" animar contarAoAparecer />
 
       <footer className={styles.footer}>
-        {variacao ? <IndicadorVariacao variacao={variacao} /> : null}
+        {variacao ? (
+          <IndicadorVariacao variacao={variacao} legenda={legendaVariacao} sentidoFavoravel={sentidoFavoravel} />
+        ) : null}
         {notaRodape ? <span className={styles.footnote}>{notaRodape}</span> : null}
       </footer>
     </article>

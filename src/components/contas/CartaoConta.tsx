@@ -34,7 +34,7 @@ export function CartaoConta({ conta, participacao, aoEditar, aoExcluir }: Cartao
             <span className={styles.meta}>
               {conta.instituicao}
               <span className={styles.separator} aria-hidden="true">
-                ·
+                —
               </span>
               {rotuloTipoConta[conta.tipo]}
             </span>

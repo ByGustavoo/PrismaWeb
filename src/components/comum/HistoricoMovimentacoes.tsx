@@ -61,7 +61,7 @@ export function HistoricoMovimentacoes({ itens, quantidadeInicial = 8, rotuloSal
                   {item.detalhe ? (
                     <>
                       <span className={styles.separator} aria-hidden="true">
-                        ·
+                        —
                       </span>
                       {item.detalhe}
                     </>

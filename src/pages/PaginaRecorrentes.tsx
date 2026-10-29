@@ -66,7 +66,7 @@ export function PaginaRecorrentes() {
         toast.sucesso('Despesa recorrente atualizada com sucesso!', payload.descricao);
       } else {
         await recorrentesService.criar(payload);
-        toast.sucesso('Despesa recorrente cadastrada com sucesso!', `${rotuloFrequencia[payload.frequencia]} · ${payload.descricao}`);
+        toast.sucesso('Despesa recorrente cadastrada com sucesso!', `${rotuloFrequencia[payload.frequencia]} — ${payload.descricao}`);
       }
       closeForm();
       recarregar();
@@ -182,7 +182,7 @@ export function PaginaRecorrentes() {
                   <span className={styles.count}>—</span>
                 ),
                 dica: nextDue
-                  ? `${nextDue.descricao} · ${formatarRotuloVencimento(nextDue.proximoVencimento)}`
+                  ? `${nextDue.descricao} — ${capitalizar(formatarRotuloVencimento(nextDue.proximoVencimento))}`
                   : 'Nenhuma despesa ativa',
               },
             ]}
@@ -199,7 +199,7 @@ export function PaginaRecorrentes() {
               <span className={styles.dueSoonList}>
                 {summary.vencendoEmBreve
                   .map((item) => `${item.descricao} (${capitalizar(formatarRotuloVencimento(item.proximoVencimento))})`)
-                  .join(' · ')}
+                  .join(' — ')}
               </span>
             </div>
           ) : null}
@@ -241,7 +241,7 @@ export function PaginaRecorrentes() {
           <>
             <strong className={styles.confirmTitle}>{removing.descricao}</strong>
             <span className={styles.confirmMeta}>
-              {rotuloFrequencia[removing.frequencia]} · {removing.nomeOrigem}
+              {rotuloFrequencia[removing.frequencia]} — {removing.nomeOrigem}
             </span>
             <ValorMonetario valor={removing.valor} />
           </>

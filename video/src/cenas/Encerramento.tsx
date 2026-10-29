@@ -1,20 +1,20 @@
-import { AbsoluteFill, useCurrentFrame } from 'remotion';
-import { estiloTransicaoCena, misturar, mola, progresso } from '../animacao';
+import { AbsoluteFill } from 'remotion';
+import { estiloTransicaoCena, misturar, mola, progresso, usePasso } from '../animacao';
 import { MarcaAnimada } from '../componentes/MarcaAnimada';
 import { TextoRevelado } from '../componentes/TextoRevelado';
 import { cenas, encerramento } from '../linhaDoTempo';
 import { cores, fontes } from '../tema';
 
 export function Encerramento() {
-  const quadro = useCurrentFrame();
-  const marca = mola(quadro, encerramento.marca, 110, 14);
-  const nome = progresso(quadro, encerramento.nome, 20);
-  const respiro = progresso(quadro, 0, cenas.encerramento.duracao, (t) => t);
+  const passo = usePasso();
+  const marca = mola(passo, encerramento.marca, 110, 14);
+  const nome = progresso(passo, encerramento.nome, 20);
+  const respiro = progresso(passo, 0, cenas.encerramento.duracao, (t) => t);
 
   return (
     <AbsoluteFill
       style={{
-        ...estiloTransicaoCena(quadro, cenas.encerramento.duracao, false),
+        ...estiloTransicaoCena(passo, cenas.encerramento.duracao, false),
         alignItems: 'center',
         justifyContent: 'center',
         flexDirection: 'column',

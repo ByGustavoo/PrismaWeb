@@ -41,8 +41,4 @@
   .list {
     grid-template-columns: minmax(0, 1fr);
   }
-
-  .filter {
-    flex: 1 1 100%;
-  }
 }

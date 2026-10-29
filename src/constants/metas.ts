@@ -33,3 +33,5 @@ export const textoLeituraMeta: Record<LeituraMeta, string> = {
   MAIOR: 'O preço atual está próximo do maior valor já registrado. Vale esperar mais uma consulta.',
   ESTAVEL: 'O preço não se moveu desde o primeiro registro.',
 };
+
+export const LEGENDA_VARIACAO_TOTAL_META = 'Desde o primeiro registro';

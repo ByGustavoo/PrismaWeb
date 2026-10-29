@@ -50,6 +50,16 @@
   border-color: var(--negative);
 }
 
+.controlSm {
+  height: var(--control-height-sm);
+}
+
+@media (pointer: fine) {
+  .controlSm .input {
+    font-size: var(--fs-sm);
+  }
+}
+
 .input {
   flex: 1;
   min-width: 0;

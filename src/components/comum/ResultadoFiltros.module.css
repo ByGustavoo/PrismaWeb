@@ -1,0 +1,14 @@
+.result {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.count {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.count:empty {
+  display: none;
+}

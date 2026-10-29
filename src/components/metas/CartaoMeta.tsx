@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react';
 import { ExternalLink, Plus, ShoppingBag, Trash2 } from 'lucide-react';
 import { ValorMonetario } from '@/components/comum';
 import { Selo } from '@/components/ui';
-import { rotuloSituacaoMeta, tomSituacaoMeta } from '@/constants/metas';
+import { LEGENDA_VARIACAO_TOTAL_META, rotuloSituacaoMeta, tomSituacaoMeta } from '@/constants/metas';
 import type { AcompanhamentoMetaDTO } from '@/types';
 import { formatarDataNumerica } from '@/utils/formatacao';
 import { VariacaoPreco } from './VariacaoPreco';
@@ -60,7 +60,7 @@ export function CartaoMeta({ acompanhamento, indice, aoAbrir, aoRegistrarPreco, 
             <span className={styles.meta}>
               {host ?? 'Sem link'}
               <span className={styles.separator} aria-hidden="true">
-                ·
+                —
               </span>
               {analysis.quantidadeRegistros} {analysis.quantidadeRegistros === 1 ? 'registro' : 'registros'}
             </span>
@@ -74,10 +74,11 @@ export function CartaoMeta({ acompanhamento, indice, aoAbrir, aoRegistrarPreco, 
           </span>
           {analysis.quantidadeRegistros > 1 ? (
             <VariacaoPreco
-              className={styles.delta}
               variacao={analysis.variacao}
               percentual={analysis.variacaoPercentual}
               tendencia={analysis.tendencia}
+              legenda={LEGENDA_VARIACAO_TOTAL_META}
+              legendaAbaixo
             />
           ) : (
             <span className={styles.firstOnly}>Primeiro registro</span>
@@ -95,8 +96,8 @@ export function CartaoMeta({ acompanhamento, indice, aoAbrir, aoRegistrarPreco, 
         )}
 
         <p className={styles.since}>
-          Registrado a <ValorMonetario className={styles.inline} valor={analysis.precoInicial} tamanho="sm" tom="muted" /> ·
-          atualizado em <span className="tabular">{formatarDataNumerica(analysis.ultimaAtualizacao)}</span>
+          Registrado a <ValorMonetario className={styles.inline} valor={analysis.precoInicial} tamanho="sm" tom="muted" /> —
+          Atualizado em <span className="tabular">{formatarDataNumerica(analysis.ultimaAtualizacao)}</span>
         </p>
 
         <div className={styles.bottom}>

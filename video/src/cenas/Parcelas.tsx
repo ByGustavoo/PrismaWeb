@@ -1,349 +1,218 @@
-import { useCurrentFrame } from 'remotion';
-import { curvaEntradaSaida, misturar, mola, progresso } from '../animacao';
+import type { ReactNode } from 'react';
+import { Check, X } from 'lucide-react';
+import { interpolate } from 'remotion';
+import { misturar, mola, progresso, pulso, usePasso } from '../animacao';
 import { CenaDividida } from '../componentes/CenaDividida';
-import { formatarMoeda, Selo, ValorMonetario } from '../componentes/Interface';
+import { Cursor } from '../componentes/Cursor';
 import { Rolante } from '../componentes/Rolante';
-import { cenas, PARCELA, parcelas, PARCELAS_PAGAS, PARCELAS_TOTAIS } from '../linhaDoTempo';
-import { cores, fontes, paleta } from '../tema';
+import { Selo, ValorMonetario } from '../componentes/Interface';
+import { Notificacao } from '../componentes/Notificacao';
+import { ANTECEDENCIA_SAIDA_NOTIFICACAO, cenas, parcelas, PARCELAS_COMPRA, PARCELAS_JA_PAGAS, VALOR_PARCELA } from '../linhaDoTempo';
+import { cores, fontes } from '../tema';
 
-const LARGURA_CARTAO = 984;
-const RESPIRO = 36;
-const BORDA = 1.5;
-const ALTURA_COMPRA = 300;
+const LARGURA_CARTAO = 900;
+const RESPIRO = 34;
+const ALTURA_LINHA = 78;
 const ALTURA_SEGMENTO = 10;
-const TOPO_BARRA = RESPIRO + BORDA + 28 + 34 + 8 + 26 + 24 + 36 + 20;
-const TOPO_FATURAS = RESPIRO + ALTURA_COMPRA + 26 + 44;
-const ALTURA_FATURA = 92;
-const ALTURA_LINHA_FATURA = ALTURA_FATURA - 12;
-const LARGURA_BARRA = LARGURA_CARTAO - RESPIRO * 2 - 28 * 2;
-const CENTRO_ETIQUETA = RESPIRO + 22 + 200 + 18 + 65;
-const AMOSTRAS_CURVA = 80;
-const linear = (t: number) => t;
+const TOTAL = VALOR_PARCELA * PARCELAS_COMPRA;
+const INDICE_ATUAL = PARCELAS_JA_PAGAS;
+const PRIMEIRA_LINHA = PARCELAS_JA_PAGAS - 2;
+const LARGURA_CONTROLE = 200;
+const ALTURA_RESUMO = 174;
 
-const faturas = [
-  { mes: 'Outubro de 2026', fecha: 'Fecha 13 de Out', vence: 'Vence 05 de Nov', total: 2346.9, aberta: true },
-  { mes: 'Novembro de 2026', fecha: 'Fecha 13 de Nov', vence: 'Vence 05 de Dez', total: 1812.4, aberta: false },
-  { mes: 'Dezembro de 2026', fecha: 'Fecha 13 de Dez', vence: 'Vence 05 de Jan de 2027', total: 1204.15, aberta: false },
-];
+const meses = ['Jun/2026', 'Jul/2026', 'Ago/2026', 'Set/2026', 'Out/2026', 'Nov/2026', 'Dez/2026', 'Jan/2027', 'Fev/2027', 'Mar/2027'];
+const vencimentos = ['10 de Jun', '10 de Jul', '10 de Ago', '10 de Set', '10 de Out', '10 de Nov', '10 de Dez', '10 de Jan de 2027', '10 de Fev de 2027', '10 de Mar de 2027'];
 
-const estagios = Array.from({ length: PARCELAS_PAGAS + 1 }, (_, pagas) => ({
-  atual: String(pagas + 1),
-  restantes: String(PARCELAS_TOTAIS - pagas),
-  pagas: `${pagas} ${pagas === 1 ? 'paga' : 'pagas'} · última em Jul/2027`,
-}));
+const linhas = Array.from({ length: 5 }, (_, posicao) => PRIMEIRA_LINHA + posicao);
 
-interface Ponto {
-  x: number;
-  y: number;
-}
-
-interface Amostra extends Ponto {
-  comprimento: number;
-}
-
-function centroSegmento(indice: number): number {
-  return RESPIRO + BORDA + 28 + (indice + 0.5) * (LARGURA_BARRA / PARCELAS_TOTAIS);
-}
-
-function pontosDoVoo(indice: number): [Ponto, Ponto, Ponto, Ponto] {
-  const de = { x: centroSegmento(indice + PARCELAS_PAGAS), y: TOPO_BARRA + ALTURA_SEGMENTO / 2 };
-  const para = { x: CENTRO_ETIQUETA, y: TOPO_FATURAS + indice * ALTURA_FATURA + ALTURA_LINHA_FATURA / 2 };
-  return [de, { x: de.x + 130, y: de.y - 64 }, { x: para.x + 170, y: para.y - 130 }, para];
-}
-
-function amostrar([a, b, c, d]: [Ponto, Ponto, Ponto, Ponto]): Amostra[] {
-  const amostras: Amostra[] = [];
-  let comprimento = 0;
-  let anterior = a;
-  for (let passo = 0; passo <= AMOSTRAS_CURVA; passo += 1) {
-    const t = passo / AMOSTRAS_CURVA;
-    const u = 1 - t;
-    const ponto = {
-      x: u ** 3 * a.x + 3 * u * u * t * b.x + 3 * u * t * t * c.x + t ** 3 * d.x,
-      y: u ** 3 * a.y + 3 * u * u * t * b.y + 3 * u * t * t * c.y + t ** 3 * d.y,
-    };
-    comprimento += Math.hypot(ponto.x - anterior.x, ponto.y - anterior.y);
-    amostras.push({ ...ponto, comprimento });
-    anterior = ponto;
-  }
-  return amostras;
-}
-
-function pontoNoArco(amostras: Amostra[], fracao: number): Ponto {
-  const alvo = fracao * (amostras[amostras.length - 1]?.comprimento ?? 0);
-  const indice = Math.max(
-    amostras.findIndex((amostra) => amostra.comprimento >= alvo),
-    1,
+function Resumo({ rotulo, children }: { rotulo: string; children: ReactNode }) {
+  return (
+    <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <span style={{ fontSize: 17, color: cores.textoSecundario }}>{rotulo}</span>
+      {children}
+    </span>
   );
-  const antes = amostras[indice - 1];
-  const depois = amostras[indice];
-  if (!antes || !depois) return { x: 0, y: 0 };
-  const trecho = depois.comprimento - antes.comprimento;
-  const t = trecho > 0 ? (alvo - antes.comprimento) / trecho : 0;
-  return { x: misturar(antes.x, depois.x, t), y: misturar(antes.y, depois.y, t) };
-}
-
-const voos = parcelas.voos.map((inicio, indice) => {
-  const pontos = pontosDoVoo(indice);
-  const [a, b, c, d] = pontos;
-  return {
-    inicio,
-    pouso: inicio + parcelas.duracaoVoo,
-    amostras: amostrar(pontos),
-    caminho: `M ${a.x} ${a.y} C ${b.x} ${b.y} ${c.x} ${c.y} ${d.x} ${d.y}`,
-  };
-});
-
-function pulso(quadro: number, inicio: number, duracao: number): number {
-  return Math.sin(Math.PI * progresso(quadro, inicio, duracao, linear));
 }
 
 export function Parcelas() {
-  const quadro = useCurrentFrame();
-  const entradaCartao = mola(quadro, parcelas.cartao, 90, 18);
-  const pulsoSelo = parcelas.pagamentos.reduce((soma, pagamento) => soma + pulso(quadro, pagamento, parcelas.duracaoPagamento), 0);
+  const passo = usePasso();
+  const entrada = mola(passo, parcelas.cartao, 90, 18);
+  const resumo = progresso(passo, parcelas.resumo, 14);
+  const pago = interpolate(passo, [parcelas.pagamento, parcelas.pagamento + parcelas.duracaoPagamento], [0, VALOR_PARCELA], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+    easing: (t) => 1 - (1 - t) ** 3,
+  });
+  const marcado = mola(passo, parcelas.pagamento, 210, 16);
+  const enchimento = progresso(passo, parcelas.pagamento, parcelas.duracaoPagamento * 0.6);
+  const chegada = parcelas.pagamento + parcelas.duracaoPagamento * 0.6;
+  const salto = pulso(passo, chegada, 10);
+  const halo = passo >= chegada ? progresso(passo, chegada, 18) : 0;
+  const brilhoLinha = passo >= parcelas.pagamento ? 1 - progresso(passo, parcelas.pagamento + 10, 36) : 0;
+  const larguraSegmento = (LARGURA_CARTAO - RESPIRO * 2 - 6 * (PARCELAS_COMPRA - 1)) / PARCELAS_COMPRA;
+  const topoLista = 96 + ALTURA_RESUMO;
 
   return (
     <CenaDividida
       duracao={cenas.parcelas.duracao}
       ladoTexto="direita"
-      sobretitulo="FATURAS E PARCELAS"
-      titulo="Cada parcela"
-      tituloDestaque="na fatura certa."
-      subtitulo="A compra parcelada se distribui pelas faturas, e a soma das parcelas fecha no centavo com o total."
+      sobretitulo="COMPRAS PARCELADAS"
+      titulo="Pagou adiantado?"
+      tituloDestaque="Marque a parcela."
+      subtitulo="O cronograma inteiro num lugar só: o que já foi, o que falta e quando vence a última parcela."
       inicioTitulo={parcelas.titulo}
       inicioCartao={parcelas.cartao}
-      larguraTexto={560}
+      larguraTexto={640}
+      sobreposicao={<Notificacao titulo="Parcela paga e lançada em despesas!" descricao={`${INDICE_ATUAL + 1}/${PARCELAS_COMPRA} — Notebook`} inicio={parcelas.notificacao} saida={cenas.parcelas.duracao - ANTECEDENCIA_SAIDA_NOTIFICACAO} />}
     >
       <div
         style={{
           position: 'relative',
-          height: TOPO_FATURAS + ALTURA_FATURA * 3 + RESPIRO,
-          borderRadius: 28,
-          background: cores.superficie,
-          border: `${BORDA}px solid ${cores.borda}`,
-          boxShadow: '0 40px 80px -30px rgba(0, 0, 0, 0.75)',
+          width: LARGURA_CARTAO,
+          height: topoLista + linhas.length * ALTURA_LINHA + 30,
+          borderRadius: 26,
+          background: cores.superficieElevada,
+          border: `1.5px solid ${cores.bordaForte}`,
+          boxShadow: '0 40px 90px -30px rgba(0, 0, 0, 0.9)',
           fontFamily: fontes.texto,
-          opacity: entradaCartao > 0 ? 1 : 0,
+          opacity: entrada > 0 ? 1 : 0,
         }}
       >
-        <div
-          style={{
-            position: 'absolute',
-            left: RESPIRO,
-            right: RESPIRO,
-            top: RESPIRO,
-            height: ALTURA_COMPRA,
-            padding: '28px 28px 0',
-            borderRadius: 20,
-            background: cores.superficieElevada,
-            border: `${BORDA}px solid ${cores.borda}`,
-          }}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, height: 34 + 8 + 26 }}>
-            <span style={{ fontSize: 28, fontWeight: 650, letterSpacing: '-0.02em', color: cores.texto, lineHeight: '34px' }}>Notebook</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 19, color: cores.textoSecundario, lineHeight: '26px' }}>
-              Cartão Azul ·
-              <span style={{ width: 9, height: 9, borderRadius: '50%', background: paleta[11] }} />
-              Compras · 12 de agosto de 2026
-            </span>
+        <div style={{ height: 96, boxSizing: 'border-box', padding: `24px ${RESPIRO}px 0`, display: 'flex', justifyContent: 'space-between', borderBottom: `1.5px solid ${cores.borda}` }}>
+          <span style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ fontSize: 27, fontWeight: 650, letterSpacing: '-0.02em', color: cores.texto }}>Notebook</span>
+            <span style={{ fontSize: 18, color: cores.textoSecundario }}>Aurora Platinum — 10x</span>
+          </span>
+          <span style={{ display: 'flex', alignSelf: 'flex-start', marginTop: 4, color: cores.textoSecundario }}>
+            <X size={24} strokeWidth={2.2} />
+          </span>
+        </div>
+
+        <div style={{ height: ALTURA_RESUMO, boxSizing: 'border-box', padding: `26px ${RESPIRO}px 0`, borderBottom: `1.5px solid ${cores.borda}`, opacity: resumo, transform: `translateY(${misturar(10, 0, resumo)}px)` }}>
+          <div style={{ display: 'flex', gap: 24 }}>
+            <Resumo rotulo="Já pago">
+              <ValorMonetario valor={VALOR_PARCELA * PARCELAS_JA_PAGAS + pago} tamanho={28} cor={cores.positivo} estilo={{ minWidth: 180 }} />
+            </Resumo>
+            <Resumo rotulo="Falta pagar">
+              <ValorMonetario valor={VALOR_PARCELA * (PARCELAS_COMPRA - PARCELAS_JA_PAGAS) - pago} tamanho={28} estilo={{ minWidth: 180 }} />
+            </Resumo>
+            <Resumo rotulo="Total">
+              <ValorMonetario valor={TOTAL} tamanho={28} />
+            </Resumo>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 24, height: 36 }}>
-            <span style={{ display: 'flex', alignItems: 'baseline', gap: 10, fontSize: 28, fontWeight: 650, color: cores.texto }}>
-              12x de <ValorMonetario valor={PARCELA} tamanho={30} />
-            </span>
-            <span style={{ display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 19, color: cores.textoSecundario }}>
-              Total <ValorMonetario valor={3598} tamanho={21} cor={cores.textoSecundario} />
-            </span>
-          </div>
-          <div style={{ display: 'flex', gap: 6, marginTop: 20 }}>
-            {Array.from({ length: PARCELAS_TOTAIS }, (_, indice) => {
-              const trilho = progresso(quadro, parcelas.segmentos + indice * parcelas.intervaloSegmentos, 8);
-              const ativacao = indice === 0 ? parcelas.segmentos : parcelas.pagamentos[indice - 1];
-              const quitacao = parcelas.pagamentos[indice];
-              const voo = parcelas.voos[indice - PARCELAS_PAGAS];
-              const enchimento = ativacao === undefined ? 0 : progresso(quadro, ativacao, parcelas.duracaoPagamento);
-              const pago = quitacao === undefined ? 0 : progresso(quadro, quitacao, parcelas.duracaoPagamento);
-              const reserva = voo === undefined || ativacao !== undefined ? 0 : progresso(quadro, voo, 8);
-              const salto = (quitacao === undefined ? 0 : pulso(quadro, quitacao, parcelas.duracaoPagamento)) + (voo === undefined ? 0 : pulso(quadro, voo - 3, 10));
-              const respiracao = 0.75 + 0.25 * Math.sin((quadro - (ativacao ?? 0)) / 5);
+          <div style={{ display: 'flex', gap: 6, marginTop: 24 }}>
+            {Array.from({ length: PARCELAS_COMPRA }, (_, indice) => {
+              const trilho = progresso(passo, parcelas.segmentos + indice * parcelas.intervaloSegmentos, 8);
+              const cheio = indice < PARCELAS_JA_PAGAS ? progresso(passo, parcelas.segmentos + 4 + indice * 2, 10) : indice === INDICE_ATUAL ? enchimento : 0;
+              const atual = indice === INDICE_ATUAL;
               return (
                 <div
                   key={indice}
                   style={{
                     position: 'relative',
-                    flex: 1,
+                    width: larguraSegmento,
                     height: ALTURA_SEGMENTO,
                     borderRadius: ALTURA_SEGMENTO / 2,
                     background: cores.neutroSuave,
                     opacity: trilho,
-                    transform: `scaleX(${misturar(0.4, 1, trilho)}) scaleY(${1 + 0.55 * salto})`,
+                    transform: `scaleY(${1 + (atual ? 0.7 * salto : 0)})`,
                   }}
                 >
-                  <div style={{ position: 'absolute', inset: 0, width: `${reserva * 100}%`, borderRadius: ALTURA_SEGMENTO / 2, background: 'rgba(124, 154, 255, 0.45)' }} />
-                  <div style={{ position: 'absolute', inset: 0, width: `${enchimento * 100}%`, borderRadius: ALTURA_SEGMENTO / 2, background: cores.destaque }} />
-                  <div
-                    style={{
-                      position: 'absolute',
-                      inset: 0,
-                      width: `${enchimento * 100}%`,
-                      borderRadius: ALTURA_SEGMENTO / 2,
-                      background: cores.destaqueForte,
-                      opacity: enchimento > 0 ? 1 - pago : 0,
-                      boxShadow: `0 0 ${12 + 6 * respiracao}px rgba(151, 174, 255, ${0.8 * respiracao})`,
-                    }}
-                  />
+                  <div style={{ position: 'absolute', inset: 0, width: `${cheio * 100}%`, borderRadius: ALTURA_SEGMENTO / 2, background: cores.destaque }} />
+                  {atual && halo > 0 ? (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        borderRadius: ALTURA_SEGMENTO / 2,
+                        boxShadow: `0 0 0 ${misturar(0, 12, halo)}px rgba(124, 154, 255, ${0.45 * (1 - halo)})`,
+                      }}
+                    />
+                  ) : null}
                 </div>
               );
             })}
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 22 }}>
-            <span style={{ fontSize: 21, color: cores.textoSecundario }}>
-              Parcela{' '}
-              <Rolante
-                itens={estagios.map((estagio) => estagio.atual)}
-                trocas={parcelas.pagamentos}
-                alinhamento="end"
-                estilo={{ fontFamily: fontes.numero, color: cores.texto, fontWeight: 650 }}
-              />{' '}
-              de 12
-            </span>
-            <Selo cor={cores.destaque} fundo={cores.destaqueSuave} estilo={{ transform: `scale(${1 + 0.09 * pulsoSelo})` }}>
-              <Rolante itens={estagios.map((estagio) => estagio.restantes)} trocas={parcelas.pagamentos} alinhamento="end" estilo={{ fontFamily: fontes.numero }} />
-              restantes
-            </Selo>
-          </div>
-          <Rolante
-            itens={estagios.map((estagio) => estagio.pagas)}
-            trocas={parcelas.pagamentos}
-            estilo={{ display: 'grid', marginTop: 8, fontSize: 18, color: cores.textoSecundario }}
-          />
+          <span style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 14, fontSize: 18, color: cores.textoSecundario }}>
+            <Rolante itens={[String(PARCELAS_JA_PAGAS), String(PARCELAS_JA_PAGAS + 1)]} trocas={[parcelas.pagamento + 4]} alinhamento="end" estilo={{ fontFamily: fontes.numero, fontWeight: 650, color: cores.texto }} />
+            de {PARCELAS_COMPRA} parcelas pagas
+          </span>
         </div>
 
-        <div style={{ position: 'absolute', left: RESPIRO, right: RESPIRO, top: RESPIRO + ALTURA_COMPRA + 26, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-          <span style={{ fontSize: 23, fontWeight: 650, color: cores.texto }}>Fatura atual e próximas</span>
-          <span style={{ fontSize: 18, color: cores.textoSecundario }}>Fechamento antes do vencimento</span>
-        </div>
-
-        {faturas.map((fatura, indice) => {
-          const entrada = progresso(quadro, parcelas.faturas[indice] ?? 0, 14);
-          const pouso = voos[indice]?.pouso ?? 0;
-          const brilho = quadro >= pouso ? 1 - progresso(quadro, pouso, 26) : 0;
-          const etiqueta = mola(quadro, pouso - 1, 210, 14);
-          const somado = progresso(quadro, pouso, 14);
-          const impacto = pulso(quadro, pouso, 9);
+        {linhas.map((indice, posicao) => {
+          const chegadaLinha = progresso(passo, parcelas.linhas[posicao] ?? 0, 14);
+          const atual = indice === INDICE_ATUAL;
+          const pagaPelaData = indice < PARCELAS_JA_PAGAS - 1;
+          const pagaAntes = indice === PARCELAS_JA_PAGAS - 1;
           return (
             <div
-              key={fatura.mes}
+              key={indice}
               style={{
                 position: 'absolute',
-                left: RESPIRO,
-                right: RESPIRO,
-                top: TOPO_FATURAS + indice * ALTURA_FATURA,
-                height: ALTURA_LINHA_FATURA,
+                left: RESPIRO - 14,
+                right: RESPIRO - 14,
+                top: topoLista + 12 + posicao * ALTURA_LINHA,
+                height: ALTURA_LINHA - 8,
                 display: 'flex',
                 alignItems: 'center',
-                gap: 18,
-                padding: '0 22px',
-                borderRadius: 16,
-                background: `rgba(124, 154, 255, ${0.12 * brilho})`,
-                border: `${BORDA}px solid ${brilho > 0 ? `rgba(124, 154, 255, ${0.3 + 0.6 * brilho})` : cores.borda}`,
-                boxShadow: `0 0 ${28 * brilho}px rgba(124, 154, 255, ${0.28 * brilho})`,
-                opacity: entrada,
-                transform: `translateY(${misturar(16, 0, entrada) + 4 * impacto}px)`,
+                gap: 20,
+                padding: '0 14px',
+                borderRadius: 14,
+                background: atual ? `rgba(124, 154, 255, ${0.06 + 0.1 * brilhoLinha})` : 'transparent',
+                boxShadow: atual ? `inset 3px 0 0 ${cores.destaque}` : undefined,
+                opacity: chegadaLinha,
+                transform: `translateY(${misturar(12, 0, chegadaLinha)}px)`,
               }}
             >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, width: 200, flexShrink: 0 }}>
-                <span style={{ fontSize: 21, fontWeight: 650, color: cores.texto }}>{fatura.mes}</span>
-                <span style={{ fontSize: 17, color: cores.textoSecundario }}>Cartão Azul</span>
-              </div>
-              <span
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '5px 12px',
-                  borderRadius: 10,
-                  background: cores.superficieSuave,
-                  fontSize: 17,
-                  color: cores.texto,
-                  whiteSpace: 'nowrap',
-                  opacity: Math.min(etiqueta, 1),
-                  transform: `scale(${misturar(0.6, 1, etiqueta)})`,
-                }}
-              >
-                Notebook {indice + PARCELAS_PAGAS + 1}/12
+              <span style={{ width: 62, fontFamily: fontes.numero, fontSize: 19, fontWeight: 600, color: cores.textoSecundario }}>
+                {indice + 1}/{PARCELAS_COMPRA}
               </span>
-              <span style={{ marginLeft: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, fontSize: 17, color: cores.textoSecundario, whiteSpace: 'nowrap' }}>
-                <span>{fatura.fecha}</span>
-                <span>{fatura.vence}</span>
+              <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 20, fontWeight: 620, color: cores.texto }}>
+                  {meses[indice]}
+                  {atual ? (
+                    <Selo cor={cores.destaque} fundo={cores.destaqueSuave} tamanho={14} estilo={{ padding: '2px 9px' }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }} />
+                      Atual
+                    </Selo>
+                  ) : null}
+                </span>
+                <span style={{ fontSize: 16, color: cores.textoSecundario }}>vence {vencimentos[indice]}</span>
               </span>
-              <ValorMonetario
-                valor={fatura.total - PARCELA * (1 - somado)}
-                tamanho={22}
-                cor={brilho > 0.35 ? cores.destaqueForte : cores.texto}
-                estilo={{ minWidth: 128, justifyContent: 'flex-end' }}
-              />
-              <Selo cor={fatura.aberta ? cores.destaque : cores.textoSecundario} fundo={fatura.aberta ? cores.destaqueSuave : cores.neutroSuave} tamanho={16} estilo={{ minWidth: 92, justifyContent: 'center' }}>
-                <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'currentColor' }} />
-                {fatura.aberta ? 'Aberta' : 'Prevista'}
-              </Selo>
+              <ValorMonetario valor={VALOR_PARCELA} tamanho={20} />
+              <span style={{ width: LARGURA_CONTROLE, display: 'grid', justifyItems: 'end' }}>
+                {atual ? (
+                  <>
+                    <span style={{ gridArea: '1 / 1', fontSize: 18, fontWeight: 600, color: cores.destaque, opacity: 1 - Math.min(marcado, 1) }}>Já paguei</span>
+                    <span style={{ gridArea: '1 / 1', display: 'flex', alignItems: 'center', gap: 16, fontSize: 18, opacity: Math.min(marcado, 1), transform: `translateY(${misturar(10, 0, marcado)}px)` }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontWeight: 600, color: cores.positivo }}>
+                        <Check size={18} strokeWidth={2.6} />
+                        Paga
+                      </span>
+                      <span style={{ color: cores.textoSecundario }}>Desfazer</span>
+                    </span>
+                  </>
+                ) : pagaPelaData || pagaAntes ? (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 18 }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontWeight: 600, color: cores.positivo }}>
+                      <Check size={18} strokeWidth={2.6} />
+                      Paga
+                    </span>
+                    {pagaAntes ? <span style={{ color: cores.textoSecundario }}>Desfazer</span> : null}
+                  </span>
+                ) : (
+                  <span style={{ fontSize: 18, fontWeight: 600, color: cores.destaque }}>Já paguei</span>
+                )}
+              </span>
             </div>
           );
         })}
 
-        <svg style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', overflow: 'visible' }}>
-          {voos.map(({ inicio, caminho }, indice) => {
-            const cabeca = progresso(quadro, inicio, parcelas.duracaoVoo, curvaEntradaSaida);
-            const cauda = progresso(quadro, inicio + parcelas.atrasoRastro, parcelas.duracaoVoo - parcelas.atrasoRastro, curvaEntradaSaida);
-            const trecho = cabeca - cauda;
-            if (trecho <= 0.002) return null;
-            return (
-              <path
-                key={indice}
-                d={caminho}
-                pathLength={1}
-                fill="none"
-                stroke={cores.destaque}
-                strokeWidth={3.5}
-                strokeLinecap="round"
-                strokeDasharray={`${trecho} 2`}
-                strokeDashoffset={-cauda}
-                opacity={0.55}
-              />
-            );
-          })}
-        </svg>
-
-        {voos.map(({ inicio, pouso, amostras }, indice) => {
-          if (quadro < inicio || quadro >= pouso) return null;
-          const { x, y } = pontoNoArco(amostras, progresso(quadro, inicio, parcelas.duracaoVoo, curvaEntradaSaida));
-          const nascimento = progresso(quadro, inicio, 5);
-          const chegada = progresso(quadro, pouso - 3, 3, linear);
-          return (
-            <span
-              key={indice}
-              style={{
-                position: 'absolute',
-                left: x,
-                top: y,
-                transform: `translate(-50%, -50%) scale(${misturar(0.4, 1, nascimento) * misturar(1, 0.82, chegada)})`,
-                opacity: nascimento * (1 - 0.5 * chegada),
-                padding: '6px 14px',
-                borderRadius: 999,
-                background: cores.destaque,
-                color: cores.destaqueContraste,
-                fontFamily: fontes.numero,
-                fontSize: 19,
-                fontWeight: 650,
-                whiteSpace: 'nowrap',
-                boxShadow: '0 0 0 5px rgba(124, 154, 255, 0.18), 0 10px 30px -6px rgba(124, 154, 255, 0.7)',
-              }}
-            >
-              {formatarMoeda(PARCELA)}
-            </span>
-          );
-        })}
+        <Cursor
+          de={{ x: LARGURA_CARTAO - 360, y: topoLista + 4 * ALTURA_LINHA }}
+          paradas={[{ x: LARGURA_CARTAO - RESPIRO - 44, y: topoLista + 12 + (INDICE_ATUAL - PRIMEIRA_LINHA) * ALTURA_LINHA + 40, clique: parcelas.clique }]}
+          saida={parcelas.clique + 8}
+        />
       </div>
     </CenaDividida>
   );

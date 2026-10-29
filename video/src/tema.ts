@@ -19,6 +19,7 @@ export const cores = {
   negativo: '#fa5252',
   negativoSuave: '#351a1a',
   aviso: '#e8b44a',
+  contador: '#d93025',
   avisoSuave: '#322612',
   neutroSuave: '#26272c',
   graficoGrade: '#2b2c31',
@@ -34,12 +35,20 @@ export const cores = {
 export const paleta = {
   1: '#6f94ff',
   2: '#45c6e6',
+  3: '#c89b76',
   4: '#ff8a45',
   5: '#b08cff',
+  6: '#ff5f6f',
   7: '#3fd4a6',
+  8: '#ff7fb6',
   9: '#e27ee6',
   10: '#b6cc42',
   11: '#f0c040',
+  12: '#a3bde0',
+  13: '#7f838d',
+  14: '#35de85',
+  15: '#62aefc',
+  16: '#3fd0d0',
 } as const;
 
 export const fontes = {
