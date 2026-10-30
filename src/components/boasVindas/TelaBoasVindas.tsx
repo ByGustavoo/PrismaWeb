@@ -56,6 +56,10 @@ function comIndice(indice: number): CSSProperties {
   return { '--i': indice } as CSSProperties;
 }
 
+function ordemDaLetra(indice: number): CSSProperties {
+  return { '--i': indice, '--ordem-entrada': LETRAS_DO_NOME.length - 1 - indice } as CSSProperties;
+}
+
 export function TelaBoasVindas({ aoComecar }: { aoComecar: () => void }) {
   const [saindo, setSaindo] = useState(false);
   const [movimentoPermitido] = useState(() => !window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -115,7 +119,7 @@ export function TelaBoasVindas({ aoComecar }: { aoComecar: () => void }) {
                   letrasRef.current[indice] = elemento;
                 }}
                 className={styles.letra}
-                style={comIndice(indice)}
+                style={ordemDaLetra(indice)}
                 aria-hidden="true"
               >
                 {letra}

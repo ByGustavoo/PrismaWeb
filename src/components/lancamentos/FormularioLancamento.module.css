@@ -9,6 +9,23 @@
   grid-column: 1 / -1;
 }
 
+.trio {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.trio > * {
+  grid-column: span 3;
+}
+
+.trio > .third {
+  grid-column: span 2;
+}
+
+.trio > .full,
+.trio > .legend {
+  grid-column: 1 / -1;
+}
+
 .route {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -49,5 +66,10 @@
 @media (max-width: 599px) {
   .form {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .trio > *,
+  .trio > .third {
+    grid-column: 1 / -1;
   }
 }

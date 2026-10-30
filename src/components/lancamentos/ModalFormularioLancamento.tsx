@@ -12,6 +12,7 @@ import type { ErrosCampos } from '@/hooks/useValidacaoFormulario';
 import type { CategoriaDTO, FormaLancamento, LancamentoDTO, Opcao, OrigemDTO, SalvarLancamentoDTO, SituacaoLancamento } from '@/types';
 import { hojeISO } from '@/utils/data';
 import { interpretarEntradaValor, paraEntradaValor } from '@/utils/formatacao';
+import { juntarClasses } from '@/utils/juntarClasses';
 import { erroValor, erroTexto } from '@/utils/validacao';
 import styles from './FormularioLancamento.module.css';
 
@@ -161,6 +162,19 @@ export function ModalFormularioLancamento({
   };
 
   const noun = isExpense ? 'despesa' : 'receita';
+  const situationBesideDate = !isExpense;
+
+  const situationField = (
+    <CampoSelecao
+      className={juntarClasses(situationBesideDate && styles.third)}
+      rotulo="Situação"
+      opcoes={opcoesSituacao}
+      value={form.situacao}
+      onChange={(status) => set('situacao', status as SituacaoLancamento)}
+      erro={erros.situacao}
+      dica={form.situacao === 'PAGO' ? 'Já entrou ou saiu da conta.' : 'Ainda não afetou o saldo.'}
+    />
+  );
 
   return (
     <Modal
@@ -186,7 +200,7 @@ export function ModalFormularioLancamento({
     >
       <form
         ref={refFormulario}
-        className={styles.form}
+        className={juntarClasses(styles.form, situationBesideDate && styles.trio)}
         noValidate
         onSubmit={(event) => {
           event.preventDefault();
@@ -207,6 +221,7 @@ export function ModalFormularioLancamento({
         />
 
         <CampoValor
+          className={juntarClasses(situationBesideDate && styles.third)}
           required
           rotulo="Valor"
           valor={form.valor}
@@ -216,12 +231,15 @@ export function ModalFormularioLancamento({
         />
 
         <SeletorData
+          className={juntarClasses(situationBesideDate && styles.third)}
           required
           rotulo="Data"
           value={form.data}
           onChange={handleDateChange}
           erro={erros.data}
         />
+
+        {situationBesideDate ? situationField : null}
 
         <CampoSelecao
           required
@@ -253,14 +271,7 @@ export function ModalFormularioLancamento({
           />
         ) : null}
 
-        <CampoSelecao
-          rotulo="Situação"
-          opcoes={opcoesSituacao}
-          value={form.situacao}
-          onChange={(status) => set('situacao', status as SituacaoLancamento)}
-          erro={erros.situacao}
-          dica={form.situacao === 'PAGO' ? 'Já entrou ou saiu da conta.' : 'Ainda não afetou o saldo.'}
-        />
+        {situationBesideDate ? null : situationField}
 
         <AreaTexto
           className={styles.full}
