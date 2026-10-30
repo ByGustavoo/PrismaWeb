@@ -30,6 +30,8 @@
 }
 
 .brandMark {
+  position: relative;
+  z-index: 1;
   display: grid;
   place-items: center;
   width: 34px;
@@ -47,6 +49,7 @@
 }
 
 .brandName {
+  align-self: flex-start;
   font-family: var(--font-figure);
   font-size: var(--fs-md);
   font-weight: 600;
@@ -58,6 +61,39 @@
   font-size: var(--fs-xs);
   color: var(--text-subtle);
   white-space: nowrap;
+}
+
+:global(.chegando-das-boas-vindas) .brandText {
+  overflow: visible;
+  clip-path: inset(-8px -8px -8px calc(-1 * var(--space-3)));
+}
+
+:global(.chegando-das-boas-vindas) .brandName {
+  animation: nomeEmergir 420ms var(--ease-out) 780ms backwards;
+  animation-play-state: paused;
+}
+
+:global(.chegando-das-boas-vindas) .brandTagline {
+  animation: sloganEntrar 360ms var(--ease-out) 1080ms backwards;
+  animation-play-state: paused;
+}
+
+:global(.chegando-das-boas-vindas.marca-em-voo) .brandName,
+:global(.chegando-das-boas-vindas.marca-em-voo) .brandTagline {
+  animation-play-state: running;
+}
+
+@keyframes nomeEmergir {
+  from {
+    transform: translateX(calc(-100% - var(--space-3) - var(--space-1)));
+  }
+}
+
+@keyframes sloganEntrar {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
 }
 
 .collapsed .brandText {

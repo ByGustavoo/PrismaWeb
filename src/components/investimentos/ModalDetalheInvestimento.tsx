@@ -7,6 +7,7 @@ import { BlocoCarregando, Botao, CampoSelecao, CampoTexto, CampoValor, EstadoVaz
 import { QUANTIDADE_INICIAL_MOVIMENTACOES, iconeClasseAtivo, rotuloClasseAtivo } from '@/constants/investimentos';
 import { limitesTexto } from '@/constants/validacao';
 import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
+import { useIndicadoresRolagem } from '@/hooks/useIndicadoresRolagem';
 import { useValidacaoFormulario } from '@/hooks/useValidacaoFormulario';
 import type { ErrosCampos } from '@/hooks/useValidacaoFormulario';
 import { investimentosService } from '@/services';
@@ -198,6 +199,8 @@ export function ModalDetalheInvestimento({
     valueRef.current?.focus();
   }, [investimentoId, statement === null]);
 
+  const historyScroll = useIndicadoresRolagem<HTMLDivElement>([investimentoId, statement !== null]);
+
   const items = useMemo(() => (statement ? statement.movimentacoes.map(paraItem) : []), [statement]);
 
   const typedValue = interpretarEntradaValor(form.valor);
@@ -260,7 +263,7 @@ export function ModalDetalheInvestimento({
           ? `${rotuloClasseAtivo[investment.classeAtivo]} — ${investment.instituicao} — Saldo atualizado em ${formatarDataNumerica(investment.dataAtualizacao)}`
           : undefined
       }
-      tamanho="lg"
+      tamanho="xl"
       rodape={
         <>
           <Botao
@@ -298,54 +301,56 @@ export function ModalDetalheInvestimento({
         />
       ) : (
         <div className={juntarClasses(styles.body, 'refreshing')} aria-busy={carregando}>
-          <header className={styles.head}>
-            {Icon ? (
-              <span className={styles.iconBox} style={{ color: corDaClasse(investment.classeAtivo) }} aria-hidden="true">
-                <Icon size={20} strokeWidth={1.75} />
-              </span>
-            ) : null}
-            <div className={styles.headMain}>
-              <span className={styles.headLabel}>Saldo atual</span>
-              <ValorMonetario valor={investment.valorAtual} tamanho="lg" animar />
-            </div>
-            <div className={styles.headResult}>
-              <span className={styles.headLabel}>Rendimento acumulado</span>
-              <span className={styles.pair}>
-                <ValorMonetario
-                  valor={statement.posicao.rendimento}
-                  tom={tomRendimento(statement.posicao.rendimento)}
-                  sinal="auto"
-                  animar
-                />
-                <span className="tabular">{formatarPercentualComSinal(statement.posicao.rentabilidade * 100)}</span>
-              </span>
-            </div>
-          </header>
+          <div className={styles.overview}>
+            <header className={styles.head}>
+              {Icon ? (
+                <span className={styles.iconBox} style={{ color: corDaClasse(investment.classeAtivo) }} aria-hidden="true">
+                  <Icon size={20} strokeWidth={1.75} />
+                </span>
+              ) : null}
+              <div className={styles.headMain}>
+                <span className={styles.headLabel}>Saldo atual</span>
+                <ValorMonetario valor={investment.valorAtual} tamanho="lg" animar />
+              </div>
+              <div className={styles.headResult}>
+                <span className={styles.headLabel}>Rendimento acumulado</span>
+                <span className={styles.pair}>
+                  <ValorMonetario
+                    valor={statement.posicao.rendimento}
+                    tom={tomRendimento(statement.posicao.rendimento)}
+                    sinal="auto"
+                    animar
+                  />
+                  <span className="tabular">{formatarPercentualComSinal(statement.posicao.rentabilidade * 100)}</span>
+                </span>
+              </div>
+            </header>
 
-          <dl className={styles.facts}>
-            <div>
-              <dt>Total aportado</dt>
-              <dd>
-                <ValorMonetario valor={investment.aportado} tamanho="sm" />
-              </dd>
-            </div>
-            <div>
-              <dt>Aportes</dt>
-              <dd className="tabular">
-                {statement.quantidadeAportes} {statement.quantidadeAportes === 1 ? 'registro' : 'registros'}
-              </dd>
-            </div>
-            <div>
-              <dt>Último aporte</dt>
-              <dd className="tabular">{statement.ultimoAporte ? formatarDataNumerica(statement.ultimoAporte) : '—'}</dd>
-            </div>
-            <div>
-              <dt>Aplicado desde</dt>
-              <dd className="tabular">{formatarDataNumerica(investment.dataInicio)}</dd>
-            </div>
-          </dl>
+            <dl className={styles.facts}>
+              <div>
+                <dt>Total aportado</dt>
+                <dd>
+                  <ValorMonetario valor={investment.aportado} tamanho="sm" />
+                </dd>
+              </div>
+              <div>
+                <dt>Aportes</dt>
+                <dd className="tabular">
+                  {statement.quantidadeAportes} {statement.quantidadeAportes === 1 ? 'registro' : 'registros'}
+                </dd>
+              </div>
+              <div>
+                <dt>Último aporte</dt>
+                <dd className="tabular">{statement.ultimoAporte ? formatarDataNumerica(statement.ultimoAporte) : '—'}</dd>
+              </div>
+              <div>
+                <dt>Aplicado desde</dt>
+                <dd className="tabular">{formatarDataNumerica(investment.dataInicio)}</dd>
+              </div>
+            </dl>
+          </div>
 
-          <section className={styles.block} aria-labelledby="investment-evolution-title">
+          <section className={juntarClasses(styles.block, styles.evolution)} aria-labelledby="investment-evolution-title">
             <h3 className={styles.sectionTitle} id="investment-evolution-title">
               Evolução
             </h3>
@@ -456,12 +461,27 @@ export function ModalDetalheInvestimento({
             ) : null}
           </section>
 
-          <section className={styles.block} aria-labelledby="investment-history-title">
+          <section className={juntarClasses(styles.block, styles.history)} aria-labelledby="investment-history-title">
             <h3 className={styles.sectionTitle} id="investment-history-title">
               Histórico
             </h3>
             <p className={styles.sectionHint}>Aportes, resgates e rendimentos em linhas separadas, do mais recente ao mais antigo.</p>
-            <HistoricoMovimentacoes itens={items} quantidadeInicial={QUANTIDADE_INICIAL_MOVIMENTACOES} />
+            <div
+              className={styles.historyFrame}
+              {...(historyScroll.acima ? { 'data-acima': '' } : {})}
+              {...(historyScroll.abaixo ? { 'data-abaixo': '' } : {})}
+            >
+              <div
+                ref={historyScroll.ref}
+                className={styles.historyScroll}
+                role="region"
+                aria-labelledby="investment-history-title"
+                onScroll={historyScroll.medir}
+                {...(historyScroll.rolavel ? { tabIndex: 0 } : {})}
+              >
+                <HistoricoMovimentacoes itens={items} quantidadeInicial={QUANTIDADE_INICIAL_MOVIMENTACOES} />
+              </div>
+            </div>
           </section>
         </div>
       )}

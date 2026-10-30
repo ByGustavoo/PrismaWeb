@@ -12,13 +12,14 @@ export interface ModalProps {
   aberto: boolean;
   aoFechar: () => void;
   titulo: string;
+  seloTitulo?: ReactNode;
   descricao?: string;
-  tamanho?: 'sm' | 'md' | 'lg';
+  tamanho?: 'sm' | 'md' | 'lg' | 'xl';
   rodape?: ReactNode;
   children: ReactNode;
 }
 
-export function Modal({ aberto, aoFechar, titulo, descricao, tamanho = 'md', rodape, children }: ModalProps) {
+export function Modal({ aberto, aoFechar, titulo, seloTitulo, descricao, tamanho = 'md', rodape, children }: ModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const baseId = useId();
@@ -77,9 +78,12 @@ export function Modal({ aberto, aoFechar, titulo, descricao, tamanho = 'md', rod
       >
         <header className={styles.header}>
           <div>
-            <h2 className={styles.title} id={titleId}>
-              {titulo}
-            </h2>
+            <div className={styles.titleRow}>
+              <h2 className={styles.title} id={titleId}>
+                {titulo}
+              </h2>
+              {seloTitulo}
+            </div>
             {descricao ? (
               <p className={styles.description} id={descriptionId}>
                 {descricao}

@@ -14,6 +14,7 @@ interface VariacaoPrecoProps {
   tamanho?: 'sm' | 'md';
   legenda?: string;
   legendaAbaixo?: boolean;
+  separarPercentual?: boolean;
   className?: string;
 }
 
@@ -24,6 +25,7 @@ export function VariacaoPreco({
   tamanho = 'md',
   legenda,
   legendaAbaixo = false,
+  separarPercentual = false,
   className,
 }: VariacaoPrecoProps) {
   const Icon = tendencia === 'BAIXA' ? ArrowDownRight : tendencia === 'ALTA' ? ArrowUpRight : Minus;
@@ -42,6 +44,11 @@ export function VariacaoPreco({
       <Icon size={tamanho === 'sm' ? 13 : 15} strokeWidth={2.25} aria-hidden="true" />
       <span className={styles.word}>{rotuloTendenciaPreco[tendencia]}</span>
       <ValorMonetario valor={Math.abs(variacao)} tamanho="sm" tom={tomPreco(tendencia)} className={styles.amount} />
+      {separarPercentual ? (
+        <span className={styles.percentSeparator} aria-hidden="true">
+          —
+        </span>
+      ) : null}
       <Selo tom={tomSeloPreco[tendencia]} className={juntarClasses(styles.percent, 'tabular')}>
         {formatarPercentual(Math.abs(percentual))}
       </Selo>

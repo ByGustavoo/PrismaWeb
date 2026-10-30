@@ -205,7 +205,8 @@ src/
 ├── constants/     ambiente, aplicacao, navegacao, avisos, lancamentos, contas, cartoes, investimentos,
 │                  orcamento, recorrentes, metas, previsao, relatorios, validacao, notificacoes, cores, telas
 ├── hooks/         useDadosAssincronos, useConsultaMidia, useArmazenamentoLocal, useTravarRolagem,
-│                  usePaletaGrafico, useContagem, useValidacaoFormulario, usePagamentoParcela
+│                  usePaletaGrafico, useContagem, useValidacaoFormulario, usePagamentoParcela,
+│                  useIndicadoresRolagem
 ├── layouts/       LayoutAplicacao (sidebar + header + conteudo)
 ├── pages/         PaginaDashboard, PaginaLancamentos, PaginaContas, PaginaCartoes, PaginaFaturas,
 │                  PaginaParcelamentos, PaginaInvestimentos, PaginaOrcamento, PaginaRecorrentes,
@@ -396,6 +397,13 @@ para gravar uma compra no cartao como "Debito em conta", e a API aceitava. O Pri
 com `422` essa combinacao e mais tres: categoria do lado errado, origem em cartao de debito e
 lancamento `PAGO` com data futura. Ao escolher uma data futura com a situacao em "Concluido", o
 formulario troca para "Agendado" na hora, em vez de guardar o erro para o envio.
+
+**Na receita, "Situação" divide a linha com Valor e Data.** Sem "Forma de pagamento", a receita tem
+cinco campos de meia largura, e Situação sobrava sozinha numa linha; o usuario apontou. O formulario
+passa a uma grade de seis colunas (`.trio`), com Valor, Data e Situação em tercos: Situação fica ao
+lado da data, que e quem a troca para "Agendado". A despesa paga no cartao tambem fica com cinco
+campos, mas nao usa o arranjo de proposito: ali Situação so sobraria depois de escolher o cartao, e
+subir o campo para a linha da data reorganizaria o formulario acima de quem esta preenchendo.
 
 A tela de lancamentos busca do service so pelo `tipo` da rota; busca, periodo, categoria, conta,
 situacao e ordenacao sao aplicados em memoria por `components/lancamentos/consulta.ts`, para responder
@@ -652,6 +660,17 @@ evolucao saem do calculo.
   seletor quebrava em duas linhas a 390px. Com conta, os campos vao em tres colunas (valor, data,
   conta) e a descricao desce para a segunda linha com o botao. A previa diz para quanto o saldo e o
   aportado vao, ou quanto rendeu desde a ultima atualizacao.
+- **O detalhe e horizontal a partir de 1100px.** Ele usa o `Modal` em `tamanho="xl"` (1400px, que
+  o detalhe da meta tambem usa), e o usuario pediu a troca: na coluna de 760px o historico ficava abaixo do registro e o modal
+  rolava inteiro. Depois pediu mais largura que os 1200px da primeira versao, para os dados
+  respirarem. Saldo, rendimento e os quatro numeros dividem uma faixa no topo; abaixo, o grafico e o
+  registro ficam a esquerda e o historico a direita, em `minmax(340px, 0.48fr)`. A coluna e
+  proporcional de proposito: com 440px fixos, em 1100px a esquerda encolhia e o seletor de conta do
+  aporte cortava "Nenhuma — Fora do Prisma". O historico leva
+  `contain: size`, entao nao empurra a altura da linha: ela e a da coluna esquerda, e a lista rola
+  dentro dela, com o esmaecimento e a parada de Tab do cronograma de parcelas. A medida da rolagem
+  (`data-acima`, `data-abaixo` e se vale `tabIndex`) e o `useIndicadoresRolagem`, o mesmo do detalhe da
+  meta. Abaixo de 1100px tudo volta a empilhar e o historico deixa de rolar sozinho.
 - **A data minima do registro e a ultima atualizacao.** Um aporte anterior ao ultimo saldo informado
   seria engolido por ele. Na mesma data, vale a ordem de gravacao (`ordem`), e por isso "saldo de
   R$ 20 mil, depois aporte de R$ 2 mil" termina em R$ 22 mil.
@@ -768,15 +787,26 @@ que se pretende comprar — planejamento, nao vitrine.
   compartilhado. "1.150,00" e "12,8%", da mesma cor e a 8px (4px nas linhas do historico), pareciam
   um numero so: o percentual passou por um travessao e hoje vai num `Selo` no tom da variacao
   (`tomSeloPreco`), que separa pela forma, e o par cor e fundo do selo ja passa no contraste.
+  No historico do detalhe, e na "Variacao total" da analise, o usuario pediu tambem o travessao
+  entre o valor e o percentual ("Subiu R$ 100,00 — 5,0%"): no historico e o `separarPercentual` do
+  `VariacaoPreco`, e na analise um span `.pairSeparator` do proprio modal.
+  O travessao fica em `--text-subtle`, e nao na cor da variacao: verde, colado ao percentual, ele se
+  leria como sinal de menos. No cartao e no cabecalho do detalhe nao ha travessao. A "Variacao
+  total" leva a cor da noticia (`tomPreco`), como o resto da tela, e nao tem seta: sem a palavra ao
+  lado, a seta verde para baixo seria lida como erro, e a linha do cabecalho ja diz o mesmo numero
+  com seta e palavra.
 - **A variacao diz em relacao a que ela e.** No cartao e no cabecalho do detalhe ela e desde o primeiro
   preco (`analise.variacao`); no historico, em relacao a linha anterior — e o mesmo componente
   escrevia "Baixou R$ 1.150,00" nos dois sem distinguir. Por isso os dois primeiros recebem
   `legenda={LEGENDA_VARIACAO_TOTAL_META}` ("Desde o primeiro registro"); o historico nao, porque a
   posicao na lista ja diz. O usuario escolheu os dois arranjos: no cartao a legenda vai numa linha
   propria (`legendaAbaixo`), e no modal fica ao lado do selo, depois de um travessao. Abaixo de 600px
-  ela desce tambem no modal, sem o travessao — uma linha que comeca com "—" parece resto de outra —,
-  e o selo da situacao sobe para cima do preco: dividindo a linha com ele, a variacao tinha 152px e
-  o percentual descia sozinho.
+  ela desce tambem no modal, sem o travessao — uma linha que comeca com "—" parece resto de outra.
+- **No detalhe, a situacao da meta fica ao lado do nome, no titulo do modal** (`seloTitulo` do
+  `Modal`), e nao no resumo do preco. Ali ela ficava sozinha no canto direito da coluna do preco,
+  longe do nome e do preco, e o usuario disse que o selo "flutuava no meio do nada". A situacao e da
+  meta inteira, e e o nome que ela qualifica. No celular, se nao couber ao lado do nome, o selo
+  desce para baixo dele, antes da descricao.
 - **No cartao da meta a variacao fica sempre abaixo do preco, e o preco fica logo abaixo do titulo.**
   Lado a lado, preco e variacao pediam 322px, e o cartao tem no minimo 324px com 20px de respiro de
   cada lado: o "12,8%" atravessava a borda em 1366px e ate em 1920px. Deixar quebrar so quando
@@ -784,6 +814,11 @@ que se pretende comprar — planejamento, nao vitrine.
   altura da fileira vai para baixo da curva (`margin-bottom: auto` em `.spark` e `.sparkHint`), e nao
   para cima do preco: com a legenda, a variacao tem duas linhas e "Primeiro registro" uma, e o preco
   ancorado na base descia so no cartao de um registro.
+- **A 320px o cartao da meta cabe na tela.** O `.content` leva `min-width: 0`, e o rodape quebra
+  (`flex-wrap`), com as acoes em `margin-left: auto`: o selo "Em acompanhamento" e os tres botoes
+  pediam mais largura que o cartao, e o conteudo, sem poder encolher, empurrava a pagina 9px para o
+  lado. Nessa largura o selo fica em cima e as acoes descem para a direita; a partir de 360px o
+  rodape continua numa linha so.
 - **A analise e conta de servidor; a frase e interface.** `AnaliseMetaDTO` devolve em `leitura` um
   `LeituraMeta` (`PRIMEIRO`, `MENOR`, `ABAIXO_DA_MEDIA`, `ACIMA_DA_MEDIA`, `MAIOR`, `ESTAVEL`) e o
   texto de cada caso vive em `constants/metas.ts`. Traduzir a tela nao pode exigir mexer na API.
@@ -800,6 +835,21 @@ que se pretende comprar — planejamento, nao vitrine.
 - **O registro de preco fica embutido no modal de detalhe, e nao num segundo modal.** Dois paineis
   empilhados disputariam a trava de Tab e o Escape do `Modal`. Pelo mesmo motivo, "Editar" e
   "Excluir" fecham o detalhe antes de abrir o painel seguinte.
+- **O detalhe da meta e horizontal a partir de 1100px**, como o do investimento, a pedido do usuario.
+  A grade tem tres colunas: o resumo (`auto`, do tamanho do preco e da variacao), a analise ao lado
+  dele em 3 x 2 e, abaixo, a frase, o grafico e o registro a esquerda; a direita, o historico de
+  precos e, embaixo dele, "Abrir a página do produto", os botoes de situacao e a observacao da meta
+  (`.aside`, com `contain: size`, entao a altura e a da coluna esquerda e o historico rola). A
+  observacao vai num bloco com borda e o rotulo "Sua observação": solta abaixo dos botoes, uma frase
+  como "Esperar a próxima promoção." foi lida pelo usuario como texto do sistema. O bloco tem borda,
+  e nao o fundo `--surface-muted`, porque esse fundo e o da frase de analise, que e a voz do produto. As acoes
+  numa linha propria embaixo faziam o modal rolar em 1920x935. A ordem do HTML continua a do
+  celular — preco, frase, analise —, e so a grade muda a posicao. Na coluna, a observacao de cada
+  preco desce para baixo do valor (`display: contents` no texto da linha), senao quebrava palavra a
+  palavra. Abaixo de 700px a linha do historico vira grade de duas colunas: data e preco em cima, a
+  variacao embaixo do preco e a observacao por ultimo. Com a variacao ao lado do preco, a 390px nao
+  havia largura para os tres, o preco invadia a seta e a observacao quebrava palavra a palavra. O registro reage a propria largura (`@container`): abaixo de 640px, Observação e
+  "Registrar" descem para a segunda linha, porque em 1100px os quatro campos cortavam o placeholder.
 - **O modal de detalhe le a meta pelo id, nao por um retrato.** `PaginaMetas` guarda `detailId` e
   encontra a meta na lista recarregada; guardar o objeto faria o modal continuar mostrando o
   historico de antes do preco que o usuario acabou de registrar.
@@ -929,16 +979,52 @@ abertura, nao um onboarding que se ve uma vez na vida. O portao fica no `Aplicac
   uma lista de dados densa. Nao leve esse salto para os cards do app.
 - **A frase e `FRASE_BOAS_VINDAS`** ("Veja para onde vai cada real."), em `constants/aplicacao.ts`,
   com `text-wrap: balance` para nao sobrar uma palavra sozinha na segunda linha.
-- **A saida e em cascata e o logo viaja ate o menu lateral.** O quadrado da marca da tela e o
-  `.brandMark` do `MenuLateral` dividem a classe global `marca-em-transicao`, que da o
-  `view-transition-name` compartilhado; a View Transitions API anima um no outro. As letras de
-  "Prisma" sao absorvidas pelo logo antes da troca (`--dx` medido do centro de cada letra ao centro
-  do logo). **Toda animacao de saida tem de terminar antes de `DURACAO_DESPEDIDA_MS` (760 ms)**, o
-  instante em que a View Transition fotografa a pagina: o que estiver no meio do caminho fica
-  congelado na foto e esmaece parado. Foi assim que o "a" final de "Prisma", que terminava aos
-  805 ms, ficava solto ao lado do logo; hoje a ultima letra termina aos 675 ms. Ao mexer em atraso,
-  duracao ou numero de letras, refaca a conta. Abaixo de 1100px o menu vira gaveta fora da tela, entao a classe perde o nome e a troca
-  e so o esmaecimento da pagina — o logo voaria para um lugar invisivel.
+- **A saida e em cascata, e so o logo viaja ate o menu lateral; o nome entra e sai por tras dele.**
+  O quadrado da marca da tela e o `.brandMark` do `MenuLateral` dividem a classe global
+  `marca-em-transicao`, que da o `view-transition-name` compartilhado; a View Transitions API anima
+  um no outro. Na tela, as letras de "Prisma" deslizam para a esquerda ate o centro do logo e somem
+  atras dele (`letraRecolher`, `--dx` medido do centro de cada letra ao centro do logo, e o logo com
+  `z-index` acima do nome), **uma letra de cada vez**, o "P" primeiro: cada uma leva 180 ms, e a
+  seguinte parte 100 ms depois. A entrada da tela e o espelho disso, e o logo tem a vez dele antes. Todos os
+  tempos da marca somam a `--inicio-marca` (400 ms, na `.marca`): a tela abre vazia por um instante e
+  so entao o logo surge — sem esse atraso ele ja estava la quando a tela aparecia, e o usuario pediu
+  que demorasse um pouco. Contados dali, o logo surge aos 80 ms e encaixa as tres faces (ate
+  1120 ms), pulsa (`logoPulsar`, aos 1100 ms: cresce 10% e ganha um brilho de `--accent`) e solta a
+  onda (`onda`, aos 1200 ms), e so quando ele volta ao tamanho as letras saem de tras dele para a
+  direita (`letraEmergir`), em linha reta, uma de cada vez, o "a" primeiro (`--ordem-entrada`):
+  480 ms cada e 120 ms entre elas, de 1300 ms a 2380 ms. Para atrasar ou adiantar a marca inteira,
+  mexa so em `--inicio-marca`.
+  Tres versoes foram corrigidas pelo usuario: um arco que subia 10px e fazia as letras parecerem
+  sair de cima do logo; letras que comecavam enquanto o logo ainda crescia, sem um momento proprio
+  do logo; e letras de 200 ms, rapidas demais — ele pediu que saissem com mais calma. A ordem invertida e a mesma razao do menu: todas partem do centro do
+  logo, e o "P" saindo primeiro faria cada letra seguinte passar por cima das anteriores. No menu, depois que o logo pousa, o nome sai de dentro dele para a
+  direita **como palavra inteira** (`nomeEmergir`), e o slogan entra por ultimo. Os dois sentidos
+  foram escolhidos pelo usuario assim, e sao diferentes de proposito: uma versao com a chegada letra
+  por letra foi recusada, e uma anterior, com o nome voando junto com o logo como um segundo par da
+  View Transition, tambem. A palavra parte de
+  `translateX(calc(-100% - var(--space-3) - var(--space-1)))`, com a borda direita 4px antes da borda
+  direita do logo: encostada nela, a ponta do "a", que passa um pouco da propria caixa, vazava pelo
+  corte como um ponto branco no lugar vazio do logo antes de ele pousar. O `-100%` e a largura do proprio nome, e por isso o `.brandName` tem
+  `align-self: flex-start`: sem ele o nome esticava ate a largura do slogan e o `-100%` seria a largura errada. Durante a
+  chegada o `.brandText` troca o `overflow: hidden` por um `clip-path` que corta na **borda direita**
+  do logo (`--space-3`, o `gap` da `.brand`), e nao na esquerda: enquanto o logo voa, o `.brandMark`
+  de verdade nao e pintado (quem aparece e a copia da View Transition), entao um nome escondido
+  "atras" do lugar do logo ficava a mostra nesse lugar vazio, e o usuario via o "Prisma" no canto
+  antes de o logo chegar. Cortado na borda direita, o nome so aparece ao sair de dentro do logo. O nome do menu nao vai para a View Transition: a imagem nova
+  da raiz e viva, entao a animacao comum de CSS aparece atraves dela, e por baixo do grupo do logo.
+  `transicaoBoasVindas` poe `chegando-das-boas-vindas` na raiz antes da troca, o que deixa nome e
+  slogan parados e escondidos (`animation-play-state: paused`, com `backwards`), e `marca-em-voo` no
+  `ready`, o instante em que o logo comeca a voar; so ai o atraso do nome (780 ms) passa a contar,
+  seja qual for a espera pela pagina nova. O logo para aos 740 ms, e o nome so sai depois: com 700 ms
+  ele ja corria enquanto o logo assentava, e o usuario pediu o logo primeiro e o nome depois. As duas
+  classes saem em `DURACAO_CHEGADA_MS` (1500 ms), depois que o slogan termina: ao mexer em atraso ou duracao no
+  `MenuLateral.module.css`, refaca essa conta. Com o menu recolhido nao ha nome no menu, e a chegada
+  e so o logo. **Toda animacao de saida tem de terminar antes de `DURACAO_DESPEDIDA_MS` (760 ms)**,
+  o instante em que a View Transition fotografa a pagina: o que estiver no meio do caminho fica
+  congelado na foto e esmaece parado. Hoje a ultima letra some atras do logo aos 720 ms e o pulso do
+  logo termina aos 740 ms. Ao mexer em atraso, duracao ou numero de letras, refaca a conta. Abaixo
+  de 1100px o menu vira gaveta fora da tela, entao a classe perde o nome e a troca e so o
+  esmaecimento da pagina — o logo voaria para um lugar invisivel.
 - **Sem suporte a View Transitions, com a aba oculta ou com movimento reduzido, a aplicacao entra
   direto**, sem a despedida. A transicao espera o `h1` de `main#conteudo` por ate 600 ms, para nao
   capturar a pagina nova ainda vazia.
@@ -1138,6 +1224,13 @@ de toast no app, e não deve passar a existir: comportamento, tempo e visual mud
   toast. Sob movimento reduzido a barra some, e quem diz o tipo é o ícone e o rótulo lido antes do título.
 - **No toque não há hover:** segurar o cartão pausa, e deslizar para a direita mais que
   `DISTANCIA_DESLIZE_DISPENSA_PX` dispensa. O botão de fechar continua lá, com área de toque ampliada.
+- **O cartão cresce com a mensagem, em vez de quebrar a linha.** Cada um tem a largura do próprio
+  texto, de 400px a 560px (`--largura-minima` e `max-width` do `.viewport`), e a pilha se alinha pela
+  direita, então cartões de larguras diferentes dividem a mesma borda. Com 400px fixos, um erro do
+  servidor de uma frase ocupava três linhas, e o usuário pediu o cartão mais largo; com teto de 720px
+  a mesma frase cabia numa linha só, num cartão de quase 700px, e o usuário achou grande demais e
+  preferiu quebrar a linha. Acima de 560px o texto quebra. Abaixo de 600px continua valendo a largura
+  toda.
 - **No máximo três na tela.** A quarta empurra a mais antiga para fora, e uma mensagem idêntica a uma
   que já está visível reinicia o tempo dela em vez de empilhar uma cópia.
 - **A saída é animada antes da remoção.** O item fica `saindo` por `DURACAO_SAIDA_NOTIFICACAO_MS`: o

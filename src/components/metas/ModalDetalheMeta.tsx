@@ -5,6 +5,7 @@ import { ValorMonetario } from '@/components/comum';
 import { Selo, Botao, SeletorData, CampoTexto, Modal, CampoValor } from '@/components/ui';
 import { LEGENDA_VARIACAO_TOTAL_META, textoLeituraMeta, rotuloSituacaoMeta, tomSituacaoMeta } from '@/constants/metas';
 import { limitesTexto } from '@/constants/validacao';
+import { useIndicadoresRolagem } from '@/hooks/useIndicadoresRolagem';
 import { useValidacaoFormulario } from '@/hooks/useValidacaoFormulario';
 import type { ErrosCampos } from '@/hooks/useValidacaoFormulario';
 import type { AcompanhamentoMetaDTO, MetaDTO, SalvarMetaPrecoDTO, SituacaoMeta } from '@/types';
@@ -14,7 +15,7 @@ import { formatarDataNumerica, formatarPercentual, interpretarEntradaValor } fro
 import { erroValor, erroTexto } from '@/utils/validacao';
 import { VariacaoPreco } from './VariacaoPreco';
 import { GraficoHistoricoPreco } from './GraficoHistoricoPreco';
-import { tomLeitura } from './aparencia';
+import { classeTendenciaPreco, tomLeitura, tomPreco } from './aparencia';
 import styles from './ModalDetalheMeta.module.css';
 
 interface ModalDetalheMetaProps {
@@ -83,6 +84,7 @@ export function ModalDetalheMeta({
   );
 
   const goalId = acompanhamento?.meta.id ?? null;
+  const historyScroll = useIndicadoresRolagem<HTMLDivElement>([goalId]);
 
   useEffect(() => {
     if (!goalId) return;
@@ -134,8 +136,13 @@ export function ModalDetalheMeta({
       aberto
       aoFechar={aoFechar}
       titulo={goal.nome}
+      seloTitulo={
+        <Selo tom={tomSituacaoMeta[goal.situacao]} ponto={goal.situacao === 'ACOMPANHANDO'}>
+          {rotuloSituacaoMeta[goal.situacao]}
+        </Selo>
+      }
       descricao={`${analysis.quantidadeRegistros} ${analysis.quantidadeRegistros === 1 ? 'registro' : 'registros'} — Atualizado em ${formatarDataNumerica(analysis.ultimaAtualizacao)}`}
-      tamanho="lg"
+      tamanho="xl"
       rodape={
         <>
           <Botao
@@ -154,194 +161,222 @@ export function ModalDetalheMeta({
         </>
       }
     >
-      <header className={styles.head}>
-        <div className={styles.headMain}>
-          <span className={styles.headLabel}>Preço atual</span>
-          <ValorMonetario valor={analysis.precoAtual} tamanho="lg" />
-          {analysis.quantidadeRegistros > 1 ? (
-            <VariacaoPreco
-              variacao={analysis.variacao}
-              percentual={analysis.variacaoPercentual}
-              tendencia={analysis.tendencia}
-              legenda={LEGENDA_VARIACAO_TOTAL_META}
-            />
-          ) : (
-            <span className={styles.headHint}>Primeiro registro</span>
-          )}
-        </div>
+      <div className={styles.body}>
+        <header className={styles.head}>
+          <div className={styles.headMain}>
+            <span className={styles.headLabel}>Preço atual</span>
+            <ValorMonetario valor={analysis.precoAtual} tamanho="lg" />
+            {analysis.quantidadeRegistros > 1 ? (
+              <VariacaoPreco
+                variacao={analysis.variacao}
+                percentual={analysis.variacaoPercentual}
+                tendencia={analysis.tendencia}
+                legenda={LEGENDA_VARIACAO_TOTAL_META}
+              />
+            ) : (
+              <span className={styles.headHint}>Primeiro registro</span>
+            )}
+          </div>
+        </header>
 
-        <Selo tom={tomSituacaoMeta[goal.situacao]} ponto={goal.situacao === 'ACOMPANHANDO'}>
-          {rotuloSituacaoMeta[goal.situacao]}
-        </Selo>
-      </header>
-
-      <p className={juntarClasses(styles.insight, styles[tomLeitura[analysis.leitura]])}>
-        <span className={styles.insightDot} aria-hidden="true" />
-        {textoLeituraMeta[analysis.leitura]}
-      </p>
-
-      <dl className={styles.analysis}>
-        <div>
-          <dt>Preço inicial</dt>
-          <dd>
-            <ValorMonetario valor={analysis.precoInicial} tamanho="sm" />
-          </dd>
-        </div>
-        <div>
-          <dt>Menor preço</dt>
-          <dd>
-            <ValorMonetario valor={analysis.menorPreco} tamanho="sm" tom="positive" />
-          </dd>
-        </div>
-        <div>
-          <dt>Maior preço</dt>
-          <dd>
-            <ValorMonetario valor={analysis.maiorPreco} tamanho="sm" tom="negative" />
-          </dd>
-        </div>
-        <div>
-          <dt>Preço médio</dt>
-          <dd>
-            <ValorMonetario valor={analysis.precoMedio} tamanho="sm" tom="muted" />
-          </dd>
-        </div>
-        <div>
-          <dt>Variação total</dt>
-          <dd className={styles.pair}>
-            <ValorMonetario valor={analysis.variacao} tamanho="sm" sinal="auto" />
-            <span className="tabular">{formatarPercentual(Math.abs(analysis.variacaoPercentual))}</span>
-          </dd>
-        </div>
-        <div>
-          <dt>Abaixo do maior preço</dt>
-          <dd>
-            <ValorMonetario valor={analysis.economia} tamanho="sm" tom={analysis.economia > 0 ? 'positive' : 'muted'} />
-          </dd>
-        </div>
-      </dl>
-
-      {analysis.quantidadeRegistros > 1 ? (
-        <GraficoHistoricoPreco historico={goal.historico} precoMedio={analysis.precoMedio} tendencia={analysis.tendencia} />
-      ) : (
-        <p className={styles.chartHint}>
-          A curva de evolução aparece a partir do segundo preço registrado. Consulte o produto de novo em alguns
-          dias e anote o valor aqui embaixo.
-        </p>
-      )}
-
-      <section className={styles.register} aria-labelledby="goal-register-title">
-        <h3 className={styles.sectionTitle} id="goal-register-title">
-          Registrar preço
-        </h3>
-        <p className={styles.sectionHint}>
-          Consultou de novo? Anote o valor. O preço anterior continua no histórico — é o que permite comparar.
+        <p className={juntarClasses(styles.insight, styles[tomLeitura[analysis.leitura]])}>
+          <span className={styles.insightDot} aria-hidden="true" />
+          {textoLeituraMeta[analysis.leitura]}
         </p>
 
-        <form
-          ref={refFormulario}
-          className={styles.registerFields}
-          noValidate
-          onSubmit={(event) => {
-            event.preventDefault();
-            void handleRegister();
-          }}
-        >
-          <CampoValor
-            ref={priceRef}
-            className={styles.price}
-            required
-            rotulo="Preço"
-            valor={form.preco}
-            aoMudar={(value) => setForm((current) => ({ ...current, preco: value }))}
-            onBlur={() => tocar('preco')}
-            erro={erros.preco}
-          />
-
-          <SeletorData
-            className={styles.date}
-            required
-            rotulo="Data"
-            min={goal.dataCriacao}
-            max={hojeISO()}
-            value={form.data}
-            onChange={(data) => setForm((current) => ({ ...current, data }))}
-            erro={erros.data}
-          />
-
-          <CampoTexto
-            className={styles.note}
-            rotulo="Observação"
-            placeholder="Cupom, frete grátis, loja..."
-            value={form.observacao}
-            onChange={(event) => setForm((current) => ({ ...current, observacao: event.target.value }))}
-            onBlur={() => tocar('observacao')}
-            limiteCaracteres={limitesTexto.observacoes}
-            erro={erros.observacao}
-          />
-
-          <Botao type="submit" className={styles.registerButton} carregando={salvando}>
-            Registrar
-          </Botao>
-        </form>
-      </section>
-
-      <section className={styles.historySection} aria-labelledby="goal-history-title">
-        <h3 className={styles.sectionTitle} id="goal-history-title">
-          Histórico de preços
-        </h3>
-
-        <ul className={styles.history}>
-          {entries.map(({ entry, change, percentage, first }, index) => (
-            <li key={entry.id} className={juntarClasses(styles.entry, 'list-item-in')} style={{ '--i': index } as CSSProperties}>
-              <span className={`${styles.entryDate} tabular`}>{formatarDataNumerica(entry.data)}</span>
-
-              <span className={styles.entryText}>
-                <ValorMonetario valor={entry.preco} tamanho="sm" />
-                {entry.observacao ? <span className={styles.entryNote}>{entry.observacao}</span> : null}
+        <dl className={styles.analysis}>
+          <div>
+            <dt>Preço inicial</dt>
+            <dd>
+              <ValorMonetario valor={analysis.precoInicial} tamanho="sm" />
+            </dd>
+          </div>
+          <div>
+            <dt>Menor preço</dt>
+            <dd>
+              <ValorMonetario valor={analysis.menorPreco} tamanho="sm" tom="positive" />
+            </dd>
+          </div>
+          <div>
+            <dt>Maior preço</dt>
+            <dd>
+              <ValorMonetario valor={analysis.maiorPreco} tamanho="sm" tom="negative" />
+            </dd>
+          </div>
+          <div>
+            <dt>Preço médio</dt>
+            <dd>
+              <ValorMonetario valor={analysis.precoMedio} tamanho="sm" tom="muted" />
+            </dd>
+          </div>
+          <div>
+            <dt>Variação total</dt>
+            <dd className={juntarClasses(styles.pair, styles[classeTendenciaPreco[analysis.tendencia]])}>
+              <ValorMonetario valor={analysis.variacao} tamanho="sm" sinal="auto" tom={tomPreco(analysis.tendencia)} />
+              <span className={styles.pairSeparator} aria-hidden="true">
+                —
               </span>
+              <span className="tabular">{formatarPercentual(Math.abs(analysis.variacaoPercentual))}</span>
+            </dd>
+          </div>
+          <div>
+            <dt>Abaixo do maior preço</dt>
+            <dd>
+              <ValorMonetario valor={analysis.economia} tamanho="sm" tom={analysis.economia > 0 ? 'positive' : 'muted'} />
+            </dd>
+          </div>
+        </dl>
 
-              {first ? (
-                <span className={styles.entryFirst}>Primeiro registro</span>
-              ) : (
-                <VariacaoPreco
-                  tamanho="sm"
-                  variacao={change}
-                  percentual={percentage}
-                  tendencia={change > 0 ? 'ALTA' : change < 0 ? 'BAIXA' : 'ESTAVEL'}
-                />
-              )}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <div className={styles.quickActions}>
-        {goal.url ? (
-          <a className={styles.link} href={goal.url} target="_blank" rel="noreferrer noopener">
-            <ExternalLink size={16} strokeWidth={2} aria-hidden="true" />
-            Abrir a página do produto
-          </a>
-        ) : null}
-
-        <span className={styles.statusActions}>
-          {archived ? (
-            <Botao variante="secondary" tamanho="sm" icone={RotateCcw} disabled={salvando} onClick={() => aoMudarSituacao(acompanhamento, 'ACOMPANHANDO')}>
-              Voltar a acompanhar
-            </Botao>
+        <div className={styles.chart}>
+          {analysis.quantidadeRegistros > 1 ? (
+            <GraficoHistoricoPreco historico={goal.historico} precoMedio={analysis.precoMedio} tendencia={analysis.tendencia} />
           ) : (
-            <>
-              <Botao variante="secondary" tamanho="sm" icone={Check} disabled={salvando} onClick={() => aoMudarSituacao(acompanhamento, 'COMPRADA')}>
-                Marcar como comprado
-              </Botao>
-              <Botao variante="ghost" tamanho="sm" icone={X} disabled={salvando} onClick={() => aoMudarSituacao(acompanhamento, 'CANCELADA')}>
-                Cancelar meta
-              </Botao>
-            </>
+            <p className={styles.chartHint}>
+              A curva de evolução aparece a partir do segundo preço registrado. Consulte o produto de novo em alguns
+              dias e anote o valor aqui embaixo.
+            </p>
           )}
-        </span>
-      </div>
+        </div>
 
-      {goal.observacoes ? <p className={styles.notes}>{goal.observacoes}</p> : null}
+        <section className={styles.register} aria-labelledby="goal-register-title">
+          <h3 className={styles.sectionTitle} id="goal-register-title">
+            Registrar preço
+          </h3>
+          <p className={styles.sectionHint}>
+            Consultou de novo? Anote o valor. O preço anterior continua no histórico — é o que permite comparar.
+          </p>
+
+          <form
+            ref={refFormulario}
+            className={styles.registerFields}
+            noValidate
+            onSubmit={(event) => {
+              event.preventDefault();
+              void handleRegister();
+            }}
+          >
+            <CampoValor
+              ref={priceRef}
+              className={styles.price}
+              required
+              rotulo="Preço"
+              valor={form.preco}
+              aoMudar={(value) => setForm((current) => ({ ...current, preco: value }))}
+              onBlur={() => tocar('preco')}
+              erro={erros.preco}
+            />
+
+            <SeletorData
+              className={styles.date}
+              required
+              rotulo="Data"
+              min={goal.dataCriacao}
+              max={hojeISO()}
+              value={form.data}
+              onChange={(data) => setForm((current) => ({ ...current, data }))}
+              erro={erros.data}
+            />
+
+            <CampoTexto
+              className={styles.note}
+              rotulo="Observação"
+              placeholder="Cupom, frete grátis, loja..."
+              value={form.observacao}
+              onChange={(event) => setForm((current) => ({ ...current, observacao: event.target.value }))}
+              onBlur={() => tocar('observacao')}
+              limiteCaracteres={limitesTexto.observacoes}
+              erro={erros.observacao}
+            />
+
+            <Botao type="submit" className={styles.registerButton} carregando={salvando}>
+              Registrar
+            </Botao>
+          </form>
+        </section>
+
+        <div className={styles.aside}>
+          <section className={styles.historySection} aria-labelledby="goal-history-title">
+            <h3 className={styles.sectionTitle} id="goal-history-title">
+              Histórico de preços
+            </h3>
+
+            <div
+              className={styles.historyFrame}
+              {...(historyScroll.acima ? { 'data-acima': '' } : {})}
+              {...(historyScroll.abaixo ? { 'data-abaixo': '' } : {})}
+            >
+              <div
+                ref={historyScroll.ref}
+                className={styles.historyScroll}
+                role="region"
+                aria-labelledby="goal-history-title"
+                onScroll={historyScroll.medir}
+                {...(historyScroll.rolavel ? { tabIndex: 0 } : {})}
+              >
+                <ul className={styles.history}>
+                  {entries.map(({ entry, change, percentage, first }, index) => (
+                    <li key={entry.id} className={juntarClasses(styles.entry, 'list-item-in')} style={{ '--i': index } as CSSProperties}>
+                      <span className={`${styles.entryDate} tabular`}>{formatarDataNumerica(entry.data)}</span>
+
+                      <span className={styles.entryText}>
+                        <ValorMonetario valor={entry.preco} tamanho="sm" />
+                        {entry.observacao ? <span className={styles.entryNote}>{entry.observacao}</span> : null}
+                      </span>
+
+                      {first ? (
+                        <span className={styles.entryFirst}>Primeiro registro</span>
+                      ) : (
+                        <VariacaoPreco
+                          tamanho="sm"
+                          separarPercentual
+                          variacao={change}
+                          percentual={percentage}
+                          tendencia={change > 0 ? 'ALTA' : change < 0 ? 'BAIXA' : 'ESTAVEL'}
+                        />
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <div className={styles.side}>
+            <div className={styles.quickActions}>
+              {goal.url ? (
+                <a className={styles.link} href={goal.url} target="_blank" rel="noreferrer noopener">
+                  <ExternalLink size={16} strokeWidth={2} aria-hidden="true" />
+                  Abrir a página do produto
+                </a>
+              ) : null}
+
+              <span className={styles.statusActions}>
+                {archived ? (
+                  <Botao variante="secondary" tamanho="sm" icone={RotateCcw} disabled={salvando} onClick={() => aoMudarSituacao(acompanhamento, 'ACOMPANHANDO')}>
+                    Voltar a acompanhar
+                  </Botao>
+                ) : (
+                  <>
+                    <Botao variante="secondary" tamanho="sm" icone={Check} disabled={salvando} onClick={() => aoMudarSituacao(acompanhamento, 'COMPRADA')}>
+                      Marcar como comprado
+                    </Botao>
+                    <Botao variante="ghost" tamanho="sm" icone={X} disabled={salvando} onClick={() => aoMudarSituacao(acompanhamento, 'CANCELADA')}>
+                      Cancelar meta
+                    </Botao>
+                  </>
+                )}
+              </span>
+            </div>
+
+            {goal.observacoes ? (
+              <div className={styles.notes}>
+                <span className={styles.notesLabel}>Sua observação</span>
+                <p className={styles.notesText}>{goal.observacoes}</p>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </div>
     </Modal>
   );
 }

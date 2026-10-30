@@ -45,6 +45,15 @@
   margin-left: var(--space-1);
 }
 
+.percentSeparator {
+  color: var(--text-subtle);
+  font-weight: 400;
+}
+
+.sm .percentSeparator {
+  margin-left: var(--space-1);
+}
+
 .caption {
   color: var(--text-subtle);
   font-weight: 400;

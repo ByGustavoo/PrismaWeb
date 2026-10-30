@@ -8,6 +8,12 @@
   gap: var(--space-5);
 }
 
+.overview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
 .head {
   display: flex;
   align-items: center;
@@ -162,7 +168,7 @@
 }
 
 .registerButton {
-  margin-top: 25px;
+  margin-top: calc(var(--fs-sm) * var(--lh-normal) + var(--space-2));
 }
 
 .registerFieldsWithAccount .registerButton {
@@ -174,6 +180,127 @@
   max-width: none;
   font-size: var(--fs-sm);
   color: var(--text-muted);
+}
+
+.historyFrame {
+  position: relative;
+}
+
+.historyFrame::before,
+.historyFrame::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  left: 0;
+  z-index: 1;
+  height: var(--space-6);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--duration-base) var(--ease-out);
+}
+
+.historyFrame::before {
+  top: 0;
+  background: linear-gradient(
+    to bottom,
+    var(--surface-raised),
+    color-mix(in srgb, var(--surface-raised) 0%, transparent)
+  );
+}
+
+.historyFrame::after {
+  bottom: 0;
+  background: linear-gradient(to top, var(--surface-raised), color-mix(in srgb, var(--surface-raised) 0%, transparent));
+}
+
+.historyFrame[data-acima]::before,
+.historyFrame[data-abaixo]::after {
+  opacity: 1;
+}
+
+.historyScroll {
+  border-radius: var(--radius-xs);
+}
+
+.historyScroll:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+@media (min-width: 1100px) {
+  .body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 0.48fr);
+    grid-template-areas:
+      'overview overview'
+      'evolution history'
+      'register history';
+    gap: var(--space-5) var(--space-6);
+    align-items: start;
+  }
+
+  .overview {
+    grid-area: overview;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-6);
+  }
+
+  .head {
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+  }
+
+  .iconBox {
+    align-self: center;
+  }
+
+  .headMain {
+    flex: 0 0 auto;
+  }
+
+  .headResult {
+    align-items: flex-start;
+    margin-left: var(--space-4);
+    text-align: left;
+  }
+
+  .facts {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .evolution {
+    grid-area: evolution;
+  }
+
+  .register {
+    grid-area: register;
+  }
+
+  .history {
+    grid-area: history;
+    align-self: stretch;
+    min-height: 0;
+    contain: size;
+  }
+
+  .historyFrame {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .historyScroll {
+    flex: 1;
+    min-height: 0;
+    padding-right: var(--space-2);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
 }
 
 @media (max-width: 699px) {
