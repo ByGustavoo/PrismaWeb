@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const LARGURA_GIF = 640;
 const QUADROS_POR_SEGUNDO_GIF = 8;
-const CORES_PALETA = 64;
+const CORES_PALETA = 48;
 
 const raiz = fileURLToPath(new URL('..', import.meta.url));
 const cli = join(raiz, 'node_modules', '@remotion', 'cli', 'remotion-cli.js');

@@ -30,6 +30,7 @@ const ajustesPorCena: Record<NomeCena, { x: number; y: number; brilho: number; l
   abertura: { x: 50, y: 46, brilho: 0.5, linha: 1 },
   gancho: { x: 50, y: 42, brilho: 0.36, linha: 0.5 },
   dashboard: { x: 70, y: 50, brilho: 0.42, linha: 0.3 },
+  gastosDia: { x: 66, y: 54, brilho: 0.4, linha: 0.22 },
   lancamentos: { x: 32, y: 50, brilho: 0.4, linha: 0.14 },
   contas: { x: 70, y: 50, brilho: 0.42, linha: 0.3 },
   cartoes: { x: 32, y: 50, brilho: 0.4, linha: 0.14 },
@@ -42,6 +43,7 @@ const ajustesPorCena: Record<NomeCena, { x: number; y: number; brilho: number; l
   investimentos: { x: 70, y: 50, brilho: 0.42, linha: 0.3 },
   relatorios: { x: 32, y: 50, brilho: 0.42, linha: 0.14 },
   avisos: { x: 70, y: 48, brilho: 0.4, linha: 0.25 },
+  configuracoes: { x: 32, y: 50, brilho: 0.4, linha: 0.18 },
   confianca: { x: 50, y: 46, brilho: 0.48, linha: 0.55 },
   encerramento: { x: 50, y: 44, brilho: 0.62, linha: 1 },
 };

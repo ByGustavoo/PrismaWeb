@@ -14,12 +14,13 @@ interface CursorProps {
   de: Ponto;
   paradas: Parada[];
   saida?: number;
+  semClique?: boolean;
 }
 
 const DURACAO_PRESSAO = 6;
-const DURACAO_PERCURSO = 12;
+const DURACAO_PERCURSO = 20;
 
-export function Cursor({ de, paradas, saida }: CursorProps) {
+export function Cursor({ de, paradas, saida, semClique = false }: CursorProps) {
   const passo = usePasso();
   const primeira = paradas[0];
   if (!primeira) return null;
@@ -37,11 +38,11 @@ export function Cursor({ de, paradas, saida }: CursorProps) {
     anterior = parada;
   }
 
-  const pressao = paradas.reduce((soma, parada) => soma + pulso(passo, parada.clique, DURACAO_PRESSAO), 0);
+  const pressao = semClique ? 0 : paradas.reduce((soma, parada) => soma + pulso(passo, parada.clique, DURACAO_PRESSAO), 0);
 
   return (
     <div style={{ position: 'absolute', left: 0, top: 0, width: 0, height: 0, pointerEvents: 'none', opacity: aparicao * (1 - sumico), zIndex: 20 }}>
-      {paradas.map((parada) => {
+      {(semClique ? [] : paradas).map((parada) => {
         const onda = progresso(passo, parada.clique, 16);
         return (
           <span

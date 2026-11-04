@@ -4,23 +4,24 @@ import { misturar, mola, progresso, usePasso } from '../animacao';
 import { Cartao } from '../componentes/Cartao';
 import { CenaDividida } from '../componentes/CenaDividida';
 import { IndicadorVariacao, ValorMonetario } from '../componentes/Interface';
-import { cenas, dashboard, HISTORICO_SALDO, SALDO_ATUAL } from '../linhaDoTempo';
+import { cenas, dashboard, DESPESAS_MES, HISTORICO_SALDO, PATRIMONIO, SALDO_ATUAL } from '../linhaDoTempo';
 import { cores, fontes } from '../tema';
 
 const LARGURA_GRAFICO = 370;
 const ALTURA_GRAFICO = 190;
+const RECEITAS_MES = 7850;
 
 const fluxo = [
-  { rotulo: 'Entradas do mês', valor: 7850, cor: cores.positivo, sinal: true },
-  { rotulo: 'Saídas do mês', valor: -5912.4, cor: cores.negativo, sinal: false },
-  { rotulo: 'Resultado', valor: 1937.6, cor: cores.positivo, sinal: false },
+  { rotulo: 'Entradas do mês', valor: RECEITAS_MES, cor: cores.positivo, sinal: true },
+  { rotulo: 'Saídas do mês', valor: -DESPESAS_MES, cor: cores.negativo, sinal: false },
+  { rotulo: 'Resultado', valor: RECEITAS_MES - DESPESAS_MES, cor: cores.positivo, sinal: true },
 ];
 
 const indicadores = [
-  { rotulo: 'Receitas do mês', icone: TrendingUp, valor: 7850, variacao: 4.1, apoio: '' },
-  { rotulo: 'Despesas do mês', icone: TrendingDown, valor: 5912.4, variacao: -6.3, apoio: '' },
-  { rotulo: 'Investimentos', icone: PiggyBank, valor: 48320.5, variacao: 12.6, apoio: 'Rentabilidade acumulada' },
-  { rotulo: 'Fatura do mês', icone: CreditCard, valor: 490, variacao: null, apoio: 'Horizonte Gold — Vence em 05 de novembro de 2026' },
+  { rotulo: 'Receitas do mês', icone: TrendingUp, valor: RECEITAS_MES, variacao: 4.1, sentido: 'ALTA' as const, legenda: 'Recebeu mais', apoio: '' },
+  { rotulo: 'Despesas do mês', icone: TrendingDown, valor: DESPESAS_MES, variacao: -6.3, sentido: 'BAIXA' as const, legenda: 'Gastou menos', apoio: '' },
+  { rotulo: 'Investimentos', icone: PiggyBank, valor: PATRIMONIO - SALDO_ATUAL, variacao: 12.6, sentido: 'ALTA' as const, legenda: null, apoio: 'Rentabilidade acumulada' },
+  { rotulo: 'Fatura do mês', icone: CreditCard, valor: 490, variacao: null, sentido: 'ALTA' as const, legenda: null, apoio: 'Horizonte Gold — Vence em 05 de Novembro de 2026' },
 ];
 
 function pontosGrafico() {
@@ -57,6 +58,8 @@ export function Dashboard() {
     });
   const grafico = progresso(passo, dashboard.grafico, dashboard.duracaoGrafico);
   const ultimo = PONTOS[PONTOS.length - 1] ?? { x: 0, y: 0 };
+  const patrimonio = progresso(passo, dashboard.patrimonio, 14);
+  const legendas = progresso(passo, dashboard.legendas, 12);
 
   return (
     <CenaDividida
@@ -65,21 +68,40 @@ export function Dashboard() {
       sobretitulo="DASHBOARD"
       titulo="Seu dinheiro"
       tituloDestaque="em uma tela só."
-      subtitulo="Saldo, entradas e saídas, investimentos e a fatura do mês, sempre comparados ao período anterior."
+      subtitulo="Saldo, patrimônio, entradas e saídas e a fatura do mês, sempre comparados ao período anterior."
       inicioTitulo={dashboard.titulo}
       inicioCartao={dashboard.cartao}
       larguraTexto={600}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <Cartao estilo={{ display: 'flex', gap: 36, padding: '34px 36px', fontFamily: fontes.texto }}>
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <Cartao estilo={{ display: 'flex', gap: 36, padding: '30px 36px', fontFamily: fontes.texto }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}>
             <span style={{ fontSize: 21, color: cores.textoSecundario }}>Saldo atual</span>
             <ValorMonetario valor={contagem(SALDO_ATUAL)} tamanho={64} estilo={{ minWidth: 380 }} />
-            <span style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 18, color: cores.textoSecundario }}>
-              <IndicadorVariacao percentual={10} tamanho={18} />
-              em relação ao mês anterior
-            </span>
-            <div style={{ height: 1.5, background: cores.borda, margin: '6px 0' }} />
+            <IndicadorVariacao percentual={10} tamanho={18} legenda="em relação ao mês anterior" />
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 16,
+                margin: '4px 0',
+                padding: '14px 18px',
+                borderRadius: 14,
+                background: cores.superficieSuave,
+                opacity: patrimonio,
+                transform: `translateY(${misturar(10, 0, patrimonio)}px)`,
+              }}
+            >
+              <span style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <span style={{ fontSize: 20, fontWeight: 600, color: cores.texto }}>Patrimônio</span>
+                <span style={{ fontSize: 16, color: cores.textoSecundario, whiteSpace: 'nowrap' }}>Saldo somado aos investimentos</span>
+              </span>
+              <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+                <ValorMonetario valor={contagem(PATRIMONIO)} tamanho={26} estilo={{ minWidth: 186, justifyContent: 'flex-end' }} />
+                <IndicadorVariacao percentual={3.2} tamanho={16} />
+              </span>
+            </div>
             {fluxo.map(({ rotulo, valor, cor, sinal }, indice) => {
               const t = progresso(passo, dashboard.linhas[indice] ?? 0, 14);
               return (
@@ -118,7 +140,7 @@ export function Dashboard() {
           </div>
         </Cartao>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-          {indicadores.map(({ rotulo, icone: Icone, valor, variacao, apoio }, indice) => {
+          {indicadores.map(({ rotulo, icone: Icone, valor, variacao, sentido, legenda, apoio }, indice) => {
             const entrada = mola(passo, dashboard.indicadores[indice] ?? 0, 160, 16);
             return (
               <div
@@ -126,8 +148,8 @@ export function Dashboard() {
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 14,
-                  padding: '24px 26px',
+                  gap: 12,
+                  padding: '20px 26px',
                   borderRadius: 20,
                   background: cores.superficie,
                   border: `1.5px solid ${cores.borda}`,
@@ -143,9 +165,10 @@ export function Dashboard() {
                   </span>
                 </span>
                 <ValorMonetario valor={valor} tamanho={36} />
-                <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, fontSize: 17, color: cores.textoSecundario, whiteSpace: 'nowrap' }}>
-                  {variacao !== null ? <IndicadorVariacao percentual={variacao} tamanho={18} /> : null}
-                  {apoio}
+                <span style={{ display: 'flex', alignItems: 'baseline', gap: 12, fontSize: 17, color: cores.textoSecundario, whiteSpace: 'nowrap' }}>
+                  {variacao !== null ? <IndicadorVariacao percentual={variacao} tamanho={18} sentidoFavoravel={sentido} /> : null}
+                  {legenda ? <span style={{ opacity: legendas, transform: `translateX(${misturar(-8, 0, legendas)}px)` }}>{legenda}</span> : null}
+                  {apoio ? <span style={{ marginLeft: variacao !== null ? 'auto' : 0 }}>{apoio}</span> : null}
                 </span>
               </div>
             );

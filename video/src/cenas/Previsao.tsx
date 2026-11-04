@@ -26,11 +26,12 @@ const indiceApertado = saldos.indexOf(Math.min(...saldos));
 const resultadoMedio = ((saldos[saldos.length - 1] ?? SALDO_FIM_DO_MES) - SALDO_FIM_DO_MES) / meses.length;
 
 const LARGURA = 912;
-const ALTURA = 290;
+const ALTURA = 260;
 const ESCALA_BARRAS = 9000;
 const SALDO_MINIMO = 12000;
 const SALDO_MAXIMO = 16200;
 const COLUNA = LARGURA / meses.length;
+const ESPACO_SELO = 92;
 
 function ySaldo(valor: number): number {
   return ALTURA - ((valor - SALDO_MINIMO) / (SALDO_MAXIMO - SALDO_MINIMO)) * ALTURA;
@@ -64,7 +65,7 @@ export function Previsao() {
       inicioCartao={previsao.cartao}
       larguraTexto={560}
     >
-      <Cartao estilo={{ display: 'flex', flexDirection: 'column', gap: 26, padding: 36, fontFamily: fontes.texto }}>
+      <Cartao estilo={{ display: 'flex', flexDirection: 'column', gap: 22, padding: 34, fontFamily: fontes.texto }}>
         <div style={{ display: 'flex', borderRadius: 16, border: `1.5px solid ${cores.borda}`, background: cores.superficieElevada }}>
           {resumo.map(({ rotulo, valor, apoio, cor }, indice) => (
             <ItemResumo key={rotulo} rotulo={rotulo} apoio={apoio} opacidade={progresso(passo, previsao.resumo[indice] ?? 0, 14)} primeiro={indice === 0}>
@@ -76,13 +77,13 @@ export function Previsao() {
           <span style={{ fontSize: 24, fontWeight: 650, color: cores.texto }}>Entradas, saídas e saldo previsto</span>
           <span style={{ fontSize: 18, color: cores.textoSecundario }}>Projeção a partir do saldo previsto para o fim deste mês</span>
         </div>
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: 'relative', paddingTop: ESPACO_SELO }}>
           <svg width={LARGURA} height={ALTURA} style={{ overflow: 'visible', display: 'block' }}>
             <rect
               x={COLUNA * indiceApertado + 6}
-              y={-14}
+              y={0}
               width={COLUNA - 12}
-              height={ALTURA + 14}
+              height={ALTURA}
               rx={12}
               fill={`rgba(232, 180, 74, ${0.1 * apertado})`}
               stroke={`rgba(232, 180, 74, ${0.6 * apertado})`}
@@ -124,24 +125,41 @@ export function Previsao() {
           <div
             style={{
               position: 'absolute',
-              left: COLUNA * (indiceApertado + 0.5) + 18,
-              top: ySaldo(saldos[indiceApertado] ?? 0) + 18,
-              transform: `translateY(${misturar(12, 0, apertado)}px) scale(${misturar(0.7, 1, apertado)})`,
-              transformOrigin: 'left top',
-              opacity: apertado,
+              left: COLUNA * (indiceApertado + 0.5),
+              top: ESPACO_SELO - 10,
+              transform: `translate(-50%, -100%) translateY(${misturar(14, 0, apertado)}px) scale(${misturar(0.7, 1, apertado)})`,
+              transformOrigin: 'center bottom',
+              opacity: Math.min(apertado, 1),
               display: 'flex',
-              flexDirection: 'column',
               alignItems: 'center',
-              gap: 2,
-              padding: '8px 14px',
-              borderRadius: 12,
-              background: cores.superficieElevada,
+              gap: 14,
+              padding: '10px 18px',
+              borderRadius: 14,
+              background: cores.avisoSuave,
               border: `1.5px solid ${cores.aviso}`,
+              boxShadow: '0 16px 32px -16px rgba(0, 0, 0, 0.8)',
               whiteSpace: 'nowrap',
             }}
           >
-            <span style={{ fontSize: 15, fontWeight: 600, color: cores.aviso }}>Mês mais apertado</span>
-            <ValorMonetario valor={saldos[indiceApertado] ?? 0} tamanho={19} />
+            <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <span style={{ fontSize: 17, fontWeight: 650, color: cores.aviso }}>Mês mais apertado</span>
+              <span style={{ fontSize: 15, color: cores.textoSecundario }}>Dezembro de 2026</span>
+            </span>
+            <ValorMonetario valor={saldos[indiceApertado] ?? 0} tamanho={24} />
+            <span
+              style={{
+                position: 'absolute',
+                left: '50%',
+                bottom: -8,
+                width: 14,
+                height: 14,
+                marginLeft: -7,
+                background: cores.avisoSuave,
+                borderRight: `1.5px solid ${cores.aviso}`,
+                borderBottom: `1.5px solid ${cores.aviso}`,
+                transform: 'rotate(45deg)',
+              }}
+            />
           </div>
           <div style={{ display: 'flex', marginTop: 12 }}>
             {meses.map((mes) => (

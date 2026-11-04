@@ -35,14 +35,15 @@
 ## 🎬 Apresentação
 
 <div align="center">
-  <img alt="Apresentação do Prisma: as telas do app, do dashboard aos avisos" src="video/apresentacao.gif" width="640" />
+  <img alt="Apresentação do Prisma: as telas do app, do dashboard às configurações" src="video/apresentacao.gif" width="640" />
 </div>
 
 <br>
 
-O vídeo completo tem 83 segundos, em 4K (3840×2160) a 60 fps e com trilha sintetizada, e passa por
-cada tela do app: dashboard, lançamentos, contas, cartões, faturas, compras parceladas, orçamento,
-previsão, recorrentes, metas, investimentos, relatórios e avisos. Os nomes e valores
+O vídeo completo tem 107 segundos, em 4K (3840×2160) a 60 fps e com trilha sintetizada, e passa por
+cada tela do app: dashboard (com o card de gastos por dia), lançamentos, contas, cartões, faturas,
+compras parceladas, orçamento, previsão, recorrentes, metas, investimentos, relatórios, avisos e
+configurações. Os nomes e valores
 saem dos dados de exemplo do ambiente de desenvolvimento ou seguem as regras do app: as parcelas
 fecham no centavo com o total da compra, a fatura fecha antes de vencer e a previsão soma mês a mês. É feito com Remotion na pasta `video`, que
 tem `package.json` próprio e fica fora do build, da CI e da imagem Docker.

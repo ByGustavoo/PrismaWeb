@@ -14,8 +14,8 @@ const resumo = [
 ];
 
 const blocos = [
-  { nome: 'Aurora Platinum', detalhe: 'Banco Aurora — Mastercard •••• 4821', limite: 12000, comprometido: 3380, fatura: 0, fechamento: 3, vencimento: 10, vence: 'Vence em 10 de novembro de 2026' },
-  { nome: 'Horizonte Gold', detalhe: 'Banco Horizonte — Visa •••• 1934', limite: 5000, comprometido: 1390, fatura: 490, fechamento: 25, vencimento: 5, vence: 'Vence em 05 de novembro de 2026' },
+  { nome: 'Aurora Platinum', detalhe: 'Banco Aurora — Mastercard •••• 4821', limite: 12000, comprometido: 3380, fatura: 0, fechamento: 3, vencimento: 10, vence: 'Vence em 10 de Novembro de 2026', conta: 'Conta principal', banco: 'Banco Aurora' },
+  { nome: 'Horizonte Gold', detalhe: 'Banco Horizonte — Visa •••• 1934', limite: 5000, comprometido: 1390, fatura: 490, fechamento: 25, vencimento: 5, vence: 'Vence em 05 de Novembro de 2026', conta: 'Conta salário', banco: 'Banco Horizonte' },
 ];
 
 function Fato({ rotulo, children }: { rotulo: string; children: ReactNode }) {
@@ -30,8 +30,11 @@ function Fato({ rotulo, children }: { rotulo: string; children: ReactNode }) {
 export function Cartoes() {
   const passo = usePasso();
   const barra = progresso(passo, cartoes.barra, cartoes.duracaoBarra);
-  const destaqueConta = progresso(passo, cartoes.contaPagamento, 10) * (1 - 0.55 * progresso(passo, cartoes.contaPagamento + 26, 24));
-  const saltoConta = pulso(passo, cartoes.contaPagamento, 10);
+  const destaqueDe = (indice: number) => {
+    const inicio = cartoes.contaPagamento + indice * 12;
+    return progresso(passo, inicio, 10) * (1 - 0.55 * progresso(passo, inicio + 26, 24));
+  };
+  const saltoDe = (indice: number) => pulso(passo, cartoes.contaPagamento + indice * 12, 10);
   const contagem = (valor: number) =>
     interpolate(passo, [cartoes.barra, cartoes.barra + cartoes.duracaoBarra], [0, valor], {
       extrapolateLeft: 'clamp',
@@ -63,6 +66,8 @@ export function Cartoes() {
           {blocos.map((bloco, indice) => {
             const entrada = mola(passo, cartoes.blocos[indice] ?? 0, 130, 17);
             const proporcao = bloco.comprometido / bloco.limite;
+            const destaqueConta = destaqueDe(indice);
+            const saltoConta = saltoDe(indice);
             return (
               <div
                 key={bloco.nome}
@@ -125,7 +130,10 @@ export function Cartoes() {
                   <span style={{ display: 'flex', padding: 7, borderRadius: 9, background: destaqueConta > 0.3 ? cores.destaqueSuave : cores.superficieSuave, color: destaqueConta > 0.3 ? cores.destaque : cores.textoSecundario }}>
                     <Landmark size={18} strokeWidth={2.1} />
                   </span>
-                  <Fato rotulo="Conta de pagamento">Conta principal</Fato>
+                  <Fato rotulo="Conta de pagamento">
+                    {bloco.conta}
+                    <span style={{ fontWeight: 400, color: cores.textoSecundario }}> — {bloco.banco}</span>
+                  </Fato>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: 17, color: cores.textoSecundario }}>{bloco.vence}</span>

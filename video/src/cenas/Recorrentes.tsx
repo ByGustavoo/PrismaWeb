@@ -9,10 +9,10 @@ import { Rolante } from '../componentes/Rolante';
 import { ANTECEDENCIA_SAIDA_NOTIFICACAO, cenas, recorrentes } from '../linhaDoTempo';
 import { cores, fontes, paleta } from '../tema';
 
-const LARGURA_CARTAO = 984;
+const LARGURA_CARTAO = 944;
 const COLUNAS = 2;
 const VAO = 16;
-const ALTURA_ITEM = 184;
+const ALTURA_ITEM = 176;
 const ALTURA_RESUMO = 142;
 const LARGURA_ITEM = (LARGURA_CARTAO - VAO * (COLUNAS - 1)) / COLUNAS;
 
@@ -50,9 +50,15 @@ export function Recorrentes() {
       inicioTitulo={recorrentes.titulo}
       inicioCartao={recorrentes.cartao}
       larguraTexto={600}
-      sobreposicao={<Notificacao titulo="Despesa recorrente pausada!" descricao="Revista digital" inicio={recorrentes.pausa + 4} saida={cenas.recorrentes.duracao - ANTECEDENCIA_SAIDA_NOTIFICACAO} />}
     >
-      <div style={{ position: 'relative', width: LARGURA_CARTAO, fontFamily: fontes.texto }}>
+      <div style={{ position: 'relative', width: LARGURA_CARTAO, fontFamily: fontes.texto, transform: 'translateY(-56px)' }}>
+        <Notificacao
+          titulo="Despesa recorrente pausada!"
+          descricao="Revista digital"
+          inicio={recorrentes.pausa + 4}
+          saida={cenas.recorrentes.duracao - ANTECEDENCIA_SAIDA_NOTIFICACAO}
+          posicao={{ top: 'calc(100% + 28px)', right: 0, width: LARGURA_ITEM }}
+        />
         <div style={{ height: ALTURA_RESUMO, boxSizing: 'border-box', display: 'flex', borderRadius: 22, border: `1.5px solid ${cores.borda}`, background: cores.superficie, boxShadow: '0 40px 80px -30px rgba(0, 0, 0, 0.75)' }}>
           <ItemResumo rotulo="Custo mensal" apoio="Equivalente por mês, com anuais diluídas" opacidade={progresso(passo, recorrentes.resumo[0], 14)} primeiro>
             <ValorMonetario valor={custo(1)} tamanho={32} estilo={{ minWidth: 200 }} />

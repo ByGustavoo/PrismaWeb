@@ -41,7 +41,7 @@ npm test            # testes unitarios (vitest run)
 
 npm install --prefix video       # dependencias do video de apresentacao
 npm run render --prefix video    # trilha + video/out/prisma-apresentacao.mp4 em 4K (3840x2160) a 60 fps
-npm run gif --prefix video       # video/apresentacao.gif do README (640px, 8 fps, 64 cores, abaixo de 10 MB)
+npm run gif --prefix video       # video/apresentacao.gif do README (640px, 8 fps, 48 cores, abaixo de 10 MB)
 npm run estudio --prefix video   # Remotion Studio
 ```
 

@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { X } from 'lucide-react';
 import { Easing } from 'remotion';
 import { misturar, mola, progresso, usePasso } from '../animacao';
@@ -10,9 +11,11 @@ interface NotificacaoProps {
   descricao: string;
   inicio: number;
   saida: number;
+  direita?: number;
+  posicao?: CSSProperties;
 }
 
-export function Notificacao({ titulo, descricao, inicio, saida }: NotificacaoProps) {
+export function Notificacao({ titulo, descricao, inicio, saida, direita = 140, posicao }: NotificacaoProps) {
   const passo = usePasso();
   if (passo < inicio - 1 || passo > saida + DURACAO_SAIDA + 1) return null;
 
@@ -30,9 +33,7 @@ export function Notificacao({ titulo, descricao, inicio, saida }: NotificacaoPro
     <div
       style={{
         position: 'absolute',
-        right: 56,
-        bottom: 48,
-        width: 520,
+        ...(posicao ?? { right: direita, bottom: 48, width: 520 }),
         display: 'flex',
         alignItems: 'flex-start',
         gap: 16,
