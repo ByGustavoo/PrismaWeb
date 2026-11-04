@@ -24,8 +24,8 @@ interface CenaDivididaProps {
   alturaCartaoRetrato?: number;
 }
 
-const MARGEM_RETRATO_TOPO = 150;
-const MARGEM_RETRATO_BASE = 230;
+const MARGEM_RETRATO_TOPO = 170;
+const MARGEM_RETRATO_BASE = 170;
 const CLASSE_CARTAO_RETRATO = 'cartao-retrato';
 
 export function CenaDividida({
@@ -51,7 +51,7 @@ export function CenaDividida({
   const rotacao = misturar(14, 4, entradaCartao) - progresso(passo, 0, duracao, (t) => t) * 3;
 
   const texto = (
-    <div style={{ width: retrato ? LARGURA_RETRATO - MARGEM_RETRATO * 2 : larguraTexto, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: retrato ? 26 : 32 }}>
+    <div style={{ width: retrato ? LARGURA_RETRATO - MARGEM_RETRATO * 2 : larguraTexto, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: retrato ? 18 : 32 }}>
       <Sobretitulo texto={sobretitulo} inicio={inicioTitulo} />
       <div style={{ fontFamily: fontes.texto, fontSize: 80, fontWeight: 620, letterSpacing: '-0.035em', lineHeight: 1.06, color: cores.texto, whiteSpace: 'nowrap' }}>
         <TextoRevelado inicio={inicioTitulo + 4} trechos={[{ texto: titulo }]} />
@@ -90,25 +90,27 @@ export function CenaDividida({
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: 64,
+          gap: 40,
         }}
       >
         <style>{`.${CLASSE_CARTAO_RETRATO} > * { margin-left: auto; margin-right: auto; }`}</style>
         {texto}
         <div style={{ position: 'relative', width: (LARGURA_RETRATO - MARGEM_RETRATO * 2) / escalaRetrato, minHeight: alturaCartaoRetrato, zoom: escalaRetrato, perspective: 2000 }}>
-          <div
-            className={CLASSE_CARTAO_RETRATO}
-            style={{
-              opacity: entradaCartao,
-              transform: `translateY(${misturar(120, 0, entradaCartao)}px) rotateX(${rotacao * 0.9}deg)`,
-              transformOrigin: 'center top',
-            }}
-          >
-            {children}
+          <div style={{ position: 'relative' }}>
+            <div
+              className={CLASSE_CARTAO_RETRATO}
+              style={{
+                opacity: entradaCartao,
+                transform: `translateY(${misturar(120, 0, entradaCartao)}px) rotateX(${rotacao * 0.9}deg)`,
+                transformOrigin: 'center top',
+              }}
+            >
+              {children}
+            </div>
+            {sobreposicao}
           </div>
           {complemento}
         </div>
-        {sobreposicao}
       </AbsoluteFill>
     );
   }

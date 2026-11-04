@@ -173,9 +173,11 @@ video/             pacote Remotion do video de apresentacao, com package.json pr
                    acento na grade de 12 passos) sobre o DSP de scripts/sintese.ts. A versao de celular e a
                    composicao ApresentacaoPrismaCelular (1080x1920 a --scale=2): mesma linha do tempo e mesma
                    trilha, e quem muda o layout e o contexto de src/formato.ts (useRetrato). No retrato o
-                   CenaDividida empilha texto e cartao, a notificacao fica centrada na base com os mesmos
-                   520px da paisagem (na largura toda ela pesava demais, e o usuario pediu menor) e o fundo
-                   mostra so a subida da linha ate o "hoje". Cartao que muda de altura na cena reserva a maior
+                   CenaDividida empilha texto e cartao num bloco so, centrado e com 40px entre os dois, e a
+                   notificacao sai 24px abaixo do cartao, centrada e com os mesmos 520px da paisagem: presa na
+                   base da tela e na largura toda ela ficava longe do cartao e pesada, e o usuario pediu tudo
+                   mais junto. No Gancho a pilha de portas encolhe com a convergencia, para o saldo nao ficar
+                   num vao. O fundo mostra so a subida da linha ate o "hoje". Cartao que muda de altura na cena reserva a maior
                    (alturaCartaoRetrato), senao o titulo, centrado com ele, pula quando o cartao encolhe
 src/
 ├── api/           clienteHttp, ErroApi, rotasApi

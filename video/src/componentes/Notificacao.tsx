@@ -3,7 +3,6 @@ import { X } from 'lucide-react';
 import { Easing } from 'remotion';
 import { misturar, mola, progresso, usePasso } from '../animacao';
 import { useRetrato } from '../formato';
-import { LARGURA_RETRATO } from '../linhaDoTempo';
 import { cores, fontes } from '../tema';
 
 const DURACAO_SAIDA = 10;
@@ -18,6 +17,7 @@ interface NotificacaoProps {
 }
 
 const LARGURA = 520;
+const DISTANCIA_CARTAO_RETRATO = 24;
 
 export function Notificacao({ titulo, descricao, inicio, saida, direita = 140, posicao }: NotificacaoProps) {
   const passo = usePasso();
@@ -38,7 +38,7 @@ export function Notificacao({ titulo, descricao, inicio, saida, direita = 140, p
     <div
       style={{
         position: 'absolute',
-        ...(posicao ?? (retrato ? { left: (LARGURA_RETRATO - LARGURA) / 2, bottom: 150, width: LARGURA } : { right: direita, bottom: 48, width: LARGURA })),
+        ...(retrato ? { left: '50%', marginLeft: -LARGURA / 2, top: `calc(100% + ${DISTANCIA_CARTAO_RETRATO}px)`, width: LARGURA } : (posicao ?? { right: direita, bottom: 48, width: LARGURA })),
         display: 'flex',
         alignItems: 'flex-start',
         gap: 16,
@@ -52,7 +52,7 @@ export function Notificacao({ titulo, descricao, inicio, saida, direita = 140, p
         fontFamily: fontes.texto,
         opacity: surgimento * (1 - partida),
         transform: `translate(${36 * partida}px, ${misturar(48, 0, entrada)}px) scale(${misturar(0.94, 1, entrada)})`,
-        transformOrigin: retrato ? '50% 100%' : '100% 100%',
+        transformOrigin: retrato ? '50% 0%' : '100% 100%',
       }}
     >
       <span style={{ position: 'relative', display: 'flex', width: 34, height: 34, flexShrink: 0 }}>

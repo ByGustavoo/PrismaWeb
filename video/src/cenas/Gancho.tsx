@@ -21,6 +21,7 @@ const VAO = 22;
 const LARGURA_PORTA_RETRATO = 760;
 const ALTURA_PORTA_RETRATO = 112;
 const VAO_RETRATO = 18;
+const ALTURA_SALDO_RETRATO = 192;
 
 const estiloTitulo = {
   fontFamily: fontes.texto,
@@ -61,7 +62,7 @@ export function Gancho() {
         style={{
           position: 'relative',
           width: retrato ? LARGURA_PORTA_RETRATO : portas.length * LARGURA_PORTA + (portas.length - 1) * VAO,
-          height: retrato ? portas.length * passoPorta - VAO_RETRATO : 170,
+          height: retrato ? misturar(portas.length * passoPorta - VAO_RETRATO, ALTURA_SALDO_RETRATO, convergencia) : 170,
           marginTop: retrato ? 12 : 20,
         }}
       >
@@ -120,7 +121,7 @@ export function Gancho() {
             top: retrato ? '50%' : -6,
             width: 520,
             marginLeft: -260,
-            marginTop: retrato ? -96 : 0,
+            marginTop: retrato ? -ALTURA_SALDO_RETRATO / 2 : 0,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
