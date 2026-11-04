@@ -6,6 +6,7 @@ import { Cursor } from '../componentes/Cursor';
 import { ItemResumo, Selo, ValorMonetario } from '../componentes/Interface';
 import { Notificacao } from '../componentes/Notificacao';
 import { Rolante } from '../componentes/Rolante';
+import { useRetrato } from '../formato';
 import { ANTECEDENCIA_SAIDA_NOTIFICACAO, cenas, recorrentes } from '../linhaDoTempo';
 import { cores, fontes, paleta } from '../tema';
 
@@ -31,6 +32,7 @@ const VALOR_PAUSADO = 19.9;
 
 export function Recorrentes() {
   const passo = usePasso();
+  const retrato = useRetrato();
   const pausa = progresso(passo, recorrentes.pausa, recorrentes.duracaoPausa);
   const marcaPausa = mola(passo, recorrentes.pausa, 190, 15);
   const pressao = pulso(passo, recorrentes.clique, 6);
@@ -51,7 +53,7 @@ export function Recorrentes() {
       inicioCartao={recorrentes.cartao}
       larguraTexto={600}
     >
-      <div style={{ position: 'relative', width: LARGURA_CARTAO, fontFamily: fontes.texto, transform: 'translateY(-56px)' }}>
+      <div style={{ position: 'relative', width: LARGURA_CARTAO, fontFamily: fontes.texto, transform: retrato ? undefined : 'translateY(-56px)' }}>
         <Notificacao
           titulo="Despesa recorrente pausada!"
           descricao="Revista digital"

@@ -46,7 +46,8 @@ compras parceladas, orçamento, previsão, recorrentes, metas, investimentos, re
 configurações. Os nomes e valores
 saem dos dados de exemplo do ambiente de desenvolvimento ou seguem as regras do app: as parcelas
 fecham no centavo com o total da compra, a fatura fecha antes de vencer e a previsão soma mês a mês. É feito com Remotion na pasta `video`, que
-tem `package.json` próprio e fica fora do build, da CI e da imagem Docker.
+tem `package.json` próprio e fica fora do build, da CI e da imagem Docker. Há também uma versão para
+celular, o mesmo vídeo em 9:16 (2160×3840) a 60 fps, com a mesma trilha.
 
 ```bash
 # Instala as dependências do vídeo
@@ -54,6 +55,9 @@ $ npm install --prefix video
 
 # Gera a trilha e renderiza video/out/prisma-apresentacao.mp4 em 4K a 60 fps
 $ npm run render --prefix video
+
+# Renderiza a versão para celular em video/out/prisma-apresentacao-celular.mp4 (9:16, 4K, 60 fps)
+$ npm run render:celular --prefix video
 
 # Gera o video/apresentacao.gif deste README a partir do vídeo renderizado
 $ npm run gif --prefix video

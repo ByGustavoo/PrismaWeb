@@ -20,6 +20,7 @@ import { Previsao } from './cenas/Previsao';
 import { Recorrentes } from './cenas/Recorrentes';
 import { Relatorios } from './cenas/Relatorios';
 import { Fundo } from './componentes/Fundo';
+import { FormatoContexto } from './formato';
 import { cenas, ordemCenas, QUADROS_POR_PASSO } from './linhaDoTempo';
 import type { NomeCena } from './linhaDoTempo';
 
@@ -66,5 +67,13 @@ export function Apresentacao() {
       })}
       <Audio src={staticFile(ARQUIVO_TRILHA)} />
     </AbsoluteFill>
+  );
+}
+
+export function ApresentacaoCelular() {
+  return (
+    <FormatoContexto.Provider value="retrato">
+      <Apresentacao />
+    </FormatoContexto.Provider>
   );
 }

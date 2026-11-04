@@ -160,6 +160,7 @@ export function Lancamentos() {
       inicioTitulo={lancamentos.titulo}
       inicioCartao={lancamentos.cartao}
       larguraTexto={560}
+      alturaCartaoRetrato={ALTURA_FORMULARIO + 20 + 64 + ALTURA_LINHA * (existentes.length + 1)}
       sobreposicao={<Notificacao titulo="Despesa cadastrada com sucesso!" descricao={DESCRICAO_LANCAMENTO} inicio={lancamentos.notificacao} saida={cenas.lancamentos.duracao - ANTECEDENCIA_SAIDA_NOTIFICACAO} />}
     >
       <div style={{ position: 'relative', width: LARGURA_CARTAO, fontFamily: fontes.texto }}>

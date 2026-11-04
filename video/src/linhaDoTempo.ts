@@ -3,6 +3,9 @@ export const QUADROS_POR_SEGUNDO = 60;
 export const QUADROS_POR_PASSO = QUADROS_POR_SEGUNDO / PASSOS_POR_SEGUNDO;
 export const LARGURA = 1920;
 export const ALTURA = 1080;
+export const LARGURA_RETRATO = 1080;
+export const ALTURA_RETRATO = 1920;
+export const MARGEM_RETRATO = 48;
 export const PASSOS_POR_BATIDA = 12;
 export const SOBREPOSICAO = 12;
 

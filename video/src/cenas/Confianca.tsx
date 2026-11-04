@@ -3,6 +3,7 @@ import { AbsoluteFill } from 'remotion';
 import { estiloTransicaoCena, misturar, mola, progresso, usePasso } from '../animacao';
 import { Sobretitulo } from '../componentes/Sobretitulo';
 import { TextoRevelado } from '../componentes/TextoRevelado';
+import { useRetrato } from '../formato';
 import { cenas, confianca } from '../linhaDoTempo';
 import { cores, fontes } from '../tema';
 
@@ -26,6 +27,8 @@ const estiloTitulo = {
 
 export function Confianca() {
   const passo = usePasso();
+  const retrato = useRetrato();
+  const titulo = retrato ? { ...estiloTitulo, fontSize: 88 } : estiloTitulo;
 
   return (
     <AbsoluteFill
@@ -35,14 +38,26 @@ export function Confianca() {
         justifyContent: 'center',
         flexDirection: 'column',
         gap: 40,
+        padding: retrato ? '0 48px 80px' : undefined,
       }}
     >
       <Sobretitulo texto="EM QUE CONFIAR" inicio={confianca.titulo} />
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <TextoRevelado inicio={confianca.titulo + 2} intervalo={2} trechos={[{ texto: 'Números que fecham' }]} estilo={estiloTitulo} />
-        <TextoRevelado inicio={confianca.titulo + 8} intervalo={2.5} trechos={[{ texto: 'no centavo.', cor: cores.destaque }]} estilo={estiloTitulo} />
+        <TextoRevelado inicio={confianca.titulo + 2} intervalo={2} trechos={[{ texto: 'Números que fecham' }]} estilo={titulo} />
+        <TextoRevelado inicio={confianca.titulo + 8} intervalo={2.5} trechos={[{ texto: 'no centavo.', cor: cores.destaque }]} estilo={titulo} />
       </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 22, maxWidth: 1560, marginTop: 20 }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: retrato ? 'column' : 'row',
+          flexWrap: retrato ? 'nowrap' : 'wrap',
+          alignItems: retrato ? 'center' : undefined,
+          justifyContent: 'center',
+          gap: retrato ? 18 : 22,
+          maxWidth: retrato ? 984 : 1560,
+          marginTop: 20,
+        }}
+      >
         {selos.map(({ icone: Icone, rotulo }, indice) => {
           const entrada = mola(passo, confianca.selos[indice] ?? 0, 170, 15);
           return (
@@ -57,7 +72,7 @@ export function Confianca() {
                 background: cores.superficie,
                 border: `1.5px solid ${cores.borda}`,
                 fontFamily: fontes.texto,
-                fontSize: 27,
+                fontSize: retrato ? 29 : 27,
                 fontWeight: 500,
                 color: cores.texto,
                 opacity: entrada,
@@ -76,9 +91,9 @@ export function Confianca() {
       <div
         style={{
           marginTop: 12,
-          maxWidth: 1240,
+          maxWidth: retrato ? 860 : 1240,
           fontFamily: fontes.texto,
-          fontSize: 29,
+          fontSize: retrato ? 34 : 29,
           lineHeight: 1.45,
           textAlign: 'center',
           color: cores.textoSecundario,

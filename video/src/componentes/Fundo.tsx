@@ -1,6 +1,7 @@
 import { AbsoluteFill, interpolate } from 'remotion';
 import { curvaEntradaSaida, progresso, usePasso } from '../animacao';
-import { abertura, cenas, DURACAO_TOTAL, ordemCenas } from '../linhaDoTempo';
+import { useRetrato } from '../formato';
+import { abertura, ALTURA, ALTURA_RETRATO, cenas, DURACAO_TOTAL, LARGURA_RETRATO, ordemCenas } from '../linhaDoTempo';
 import type { NomeCena } from '../linhaDoTempo';
 import { cores } from '../tema';
 
@@ -48,8 +49,20 @@ const ajustesPorCena: Record<NomeCena, { x: number; y: number; brilho: number; l
   encerramento: { x: 50, y: 44, brilho: 0.62, linha: 1 },
 };
 
-function valoresPorMarcos(campo: 'x' | 'y' | 'brilho' | 'linha'): number[] {
-  const valores = ordemCenas.map((nome) => ajustesPorCena[nome][campo]);
+const CENAS_CENTRADAS: NomeCena[] = ['abertura', 'gancho', 'confianca', 'encerramento'];
+
+function ajusteRetrato(nome: NomeCena, campo: 'x' | 'y' | 'brilho' | 'linha'): number {
+  const ajuste = ajustesPorCena[nome];
+  if (CENAS_CENTRADAS.includes(nome)) return ajuste[campo];
+  if (campo === 'x') return ajuste.x > 50 ? 60 : 40;
+  if (campo === 'y') return 62;
+  return ajuste[campo];
+}
+
+const HOJE_X_RETRATO = LARGURA_RETRATO * 0.74;
+
+function valoresPorMarcos(campo: 'x' | 'y' | 'brilho' | 'linha', retrato: boolean): number[] {
+  const valores = ordemCenas.map((nome) => (retrato ? ajusteRetrato(nome, campo) : ajustesPorCena[nome][campo]));
   return [...valores, valores[valores.length - 1] ?? 0];
 }
 
@@ -63,10 +76,11 @@ function porMarcos(passo: number, valores: number[]): number {
 
 export function Fundo() {
   const passo = usePasso();
-  const brilhoX = porMarcos(passo, valoresPorMarcos('x'));
-  const brilhoY = porMarcos(passo, valoresPorMarcos('y'));
-  const brilhoForca = porMarcos(passo, valoresPorMarcos('brilho'));
-  const presencaLinha = porMarcos(passo, valoresPorMarcos('linha'));
+  const retrato = useRetrato();
+  const brilhoX = porMarcos(passo, valoresPorMarcos('x', retrato));
+  const brilhoY = porMarcos(passo, valoresPorMarcos('y', retrato));
+  const brilhoForca = porMarcos(passo, valoresPorMarcos('brilho', retrato));
+  const presencaLinha = porMarcos(passo, valoresPorMarcos('linha', retrato));
   const traco = progresso(passo, abertura.linhaFundo, 50);
   const previsto = progresso(passo, abertura.linhaFundo + 40, 30);
   const deriva = interpolate(passo, [0, DURACAO_TOTAL], [0, -60]);
@@ -86,10 +100,17 @@ export function Fundo() {
       />
       <AbsoluteFill
         style={{
-          background: `radial-gradient(circle 720px at ${brilhoX}% ${brilhoY}%, rgba(124, 154, 255, ${0.16 * brilhoForca}), transparent 70%)`,
+          background: `radial-gradient(circle ${retrato ? 640 : 720}px at ${brilhoX}% ${brilhoY}%, rgba(124, 154, 255, ${0.16 * brilhoForca}), transparent 70%)`,
         }}
       />
-      <svg width={1920} height={1080} viewBox="0 0 1920 1080" style={{ position: 'absolute', inset: 0, overflow: 'visible', opacity: presencaLinha, transform: `translateX(${deriva}px)` }}>
+      <svg width={1920} height={1080} viewBox="0 0 1920 1080" style={{
+          position: 'absolute',
+          left: 0,
+          top: retrato ? ALTURA_RETRATO - ALTURA : 0,
+          overflow: 'visible',
+          opacity: presencaLinha,
+          transform: `translateX(${deriva + (retrato ? HOJE_X_RETRATO - HOJE_X : 0)}px)`,
+        }}>
         <defs>
           <linearGradient id="areaSaldo" x1="0" y1="640" x2="0" y2="1080" gradientUnits="userSpaceOnUse">
             <stop offset="0" stopColor={cores.destaque} stopOpacity={0.16} />
