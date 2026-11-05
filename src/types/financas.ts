@@ -43,7 +43,13 @@ export interface LancamentoDTO {
   nomeContaDestino?: string;
   parcela?: ParcelaLancamentoDTO;
   investimento?: InvestimentoLancamentoDTO;
+  recorrente?: RecorrenteLancamentoDTO;
   observacoes?: string;
+}
+
+export interface RecorrenteLancamentoDTO {
+  id: ID;
+  frequencia: Frequencia;
 }
 
 export interface SalvarLancamentoDTO {
@@ -56,6 +62,7 @@ export interface SalvarLancamentoDTO {
   idCategoria?: ID;
   idOrigem: ID;
   idContaDestino?: ID;
+  repeticao?: Frequencia;
   observacoes?: string;
 }
 
@@ -65,6 +72,7 @@ export interface OrigemDTO {
   id: ID;
   nome: string;
   grupo: GrupoOrigem;
+  tipoCartao?: TipoCartao;
 }
 
 export type TipoConta = 'CORRENTE' | 'SALARIO' | 'OUTRA';
@@ -155,6 +163,7 @@ export interface ItemFaturaDTO {
   valor: number;
   categoria: CategoriaDTO | null;
   parcela?: ParcelaItemFaturaDTO;
+  idRecorrente?: ID;
   paga: boolean;
 }
 
@@ -500,10 +509,13 @@ export type Frequencia =
   | 'SEMESTRAL'
   | 'ANUAL';
 
-export type SituacaoDespesaRecorrente = 'ATIVO' | 'PAUSADO';
+export type SituacaoRecorrente = 'ATIVO' | 'PAUSADO';
 
-export interface DespesaRecorrenteDTO {
+export type TipoRecorrente = 'RECEITA' | 'DESPESA';
+
+export interface RecorrenteDTO {
   id: ID;
+  tipo: TipoRecorrente;
   descricao: string;
   valor: number;
   categoria: CategoriaDTO | null;
@@ -511,26 +523,30 @@ export interface DespesaRecorrenteDTO {
   proximoVencimento: string;
   idOrigem: ID;
   nomeOrigem: string;
-  situacao: SituacaoDespesaRecorrente;
+  situacao: SituacaoRecorrente;
+  lancarAutomaticamente: boolean;
   observacoes?: string;
 }
 
-export interface SalvarDespesaRecorrenteDTO {
+export interface SalvarRecorrenteDTO {
+  tipo: TipoRecorrente;
   descricao: string;
   valor: number;
   idCategoria?: ID;
   frequencia: Frequencia;
   proximoVencimento: string;
   idOrigem: ID;
-  situacao: SituacaoDespesaRecorrente;
+  situacao: SituacaoRecorrente;
+  lancarAutomaticamente: boolean;
   observacoes?: string;
 }
 
-export interface ResumoDespesasRecorrentesDTO {
-  itens: DespesaRecorrenteDTO[];
+export interface ResumoRecorrentesDTO {
+  itens: RecorrenteDTO[];
   custoMensal: number;
   custoAnual: number;
-  vencendoEmBreve: DespesaRecorrenteDTO[];
+  receitaMensal: number;
+  vencendoEmBreve: RecorrenteDTO[];
 }
 
 export interface MesPrevisaoDTO {

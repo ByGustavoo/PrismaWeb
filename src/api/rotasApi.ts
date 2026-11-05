@@ -46,10 +46,10 @@ export const rotasApi = {
     porId: (id: string) => `/orcamentos/${id}`,
     visaoGeral: '/orcamentos/visao-geral',
   },
-  despesasRecorrentes: {
-    listar: '/despesas-recorrentes',
-    criar: '/despesas-recorrentes',
-    porId: (id: string) => `/despesas-recorrentes/${id}`,
+  recorrentes: {
+    listar: '/recorrentes',
+    criar: '/recorrentes',
+    porId: (id: string) => `/recorrentes/${id}`,
   },
   metas: {
     listar: '/metas',

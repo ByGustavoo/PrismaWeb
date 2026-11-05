@@ -48,3 +48,56 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.types {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px;
+  padding: 3px;
+  background-color: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.typeIndicator {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc(50% - 4px);
+  border-radius: calc(var(--radius-sm) - 2px);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  transition: transform var(--duration-base) var(--ease-spring);
+}
+
+.typeIndicator[data-tipo='RECEITA'] {
+  transform: translateX(calc(100% + 2px));
+}
+
+.type {
+  position: relative;
+  min-height: calc(var(--control-height) - 8px);
+  padding: 0 var(--space-3);
+  border-radius: calc(var(--radius-sm) - 2px);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.type:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.typeSelected {
+  color: var(--text);
+}
+
+@media (hover: hover) {
+  .type:hover:not(.typeSelected) {
+    color: var(--text);
+  }
+}

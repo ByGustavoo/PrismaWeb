@@ -115,7 +115,7 @@ A imagem já é publicada no Docker Hub pela esteira, com versão e data visíve
 
 🔹 **Planejamento**
 * Orçamento mensal por categoria, com consumo, projeção de ritmo e o que ficou fora do orçamento.
-* Despesas recorrentes com custo mensal equivalente, próximos vencimentos e pausa sem exclusão.
+* Receitas e despesas recorrentes com custo mensal e entradas por mês, próximos vencimentos, pausa sem exclusão e lançamento automático na data — inclusive direto na fatura do cartão e no saldo do vale. O interruptor "Repetir" do formulário de receita e de despesa cria a recorrente a partir do lançamento.
 * Previsão financeira: o resto do mês corrente e os próximos seis meses, com recorrentes, parcelas, gasto variável, agendados e aportes em colunas próprias, e o método declarado com os números da base.
 * Metas e desejos: acompanhamento do preço de uma compra pretendida, com histórico completo, menor preço, média, variação e gráfico de evolução.
 
@@ -407,7 +407,7 @@ export const dashboardService = {
 
 Basta apontar `VITE_API_URL` para o PrismaAPI. Os tipos de `src/types/financas.ts` são os mesmos
 DTOs do backend, e o contrato inteiro é escrito em português: rota em kebab-case sem acento
-(`/contas/origens`, `/despesas-recorrentes`), campo e query param em camelCase sem acento
+(`/contas/origens`, `/recorrentes`), campo e query param em camelCase sem acento
 (`saldoAtual`, `dataInicial`) e valor de enum em maiúsculas (`RECEITA`, `CARTAO_CREDITO`).
 
 Do lado do cliente:

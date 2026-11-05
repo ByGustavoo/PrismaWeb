@@ -8,14 +8,16 @@ import { DIAS_VENCIMENTO_PROXIMO, rotuloFrequencia } from '@/constants/recorrent
 import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
 import { useNotificacoes } from '@/providers/ProvedorNotificacoes';
 import { contasService, categoriasService, recorrentesService } from '@/services';
-import type { DespesaRecorrenteDTO, SalvarDespesaRecorrenteDTO } from '@/types';
+import type { RecorrenteDTO, SalvarRecorrenteDTO, TipoRecorrente } from '@/types';
 import { capitalizar, formatarRotuloVencimento } from '@/utils/formatacao';
 import styles from './PaginaRecorrentes.module.css';
 
+const nomeDoTipo: Record<TipoRecorrente, string> = { RECEITA: 'Receita', DESPESA: 'Despesa' };
+
 export function PaginaRecorrentes() {
-  const [editing, setEditing] = useState<DespesaRecorrenteDTO | null>(null);
+  const [editing, setEditing] = useState<RecorrenteDTO | null>(null);
   const [creating, setCreating] = useState(false);
-  const [removing, setRemoving] = useState<DespesaRecorrenteDTO | null>(null);
+  const [removing, setRemoving] = useState<RecorrenteDTO | null>(null);
   const [saving, setSaving] = useState(false);
   const toast = useNotificacoes();
 
@@ -23,7 +25,7 @@ export function PaginaRecorrentes() {
     (signal: AbortSignal) =>
       Promise.all([
         recorrentesService.buscarResumo(signal),
-        categoriasService.listar('DESPESA', signal),
+        categoriasService.listar(undefined, signal),
         contasService.listarOrigens(signal),
       ]),
     [],
@@ -36,8 +38,11 @@ export function PaginaRecorrentes() {
   const sources = useMemo(() => dados?.[2] ?? [], [dados]);
 
   const items = useMemo(() => summary?.itens ?? [], [summary]);
+  const incomes = useMemo(() => items.filter((item) => item.tipo === 'RECEITA'), [items]);
+  const expenses = useMemo(() => items.filter((item) => item.tipo === 'DESPESA'), [items]);
   const activeCount = useMemo(() => items.filter((item) => item.situacao === 'ATIVO').length, [items]);
-  const nextDue = useMemo(() => items.find((item) => item.situacao === 'ATIVO'), [items]);
+  const nextDue = useMemo(() => expenses.find((item) => item.situacao === 'ATIVO'), [expenses]);
+  const activeIncomes = useMemo(() => incomes.filter((item) => item.situacao === 'ATIVO').length, [incomes]);
 
   const formOpen = creating || editing !== null;
 
@@ -46,47 +51,51 @@ export function PaginaRecorrentes() {
     setEditing(null);
   };
 
-  const toPayload = (expense: DespesaRecorrenteDTO): SalvarDespesaRecorrenteDTO => ({
-    descricao: expense.descricao,
-    valor: expense.valor,
-    idCategoria: expense.categoria?.id,
-    frequencia: expense.frequencia,
-    proximoVencimento: expense.proximoVencimento,
-    idOrigem: expense.idOrigem,
-    situacao: expense.situacao,
-    observacoes: expense.observacoes,
+  const toPayload = (recurring: RecorrenteDTO): SalvarRecorrenteDTO => ({
+    tipo: recurring.tipo,
+    descricao: recurring.descricao,
+    valor: recurring.valor,
+    idCategoria: recurring.categoria?.id,
+    frequencia: recurring.frequencia,
+    proximoVencimento: recurring.proximoVencimento,
+    idOrigem: recurring.idOrigem,
+    situacao: recurring.situacao,
+    lancarAutomaticamente: recurring.lancarAutomaticamente,
+    observacoes: recurring.observacoes,
   });
 
-  const handleSubmit = async (payload: SalvarDespesaRecorrenteDTO) => {
+  const handleSubmit = async (payload: SalvarRecorrenteDTO) => {
+    const nome = nomeDoTipo[payload.tipo];
     setSaving(true);
 
     try {
       if (editing) {
         await recorrentesService.atualizar(editing.id, payload);
-        toast.sucesso('Despesa recorrente atualizada com sucesso!', payload.descricao);
+        toast.sucesso(`${nome} recorrente atualizada com sucesso!`, payload.descricao);
       } else {
         await recorrentesService.criar(payload);
-        toast.sucesso('Despesa recorrente cadastrada com sucesso!', `${rotuloFrequencia[payload.frequencia]} — ${payload.descricao}`);
+        toast.sucesso(`${nome} recorrente cadastrada com sucesso!`, `${rotuloFrequencia[payload.frequencia]} — ${payload.descricao}`);
       }
       closeForm();
       recarregar();
     } catch (submitError) {
-      toast.erro('Não foi possível salvar a despesa recorrente.', submitError);
+      toast.erro(`Não foi possível salvar a ${nome.toLowerCase()} recorrente.`, submitError);
     } finally {
       setSaving(false);
     }
   };
 
-  const handleToggle = async (expense: DespesaRecorrenteDTO) => {
-    const status = expense.situacao === 'ATIVO' ? 'PAUSADO' : 'ATIVO';
+  const handleToggle = async (recurring: RecorrenteDTO) => {
+    const status = recurring.situacao === 'ATIVO' ? 'PAUSADO' : 'ATIVO';
+    const nome = nomeDoTipo[recurring.tipo];
     setSaving(true);
 
     try {
-      await recorrentesService.atualizar(expense.id, { ...toPayload(expense), situacao: status });
-      toast.sucesso(status === 'PAUSADO' ? 'Despesa recorrente pausada!' : 'Despesa recorrente retomada!', expense.descricao);
+      await recorrentesService.atualizar(recurring.id, { ...toPayload(recurring), situacao: status });
+      toast.sucesso(status === 'PAUSADO' ? `${nome} recorrente pausada!` : `${nome} recorrente retomada!`, recurring.descricao);
       recarregar();
     } catch (toggleError) {
-      toast.erro('Não foi possível alterar a despesa recorrente.', toggleError);
+      toast.erro(`Não foi possível alterar a ${nome.toLowerCase()} recorrente.`, toggleError);
     } finally {
       setSaving(false);
     }
@@ -94,29 +103,51 @@ export function PaginaRecorrentes() {
 
   const handleDelete = async () => {
     if (!removing) return;
+    const nome = nomeDoTipo[removing.tipo];
     setSaving(true);
 
     try {
       await recorrentesService.excluir(removing.id);
-      toast.sucesso('Despesa recorrente excluída com sucesso!', removing.descricao);
+      toast.sucesso(`${nome} recorrente excluída com sucesso!`, removing.descricao);
       setRemoving(null);
       recarregar();
     } catch (deleteError) {
-      toast.erro('Não foi possível excluir a despesa recorrente.', deleteError);
+      toast.erro(`Não foi possível excluir a ${nome.toLowerCase()} recorrente.`, deleteError);
       setRemoving(null);
     } finally {
       setSaving(false);
     }
   };
 
+  const renderSection = (titulo: string, meta: string, lista: RecorrenteDTO[]) =>
+    lista.length > 0 ? (
+      <section className={styles.section}>
+        <div className={styles.sectionText}>
+          <h2 className={styles.sectionTitle}>{titulo}</h2>
+          <span className={styles.sectionMeta}>{meta}</span>
+        </div>
+        <ul className={styles.grid}>
+          {lista.map((recurring) => (
+            <CartaoRecorrente
+              key={recurring.id}
+              recorrente={recurring}
+              aoEditar={setEditing}
+              aoAlternar={handleToggle}
+              aoExcluir={setRemoving}
+            />
+          ))}
+        </ul>
+      </section>
+    ) : null;
+
   return (
     <>
       <CabecalhoPagina
-        titulo="Despesas recorrentes"
-        descricao="Assinaturas e contas fixas, com o que elas custam por mês e quando vencem"
+        titulo="Recorrentes"
+        descricao="O que entra e o que sai todo mês, quanto soma e quando acontece"
         acoes={
           <Botao tamanho="sm" icone={Plus} onClick={() => setCreating(true)}>
-            Nova despesa
+            Nova recorrente
           </Botao>
         }
       />
@@ -133,7 +164,7 @@ export function PaginaRecorrentes() {
       ) : erro ? (
         <Painel espacamento="none">
           <EstadoVazio
-            titulo="Não foi possível carregar as despesas recorrentes"
+            titulo="Não foi possível carregar as recorrentes"
             descricao={erro.message}
             acao={
               <Botao variante="secondary" onClick={recarregar}>
@@ -146,11 +177,11 @@ export function PaginaRecorrentes() {
         <Painel espacamento="none">
           <EstadoVazio
             icone={Repeat}
-            titulo="Nenhuma despesa recorrente"
-            descricao="Cadastre aluguel, assinaturas e contas fixas para saber quanto elas custam por mês e ver a previsão dos próximos meses."
+            titulo="Nenhuma recorrente"
+            descricao="Cadastre salário, aluguel, assinaturas e contas fixas para saber quanto entra e quanto sai por mês e ver a previsão dos próximos meses."
             acao={
               <Botao icone={Plus} onClick={() => setCreating(true)}>
-                Nova despesa
+                Nova recorrente
               </Botao>
             }
           />
@@ -162,17 +193,20 @@ export function PaginaRecorrentes() {
               {
                 rotulo: 'Custo mensal',
                 valor: <ValorMonetario valor={summary.custoMensal} tamanho="lg" animar contarAoAparecer />,
-                dica: 'Equivalente por mês, com anuais e semestrais diluídas',
+                dica: 'Despesas por mês, com anuais e semestrais diluídas',
               },
               {
-                rotulo: 'Custo anual',
-                valor: <ValorMonetario valor={summary.custoAnual} contarAoAparecer />,
-                dica: 'Doze vezes o custo mensal equivalente',
+                rotulo: 'Entradas por mês',
+                valor: <ValorMonetario valor={summary.receitaMensal} animar contarAoAparecer />,
+                dica:
+                  activeIncomes > 0
+                    ? `${activeIncomes} ${activeIncomes === 1 ? 'receita ativa' : 'receitas ativas'}, convertidas para o mês`
+                    : 'Nenhuma receita recorrente ativa',
               },
               {
                 rotulo: 'Ativas',
                 valor: <span className={styles.count}>{activeCount}</span>,
-                dica: `${items.length} ${items.length === 1 ? 'despesa cadastrada' : 'despesas cadastradas'}`,
+                dica: `${items.length} ${items.length === 1 ? 'recorrente cadastrada' : 'recorrentes cadastradas'}`,
               },
               {
                 rotulo: 'Próximo vencimento',
@@ -204,23 +238,14 @@ export function PaginaRecorrentes() {
             </div>
           ) : null}
 
-          <ul className={styles.grid}>
-            {items.map((expense) => (
-              <CartaoRecorrente
-                key={expense.id}
-                despesa={expense}
-                aoEditar={setEditing}
-                aoAlternar={handleToggle}
-                aoExcluir={setRemoving}
-              />
-            ))}
-          </ul>
+          {renderSection('Receitas', 'Salário, vales e o que chega sempre na mesma data', incomes)}
+          {renderSection('Despesas', 'Contas fixas e assinaturas', expenses)}
         </div>
       )}
 
       <ModalFormularioRecorrente
         aberto={formOpen}
-        despesa={editing}
+        recorrente={editing}
         categorias={categories}
         origens={sources}
         salvando={saving}
@@ -230,8 +255,12 @@ export function PaginaRecorrentes() {
 
       <DialogoConfirmacao
         aberto={removing !== null}
-        titulo="Excluir despesa recorrente"
-        descricao="Ela sai da previsão dos próximos meses. Os lançamentos que já aconteceram continuam no histórico."
+        titulo={removing ? `Excluir ${nomeDoTipo[removing.tipo].toLowerCase()} recorrente` : 'Excluir recorrente'}
+        descricao={
+          removing?.tipo === 'RECEITA'
+            ? 'Os próximos recebimentos deixam de ser lançados. Os lançamentos que já aconteceram continuam no histórico.'
+            : 'Ela sai da previsão dos próximos meses. Os lançamentos que já aconteceram continuam no histórico.'
+        }
         rotuloConfirmar="Excluir"
         carregando={saving}
         aoConfirmar={handleDelete}

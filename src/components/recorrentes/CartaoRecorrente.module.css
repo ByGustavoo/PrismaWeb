@@ -58,18 +58,23 @@
 }
 
 .meta {
-  display: flex;
-  align-items: center;
+  display: block;
   font-size: var(--fs-sm);
   color: var(--text-muted);
 }
 
 .marker {
+  display: inline-block;
+  vertical-align: 1px;
   width: 8px;
   height: 8px;
   margin-right: var(--space-2);
   border-radius: 2px;
   flex-shrink: 0;
+}
+
+.origin {
+  white-space: nowrap;
 }
 
 .separator {
@@ -114,6 +119,13 @@
   justify-content: space-between;
   gap: var(--space-3);
   margin-top: auto;
+}
+
+.tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
 }
 
 .bottom {

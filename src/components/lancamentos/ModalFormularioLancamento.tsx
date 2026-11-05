@@ -1,17 +1,31 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Botao, SeletorData, CampoTexto, Modal, CampoSelecao, AreaTexto, CampoValor } from '@/components/ui';
+import { Link } from 'react-router-dom';
+import { Repeat } from 'lucide-react';
+import { ehCartaoVale, ExplicacaoLancamentoAutomatico } from '@/components/recorrentes';
+import { Botao, SeletorData, CampoTexto, Modal, CampoSelecao, AreaTexto, CampoValor, Interruptor } from '@/components/ui';
 import {
   rotuloFormaLancamento,
   formasLancamento,
   rotuloSituacaoLancamento,
   situacoesLancamento,
 } from '@/constants/lancamentos';
+import { frequencias, proximaOcorrenciaAPartirDeHoje, rotuloFrequencia } from '@/constants/recorrentes';
 import { limitesTexto } from '@/constants/validacao';
+import { caminhos } from '@/routes/caminhos';
 import { useValidacaoFormulario } from '@/hooks/useValidacaoFormulario';
 import type { ErrosCampos } from '@/hooks/useValidacaoFormulario';
-import type { CategoriaDTO, FormaLancamento, LancamentoDTO, Opcao, OrigemDTO, SalvarLancamentoDTO, SituacaoLancamento } from '@/types';
+import type {
+  CategoriaDTO,
+  FormaLancamento,
+  Frequencia,
+  LancamentoDTO,
+  Opcao,
+  OrigemDTO,
+  SalvarLancamentoDTO,
+  SituacaoLancamento,
+} from '@/types';
 import { hojeISO } from '@/utils/data';
-import { interpretarEntradaValor, paraEntradaValor } from '@/utils/formatacao';
+import { formatarDataNumerica, interpretarEntradaValor, paraEntradaValor } from '@/utils/formatacao';
 import { juntarClasses } from '@/utils/juntarClasses';
 import { erroValor, erroTexto } from '@/utils/validacao';
 import styles from './FormularioLancamento.module.css';
@@ -35,6 +49,8 @@ interface EstadoFormulario {
   idOrigem: string;
   forma: FormaLancamento;
   situacao: SituacaoLancamento;
+  repetir: boolean;
+  repeticao: Frequencia;
   observacoes: string;
 }
 
@@ -49,6 +65,8 @@ function estadoInicial(transaction: LancamentoDTO | null): EstadoFormulario {
     idOrigem: transaction?.idOrigem ?? '',
     forma: transaction?.forma ?? 'CONTA',
     situacao: transaction?.situacao ?? 'PAGO',
+    repetir: false,
+    repeticao: 'MENSAL',
     observacoes: transaction?.observacoes ?? '',
   };
 }
@@ -76,7 +94,7 @@ function validar(form: EstadoFormulario, isExpense: boolean): ErrosCampos<Estado
     errors.idCategoria = `Escolha a categoria da ${noun}!`;
   }
   if (!form.idOrigem) {
-    errors.idOrigem = isExpense ? 'Escolha a conta ou o cartão da despesa!' : 'Escolha a conta da receita!';
+    errors.idOrigem = isExpense ? 'Escolha a conta ou o cartão da despesa!' : 'Escolha a conta ou o vale da receita!';
   }
   if (form.data && form.situacao === 'PAGO' && form.data > hojeISO()) {
     errors.situacao = `Uma ${noun} com data futura não pode estar concluída!`;
@@ -87,6 +105,8 @@ function validar(form: EstadoFormulario, isExpense: boolean): ErrosCampos<Estado
 
 const opcoesSituacao: Opcao[] = situacoesLancamento.map((status) => ({ valor: status, rotulo: rotuloSituacaoLancamento[status],
 }));
+
+const opcoesFrequencia: Opcao[] = frequencias.map((frequency) => ({ valor: frequency, rotulo: rotuloFrequencia[frequency] }));
 
 const opcoesFormaNaConta: Opcao[] = formasLancamento
   .filter((method) => method !== 'CARTAO_CREDITO')
@@ -124,13 +144,20 @@ export function ModalFormularioLancamento({
   const sourceOptions = useMemo<Opcao[]>(
     () =>
       origens
-        .filter((item) => (isExpense ? true : item.grupo === 'CONTA'))
+        .filter((item) => (isExpense ? true : item.grupo === 'CONTA' || ehCartaoVale(item)))
         .map((item) => ({ valor: item.id, rotulo: item.grupo === 'CARTAO' ? `${item.nome} — Cartão` : item.nome,
         })),
     [origens, isExpense],
   );
 
-  const paidWithCard = origens.find((item) => item.id === form.idOrigem)?.grupo === 'CARTAO';
+  const selectedSource = origens.find((item) => item.id === form.idOrigem);
+  const paidWithCard = selectedSource?.grupo === 'CARTAO';
+  const nextOccurrence = form.data ? proximaOcorrenciaAPartirDeHoje(form.data, form.repeticao) : undefined;
+  const sourceHint = !paidWithCard
+    ? undefined
+    : isExpense
+      ? 'A forma de pagamento é o próprio cartão.'
+      : 'Soma no saldo do vale, que fica fora do saldo total.';
   const accountMethod: FormaLancamento = form.forma === 'CARTAO_CREDITO' ? 'CONTA' : form.forma;
 
   const set = <K extends keyof EstadoFormulario>(field: K, value: EstadoFormulario[K]) => {
@@ -157,6 +184,7 @@ export function ModalFormularioLancamento({
       data: form.data,
       idCategoria: form.idCategoria,
       idOrigem: form.idOrigem,
+      ...(form.repetir && !lancamento?.recorrente ? { repeticao: form.repeticao } : {}),
       observacoes: form.observacoes,
     });
   };
@@ -184,7 +212,7 @@ export function ModalFormularioLancamento({
       descricao={
         isExpense
           ? 'Registre uma saída de dinheiro da sua conta ou do cartão.'
-          : 'Registre uma entrada de dinheiro em uma das suas contas.'
+          : 'Registre uma entrada de dinheiro numa conta ou num vale.'
       }
       tamanho="lg"
       rodape={
@@ -253,13 +281,13 @@ export function ModalFormularioLancamento({
 
         <CampoSelecao
           required
-          rotulo={isExpense ? 'Conta ou cartão' : 'Conta'}
-          placeholder={isExpense ? 'Selecione a conta ou o cartão' : 'Selecione a conta'}
+          rotulo={isExpense ? 'Conta ou cartão' : 'Conta ou vale'}
+          placeholder={isExpense ? 'Selecione a conta ou o cartão' : 'Selecione a conta ou o vale'}
           opcoes={sourceOptions}
           value={form.idOrigem}
           onChange={(accountId) => set('idOrigem', accountId)}
           erro={erros.idOrigem}
-          {...(paidWithCard ? { dica: 'A forma de pagamento é o próprio cartão.' } : {})}
+          {...(sourceHint ? { dica: sourceHint } : {})}
         />
 
         {isExpense && !paidWithCard ? (
@@ -272,6 +300,48 @@ export function ModalFormularioLancamento({
         ) : null}
 
         {situationBesideDate ? null : situationField}
+
+        {lancamento?.recorrente ? (
+          <p className={juntarClasses(styles.full, styles.recurring)}>
+            <Repeat size={16} strokeWidth={2} aria-hidden="true" />
+            <span>
+              Esta {noun} se repete — {rotuloFrequencia[lancamento.recorrente.frequencia]}. Para mudar o valor, pausar ou
+              parar, use <Link to={caminhos.recorrentes}>Recorrentes</Link>.
+            </span>
+          </p>
+        ) : (
+          <>
+            <Interruptor
+              className={styles.full}
+              rotulo={`Repetir esta ${noun}`}
+              checked={form.repetir}
+              onChange={(checked) => set('repetir', checked)}
+              dica={
+                form.repetir && nextOccurrence
+                  ? `O próximo lançamento entra sozinho em ${formatarDataNumerica(nextOccurrence)}.`
+                  : isExpense
+                    ? 'Aluguel, assinatura ou conta fixa: o Prisma lança a despesa sozinho nas próximas datas.'
+                    : 'Salário, vale ou auxílio: o Prisma lança a receita sozinho nas próximas datas.'
+              }
+              explicacao={
+                <ExplicacaoLancamentoAutomatico
+                  tipo={tipo}
+                  origem={selectedSource}
+                  {...(nextOccurrence ? { proximaData: formatarDataNumerica(nextOccurrence) } : {})}
+                />
+              }
+            />
+
+            {form.repetir ? (
+              <CampoSelecao
+                rotulo="Periodicidade"
+                opcoes={opcoesFrequencia}
+                value={form.repeticao}
+                onChange={(value) => set('repeticao', value as Frequencia)}
+              />
+            ) : null}
+          </>
+        )}
 
         <AreaTexto
           className={styles.full}
