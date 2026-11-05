@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { misturar, progresso, usePasso } from '../animacao';
+import { curvaSaida, misturar, mola, progresso, pulso, usePasso } from '../animacao';
 import { Cartao } from '../componentes/Cartao';
 import { CenaDividida } from '../componentes/CenaDividida';
 import { BarraProgresso, ItemResumo, Selo, ValorMonetario } from '../componentes/Interface';
@@ -25,6 +25,13 @@ function situacaoDe(proporcao: number) {
   if (proporcao >= 1) return situacoes.ESTOURADO;
   if (proporcao >= PROPORCAO_ALERTA) return situacoes.ALERTA;
   return situacoes.SEGURO;
+}
+
+function passoDoEstouro(inicio: number, gasto: number, limite: number): number | null {
+  for (let passo = inicio; passo <= inicio + orcamento.duracaoBarra; passo += 0.25) {
+    if ((gasto * curvaSaida((passo - inicio) / orcamento.duracaoBarra)) / limite >= 1) return passo;
+  }
+  return null;
 }
 
 const resumo = [
@@ -78,6 +85,14 @@ export function Orcamento() {
             const proporcao = atual / limite;
             const situacao = situacaoDe(proporcao);
             const restante = limite - atual;
+            const estouro = passoDoEstouro(inicio + 4, gasto, limite);
+            const desde = estouro === null ? -1 : passo - estouro;
+            const tremor = desde >= 0 ? Math.sin(desde * 2.4) * 7 * Math.exp(-desde / 5) : 0;
+            const choque = estouro === null ? 0 : pulso(passo, estouro, 14);
+            const batimento = desde >= 18 ? Math.max(0, Math.sin(((desde - 18) / 30) * Math.PI * 2)) ** 2 : 0;
+            const alarme = estouro === null ? 0 : progresso(passo, estouro, 6);
+            const salto = estouro === null ? 1 : 1 + 0.25 * pulso(passo, estouro, 10);
+            const brilho = Math.max(choque, 0.55 * batimento);
             return (
               <div
                 key={categoria}
@@ -85,16 +100,20 @@ export function Orcamento() {
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 12,
-                  padding: '18px 0',
-                  borderTop: indice === 0 ? 'none' : `1.5px solid ${cores.borda}`,
+                  margin: '0 -18px',
+                  padding: '18px',
+                  borderRadius: 16,
+                  borderTop: indice === 0 ? '1.5px solid transparent' : `1.5px solid ${alarme > 0 ? 'transparent' : cores.borda}`,
+                  background: `rgba(250, 82, 82, ${0.05 * alarme + 0.1 * brilho})`,
+                  boxShadow: alarme > 0 ? `inset 0 0 0 1.5px rgba(250, 82, 82, ${0.25 * alarme + 0.45 * brilho})` : undefined,
                   opacity: entrada,
-                  transform: `translateY(${misturar(14, 0, entrada)}px)`,
+                  transform: `translate(${tremor}px, ${misturar(14, 0, entrada)}px)`,
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <span style={{ width: 12, height: 12, borderRadius: 4, background: cor }} />
                   <span style={{ fontSize: 22, fontWeight: 600, color: cores.texto }}>{categoria}</span>
-                  <Selo cor={situacao.cor} fundo={situacao.fundo} tamanho={16} estilo={{ marginLeft: 'auto' }}>
+                  <Selo cor={situacao.cor} fundo={situacao.fundo} tamanho={16} estilo={{ marginLeft: 'auto', transform: `scale(${salto})`, transformOrigin: 'right center' }}>
                     {situacao.rotulo}
                   </Selo>
                 </div>
@@ -106,10 +125,18 @@ export function Orcamento() {
                   </span>
                   <span style={{ fontFamily: fontes.numero, fontSize: 20, fontWeight: 600, color: cores.textoSecundario }}>{Math.round(proporcao * 100)}%</span>
                 </div>
-                <BarraProgresso valor={proporcao} cor={situacao.barra} altura={10} />
+                <div style={{ borderRadius: 5, boxShadow: brilho > 0.01 ? `0 0 ${18 * brilho}px rgba(250, 82, 82, ${0.8 * brilho})` : undefined }}>
+                  <BarraProgresso valor={proporcao} cor={situacao.barra} altura={10} />
+                </div>
                 <span style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 17, color: cores.textoSecundario }}>
                   {restante < 0 ? 'Passou do limite em' : 'Ainda cabem'}
-                  <ValorMonetario valor={Math.abs(restante)} tamanho={17} cor={restante < 0 ? cores.negativo : cores.texto} peso={600} />
+                  <ValorMonetario
+                    valor={Math.abs(restante)}
+                    tamanho={17}
+                    cor={restante < 0 ? cores.negativo : cores.texto}
+                    peso={600}
+                    estilo={{ transform: `scale(${restante < 0 ? 1 + 0.12 * Math.min(mola(passo, estouro ?? 0, 260, 12), 1.2) - 0.12 : 1})`, transformOrigin: 'left center' }}
+                  />
                 </span>
               </div>
             );

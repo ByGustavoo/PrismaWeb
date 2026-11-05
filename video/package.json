@@ -7,6 +7,7 @@
     "estudio": "remotion studio src/index.ts",
     "audio": "node scripts/gerarAudio.ts",
     "render": "npm run audio && remotion render src/index.ts ApresentacaoPrisma out/prisma-apresentacao.mp4 --codec=h264 --scale=2 --image-format=png --crf=12 --x264-preset=slow --color-space=bt709 --audio-bitrate=320k",
+    "render:celular": "npm run audio && remotion render src/index.ts ApresentacaoPrismaCelular out/prisma-apresentacao-celular.mp4 --codec=h264 --scale=2 --image-format=png --crf=12 --x264-preset=slow --color-space=bt709 --audio-bitrate=320k",
     "gif": "node scripts/gerarGif.ts",
     "typecheck": "tsc"
   },

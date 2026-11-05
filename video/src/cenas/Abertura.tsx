@@ -46,46 +46,50 @@ export function Abertura() {
             <MarcaAnimada tamanho={176} faces={faces} />
           </div>
         </div>
-        <div
-          style={{
-            display: 'flex',
-            width: misturar(0, 520, deslocamentoMarca),
-            overflow: 'hidden',
-            fontFamily: fontes.texto,
-            fontSize: 168,
-            fontWeight: 620,
-            letterSpacing: '-0.035em',
-            color: cores.texto,
-            lineHeight: 1,
-            paddingBottom: 18,
-            marginBottom: -18,
-          }}
-        >
-          {NOME.split('').map((letra, indice) => {
-            const t = progresso(passo, abertura.nome + indice * abertura.intervaloLetras, 20);
-            return (
-              <span key={indice} style={{ display: 'inline-block', transform: `translateY(${misturar(110, 0, t)}%)`, opacity: t }}>
-                {letra}
-              </span>
-            );
-          })}
+        <div style={{ position: 'relative' }}>
+          <div
+            style={{
+              display: 'flex',
+              width: misturar(0, 520, deslocamentoMarca),
+              overflow: 'hidden',
+              fontFamily: fontes.texto,
+              fontSize: 168,
+              fontWeight: 620,
+              letterSpacing: '-0.035em',
+              color: cores.texto,
+              lineHeight: 1,
+              paddingBottom: 18,
+              marginBottom: -18,
+            }}
+          >
+            {NOME.split('').map((letra, indice) => {
+              const t = progresso(passo, abertura.nome + indice * abertura.intervaloLetras, 20);
+              return (
+                <span key={indice} style={{ display: 'inline-block', transform: `translateY(${misturar(110, 0, t)}%)`, opacity: t }}>
+                  {letra}
+                </span>
+              );
+            })}
+          </div>
+          <div
+            style={{
+              position: 'absolute',
+              top: '100%',
+              left: 8,
+              marginTop: 4,
+              fontFamily: fontes.texto,
+              fontSize: 28,
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              whiteSpace: 'nowrap',
+              color: cores.textoSecundario,
+              opacity: legenda,
+              transform: `translateY(${misturar(-12, 0, legenda)}px)`,
+            }}
+          >
+            Finanças pessoais
+          </div>
         </div>
-      </div>
-      <div
-        style={{
-          position: 'absolute',
-          top: '50%',
-          marginTop: 150,
-          fontFamily: fontes.texto,
-          fontSize: 26,
-          letterSpacing: '0.22em',
-          textTransform: 'uppercase',
-          color: cores.textoSecundario,
-          opacity: legenda,
-          transform: `translateY(${misturar(16, 0, legenda)}px)`,
-        }}
-      >
-        Finanças pessoais
       </div>
     </AbsoluteFill>
   );

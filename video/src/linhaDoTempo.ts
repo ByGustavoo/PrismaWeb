@@ -3,6 +3,9 @@ export const QUADROS_POR_SEGUNDO = 60;
 export const QUADROS_POR_PASSO = QUADROS_POR_SEGUNDO / PASSOS_POR_SEGUNDO;
 export const LARGURA = 1920;
 export const ALTURA = 1080;
+export const LARGURA_RETRATO = 1080;
+export const ALTURA_RETRATO = 1920;
+export const MARGEM_RETRATO = 48;
 export const PASSOS_POR_BATIDA = 12;
 export const SOBREPOSICAO = 12;
 
@@ -10,23 +13,25 @@ const inicios = {
   abertura: 0,
   gancho: 108,
   dashboard: 288,
-  lancamentos: 432,
-  contas: 624,
-  cartoes: 768,
-  faturas: 900,
-  parcelas: 1068,
-  orcamento: 1224,
-  previsao: 1356,
-  recorrentes: 1500,
-  metas: 1656,
-  investimentos: 1788,
-  relatorios: 1920,
-  avisos: 2100,
-  confianca: 2232,
-  encerramento: 2376,
+  gastosDia: 444,
+  lancamentos: 660,
+  contas: 852,
+  cartoes: 1128,
+  faturas: 1260,
+  parcelas: 1428,
+  orcamento: 1584,
+  previsao: 1716,
+  recorrentes: 1860,
+  metas: 2016,
+  investimentos: 2148,
+  relatorios: 2388,
+  avisos: 2568,
+  configuracoes: 2700,
+  confianca: 2952,
+  encerramento: 3096,
 } as const;
 
-export const DURACAO_TOTAL = 2496;
+export const DURACAO_TOTAL = 3216;
 export const ANTECEDENCIA_SAIDA_NOTIFICACAO = 26;
 
 export type NomeCena = keyof typeof inicios;
@@ -72,15 +77,36 @@ export const HISTORICO_SALDO = [
   { rotulo: 'Out', saldo: SALDO_ATUAL },
 ] as const;
 
+export const PATRIMONIO = 60800.85;
+
 export const dashboard = {
   titulo: 6,
   cartao: 10,
   contagem: 16,
   duracaoContagem: 30,
-  linhas: [24, 30, 36],
+  patrimonio: 20,
+  linhas: [26, 32, 38],
   grafico: 30,
   duracaoGrafico: 36,
   indicadores: [48, 54, 60, 66],
+  legendas: 84,
+} as const;
+
+export const HOJE = '2026-10-25';
+export const PRIMEIRO_DIA_CALENDARIO = '2026-05-01';
+export const ULTIMO_DIA_CALENDARIO = '2026-10-31';
+export const DESPESAS_MES = 5912.4;
+
+export const gastosDia = {
+  titulo: 6,
+  cartao: 10,
+  meses: [20, 25, 30, 35, 40, 45],
+  duracaoMes: 14,
+  estatisticas: [40, 44, 48, 52],
+  contagem: 40,
+  duracaoContagem: 24,
+  legenda: 58,
+  focos: [84, 120, 156],
 } as const;
 
 export const DESCRICAO_LANCAMENTO = 'Supermercado';
@@ -109,11 +135,13 @@ export const contas = {
   resumo: [14, 18, 22],
   contagem: 16,
   duracaoContagem: 30,
-  contas: [24, 30, 36],
-  reserva: 48,
-  curva: 54,
-  duracaoCurva: 36,
-  equacao: [66, 72, 78, 84, 90],
+  contas: [24, 30, 36, 42],
+  lancamento: 60,
+  debito: 96,
+  duracaoDebito: 20,
+  transferencia: 136,
+  chegadaTransferencia: 208,
+  duracaoTransferencia: 24,
 } as const;
 
 export const cartoes = {
@@ -206,7 +234,10 @@ export const investimentos = {
   duracaoGrafico: 40,
   rosca: 36,
   duracaoRosca: 36,
-  legenda: [48, 52, 56, 60],
+  legenda: [48, 52, 56, 60, 64],
+  reserva: 72,
+  focos: [90, 132, 174],
+  fimFoco: 214,
 } as const;
 
 export const relatorios = {
@@ -231,6 +262,24 @@ export const avisos = {
   painel: 42,
   itens: [50, 56, 62, 68],
   destaque: 84,
+} as const;
+
+export const configuracoes = {
+  titulo: 6,
+  cartao: 10,
+  menu: 16,
+  paineis: [20, 26],
+  cliqueClaro: 52,
+  cliqueEscuro: 104,
+  duracaoTema: 16,
+  rolagem: 132,
+  duracaoRolagem: 24,
+  clique: 170,
+  destaqueMenu: 174,
+  saidaMenu: 192,
+  duracaoSaida: 16,
+  salvo: 192,
+  resumo: 192,
 } as const;
 
 export const confianca = {

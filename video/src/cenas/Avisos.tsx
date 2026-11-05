@@ -37,8 +37,8 @@ export function Avisos() {
       ladoTexto="esquerda"
       sobretitulo="AVISOS"
       titulo="Antes de vencer,"
-      tituloDestaque="o sino avisa."
-      subtitulo="Contas, faturas, recorrentes e até o investimento sem saldo atualizado há trinta dias. O número é o total."
+      tituloDestaque="o Prisma avisa."
+      subtitulo="Contas, faturas, recorrentes e até o investimento sem saldo atualizado há trinta dias. O número conta só os novos."
       inicioTitulo={avisos.titulo}
       inicioCartao={avisos.cartao}
       larguraTexto={600}
@@ -120,7 +120,7 @@ export function Avisos() {
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '22px 26px 18px', borderBottom: `1.5px solid ${cores.borda}` }}>
             <span style={{ fontSize: 22, fontWeight: 650, color: cores.texto }}>Avisos</span>
-            <span style={{ fontSize: 17, color: cores.textoSecundario }}>{TOTAL_AVISOS} avisos</span>
+            <span style={{ fontSize: 17, color: cores.textoSecundario }}>{TOTAL_AVISOS} novos</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', padding: 10 }}>
             {itens.map(({ icone: Icone, severidade, titulo, descricao, valor, data }, indice) => {

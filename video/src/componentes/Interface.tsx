@@ -9,8 +9,10 @@ export function formatarNumero(valor: number): string {
   return formatoNumero.format(Math.abs(valor));
 }
 
+export const MENOS = '−';
+
 export function formatarMoeda(valor: number): string {
-  return `${valor < 0 ? '-' : ''}R$ ${formatarNumero(valor)}`;
+  return `${valor < 0 ? MENOS : ''}R$ ${formatarNumero(valor)}`;
 }
 
 export function formatarPercentual(valor: number): string {
@@ -27,12 +29,15 @@ interface ValorMonetarioProps {
 }
 
 export function ValorMonetario({ valor, tamanho, cor = cores.texto, sinal = false, peso = 600, estilo }: ValorMonetarioProps) {
-  const prefixo = valor < 0 ? '-' : sinal && valor > 0 ? '+' : '';
+  const prefixo = valor < 0 ? MENOS : sinal && valor > 0 ? '+' : '';
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: tamanho * 0.2, color: cor, whiteSpace: 'nowrap', ...estilo }}>
-      <span style={{ fontFamily: fontes.texto, fontSize: tamanho * 0.52, fontWeight: 600 }}>
-        {prefixo}R$
-      </span>
+    <span style={{ display: 'inline-flex', alignItems: 'baseline', color: cor, whiteSpace: 'nowrap', ...estilo }}>
+      {prefixo ? (
+        <span style={{ fontFamily: fontes.numero, fontSize: tamanho * 0.8, fontWeight: prefixo === '+' ? 700 : peso, marginRight: tamanho * 0.12 }}>
+          {prefixo}
+        </span>
+      ) : null}
+      <span style={{ fontFamily: fontes.texto, fontSize: tamanho * 0.52, fontWeight: 600, marginRight: tamanho * 0.2 }}>R$</span>
       <span style={{ fontFamily: fontes.numero, fontSize: tamanho, fontWeight: peso, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums' }}>
         {formatarNumero(valor)}
       </span>
@@ -96,14 +101,28 @@ export function Selo({ children, cor, fundo, tamanho = 18, estilo }: { children:
   );
 }
 
-export function IndicadorVariacao({ percentual, tamanho = 19 }: { percentual: number; tamanho?: number }) {
-  const cor = percentual > 0 ? cores.positivo : percentual < 0 ? cores.negativo : cores.textoSecundario;
+interface IndicadorVariacaoProps {
+  percentual: number;
+  tamanho?: number;
+  sentidoFavoravel?: 'ALTA' | 'BAIXA';
+  legenda?: string;
+}
+
+export function IndicadorVariacao({ percentual, tamanho = 19, sentidoFavoravel = 'ALTA', legenda }: IndicadorVariacaoProps) {
+  const favoravel = sentidoFavoravel === 'ALTA' ? percentual > 0 : percentual < 0;
+  const cor = percentual === 0 ? cores.textoSecundario : favoravel ? cores.positivo : cores.negativo;
   const Icone = percentual > 0 ? ArrowUpRight : percentual < 0 ? ArrowDownRight : Minus;
+  const sinal = percentual > 0 ? '+' : percentual < 0 ? MENOS : '';
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: cor, fontFamily: fontes.numero, fontSize: tamanho, fontWeight: 600 }}>
-      <Icone size={tamanho} strokeWidth={2.4} />
-      {percentual > 0 ? '+' : percentual < 0 ? '-' : ''}
-      {formatarPercentual(Math.abs(percentual))}
+    <span style={{ display: 'inline-flex', flexWrap: 'wrap', alignItems: 'baseline', columnGap: tamanho * 0.5, rowGap: 2 }}>
+      <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 5, color: cor, fontFamily: fontes.numero, fontSize: tamanho, fontWeight: 600, whiteSpace: 'nowrap' }}>
+        <Icone size={tamanho} strokeWidth={2.4} style={{ alignSelf: 'center' }} />
+        <span>
+          {sinal ? <span style={{ marginRight: tamanho * 0.12 }}>{sinal}</span> : null}
+          {formatarPercentual(Math.abs(percentual))}
+        </span>
+      </span>
+      {legenda ? <span style={{ fontFamily: fontes.texto, fontSize: tamanho, color: cores.textoSecundario, whiteSpace: 'nowrap' }}>{legenda}</span> : null}
     </span>
   );
 }

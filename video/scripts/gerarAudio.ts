@@ -6,6 +6,7 @@ import {
   avisos,
   cartoes,
   cenas,
+  configuracoes,
   contas,
   dashboard,
   DESCRICAO_LANCAMENTO,
@@ -13,6 +14,7 @@ import {
   encerramento,
   faturas,
   gancho,
+  gastosDia,
   investimentos,
   lancamentos,
   metas,
@@ -94,6 +96,7 @@ const C_SUBINDO_ALTO = { baixo: 'C2', pad: ['G3', 'C4', 'E4', 'G4'], padrao: 'SU
 
 const pares: Partial<Record<NomeCena, Par>> = {
   dashboard: [F_SUBINDO, C_ONDA],
+  gastosDia: [BB_SUBINDO, C_ONDA_ALTO],
   lancamentos: [DM_QUEBRADO, BB_ONDA],
   contas: [BB_SUBINDO, C_ONDA_ALTO],
   cartoes: [F_SUBINDO, C_QUEBRADO],
@@ -105,6 +108,7 @@ const pares: Partial<Record<NomeCena, Par>> = {
   investimentos: [F_SUBINDO, C_QUEBRADO],
   relatorios: [DM_QUEBRADO, BB_ONDA],
   avisos: [BB_SUBINDO, C_ONDA_ALTO],
+  configuracoes: [F_SUBINDO, C_QUEBRADO],
 };
 
 const acordes: Acorde[] = [
@@ -360,6 +364,13 @@ sinal(segundos('gancho', gancho.saldo) + 0.05, [nota('C6'), nota('F6')], 0.022, 
 
 dashboard.indicadores.forEach((passo, indice) => tocarToque(efeitosSecos, segundos('dashboard', passo), 0.05 + aleatorio() * 0.015, 1.05 + indice * 0.07, -0.3 + indice * 0.2));
 
+gastosDia.meses.forEach((passo, indice) => tocarToque(efeitosSecos, segundos('gastosDia', passo), 0.04 + aleatorio() * 0.01, 0.95 + indice * 0.06 + aleatorio() * 0.03, -0.35 + (indice % 3) * 0.3));
+gastosDia.estatisticas.forEach((passo, indice) => tocarToque(efeitosSecos, segundos('gastosDia', passo + 2), 0.026 + aleatorio() * 0.008, 1.3 + indice * 0.05 + aleatorio() * 0.03, 0.3));
+gastosDia.focos.forEach((passo, indice) => {
+  tocarToque(efeitosSecos, segundos('gastosDia', passo), 0.045, 1.15 + indice * 0.12 + aleatorio() * 0.03, -0.2 + indice * 0.2);
+  if (indice === gastosDia.focos.length - 1) sinal(segundos('gastosDia', passo) + 0.02, [nota('C6'), nota('G5')], 0.022, 0.15, 0.16);
+});
+
 DESCRICAO_LANCAMENTO.split('').forEach((letra, indice) => {
   if (letra === ' ') return;
   tocarTecla(efeitosSecos, segundos('lancamentos', passoDaLetra(indice)), 0.11, aleatorio(), 0.1 + (aleatorio() - 0.5) * 0.3);
@@ -371,15 +382,16 @@ clique('lancamentos', lancamentos.salvar, 0.25);
 tocarToque(efeitosSecos, segundos('lancamentos', lancamentos.novaLinha + 2), 0.045, 1.25, 0.1);
 confirmacao(segundos('lancamentos', lancamentos.notificacao + 2), ['A5', 'E6'], 0.3);
 
-contas.contas.forEach((passo, indice) => tocarToque(efeitosSecos, segundos('contas', passo), 0.05 + aleatorio() * 0.012, 1 + indice * 0.08, 0.1 + indice * 0.15));
-contas.equacao.forEach((passo, indice) => {
-  const ultimo = indice === contas.equacao.length - 1;
-  tocarToque(efeitosSecos, segundos('contas', passo), ultimo ? 0.06 : 0.04, 1.1 + indice * 0.09 + aleatorio() * 0.03, -0.2 + indice * 0.12);
-  if (ultimo) sinal(segundos('contas', passo) + 0.02, [nota('G5'), nota('C6')], 0.022, 0.25, 0.16);
-});
+contas.contas.forEach((passo, indice) => tocarToque(efeitosSecos, segundos('contas', passo), 0.05 + aleatorio() * 0.012, 1 + indice * 0.08, -0.25 + indice * 0.15));
+tocarToque(efeitosSecos, segundos('contas', contas.lancamento), 0.05, 1.3, 0.35);
+sinal(segundos('contas', contas.debito), [nota('E5'), nota('C5')], 0.024, -0.2, 0.15);
+tocarGrave(efeitos, segundos('contas', contas.debito), 0.07, 0.6);
+tocarToque(efeitosSecos, segundos('contas', contas.transferencia), 0.045, 1.2, 0.3);
+sinal(segundos('contas', contas.chegadaTransferencia), [nota('G5'), nota('C6')], 0.022, -0.25, 0.15);
 
 cartoes.blocos.forEach((passo, indice) => tocarToque(efeitosSecos, segundos('cartoes', passo), 0.055, 0.95 + indice * 0.12, -0.3 + indice * 0.3));
 sinal(segundos('cartoes', cartoes.contaPagamento), [nota('F5'), nota('A5')], 0.024, -0.2, 0.15);
+sinal(segundos('cartoes', cartoes.contaPagamento + 12), [nota('A5'), nota('C6')], 0.022, 0.2, 0.15);
 
 clique('faturas', faturas.clique, 0.3);
 faturas.pagos.forEach((passo, indice) => {
@@ -437,6 +449,7 @@ metas.pontos.forEach((passo, indice) => {
 sinal(segundos('metas', metas.selo), [nota('C6'), nota('E6'), nota('G6')], 0.022, 0.25, 0.2);
 
 investimentos.legenda.forEach((passo, indice) => tocarToque(efeitosSecos, segundos('investimentos', passo), 0.04, 1.15 + indice * 0.08, -0.2 + indice * 0.15));
+investimentos.focos.forEach((passo, indice) => tocarToque(efeitosSecos, segundos('investimentos', passo), 0.035 + aleatorio() * 0.008, 1.3 + indice * 0.1 + aleatorio() * 0.03, 0.2 + indice * 0.1));
 
 const barrasPorRecorte = [4, 3, 6, 10];
 [relatorios.dados, ...relatorios.cliques].forEach((passo, recorte) => {
@@ -465,6 +478,14 @@ tocarToque(efeitosSecos, segundos('avisos', avisos.contador), 0.06, 1.35, 0.3);
 avisos.itens.forEach((passo, indice) => tocarToque(efeitosSecos, segundos('avisos', passo), 0.035 + aleatorio() * 0.01, 1.1 + indice * 0.06, 0.15 - indice * 0.1));
 sinal(segundos('avisos', avisos.destaque), [nota('E5'), nota('A5')], 0.022, -0.1, 0.14);
 
+clique('configuracoes', configuracoes.cliqueClaro, -0.3);
+swellReverso(efeitos, segundos('configuracoes', configuracoes.cliqueClaro) + 0.5, [nota('E5'), nota('B5')], 0.45, 0.012);
+clique('configuracoes', configuracoes.cliqueEscuro, -0.2);
+tocarToque(efeitosSecos, segundos('configuracoes', configuracoes.cliqueEscuro + 2), 0.035, 0.85, -0.2);
+tocarToque(efeitosSecos, segundos('configuracoes', configuracoes.destaqueMenu), 0.04, 1.4, -0.45);
+clique('configuracoes', configuracoes.clique, -0.1);
+tocarToque(efeitosSecos, segundos('configuracoes', configuracoes.clique + 6), 0.04, 0.9, -0.45);
+sinal(segundos('configuracoes', configuracoes.salvo), [nota('F5'), nota('C6')], 0.022, -0.2, 0.15);
 
 tocarGrave(efeitos, final, 0.28, 2.2);
 sinal(segundos('encerramento', encerramento.fechoSlogan), [nota('C6'), nota('A6')], 0.022, 0.2, 0.7);

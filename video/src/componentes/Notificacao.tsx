@@ -1,6 +1,8 @@
+import type { CSSProperties } from 'react';
 import { X } from 'lucide-react';
 import { Easing } from 'remotion';
 import { misturar, mola, progresso, usePasso } from '../animacao';
+import { useRetrato } from '../formato';
 import { cores, fontes } from '../tema';
 
 const DURACAO_SAIDA = 10;
@@ -10,10 +12,16 @@ interface NotificacaoProps {
   descricao: string;
   inicio: number;
   saida: number;
+  direita?: number;
+  posicao?: CSSProperties;
 }
 
-export function Notificacao({ titulo, descricao, inicio, saida }: NotificacaoProps) {
+const LARGURA = 520;
+const DISTANCIA_CARTAO_RETRATO = 24;
+
+export function Notificacao({ titulo, descricao, inicio, saida, direita = 140, posicao }: NotificacaoProps) {
   const passo = usePasso();
+  const retrato = useRetrato();
   if (passo < inicio - 1 || passo > saida + DURACAO_SAIDA + 1) return null;
 
   const entrada = mola(passo, inicio, 190, 15);
@@ -30,9 +38,7 @@ export function Notificacao({ titulo, descricao, inicio, saida }: NotificacaoPro
     <div
       style={{
         position: 'absolute',
-        right: 56,
-        bottom: 48,
-        width: 520,
+        ...(retrato ? { left: '50%', marginLeft: -LARGURA / 2, top: `calc(100% + ${DISTANCIA_CARTAO_RETRATO}px)`, width: LARGURA } : (posicao ?? { right: direita, bottom: 48, width: LARGURA })),
         display: 'flex',
         alignItems: 'flex-start',
         gap: 16,
@@ -46,7 +52,7 @@ export function Notificacao({ titulo, descricao, inicio, saida }: NotificacaoPro
         fontFamily: fontes.texto,
         opacity: surgimento * (1 - partida),
         transform: `translate(${36 * partida}px, ${misturar(48, 0, entrada)}px) scale(${misturar(0.94, 1, entrada)})`,
-        transformOrigin: '100% 100%',
+        transformOrigin: retrato ? '50% 0%' : '100% 100%',
       }}
     >
       <span style={{ position: 'relative', display: 'flex', width: 34, height: 34, flexShrink: 0 }}>

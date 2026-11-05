@@ -41,7 +41,8 @@ npm test            # testes unitarios (vitest run)
 
 npm install --prefix video       # dependencias do video de apresentacao
 npm run render --prefix video    # trilha + video/out/prisma-apresentacao.mp4 em 4K (3840x2160) a 60 fps
-npm run gif --prefix video       # video/apresentacao.gif do README (640px, 8 fps, 64 cores, abaixo de 10 MB)
+npm run render:celular --prefix video  # o mesmo video em 9:16, video/out/prisma-apresentacao-celular.mp4 (2160x3840)
+npm run gif --prefix video       # video/apresentacao.gif do README (640px, 8 fps, 48 cores, abaixo de 10 MB)
 npm run estudio --prefix video   # Remotion Studio
 ```
 
@@ -169,7 +170,15 @@ video/             pacote Remotion do video de apresentacao, com package.json pr
                    os valores do video, em passos de 1/30 s: o render e a 60 fps e cada quadro le o passo
                    fracionario por usePasso (animacao.ts), entao o movimento sai em 60 quadros sem dobrar
                    nenhum numero. scripts/gerarAudio.ts arranja a trilha sintetizada (150 BPM, toda cena e
-                   acento na grade de 12 passos) sobre o DSP de scripts/sintese.ts
+                   acento na grade de 12 passos) sobre o DSP de scripts/sintese.ts. A versao de celular e a
+                   composicao ApresentacaoPrismaCelular (1080x1920 a --scale=2): mesma linha do tempo e mesma
+                   trilha, e quem muda o layout e o contexto de src/formato.ts (useRetrato). No retrato o
+                   CenaDividida empilha texto e cartao num bloco so, centrado e com 40px entre os dois, e a
+                   notificacao sai 24px abaixo do cartao, centrada e com os mesmos 520px da paisagem: presa na
+                   base da tela e na largura toda ela ficava longe do cartao e pesada, e o usuario pediu tudo
+                   mais junto. No Gancho a pilha de portas encolhe com a convergencia, para o saldo nao ficar
+                   num vao. O fundo mostra so a subida da linha ate o "hoje". Cartao que muda de altura na cena reserva a maior
+                   (alturaCartaoRetrato), senao o titulo, centrado com ele, pula quando o cartao encolhe
 src/
 ├── api/           clienteHttp, ErroApi, rotasApi
 ├── components/

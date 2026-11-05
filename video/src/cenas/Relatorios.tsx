@@ -7,9 +7,11 @@ import { cores, fontes, paleta } from '../tema';
 
 const LARGURA_CARTAO = 984;
 const RESPIRO = 30;
-const ALTURA_GRAFICO = 220;
-const LARGURA_GRAFICO = ((LARGURA_CARTAO - 18) * 1.55) / 2.55 - RESPIRO * 2 - 76 - 3;
-const ALTURA_CATEGORIA = 62;
+const ALTURA_GRAFICO = 200;
+const LARGURA_GRAFICO = LARGURA_CARTAO - RESPIRO * 2 - 76 - 3;
+const ALTURA_CATEGORIA = 58;
+const VAO_CATEGORIAS = 44;
+const LARGURA_CATEGORIA = (LARGURA_CARTAO - 26 * 2 - 3 - VAO_CATEGORIAS) / 2;
 
 const periodos = ['Semana', 'Mês', '3 meses', '6 meses', 'Ano', 'Personalizado'];
 const LARGURAS_PERIODO = [104, 70, 104, 108, 66, 156];
@@ -150,6 +152,11 @@ function misturarEstados(campo: (estado: Estado) => number, pesos: number[]): nu
   }, 0);
 }
 
+function legendaVariacao(percentual: number, sentido: 'ALTA' | 'BAIXA'): string {
+  if (sentido === 'ALTA' || percentual === 0) return 'em relação ao período anterior';
+  return percentual > 0 ? 'a mais que no período anterior' : 'a menos que no período anterior';
+}
+
 export function Relatorios() {
   const passo = usePasso();
   const trocas = relatorios.cliques.map((clique) => progresso(passo, clique + relatorios.troca, relatorios.duracaoTroca));
@@ -165,9 +172,9 @@ export function Relatorios() {
   const presencaEscalaMes = presenca[0] ?? 0;
 
   const resumo = [
-    { rotulo: 'Receitas', campo: (estado: Estado) => estado.receitas, variacao: (estado: Estado) => estado.variacaoReceitas, cor: cores.positivo, sinal: false },
-    { rotulo: 'Despesas', campo: (estado: Estado) => estado.despesas, variacao: (estado: Estado) => estado.variacaoDespesas, cor: cores.negativo, sinal: false },
-    { rotulo: 'Resultado', campo: (estado: Estado) => estado.resultado, variacao: null, cor: cores.positivo, sinal: true },
+    { rotulo: 'Receitas', campo: (estado: Estado) => estado.receitas, variacao: (estado: Estado) => estado.variacaoReceitas, sentido: 'ALTA' as const, cor: cores.positivo, sinal: false },
+    { rotulo: 'Despesas', campo: (estado: Estado) => estado.despesas, variacao: (estado: Estado) => estado.variacaoDespesas, sentido: 'BAIXA' as const, cor: cores.negativo, sinal: false },
+    { rotulo: 'Resultado', campo: (estado: Estado) => estado.resultado, variacao: null, sentido: 'ALTA' as const, cor: cores.positivo, sinal: true },
   ];
 
   return (
@@ -205,7 +212,7 @@ export function Relatorios() {
         </div>
 
         <div style={{ display: 'flex', borderRadius: 22, border: `1.5px solid ${cores.borda}`, background: cores.superficie, boxShadow: '0 40px 80px -30px rgba(0, 0, 0, 0.75)' }}>
-          {resumo.map(({ rotulo, campo, variacao, cor, sinal }, indice) => (
+          {resumo.map(({ rotulo, campo, variacao, sentido, cor, sinal }, indice) => (
             <ItemResumo
               key={rotulo}
               rotulo={rotulo}
@@ -216,7 +223,7 @@ export function Relatorios() {
                   <span style={{ display: 'grid' }}>
                     {estados.map((estado, posicao) => (
                       <span key={estado.inicio} style={{ gridArea: '1 / 1', opacity: presenca[posicao], transform: `translateY(${misturar(6, 0, presenca[posicao] ?? 0)}px)` }}>
-                        <IndicadorVariacao percentual={variacao(estado)} tamanho={16} />
+                        <IndicadorVariacao percentual={variacao(estado)} tamanho={16} sentidoFavoravel={sentido} legenda={legendaVariacao(variacao(estado), sentido)} />
                       </span>
                     ))}
                   </span>
@@ -230,7 +237,7 @@ export function Relatorios() {
           ))}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1.55fr 1fr', gap: 18 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
           <div style={{ padding: `24px ${RESPIRO}px 20px`, borderRadius: 22, border: `1.5px solid ${cores.borda}`, background: cores.superficie }}>
             <span style={{ display: 'block', fontSize: 22, fontWeight: 650, color: cores.texto }}>Receitas e despesas</span>
             <span style={{ display: 'block', marginTop: 4, fontSize: 16, color: cores.textoSecundario }}>Entradas e saídas agrupadas dentro do período</span>
@@ -266,26 +273,27 @@ export function Relatorios() {
             </div>
             <div style={{ height: 34 }} />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', padding: '24px 26px', borderRadius: 22, border: `1.5px solid ${cores.borda}`, background: cores.superficie }}>
+          <div style={{ display: 'flex', flexDirection: 'column', padding: '22px 26px 10px', borderRadius: 22, border: `1.5px solid ${cores.borda}`, background: cores.superficie }}>
             <span style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <span style={{ fontSize: 22, fontWeight: 650, color: cores.texto }}>Gastos por categoria</span>
               <span style={{ fontSize: 16, color: cores.textoSecundario }}>Participação no total de despesas</span>
             </span>
-            <div style={{ position: 'relative', flex: 1, marginTop: 20 }}>
+            <div style={{ position: 'relative', height: ALTURA_CATEGORIA * 2, marginTop: 18 }}>
               {nomesCategoria.map((nome) => {
                 const valor = misturar1((estado) => estado.categorias[nome]?.valor ?? 0);
                 const participacao = misturar1((estado) => estado.categorias[nome]?.participacao ?? 0);
                 const relativa = misturar1((estado) => (estado.categorias[nome]?.participacao ?? 0) / maiorParticipacao(estado));
                 const visivel = misturar1((estado) => (estado.categorias[nome] ? 1 : 0));
-                const ordem = misturar1((estado) => ordemCategoria(estado, nome));
+                const esquerda = misturar1((estado) => (ordemCategoria(estado, nome) % 2) * (LARGURA_CATEGORIA + VAO_CATEGORIAS));
+                const topo = misturar1((estado) => Math.floor(ordemCategoria(estado, nome) / 2) * ALTURA_CATEGORIA);
                 return (
                   <div
                     key={nome}
                     style={{
                       position: 'absolute',
-                      left: 0,
-                      right: 0,
-                      top: ordem * ALTURA_CATEGORIA,
+                      left: esquerda,
+                      width: LARGURA_CATEGORIA,
+                      top: topo,
                       display: 'flex',
                       flexDirection: 'column',
                       gap: 9,
