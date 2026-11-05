@@ -20,6 +20,7 @@ import type { CampoOrdenacao, ConsultaLancamento, VisualizacaoLancamentos } from
 import { Botao, Painel, DialogoConfirmacao, EstadoVazio, BlocoCarregando } from '@/components/ui';
 import { CHAVE_VISUALIZACAO_LANCAMENTOS } from '@/constants/aplicacao';
 import { rotuloTipoLancamento } from '@/constants/lancamentos';
+import { rotuloFrequencia } from '@/constants/recorrentes';
 import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
 import { useArmazenamentoLocal } from '@/hooks/useArmazenamentoLocal';
 import { useEhCompacto } from '@/hooks/useConsultaMidia';
@@ -183,14 +184,15 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
   const handleSubmit = async (payload: SalvarLancamentoDTO) => {
     setSaving(true);
     const noun = rotuloTipoLancamento[payload.tipo];
+    const detail = payload.repeticao ? `${rotuloFrequencia[payload.repeticao]} — ${payload.descricao}` : payload.descricao;
 
     try {
       if (editing) {
         await lancamentosService.atualizar(editing.id, payload);
-        toast.sucesso(`${noun} atualizada com sucesso!`, payload.descricao);
+        toast.sucesso(`${noun} atualizada com sucesso!`, detail);
       } else {
         await lancamentosService.criar(payload);
-        toast.sucesso(`${noun} cadastrada com sucesso!`, payload.descricao);
+        toast.sucesso(`${noun} cadastrada com sucesso!`, detail);
       }
       closeForm();
       recarregar();

@@ -164,6 +164,17 @@ export function formatarRotuloVencimento(isoDate: string, reference: string = ho
   return `vence em ${days} dias`;
 }
 
+export function formatarRotuloRecebimento(isoDate: string, reference: string = hojeISO()): string {
+  const days = diasEntre(reference, isoDate);
+  if (days < 0) {
+    const past = Math.abs(days);
+    return `chegou há ${past} ${past === 1 ? 'dia' : 'dias'}`;
+  }
+  if (days === 0) return 'chega hoje';
+  if (days === 1) return 'chega amanhã';
+  return `chega em ${days} dias`;
+}
+
 export function capitalizar(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }

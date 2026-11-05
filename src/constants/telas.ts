@@ -32,7 +32,7 @@ export const rotuloTela: Record<Tela, string> = {
   METAS: 'Metas',
   ORCAMENTO: 'Orçamento',
   PREVISAO: 'Previsão financeira',
-  RECORRENTES: 'Despesas recorrentes',
+  RECORRENTES: 'Recorrentes',
   INVESTIMENTOS: 'Investimentos',
   RELATORIOS: 'Relatórios',
 };

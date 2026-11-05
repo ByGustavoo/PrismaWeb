@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { Check, Receipt } from 'lucide-react';
+import { Check, Receipt, Repeat } from 'lucide-react';
 import { aceitaPagamentoDaFatura, rotuloDaFatura, tomDaFatura } from '@/components/cartoes/aparencia';
 import { ValorMonetario } from '@/components/comum';
 import { ControlePagamentoParcela, MarcaPagamento } from '@/components/parcelamentos';
@@ -211,6 +211,12 @@ export function ModalDetalheFatura({ fatura, aoAlterar, aoFechar }: ModalDetalhe
                     {installment && installment.total > 1 ? (
                       <span className={styles.installment}>
                         {installment.numero}/{installment.total}
+                      </span>
+                    ) : null}
+                    {item.idRecorrente ? (
+                      <span className={styles.recurring}>
+                        <Repeat size={12} strokeWidth={2.25} aria-hidden="true" />
+                        Recorrente
                       </span>
                     ) : null}
                   </span>

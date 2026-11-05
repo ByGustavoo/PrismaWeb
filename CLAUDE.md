@@ -13,7 +13,7 @@ O estado atual vai ate a **Etapa 6**: fundacao do frontend, dashboard, as telas 
 (listagem com filtros, cadastro, edicao e exclusao de receitas, despesas e transferencias), o
 bloco de contas e cartoes — cadastro de contas, cadastro dos quatro tipos de cartao, faturas com
 detalhe de compras e compras parceladas — e o bloco de patrimonio e analise: carteira de
-investimentos, orcamento mensal por categoria, despesas recorrentes, previsao financeira, metas e
+investimentos, orcamento mensal por categoria, receitas e despesas recorrentes, previsao financeira, metas e
 desejos com historico de precos, e relatorios. O backend e o PrismaAPI (Java / Spring Boot /
 PostgreSQL), e o frontend **nao tem camada de mocks**: todo dado vem do PrismaAPI. Sem o backend
 rodando, as telas abrem no estado de erro, com o botao "Tentar de novo".
@@ -116,7 +116,7 @@ Estas sao as invariantes do projeto. Quebra-las e o erro mais caro que se pode c
    `?idCartao=`, `saldoAtual`, `limiteComprometido`, `dataVencimento`) e valor de enum em
    MAIUSCULAS (`RECEITA`, `CARTAO_CREDITO`). Inicio e fim de recorte se chamam sempre
    `dataInicial` e `dataFinal`. As rotas da API tambem sao em portugues, em kebab-case sem acento
-   (`/contas/origens`, `/despesas-recorrentes`, `/metas/{id}/precos`), e os tipos TypeScript tem o
+   (`/contas/origens`, `/recorrentes`, `/metas/{id}/precos`), e os tipos TypeScript tem o
    mesmo nome dos DTOs e enums do backend (`ContaDTO`, `SalvarContaDTO`,
    `TipoConta`, `Situacao`). O banco continua em snake_case e a
    traducao acontece uma vez so, no mapeamento da entidade JPA. Ao renomear um campo, lembre que
@@ -205,7 +205,8 @@ src/
 │   │              historico), aparencia (cor da classe, tom do resultado) e contaMovimentacao
 │   │              (opcoes de conta do aporte e do resgate)
 │   ├── orcamento/ NavegadorMes, LinhaOrcamento, ModalFormularioOrcamento
-│   ├── recorrentes/ CartaoRecorrente, ModalFormularioRecorrente
+│   ├── recorrentes/ CartaoRecorrente, ModalFormularioRecorrente, lancamentoAutomatico (dica e explicacao do
+│   │              lancamento automatico, usadas tambem no formulario de lancamento)
 │   ├── metas/     CartaoMeta, ModalFormularioMeta, ModalDetalheMeta, FiltrosMetas, VariacaoPreco,
 │   │              MiniCurvaPreco, GraficoHistoricoPreco, aparencia e consulta (busca, filtro e ordenacao)
 │   ├── previsao/  GraficoPrevisao, TabelaPrevisao, ListaPrevisao (versao compacta)
@@ -748,6 +749,57 @@ delas, dos parcelamentos e do historico.
   mensal com seguro anual daria um numero que nao corresponde a mes nenhum. Ja a previsao usa
   `ocorrenciasEm(item, mes)`, que poe o seguro do carro no mes exato em que ele vence, em vez de
   diluir um doze avos por todos os meses.
+- **Recorrente e um cadastro so, de receita ou de despesa** (`RecorrenteDTO.tipo`, `TipoRecorrente`,
+  rota `/recorrentes`). Ate entao so havia "despesas recorrentes"; o usuario quis salario,
+  vale-alimentacao e auxilio entrando sozinhos todo mes e escolheu um cadastro unico em vez de dois
+  iguais. A tela se chama "Recorrentes" (o endereco `/planejamento/recorrentes` nao mudou), tem as
+  secoes "Receitas" e "Despesas", e a `BarraResumo` troca o "Custo anual" por "Entradas por mes"
+  (`ResumoRecorrentesDTO.receitaMensal`). "Custo mensal", "Proximo vencimento", a faixa de
+  vencimentos proximos, o aviso do sino e a previsao continuam so de despesas: a previsao projeta a
+  receita pela media dos meses fechados, e somar as receitas recorrentes contaria o salario duas
+  vezes. No formulario, "Nova recorrente" abre com um seletor Despesa/Receita no topo (`radiogroup`,
+  com setas); ao editar, o tipo nao muda e vai no titulo. Receita so entra em conta ou em cartao de
+  vale; categoria e origem sao filtradas pelo tipo, e o servidor recusa o lado errado com `422`. O
+  cartao da receita mostra o valor em `positive` e a data como "Chega em N dias"
+  (`formatarRotuloRecebimento`).
+- **A recorrente pode lancar sozinha, e e assim que ela chega a fatura.** O interruptor "Lancar
+  automaticamente" (`lancarAutomaticamente`) faz o PrismaAPI gravar, em cada data, uma receita ou
+  despesa `PAGO` de verdade na conta ou no cartao da recorrente. No cartao de credito a despesa entra
+  na fatura pelo mesmo caminho de qualquer compra, ocupa o limite e aparece no `ModalDetalheFatura`
+  com a marca "Recorrente" (`ItemFaturaDTO.idRecorrente`). Ela nao vai para Compras parceladas, de
+  proposito: parcelamento tem fim, total e "N restantes", e uma assinatura nao tem nenhum dos tres — o
+  usuario escolheu a fatura. Todo lancamento ligado a uma recorrente traz `LancamentoDTO.recorrente`
+  (`id`, `frequencia`), leva em Lancamentos a nota "Recorrente — Mensal" (`notaLancamentoGerado`) e,
+  ao contrario do gerado por parcela, continua editavel e excluivel: se a Netflix subiu num mes,
+  corrige-se aquele lancamento. No cadastro novo o interruptor liga sozinho quando a despesa e no
+  cartao de credito e em toda receita com destino escolhido, e desliga na despesa em conta, ate o
+  usuario mexer nele; ao editar, vale o que esta gravado. Ligado, ele torna a categoria obrigatoria,
+  porque todo lancamento tem categoria (o servidor recusa com `422`). O cartao da recorrente mostra
+  o selo "Lanca sozinha" ao lado da periodicidade.
+- **"Repetir" no formulario de receita e de despesa cria a recorrente a partir do lancamento.** O
+  interruptor "Repetir esta receita/despesa" abre "Periodicidade" (mensal por padrao) e manda
+  `SalvarLancamentoDTO.repeticao`; o servidor grava o lancamento, cria a recorrente com lancamento
+  automatico e liga os dois, e esse lancamento conta como o primeiro. A dica diz a data do proximo
+  (`proximaOcorrenciaAPartirDeHoje`, a mesma conta de `Frequencia.proximaOcorrencia`, avancada ate
+  hoje). Vale tambem ao editar um lancamento solto, que vira o primeiro da serie; num lancamento que
+  ja e de uma serie, o interruptor da lugar a "Esta receita se repete — Mensal" com o link para
+  Recorrentes, onde se muda valor, pausa ou fim. O usuario pediu o interruptor nas telas de
+  Lancamentos, e nao so em Recorrentes.
+- **Receita pode cair no vale, e o saldo do vale passa a ser movido pelos lancamentos.** O campo
+  "Conta ou vale" da receita lista as contas e os cartoes de vale; receita e despesa `PAGO` num vale
+  somam e tiram do `CartaoDTO.saldo`, como ja acontecia com a conta. Antes o saldo do vale era so
+  digitado e nenhum lancamento mexia nele, entao nao havia onde cair o "R$ 1.000 todo dia 1o" do
+  vale-alimentacao. O vale continua fora do saldo total; receitas e despesas nele entram em
+  "Receitas do mes" e "Despesas do mes" do mesmo jeito. Lancamentos de vale gravados antes disso nao
+  foram recalculados: o saldo digitado continua valendo como ponto de partida. Vale e auxilio tem
+  categoria propria de receita, "Beneficios" (`--palette-4`, criada no PrismaAPI pela `V2.6`); a conta
+  de distancia que escolheu o token esta no CLAUDE.md do PrismaAPI.
+- **O "Como funciona?" do `Interruptor` e uma explicacao que abre no lugar, e nao um tooltip.** O
+  `Interruptor` aceita `explicacao`: um botao de texto sublinhado em pontilhado depois da dica, que
+  fica azul no hover e abre um bloco em `--surface-muted` logo abaixo (`aria-expanded`). O usuario
+  pediu um "?" que explicasse o que acontece ao ligar a opcao; um tooltip de hover nao existiria no
+  toque nem para quem usa teclado, e dentro de um modal que rola um balao flutuante seria cortado
+  pela borda. O texto da explicacao muda com a origem escolhida (fatura do cartao, saldo da conta).
 - **Pausar existe para nao apagar.** A recorrente pausada continua no cadastro, sai do custo mensal
   e da previsao, e volta com um clique — por isso o cartao tem o botao proprio, sem passar pelo
   formulario inteiro.

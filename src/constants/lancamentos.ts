@@ -1,3 +1,4 @@
+import { rotuloFrequencia } from '@/constants/recorrentes';
 import type { FormaLancamento, LancamentoDTO, SituacaoLancamento, Tendencia, TipoLancamento } from '@/types';
 
 export const rotuloSituacaoLancamento: Record<SituacaoLancamento, string> = {
@@ -18,6 +19,7 @@ export function notaLancamentoGerado(lancamento: LancamentoDTO): string | undefi
   if (lancamento.parcela) return NOTA_PAGAMENTO_PARCELA;
   if (lancamento.investimento?.tipo === 'APORTE') return 'Gerada pelo aporte no investimento';
   if (lancamento.investimento?.tipo === 'RESGATE') return 'Gerada pelo resgate do investimento';
+  if (lancamento.recorrente) return `Recorrente — ${rotuloFrequencia[lancamento.recorrente.frequencia]}`;
   return undefined;
 }
 

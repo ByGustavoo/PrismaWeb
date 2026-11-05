@@ -60,8 +60,8 @@ export const navegacao: SecaoNavegacao[] = [
         filhos: [
           { rotulo: 'Metas', destino: caminhos.metas },
           { rotulo: 'Orçamento', destino: caminhos.orcamento },
+          { rotulo: 'Recorrentes', destino: caminhos.recorrentes },
           { rotulo: 'Previsão financeira', destino: caminhos.previsao },
-          { rotulo: 'Despesas recorrentes', destino: caminhos.recorrentes },
         ],
       },
       { rotulo: 'Investimentos', icone: TrendingUp, destino: caminhos.investimentos },
