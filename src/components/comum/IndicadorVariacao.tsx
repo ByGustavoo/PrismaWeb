@@ -1,5 +1,6 @@
 import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react';
 import type { Tendencia, VariacaoDTO } from '@/types';
+import { ValorMonetario } from './ValorMonetario';
 import { juntarClasses } from '@/utils/juntarClasses';
 import { formatarPartesPercentualComSinal } from '@/utils/formatacao';
 import styles from './IndicadorVariacao.module.css';
@@ -15,16 +16,26 @@ export function IndicadorVariacao({ variacao, legenda, sentidoFavoravel = 'ALTA'
   const tone =
     variacao.tendencia === 'ESTAVEL' ? 'flat' : variacao.tendencia === sentidoFavoravel ? 'good' : 'bad';
 
-  const { sinal, numero } = formatarPartesPercentualComSinal(variacao.percentual);
-
   return (
     <span className={juntarClasses(styles.delta, styles[tone])}>
       <Icon size={14} strokeWidth={2.25} aria-hidden="true" />
-      <span className="tabular">
-        {sinal ? <span className={styles.sign}>{sinal}</span> : null}
-        {numero}
-      </span>
+      {variacao.percentual === undefined ? (
+        <ValorMonetario valor={variacao.diferenca} tamanho="sm" sinal="auto" className={styles.amount} />
+      ) : (
+        <Percentual valor={variacao.percentual} />
+      )}
       {legenda ? <span className={styles.caption}>{legenda}</span> : null}
+    </span>
+  );
+}
+
+function Percentual({ valor }: { valor: number }) {
+  const { sinal, numero } = formatarPartesPercentualComSinal(valor);
+
+  return (
+    <span className="tabular">
+      {sinal ? <span className={styles.sign}>{sinal}</span> : null}
+      {numero}
     </span>
   );
 }
