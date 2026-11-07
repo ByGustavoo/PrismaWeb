@@ -15,6 +15,10 @@
   margin-right: 0.12em;
 }
 
+.delta .amount {
+  color: inherit;
+}
+
 .good {
   color: var(--positive);
 }

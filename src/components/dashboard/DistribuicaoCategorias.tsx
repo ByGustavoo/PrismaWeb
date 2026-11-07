@@ -18,6 +18,7 @@ interface DistribuicaoCategoriasProps {
   descricao?: string;
   rotuloVazio?: string;
   manterAlturaAoExpandir?: boolean;
+  preencherAltura?: boolean;
   className?: string;
 }
 
@@ -28,6 +29,7 @@ export function DistribuicaoCategorias({
   descricao,
   rotuloVazio = 'Nenhuma despesa com categoria neste período.',
   manterAlturaAoExpandir = false,
+  preencherAltura = false,
   className,
 }: DistribuicaoCategoriasProps) {
   const [expanded, setExpanded] = useState(false);
@@ -37,8 +39,8 @@ export function DistribuicaoCategorias({
   const revealRequested = useRef(false);
   const listId = useId();
   const largest = dados[0]?.participacao ?? 1;
-  const hiddenCount = Math.max(dados.length - CATEGORIAS_VISIVEIS, 0);
-  const visible = expanded ? dados : dados.slice(0, CATEGORIAS_VISIVEIS);
+  const hiddenCount = preencherAltura ? 0 : Math.max(dados.length - CATEGORIAS_VISIVEIS, 0);
+  const visible = expanded || preencherAltura ? dados : dados.slice(0, CATEGORIAS_VISIVEIS);
   const scrollsWhenExpanded = manterAlturaAoExpandir && expanded && collapsedHeight !== null;
 
   const measureScroll = useCallback(() => {
@@ -81,24 +83,28 @@ export function DistribuicaoCategorias({
   }, [measureScroll, dados.length]);
 
   return (
-    <Painel className={className}>
+    <Painel className={juntarClasses(preencherAltura && styles.fill, className)}>
       <CabecalhoPainel
         titulo={titulo}
         descricao={descricao ?? `Participação no total de despesas do ${substantivoPeriodo}`}
       />
-      <CorpoPainel>
+      <CorpoPainel className={preencherAltura ? styles.fillBody : undefined}>
         {dados.length === 0 ? (
           <p className={styles.empty}>{rotuloVazio}</p>
         ) : (
           <>
             <div
-              className={styles.frame}
+              className={juntarClasses(styles.frame, preencherAltura && styles.fillFrame)}
               {...(scroll.above ? { 'data-acima': '' } : {})}
               {...(scroll.below ? { 'data-abaixo': '' } : {})}
             >
               <ul
                 ref={listRef}
-                className={juntarClasses(styles.list, scrollsWhenExpanded && styles.listScrolls)}
+                className={juntarClasses(
+                  styles.list,
+                  scrollsWhenExpanded && styles.listScrolls,
+                  preencherAltura && styles.listFill,
+                )}
                 id={listId}
                 style={
                   scrollsWhenExpanded ? ({ '--altura-recolhida': `${collapsedHeight}px` } as CSSProperties) : undefined

@@ -8,7 +8,8 @@ export interface Opcao<T extends string = string> {
 export type Tendencia = 'ALTA' | 'BAIXA' | 'ESTAVEL';
 
 export interface VariacaoDTO {
-  percentual: number;
+  percentual?: number;
+  diferenca: number;
   tendencia: Tendencia;
 }
 

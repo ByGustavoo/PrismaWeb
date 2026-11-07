@@ -143,6 +143,7 @@ export function PaginaRelatorios() {
             <DistribuicaoCategorias
               dados={dados.despesasPorCategoria}
               substantivoPeriodo="período"
+              manterAlturaAoExpandir
               className="card-hover-accent"
             />
             <div className={styles.column}>
@@ -152,6 +153,7 @@ export function PaginaRelatorios() {
                 titulo="Receitas por categoria"
                 descricao="Participação no total de receitas do período"
                 rotuloVazio="Nenhuma receita com categoria neste período."
+                preencherAltura
                 className="card-hover-accent"
               />
               <DistribuicaoOrigens dados={dados.despesasPorOrigem} />

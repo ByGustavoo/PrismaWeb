@@ -47,6 +47,8 @@
 .listScrolls {
   position: relative;
   max-height: var(--altura-recolhida);
+  margin-right: calc(-1 * (var(--space-3) + var(--scrollbar-size)));
+  padding-right: var(--space-3);
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -59,9 +61,58 @@
   box-shadow: var(--focus-ring);
 }
 
+.fill {
+  flex: 1;
+  min-height: 0;
+}
+
+.fillBody {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.fillFrame {
+  flex: 1;
+  min-height: 8rem;
+  contain: size;
+}
+
+.listFill {
+  position: absolute;
+  inset: 0 calc(-1 * (var(--space-3) + var(--scrollbar-size))) 0 0;
+  padding-right: var(--space-3);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  border-radius: var(--radius-xs);
+}
+
+.listFill:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+@media (max-width: 1099px) {
+  .fillFrame {
+    min-height: 0;
+    contain: none;
+  }
+
+  .listFill {
+    position: static;
+    padding-right: 0;
+    overflow: visible;
+    scrollbar-gutter: auto;
+  }
+}
+
 @media (max-width: 1199px) {
   .listScrolls {
     max-height: none;
+    margin-right: 0;
+    padding-right: 0;
   }
 }
 

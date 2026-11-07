@@ -320,6 +320,15 @@ Cada pasta de componentes tem um `index.ts` de barril — ao criar um componente
   nas variacoes de Relatorios. O container usa `align-items: baseline` e o `svg` leva
   `align-self: center` — icone nao tem linha de base, e alinhado por ela subiria ate encostar a base
   no pe das letras.
+- **Sem base de comparacao, a variacao e em reais, e nao em percentual.** `VariacaoDTO` traz sempre
+  `diferenca` (atual menos anterior, em reais) e so traz `percentual` quando ele diz alguma coisa: o
+  PrismaAPI o omite quando a janela anterior e zero ou quando ele passaria de 999%. Em producao,
+  Relatorios mostrou "+175257,3%" de receitas contra uma janela anterior de R$ 2,74, e com a base
+  zerada a API devolvia "estavel" e a tela dizia "0,0%", como se nada tivesse mudado. O usuario
+  escolheu, entre "Sem base no periodo anterior", limitar em "Mais de 999%" e a diferenca em reais,
+  a diferenca: sem `percentual`, o `IndicadorVariacao` desenha "+R$ 4.802,05" pelo `ValorMonetario`
+  (sinal, "R$" reduzido e o `+` em 700, as mesmas regras de todo valor), na cor da noticia, com a
+  mesma seta e a mesma legenda.
 - Dados assincronos nas paginas vao por `useDadosAssincronos`, que ja entrega estados de loading, erro e
   cancelamento.
 
@@ -975,6 +984,17 @@ Uma tela em `/relatorios`, com o recorte escolhido em `SeletorPeriodoRelatorio`.
   porque `DistribuicaoCategorias` e `DistribuicaoOrigens` trazem `align-self: start` do proprio
   modulo — num flex em coluna isso encolhe o cartao ate o conteudo, e os dois saiam com larguras
   diferentes.
+- **A coluna da direita termina junto com "Gastos por categoria".** Com sete receitas, "Receitas por
+  categoria" e "Gastos por conta e cartao" somavam 648px contra 440px do cartao de gastos, e o
+  usuario apontou o vao embaixo dele. Por isso a `.column` estica ate a altura da linha e
+  "Receitas por categoria" recebe `preencherAltura`: o cartao ocupa o que sobra na coluna, lista
+  todas as categorias, sem "Ver mais" (num cartao que ja rola, o botao seria um segundo mecanismo
+  para a mesma coisa, e roubaria a altura de uma categoria), e rola por dentro. A moldura da lista
+  leva `contain: size`, entao a lista nao empurra a altura da linha, e `min-height: 8rem` — duas
+  categorias e meia, o que sobra com os dados de hoje, e o piso para o cartao nao sumir quando
+  "Gastos por categoria" tiver poucas linhas; abaixo dele, a linha cresce. A barra de rolagem fica
+  no respiro do cartao, como nas outras listas que rolam. Abaixo de 1100px, com os cartoes
+  empilhados, a lista volta a mostrar tudo sem rolagem.
 - **A variacao fica dentro da `BarraResumo`, no bloco a que ela pertence.** O item de resumo aceita
   um `variacao` opcional, renderizado entre o valor e a dica — as variacoes de receitas e despesas
   viviam numa faixa solta entre a barra e o primeiro grafico, longe dos numeros que explicavam. Como
@@ -1459,9 +1479,23 @@ segundo numero nao se aplica — nao ha titulo visivel para separar do conteudo.
   linha alta depois de as categorias recolherem. E no dashboard o `DistribuicaoCategorias` recebe
   `manterAlturaAoExpandir`: "Ver mais" guarda a altura da lista recolhida, a lista passa a rolar
   dentro dela, com o esmaecimento do lado em que ha mais (`data-acima`, `data-abaixo`, como no
-  cronograma de parcelas), e rola ate a sexta categoria para as reveladas entrarem a vista. Abaixo de
+  cronograma de parcelas), e rola ate a sexta categoria para as reveladas entrarem a vista. A barra de
+  rolagem fica no respiro lateral do cartao, e nao sobre a lista: a lista que rola avanca
+  `--space-3` + `--scrollbar-size` para a direita e devolve o `--space-3` em `padding`. Sem isso a
+  barra encostava nos valores e a coluna de valores pulava 10px para a esquerda ao expandir; o
+  usuario apontou a barra "grudada com os numeros", e com `--space-2` ainda a achou colada. A regra
+  vale para toda lista com rolagem propria e valores a direita: o cronograma do
+  `ModalParcelasCompra` e os historicos do `ModalDetalheInvestimento` e do `ModalDetalheMeta`
+  usam a mesma conta. Esses tres levam tambem `scrollbar-gutter: stable`, porque rolam ou nao
+  conforme a quantidade de itens, e a coluna de valores nao pode mudar de lugar entre uma compra
+  de 4 parcelas e outra de 12. A folga tem de caber no respiro lateral de quem contem a lista:
+  abaixo de 600px o modal tem 16px, e o cronograma cai para `--space-1`, senao abriria rolagem
+  lateral no modal. `--scrollbar-size` e a mesma largura do
+  `::-webkit-scrollbar` do `global.css` — ao mudar uma, a outra muda junto. Abaixo de
   1200px, com os cartoes empilhados, a lista volta a crescer — sem vizinho, nao ha o que desalinhar.
-  Relatorios nao usa a prop: la a linha tem `align-items: start`.
+  Em Relatorios, "Gastos por categoria" tambem recebe a prop, a pedido do usuario: sem ela o cartao
+  crescia ao expandir e empurrava as duas evolucoes para baixo. "Receitas por categoria" usa outra,
+  `preencherAltura` (veja em Relatorios).
 - **Abaixo de 900px a listagem de lancamentos troca a tabela por cartoes** (`ListaLancamentos`,
   escolhido por `useEhCompacto`). A tabela tem `min-width: 1000px`: rolar de lado ate o valor, que
   e o dado mais importante da linha, nao e leitura. O cartao traz um controle proprio de
