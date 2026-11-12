@@ -1,7 +1,7 @@
 import { Plus, Trash2 } from 'lucide-react';
 import { ValorMonetario } from '@/components/comum';
 import { BarraProgresso, Selo } from '@/components/ui';
-import { iconeClasseAtivo, rotuloClasseAtivo } from '@/constants/investimentos';
+import { ehAcaoPorQuantidade, iconeClasseAtivo, nomeDoInvestimento, rotuloClasseAtivo, rotuloQuantidadeAcoes } from '@/constants/investimentos';
 import type { PosicaoDTO } from '@/types';
 import { formatarDataNumerica, formatarMesCurto, formatarPercentualComSinal } from '@/utils/formatacao';
 import { corDaClasse, tomRendimento } from './aparencia';
@@ -17,11 +17,13 @@ interface CartaoInvestimentoProps {
 export function CartaoInvestimento({ posicao, aoAbrir, aoAdicionarAporte, aoExcluir }: CartaoInvestimentoProps) {
   const { investimento: investment, rendimento: profit, rentabilidade: profitability, participacao: share } = posicao;
   const Icon = iconeClasseAtivo[investment.classeAtivo];
+  const name = nomeDoInvestimento(investment);
+  const stock = ehAcaoPorQuantidade(investment) ? investment : null;
 
   return (
     <li className={styles.card}>
       <button type="button" className={styles.open} onClick={() => aoAbrir(posicao)}>
-        <span className="visually-hidden">Ver histórico de {investment.nome}</span>
+        <span className="visually-hidden">Ver histórico de {name}</span>
       </button>
 
       <div className={styles.content}>
@@ -35,7 +37,7 @@ export function CartaoInvestimento({ posicao, aoAbrir, aoAdicionarAporte, aoExcl
           </span>
 
           <span className={styles.identity}>
-            <span className={styles.name}>{investment.nome}</span>
+            <span className={styles.name}>{name}</span>
             <span className={styles.meta}>
               {rotuloClasseAtivo[investment.classeAtivo]}
               <span className={styles.separator} aria-hidden="true">
@@ -54,7 +56,7 @@ export function CartaoInvestimento({ posicao, aoAbrir, aoAdicionarAporte, aoExcl
           <button
             type="button"
             className={styles.delete}
-            aria-label={`Excluir ${investment.nome}`}
+            aria-label={`Excluir ${name}`}
             onClick={() => aoExcluir(posicao)}
           >
             <Trash2 size={16} strokeWidth={2} />
@@ -79,7 +81,7 @@ export function CartaoInvestimento({ posicao, aoAbrir, aoAdicionarAporte, aoExcl
         <div className={styles.share}>
           <BarraProgresso
             valor={share}
-            rotulo={`Participação de ${investment.nome} na carteira`}
+            rotulo={`Participação de ${name} na carteira`}
             className={styles.shareBar}
           />
           <span className={styles.shareLabel}>
@@ -89,17 +91,32 @@ export function CartaoInvestimento({ posicao, aoAbrir, aoAdicionarAporte, aoExcl
         </div>
 
         <div className={styles.footer}>
-          <p className={styles.since}>
-            Desde {formatarMesCurto(investment.dataInicio.slice(0, 7))}
-            <span className={styles.separator} aria-hidden="true">
-              —
-            </span>
-            Saldo de {formatarDataNumerica(investment.dataAtualizacao).slice(0, 5)}
-          </p>
+          {stock ? (
+            <p className={styles.since}>
+              <span className="tabular">{rotuloQuantidadeAcoes(stock.quantidade)}</span>
+              <span className={styles.separator} aria-hidden="true">
+                —
+              </span>
+              Preço médio{' '}
+              {stock.precoMedio !== undefined ? (
+                <ValorMonetario className={styles.inline} valor={stock.precoMedio} tamanho="sm" tom="muted" />
+              ) : (
+                '—'
+              )}
+            </p>
+          ) : (
+            <p className={styles.since}>
+              Desde {formatarMesCurto(investment.dataInicio.slice(0, 7))}
+              <span className={styles.separator} aria-hidden="true">
+                —
+              </span>
+              Saldo de {formatarDataNumerica(investment.dataAtualizacao).slice(0, 5)}
+            </p>
+          )}
           <button type="button" className={styles.contribute} onClick={() => aoAdicionarAporte(posicao)}>
             <Plus size={14} strokeWidth={2.25} aria-hidden="true" />
-            Aporte
-            <span className="visually-hidden"> em {investment.nome}</span>
+            {stock ? 'Comprar' : 'Aporte'}
+            <span className="visually-hidden"> {stock ? 'mais' : 'em'} {name}</span>
           </button>
         </div>
       </div>

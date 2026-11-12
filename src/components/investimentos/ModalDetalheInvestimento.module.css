@@ -175,6 +175,45 @@
   justify-self: start;
 }
 
+.registerFieldsTrade {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.registerFieldsTrade .account {
+  grid-column: span 2;
+}
+
+.registerFieldsTrade .registerButton {
+  justify-self: start;
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.noticeText {
+  flex: 1 1 280px;
+  margin: 0;
+  max-width: none;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.historyScroll .detailValue {
+  font-size: inherit;
+  font-weight: 500;
+  color: inherit;
+}
+
 .preview {
   margin: var(--space-3) 0 0;
   max-width: none;
@@ -326,7 +365,8 @@
     grid-column: 1 / -1;
   }
 
-  .registerFieldsWithAccount .registerButton {
+  .registerFieldsWithAccount .registerButton,
+  .registerFieldsTrade .registerButton {
     justify-self: stretch;
   }
 

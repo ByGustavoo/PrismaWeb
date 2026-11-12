@@ -6,3 +6,4 @@ export type { ResultadoFormularioInvestimento } from './ModalFormularioInvestime
 export { ModalDetalheInvestimento } from './ModalDetalheInvestimento';
 export type { AcaoRegistroInvestimento } from './ModalDetalheInvestimento';
 export { corDaClasse, tomRendimento } from './aparencia';
+export { custoDaCompra, valorDaVenda } from './calculoAcoes';

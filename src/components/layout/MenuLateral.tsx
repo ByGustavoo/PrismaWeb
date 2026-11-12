@@ -68,7 +68,7 @@ export function MenuLateral({ recolhido, abertoNoMobile, aoAlternarRecolhido, ao
           <button
             ref={closeButtonRef}
             type="button"
-            className={styles.closeMobile}
+            className={juntarClasses(styles.closeMobile, 'botao-fechar')}
             onClick={aoFecharMobile}
             aria-label="Fechar menu"
           >

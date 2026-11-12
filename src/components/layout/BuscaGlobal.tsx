@@ -284,7 +284,7 @@ export function BuscaGlobal({ expandido = false, aoRecolher }: BuscaGlobalProps)
         {open && loading ? <IndicadorGiratorio tamanho={14} /> : null}
 
         {expandido ? (
-          <button type="button" className={styles.collapse} onClick={collapse} aria-label="Fechar busca">
+          <button type="button" className={juntarClasses(styles.collapse, 'botao-fechar')} onClick={collapse} aria-label="Fechar busca">
             <X size={16} strokeWidth={2} />
           </button>
         ) : null}

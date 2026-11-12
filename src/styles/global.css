@@ -167,6 +167,19 @@ table {
   }
 }
 
+.botao-fechar {
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .botao-fechar:hover:not(:disabled) {
+    color: var(--negative);
+    background-color: var(--negative-soft);
+  }
+}
+
 .card-hover-accent {
   transition:
     border-color var(--duration-fast) var(--ease-out),

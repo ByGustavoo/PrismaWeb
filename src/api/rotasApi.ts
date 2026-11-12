@@ -34,12 +34,16 @@ export const rotasApi = {
   },
   investimentos: {
     criar: '/investimentos',
+    criarAcao: '/investimentos/acoes',
     porId: (id: string) => `/investimentos/${id}`,
     carteira: '/investimentos/carteira',
     extrato: (id: string) => `/investimentos/${id}/extrato`,
     aportes: (id: string) => `/investimentos/${id}/aportes`,
     resgates: (id: string) => `/investimentos/${id}/resgates`,
     saldos: (id: string) => `/investimentos/${id}/saldos`,
+    compras: (id: string) => `/investimentos/${id}/compras`,
+    vendas: (id: string) => `/investimentos/${id}/vendas`,
+    cotacoes: (id: string) => `/investimentos/${id}/cotacoes`,
   },
   orcamentos: {
     criar: '/orcamentos',

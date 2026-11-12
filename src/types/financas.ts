@@ -239,11 +239,15 @@ export type ClasseAtivo =
 export interface InvestimentoDTO {
   id: ID;
   nome: string;
+  codigo?: string;
   classeAtivo: ClasseAtivo;
   instituicao: string;
   reservaEmergencia: boolean;
   aportado: number;
   valorAtual: number;
+  quantidade?: number;
+  precoMedio?: number;
+  cotacao?: number;
   dataInicio: string;
   dataAtualizacao: string;
   observacoes?: string;
@@ -261,11 +265,27 @@ export interface SalvarInvestimentoDTO {
   observacoes?: string;
 }
 
+export interface SalvarAcaoDTO {
+  codigo: string;
+  nome: string;
+  instituicao: string;
+  quantidade: number;
+  precoUnitario: number;
+  taxas?: number;
+  cotacao?: number;
+  dataInicio: string;
+  reservaEmergencia: boolean;
+  idConta?: ID;
+  observacoes?: string;
+}
+
 export interface AtualizarInvestimentoDTO {
   nome: string;
+  codigo?: string;
   classeAtivo: ClasseAtivo;
   instituicao: string;
   reservaEmergencia: boolean;
+  quantidade?: number;
   observacoes?: string;
 }
 
@@ -278,6 +298,10 @@ export interface MovimentacaoInvestimentoDTO {
   valor: number;
   saldoApos: number;
   aportadoApos: number;
+  quantidadeApos?: number;
+  quantidade?: number;
+  precoUnitario?: number;
+  taxas?: number;
   idConta?: ID;
   nomeConta?: string;
   descricao?: string;
@@ -306,6 +330,21 @@ export interface ReservaEmergenciaDTO {
 
 export interface SalvarSaldoInvestimentoDTO {
   valorAtual: number;
+  data: string;
+  descricao?: string;
+}
+
+export interface SalvarNegociacaoAcaoDTO {
+  quantidade: number;
+  precoUnitario: number;
+  taxas?: number;
+  data: string;
+  idConta?: ID;
+  descricao?: string;
+}
+
+export interface SalvarCotacaoAcaoDTO {
+  cotacao: number;
   data: string;
   descricao?: string;
 }

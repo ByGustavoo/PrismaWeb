@@ -36,6 +36,9 @@
 .lg {
   max-width: 760px;
 }
+.lgPlus {
+  max-width: 1080px;
+}
 .xl {
   max-width: 1400px;
 }
