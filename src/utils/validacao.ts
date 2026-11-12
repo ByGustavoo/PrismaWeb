@@ -1,4 +1,9 @@
-import { CASAS_DECIMAIS_MAXIMAS_VALOR, DIGITOS_INTEIROS_MAXIMOS_VALOR, TAMANHO_MINIMO_TEXTO } from '@/constants/validacao';
+import {
+  CASAS_DECIMAIS_MAXIMAS_VALOR,
+  DIGITOS_INTEIROS_MAXIMOS_VALOR,
+  PADRAO_CODIGO_ACAO,
+  TAMANHO_MINIMO_TEXTO,
+} from '@/constants/validacao';
 import { interpretarEntradaValor } from './formatacao';
 
 export function tamanhoTexto(value: string): number {
@@ -42,5 +47,18 @@ export function erroValor(raw: string, { sujeito, ausente, sinal }: RegraValor):
   }
   if (sinal === 'positive' && value <= 0) return `${sujeito} precisa ser maior que zero!`;
   if (sinal === 'non-negative' && value < 0) return `${sujeito} não pode ser negativo!`;
+  return undefined;
+}
+
+export function erroQuantidadeInteira(raw: string, ausente: string): string | undefined {
+  if (!raw) return ausente;
+  if (!/^\d+$/.test(raw)) return 'A quantidade precisa ser um número inteiro, como 100!';
+  if (Number(raw) <= 0) return 'A quantidade precisa ser maior que zero!';
+  return undefined;
+}
+
+export function erroCodigoAcao(raw: string): string | undefined {
+  if (!raw) return 'Informe o código da ação, como PETR4!';
+  if (!PADRAO_CODIGO_ACAO.test(raw)) return 'O código tem de 4 a 12 letras e números, como PETR4!';
   return undefined;
 }

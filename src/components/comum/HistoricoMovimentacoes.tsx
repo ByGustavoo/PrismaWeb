@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { juntarClasses } from '@/utils/juntarClasses';
 import { formatarDataNumerica } from '@/utils/formatacao';
@@ -13,7 +13,7 @@ export interface ItemMovimentacao {
   id: string;
   data: string;
   titulo: string;
-  detalhe?: string;
+  detalhe?: ReactNode;
   valor: number;
   sinal: 'plus' | 'minus' | 'auto';
   tom: TomMovimentacao;

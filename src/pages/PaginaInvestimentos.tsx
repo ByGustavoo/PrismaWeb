@@ -8,9 +8,13 @@ import {
   ModalDetalheInvestimento,
   ModalFormularioInvestimento,
   GraficoCarteira,
+  custoDaCompra,
   tomRendimento,
+  valorDaVenda,
 } from '@/components/investimentos';
 import type { AcaoRegistroInvestimento, ResultadoFormularioInvestimento } from '@/components/investimentos';
+import { nomeDoInvestimento, rotuloQuantidadeAcoes } from '@/constants/investimentos';
+import type { AcaoPorQuantidade } from '@/constants/investimentos';
 import { CabecalhoPagina } from '@/components/layout';
 import { Botao, Painel, DialogoConfirmacao, EstadoVazio, BlocoCarregando } from '@/components/ui';
 import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
@@ -22,6 +26,8 @@ import type {
   InvestimentoDTO,
   PosicaoDTO,
   SalvarAporteInvestimentoDTO,
+  SalvarCotacaoAcaoDTO,
+  SalvarNegociacaoAcaoDTO,
   SalvarResgateInvestimentoDTO,
   SalvarSaldoInvestimentoDTO,
 } from '@/types';
@@ -68,7 +74,14 @@ export function PaginaInvestimentos() {
     try {
       if (result.modo === 'update' && editing) {
         await investimentosService.atualizar(editing.id, result.dados);
-        toast.sucesso('Investimento atualizado com sucesso!', result.dados.nome);
+        if (result.dados.codigo) {
+          toast.sucesso('Ação atualizada com sucesso!', `${result.dados.codigo} — ${result.dados.nome}`);
+        } else {
+          toast.sucesso('Investimento atualizado com sucesso!', result.dados.nome);
+        }
+      } else if (result.modo === 'createAcao') {
+        await investimentosService.criarAcao(result.dados);
+        toast.sucesso('Ação cadastrada com sucesso!', `${result.dados.codigo} — ${result.dados.nome}`);
       } else if (result.modo === 'create') {
         await investimentosService.criar(result.dados);
         toast.sucesso('Investimento cadastrado com sucesso!', result.dados.nome);
@@ -84,59 +97,75 @@ export function PaginaInvestimentos() {
     }
   };
 
-  const handleContribution = async (investment: InvestimentoDTO, payload: SalvarAporteInvestimentoDTO): Promise<boolean> => {
+  const registerMovement = async (
+    request: () => Promise<unknown>,
+    success: { titulo: string; descricao: string },
+    failure: string,
+  ): Promise<boolean> => {
     setSaving(true);
 
     try {
-      await investimentosService.adicionarAporte(investment.id, payload);
-      toast.sucesso('Aporte adicionado com sucesso!', `${investment.nome} — ${formatarMoeda(payload.valor)}`);
+      await request();
+      toast.sucesso(success.titulo, success.descricao);
       recarregar();
       atualizarAvisos();
       setDetailVersion((value) => value + 1);
       return true;
-    } catch (contributionError) {
-      toast.erro('Não foi possível adicionar o aporte.', contributionError);
+    } catch (movementError) {
+      toast.erro(failure, movementError);
       return false;
     } finally {
       setSaving(false);
     }
   };
 
-  const handleWithdrawal = async (investment: InvestimentoDTO, payload: SalvarResgateInvestimentoDTO): Promise<boolean> => {
-    setSaving(true);
+  const handleContribution = (investment: InvestimentoDTO, payload: SalvarAporteInvestimentoDTO) =>
+    registerMovement(
+      () => investimentosService.adicionarAporte(investment.id, payload),
+      { titulo: 'Aporte adicionado com sucesso!', descricao: `${investment.nome} — ${formatarMoeda(payload.valor)}` },
+      'Não foi possível adicionar o aporte.',
+    );
 
-    try {
-      await investimentosService.registrarResgate(investment.id, payload);
-      toast.sucesso('Resgate registrado com sucesso!', `${investment.nome} — ${formatarMoeda(payload.valor)}`);
-      recarregar();
-      atualizarAvisos();
-      setDetailVersion((value) => value + 1);
-      return true;
-    } catch (withdrawalError) {
-      toast.erro('Não foi possível registrar o resgate.', withdrawalError);
-      return false;
-    } finally {
-      setSaving(false);
-    }
-  };
+  const handleWithdrawal = (investment: InvestimentoDTO, payload: SalvarResgateInvestimentoDTO) =>
+    registerMovement(
+      () => investimentosService.registrarResgate(investment.id, payload),
+      { titulo: 'Resgate registrado com sucesso!', descricao: `${investment.nome} — ${formatarMoeda(payload.valor)}` },
+      'Não foi possível registrar o resgate.',
+    );
 
-  const handleBalance = async (investment: InvestimentoDTO, payload: SalvarSaldoInvestimentoDTO): Promise<boolean> => {
-    setSaving(true);
+  const handleBalance = (investment: InvestimentoDTO, payload: SalvarSaldoInvestimentoDTO) =>
+    registerMovement(
+      () => investimentosService.atualizarSaldo(investment.id, payload),
+      { titulo: 'Saldo atualizado com sucesso!', descricao: `${investment.nome} — ${formatarMoeda(payload.valorAtual)}` },
+      'Não foi possível atualizar o saldo.',
+    );
 
-    try {
-      await investimentosService.atualizarSaldo(investment.id, payload);
-      toast.sucesso('Saldo atualizado com sucesso!', `${investment.nome} — ${formatarMoeda(payload.valorAtual)}`);
-      recarregar();
-      atualizarAvisos();
-      setDetailVersion((value) => value + 1);
-      return true;
-    } catch (balanceError) {
-      toast.erro('Não foi possível atualizar o saldo.', balanceError);
-      return false;
-    } finally {
-      setSaving(false);
-    }
-  };
+  const handlePurchase = (share: AcaoPorQuantidade, payload: SalvarNegociacaoAcaoDTO) =>
+    registerMovement(
+      () => investimentosService.registrarCompra(share.id, payload),
+      {
+        titulo: 'Compra registrada com sucesso!',
+        descricao: `${share.codigo} — ${rotuloQuantidadeAcoes(payload.quantidade)} por ${formatarMoeda(custoDaCompra(payload.quantidade, payload.precoUnitario, payload.taxas))}`,
+      },
+      'Não foi possível registrar a compra.',
+    );
+
+  const handleSale = (share: AcaoPorQuantidade, payload: SalvarNegociacaoAcaoDTO) =>
+    registerMovement(
+      () => investimentosService.registrarVenda(share.id, payload),
+      {
+        titulo: 'Venda registrada com sucesso!',
+        descricao: `${share.codigo} — ${rotuloQuantidadeAcoes(payload.quantidade)} por ${formatarMoeda(valorDaVenda(payload.quantidade, payload.precoUnitario, payload.taxas))}`,
+      },
+      'Não foi possível registrar a venda.',
+    );
+
+  const handleQuote = (share: AcaoPorQuantidade, payload: SalvarCotacaoAcaoDTO) =>
+    registerMovement(
+      () => investimentosService.registrarCotacao(share.id, payload),
+      { titulo: 'Cotação atualizada com sucesso!', descricao: `${share.codigo} — ${formatarMoeda(payload.cotacao)} por ação` },
+      'Não foi possível atualizar a cotação.',
+    );
 
   const handleDelete = async () => {
     if (!removing) return;
@@ -144,7 +173,7 @@ export function PaginaInvestimentos() {
 
     try {
       await investimentosService.excluir(removing.investimento.id);
-      toast.sucesso('Investimento excluído com sucesso!', removing.investimento.nome);
+      toast.sucesso('Investimento excluído com sucesso!', nomeDoInvestimento(removing.investimento));
       setRemoving(null);
       recarregar();
       atualizarAvisos();
@@ -296,6 +325,9 @@ export function PaginaInvestimentos() {
         aoRegistrarAporte={handleContribution}
         aoRegistrarResgate={handleWithdrawal}
         aoAtualizarSaldo={handleBalance}
+        aoRegistrarCompra={handlePurchase}
+        aoRegistrarVenda={handleSale}
+        aoRegistrarCotacao={handleQuote}
       />
 
       <ModalFormularioInvestimento
@@ -318,7 +350,7 @@ export function PaginaInvestimentos() {
       >
         {removing ? (
           <>
-            <strong className={styles.confirmTitle}>{removing.investimento.nome}</strong>
+            <strong className={styles.confirmTitle}>{nomeDoInvestimento(removing.investimento)}</strong>
             <span className={styles.confirmMeta}>{removing.investimento.instituicao}</span>
             <ValorMonetario valor={removing.investimento.valorAtual} />
           </>

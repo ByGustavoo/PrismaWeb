@@ -15,6 +15,10 @@ const formatadorEntradaValor = new Intl.NumberFormat(LOCALIDADE, {
   maximumFractionDigits: 2,
 });
 
+const formatadorInteiro = new Intl.NumberFormat(LOCALIDADE, {
+  maximumFractionDigits: 0,
+});
+
 const formatadorCompacto = new Intl.NumberFormat(LOCALIDADE, {
   notation: 'compact',
   maximumFractionDigits: 1,
@@ -73,6 +77,10 @@ export function formatarPartesMoeda(value: number): PartesMoeda {
 export function formatarMoeda(value: number): string {
   const { simbolo, algarismos } = formatarPartesMoeda(value);
   return simbolo + ESPACO_INQUEBRAVEL + algarismos;
+}
+
+export function formatarInteiro(value: number): string {
+  return formatadorInteiro.format(value);
 }
 
 export function formatarMoedaCompacta(value: number): string {

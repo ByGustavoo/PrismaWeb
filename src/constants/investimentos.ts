@@ -1,6 +1,7 @@
 import { Bitcoin, Boxes, Building2, CandlestickChart, Coins, HandCoins, Landmark, LineChart, PiggyBank, Sprout, Wallet } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import type { ClasseAtivo, TokenCor } from '@/types';
+import type { ClasseAtivo, InvestimentoDTO, TokenCor } from '@/types';
+import { formatarInteiro } from '@/utils/formatacao';
 
 export const rotuloClasseAtivo: Record<ClasseAtivo, string> = {
   'RENDA_FIXA': 'Renda fixa',
@@ -65,3 +66,21 @@ export const iconeClasseAtivo: Record<ClasseAtivo, LucideIcon> = {
 };
 
 export const QUANTIDADE_INICIAL_MOVIMENTACOES = 8;
+
+export type AcaoPorQuantidade = InvestimentoDTO & { codigo: string; quantidade: number };
+
+export function ehAcaoPorQuantidade(investimento: InvestimentoDTO): investimento is AcaoPorQuantidade {
+  return investimento.classeAtivo === 'ACOES' && investimento.quantidade !== undefined && investimento.codigo !== undefined;
+}
+
+export function ehAcaoSemQuantidade(investimento: InvestimentoDTO): boolean {
+  return investimento.classeAtivo === 'ACOES' && investimento.quantidade === undefined;
+}
+
+export function nomeDoInvestimento(investimento: InvestimentoDTO): string {
+  return investimento.codigo ? `${investimento.codigo} — ${investimento.nome}` : investimento.nome;
+}
+
+export function rotuloQuantidadeAcoes(quantidade: number): string {
+  return `${formatarInteiro(quantidade)} ${quantidade === 1 ? 'ação' : 'ações'}`;
+}

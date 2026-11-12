@@ -14,7 +14,7 @@ export interface ModalProps {
   titulo: string;
   seloTitulo?: ReactNode;
   descricao?: string;
-  tamanho?: 'sm' | 'md' | 'lg' | 'xl';
+  tamanho?: 'sm' | 'md' | 'lg' | 'lgPlus' | 'xl';
   rodape?: ReactNode;
   children: ReactNode;
 }
@@ -90,7 +90,7 @@ export function Modal({ aberto, aoFechar, titulo, seloTitulo, descricao, tamanho
               </p>
             ) : null}
           </div>
-          <Botao variante="ghost" tamanho="sm" icone={X} onClick={aoFechar} aria-label="Fechar" />
+          <Botao className="botao-fechar" variante="ghost" tamanho="sm" icone={X} onClick={aoFechar} aria-label="Fechar" />
         </header>
 
         <div className={styles.content}>{children}</div>

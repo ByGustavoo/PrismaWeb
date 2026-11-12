@@ -5,8 +5,11 @@ import type {
   ExtratoInvestimentoDTO,
   ID,
   InvestimentoDTO,
+  SalvarAcaoDTO,
   SalvarAporteInvestimentoDTO,
+  SalvarCotacaoAcaoDTO,
   SalvarInvestimentoDTO,
+  SalvarNegociacaoAcaoDTO,
   SalvarResgateInvestimentoDTO,
   SalvarSaldoInvestimentoDTO,
 } from '@/types';
@@ -24,6 +27,10 @@ export const investimentosService = {
     return clienteHttp.post<InvestimentoDTO>(rotasApi.investimentos.criar, payload, { ...(signal ? { signal } : {}) });
   },
 
+  criarAcao(payload: SalvarAcaoDTO, signal?: AbortSignal): Promise<InvestimentoDTO> {
+    return clienteHttp.post<InvestimentoDTO>(rotasApi.investimentos.criarAcao, payload, { ...(signal ? { signal } : {}) });
+  },
+
   atualizar(id: ID, payload: AtualizarInvestimentoDTO, signal?: AbortSignal): Promise<InvestimentoDTO> {
     return clienteHttp.put<InvestimentoDTO>(rotasApi.investimentos.porId(id), payload, { ...(signal ? { signal } : {}) });
   },
@@ -38,6 +45,18 @@ export const investimentosService = {
 
   atualizarSaldo(id: ID, payload: SalvarSaldoInvestimentoDTO, signal?: AbortSignal): Promise<InvestimentoDTO> {
     return clienteHttp.post<InvestimentoDTO>(rotasApi.investimentos.saldos(id), payload, { ...(signal ? { signal } : {}) });
+  },
+
+  registrarCompra(id: ID, payload: SalvarNegociacaoAcaoDTO, signal?: AbortSignal): Promise<InvestimentoDTO> {
+    return clienteHttp.post<InvestimentoDTO>(rotasApi.investimentos.compras(id), payload, { ...(signal ? { signal } : {}) });
+  },
+
+  registrarVenda(id: ID, payload: SalvarNegociacaoAcaoDTO, signal?: AbortSignal): Promise<InvestimentoDTO> {
+    return clienteHttp.post<InvestimentoDTO>(rotasApi.investimentos.vendas(id), payload, { ...(signal ? { signal } : {}) });
+  },
+
+  registrarCotacao(id: ID, payload: SalvarCotacaoAcaoDTO, signal?: AbortSignal): Promise<InvestimentoDTO> {
+    return clienteHttp.post<InvestimentoDTO>(rotasApi.investimentos.cotacoes(id), payload, { ...(signal ? { signal } : {}) });
   },
 
   excluir(id: ID, signal?: AbortSignal): Promise<void> {

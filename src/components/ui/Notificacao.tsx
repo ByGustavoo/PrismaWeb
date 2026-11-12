@@ -136,7 +136,7 @@ export function ItemNotificacao({ notificacao, pausado, aoDispensar }: ItemNotif
           </div>
           <button
             type="button"
-            className={styles.close}
+            className={juntarClasses(styles.close, 'botao-fechar')}
             onClick={handleClose}
             aria-label="Fechar notificação"
             tabIndex={saindo ? -1 : undefined}

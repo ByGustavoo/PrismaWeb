@@ -202,8 +202,9 @@ src/
 │   │              ControlePagamentoParcela, FiltrosParcelamentos, consulta (busca, situacao e ordenacao)
 │   ├── investimentos/ GraficoAlocacao (rosca), GraficoCarteira, CartaoInvestimento,
 │   │              ModalFormularioInvestimento, ModalDetalheInvestimento (aporte, resgate, saldo e
-│   │              historico), aparencia (cor da classe, tom do resultado) e contaMovimentacao
-│   │              (opcoes de conta do aporte e do resgate)
+│   │              historico; compra, venda e cotacao nas acoes), aparencia (cor da classe, tom do
+│   │              resultado), contaMovimentacao (opcoes de conta do aporte e do resgate) e calculoAcoes
+│   │              (custo da compra, valor da venda e preco medio das previas)
 │   ├── orcamento/ NavegadorMes, LinhaOrcamento, ModalFormularioOrcamento
 │   ├── recorrentes/ CartaoRecorrente, ModalFormularioRecorrente, lancamentoAutomatico (dica e explicacao do
 │   │              lancamento automatico, usadas tambem no formulario de lancamento)
@@ -380,6 +381,12 @@ Cada pasta de componentes tem um `index.ts` de barril — ao criar um componente
   proposito: ali nao ha conteudo anterior a atenuar. Filtros aplicados em memoria (cartao em Faturas
   e Parcelamentos, tudo em Lancamentos) nao passam por isso porque nao esperam nada — a troca
   acontece no mesmo quadro do clique.
+- **Todo X de fechar fica vermelho no hover** (classe global `.botao-fechar`, em `global.css`): o X do
+  `Modal`, o "Fechar menu" do drawer, o "Fechar busca" do header no celular e o fechar da notificacao.
+  O usuario pediu para o X dizer que fecha: `--negative` sobre `--negative-soft`, o mesmo par dos selos,
+  que ja passa no contraste nos dois temas. A classe e global, e nao de cada modulo, para todo X novo
+  entrar com o mesmo retorno; o hover fica em `@media (hover: hover)`. Um X que nao fecha nada, como o
+  "Limpar filtros", nao leva a classe.
 - Os tokens `--brand-*` sao a excecao a regra de tema: um logotipo nao muda de cor com o tema,
   entao eles ficam no bloco `:root` e valem para claro e escuro.
 
@@ -672,6 +679,17 @@ evolucao saem do calculo.
 - **Editar nao mexe em valor** (`AtualizarInvestimentoDTO`), pelo mesmo motivo da meta: sobrescrever
   o aportado apagaria a historia. O cadastro pede aplicacao inicial e saldo de hoje e grava as duas
   movimentacoes; dali em diante, valor so muda pelo detalhe.
+- **O formulario de investimento e horizontal a partir de 1100px**, a pedido do usuario: em
+  `tamanho="lg"` e duas colunas, o cadastro de uma acao rolava. Ele usa o `Modal` em `lgPlus` (1080px)
+  e uma grade de quatro colunas (`FormularioInvestimento.module.css`): o nome ocupa duas, e os valores,
+  a data e a conta dividem as outras linhas. A primeira versao usava o `xl` (1400px) do detalhe, e o
+  usuario achou o formulario grande demais; em 1080px a quarta coluna leva `1.25fr`, senao o seletor de
+  conta cortava "Nenhuma — Já estava investido", e as dicas da acao sao curtas para caber numa linha. A reserva comeca sempre a linha na primeira coluna (`.rowStart`), e a
+  Observacao ocupa as duas colunas da direita por duas linhas (`.note`), para a previa caber embaixo do
+  interruptor, no espaco que sobrava vazio: em largura total ela somava 50px de altura. Com a acao e a
+  previa completa o modal tem 783px; cabe sem rolagem em 1920x935, e em telas de 768px ou menos de
+  altura ainda rola alguns pixels.
+  Abaixo de 1100px volta a duas colunas, e abaixo de 600px a uma.
 - **O detalhe e onde o investimento vive** (`ModalDetalheInvestimento`). Clicar no cartao abre com
   "Atualizar saldo"; o botao "Aporte" do cartao abre com "Aportar" e o foco no valor. O registro fica
   embutido, com um seletor de tres estados ("Aportar", "Resgatar", "Atualizar saldo"), e nao em outro
@@ -727,6 +745,34 @@ evolucao saem do calculo.
 - **`GraficoEvolucao` (`components/graficos`) e o grafico de valor contra aportado** da carteira e do
   investimento: area para o valor, tracejado para o que foi colocado. A distancia entre as duas e o
   rendimento, e se le sem numero nenhum.
+- **Acoes sao acompanhadas pela quantidade, e so elas** (PRM-54). O usuario pediu cotas por tipo de
+  ativo e escolheu comecar so por `ACOES`; ETF, FII e cripto ficam por valor ate ele pedir. Uma acao tem
+  `codigo` (PETR4, obrigatorio, gravado em maiusculas), `quantidade` inteira, `precoMedio` (aportado
+  dividido pela quantidade) e `cotacao` (o ultimo preco conhecido) em `InvestimentoDTO`, e o saldo e
+  sempre quantidade vezes cotacao. O cadastro vai por `POST /investimentos/acoes` (`SalvarAcaoDTO`:
+  quantidade, preco por acao, taxas e cotacao de hoje opcionais), e `POST /investimentos` recusa acao
+  com `422`. Quem decide o modo e `ehAcaoPorQuantidade` (`constants/investimentos.ts`), que estreita o
+  tipo, como o `ehCartaoCredito`.
+- **No detalhe da acao o seletor vira "Comprar | Vender | Atualizar cotacao"** (`/compras`, `/vendas` e
+  `/cotacoes`). Nao ha tipo de movimentacao novo: compra e um `APORTE` com `quantidade`, `precoUnitario`
+  e `taxas`, venda e um `RESGATE` e cotacao e um `RENDIMENTO` com preco, entao a transferencia gerada em
+  Lancamentos ("Compra — PETR4", "Venda — PETR4") segue as regras de sempre. A compra soma quantidade e
+  custo (quantidade x preco + taxas); a venda tira do aportado o preco medio das vendidas — e o mesmo
+  "na mesma proporcao" do resgate, aplicado a quantidade — e recebe quantidade x preco - taxas; o preco
+  de uma compra ou venda vira a cotacao. Cada operacao mostra a previa antes de gravar (total e novo
+  preco medio; valor recebido e lucro sobre o preco medio; novo saldo e rendimento), com a conta de
+  `calculoAcoes`. A venda nao passa da quantidade, e as taxas nao passam do valor da venda. Com
+  compra e venda o registro tem sete campos e cabe em duas linhas (`registerFieldsTrade`, quatro
+  colunas): em tres linhas, a previa fazia o modal rolar em 1920x935.
+- **A acao cadastrada por valor antes da PRM-54 converte ao editar.** Ela continua com Aportar,
+  Resgatar e Atualizar saldo, e o detalhe mostra um aviso com "Informar quantidade"; o formulario de
+  edicao pede codigo e "Quantas acoes voce tem" (`AtualizarInvestimentoDTO.quantidade`), e o servidor
+  grava uma movimentacao "Posicao informada" (`RENDIMENTO` com quantidade): o preco medio sai do total
+  aportado e a cotacao, do saldo atual, entao nada do historico se perde. Acao nao troca de classe depois
+  do cadastro, nem para outra classe nem de outra classe (`422`): o seletor fica travado ao editar uma
+  acao, e as outras classes nao oferecem "Acoes".
+- **O cartao da acao** tem o titulo "PETR4 — Petrobras" (`nomeDoInvestimento`, usado tambem no modal e
+  nos toasts), troca o rodape por "100 acoes — Preco medio R$ 32,55" e o botao "Aporte" por "Comprar".
 
 ## Orcamento, recorrentes e previsao
 
