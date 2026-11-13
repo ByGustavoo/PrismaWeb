@@ -187,7 +187,7 @@ export function ModalFormularioTransferencia({
           <CampoSelecao
             required
             rotulo="Conta de destino"
-            placeholder="Para onde vai o dinheiro"
+            placeholder="Para onde vai"
             opcoes={destinationOptions}
             value={form.idContaDestino}
             onChange={(toAccountId) => set('idContaDestino', toAccountId)}

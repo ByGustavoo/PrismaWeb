@@ -54,9 +54,18 @@
   color: var(--text-inverted);
 }
 
-.primary:hover:not(:disabled) {
-  background-color: var(--accent);
-  color: var(--accent-contrast);
+@media (hover: hover) {
+  .primary:hover:not(:disabled) {
+    background-color: var(--accent);
+    color: var(--accent-contrast);
+  }
+}
+
+@media (hover: none) {
+  .primary:active:not(:disabled) {
+    background-color: var(--accent);
+    color: var(--accent-contrast);
+  }
 }
 
 .secondary {
@@ -65,9 +74,18 @@
   color: var(--text);
 }
 
-.secondary:hover:not(:disabled) {
-  border-color: var(--accent);
-  color: var(--accent);
+@media (hover: hover) {
+  .secondary:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+}
+
+@media (hover: none) {
+  .secondary:active:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
 }
 
 .ghost {
@@ -75,9 +93,18 @@
   color: var(--text-muted);
 }
 
-.ghost:hover:not(:disabled) {
-  background-color: var(--surface-muted);
-  color: var(--text);
+@media (hover: hover) {
+  .ghost:hover:not(:disabled) {
+    background-color: var(--surface-muted);
+    color: var(--text);
+  }
+}
+
+@media (hover: none) {
+  .ghost:active:not(:disabled) {
+    background-color: var(--surface-muted);
+    color: var(--text);
+  }
 }
 
 .danger {
@@ -85,6 +112,14 @@
   color: var(--negative-contrast);
 }
 
-.danger:hover:not(:disabled) {
-  filter: brightness(1.08);
+@media (hover: hover) {
+  .danger:hover:not(:disabled) {
+    filter: brightness(1.08);
+  }
+}
+
+@media (hover: none) {
+  .danger:active:not(:disabled) {
+    filter: brightness(1.08);
+  }
 }

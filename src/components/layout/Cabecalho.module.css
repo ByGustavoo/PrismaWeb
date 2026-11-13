@@ -28,9 +28,18 @@
   color: var(--text-muted);
 }
 
-.menuButton:hover {
-  background-color: var(--surface-muted);
-  color: var(--text);
+@media (hover: hover) {
+  .menuButton:hover {
+    background-color: var(--surface-muted);
+    color: var(--text);
+  }
+}
+
+@media (hover: none) {
+  .menuButton:active {
+    background-color: var(--surface-muted);
+    color: var(--text);
+  }
 }
 
 .actions {
@@ -53,9 +62,18 @@
     color var(--duration-fast) var(--ease-out);
 }
 
-.iconButton:hover {
-  background-color: var(--surface-muted);
-  color: var(--text);
+@media (hover: hover) {
+  .iconButton:hover {
+    background-color: var(--surface-muted);
+    color: var(--text);
+  }
+}
+
+@media (hover: none) {
+  .iconButton:active {
+    background-color: var(--surface-muted);
+    color: var(--text);
+  }
 }
 
 .searchButton {
@@ -107,8 +125,16 @@
   padding-left: 0.055em;
 }
 
-.iconButton:hover .badgeCount {
-  --badge-ring: var(--surface-muted);
+@media (hover: hover) {
+  .iconButton:hover .badgeCount {
+    --badge-ring: var(--surface-muted);
+  }
+}
+
+@media (hover: none) {
+  .iconButton:active .badgeCount {
+    --badge-ring: var(--surface-muted);
+  }
 }
 
 @keyframes entradaContador {

@@ -28,7 +28,16 @@
   color: var(--accent);
 }
 
-.control .quiet:hover:not(:disabled) {
-  background-color: var(--accent-soft);
-  color: var(--accent);
+@media (hover: hover) {
+  .control .quiet:hover:not(:disabled) {
+    background-color: var(--accent-soft);
+    color: var(--accent);
+  }
+}
+
+@media (hover: none) {
+  .control .quiet:active:not(:disabled) {
+    background-color: var(--accent-soft);
+    color: var(--accent);
+  }
 }

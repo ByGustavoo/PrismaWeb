@@ -14,8 +14,16 @@
   border-radius: var(--radius-xs);
 }
 
-.link:hover {
-  background-color: var(--accent-soft);
+@media (hover: hover) {
+  .link:hover {
+    background-color: var(--accent-soft);
+  }
+}
+
+@media (hover: none) {
+  .link:active {
+    background-color: var(--accent-soft);
+  }
 }
 
 .description {

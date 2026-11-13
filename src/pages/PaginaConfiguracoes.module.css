@@ -31,8 +31,16 @@
     background-color var(--duration-fast) var(--ease-out);
 }
 
-.themeOption:hover {
-  border-color: var(--border-strong);
+@media (hover: hover) {
+  .themeOption:hover {
+    border-color: var(--border-strong);
+  }
+}
+
+@media (hover: none) {
+  .themeOption:active {
+    border-color: var(--border-strong);
+  }
 }
 
 .themeOptionSelected {

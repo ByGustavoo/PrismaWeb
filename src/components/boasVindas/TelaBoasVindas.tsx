@@ -7,7 +7,7 @@ import { Botao } from '@/components/ui';
 import { FRASE_BOAS_VINDAS, NOME_APLICACAO } from '@/constants/aplicacao';
 import { juntarClasses } from '@/utils/juntarClasses';
 import { LinhaDoSaldo } from './LinhaDoSaldo';
-import { transicionarParaAplicacao } from './transicaoBoasVindas';
+import { rolarAteOTopo, transicionarParaAplicacao } from './transicaoBoasVindas';
 import styles from './TelaBoasVindas.module.css';
 
 const DURACAO_DESPEDIDA_MS = 760;
@@ -66,6 +66,7 @@ export function TelaBoasVindas({ aoComecar }: { aoComecar: () => void }) {
   const simboloRef = useRef<HTMLSpanElement>(null);
   const nomeRef = useRef<HTMLSpanElement>(null);
   const letrasRef = useRef<(HTMLSpanElement | null)[]>([]);
+  const iniciadoRef = useRef(false);
 
   const medirDistanciaAteOLogo = useCallback(() => {
     const simbolo = simboloRef.current?.getBoundingClientRect();
@@ -86,12 +87,14 @@ export function TelaBoasVindas({ aoComecar }: { aoComecar: () => void }) {
     return () => window.removeEventListener('resize', medirDistanciaAteOLogo);
   }, [medirDistanciaAteOLogo]);
 
-  const comecar = () => {
-    if (saindo) return;
+  const comecar = async () => {
+    if (iniciadoRef.current) return;
+    iniciadoRef.current = true;
     if (!movimentoPermitido) {
-      aoComecar();
+      transicionarParaAplicacao(aoComecar);
       return;
     }
+    await rolarAteOTopo(true);
     medirDistanciaAteOLogo();
     setSaindo(true);
     window.setTimeout(() => transicionarParaAplicacao(aoComecar), DURACAO_DESPEDIDA_MS);
@@ -171,7 +174,7 @@ export function TelaBoasVindas({ aoComecar }: { aoComecar: () => void }) {
         </ul>
 
         <div className={juntarClasses(styles.acoes, styles.entra, styles.etapa)} style={bloco(ATRASO_ENTRADA_MS.acoes, 0)}>
-          <Botao icone={ArrowRight} posicaoIcone="right" onClick={comecar} className={styles.comecar}>
+          <Botao icone={ArrowRight} posicaoIcone="right" onClick={() => void comecar()} className={styles.comecar}>
             Começar
           </Botao>
         </div>

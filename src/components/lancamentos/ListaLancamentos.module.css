@@ -37,9 +37,18 @@
     color var(--duration-fast) var(--ease-out);
 }
 
-.direction:hover {
-  border-color: var(--text-subtle);
-  color: var(--text);
+@media (hover: hover) {
+  .direction:hover {
+    border-color: var(--text-subtle);
+    color: var(--text);
+  }
+}
+
+@media (hover: none) {
+  .direction:active {
+    border-color: var(--text-subtle);
+    color: var(--text);
+  }
 }
 
 .list {
@@ -59,9 +68,20 @@
   transition: border-color var(--duration-fast) var(--ease-out);
 }
 
-.card:hover,
-.card:focus-within {
+.card:has(:focus-visible) {
   border-color: var(--border-strong);
+}
+
+@media (hover: hover) {
+  .card:hover {
+    border-color: var(--border-strong);
+  }
+}
+
+@media (hover: none) {
+  .card:active {
+    border-color: var(--border-strong);
+  }
 }
 
 .open {
@@ -204,7 +224,16 @@
     color var(--duration-fast) var(--ease-out);
 }
 
-.delete:hover {
-  background-color: var(--negative-soft);
-  color: var(--negative);
+@media (hover: hover) {
+  .delete:hover {
+    background-color: var(--negative-soft);
+    color: var(--negative);
+  }
+}
+
+@media (hover: none) {
+  .delete:active {
+    background-color: var(--negative-soft);
+    color: var(--negative);
+  }
 }

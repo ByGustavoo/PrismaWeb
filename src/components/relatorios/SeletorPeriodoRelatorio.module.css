@@ -28,9 +28,18 @@
     color var(--duration-fast) var(--ease-out);
 }
 
-.segment:hover {
-  background-color: var(--surface-muted);
-  color: var(--text);
+@media (hover: hover) {
+  .segment:hover {
+    background-color: var(--surface-muted);
+    color: var(--text);
+  }
+}
+
+@media (hover: none) {
+  .segment:active {
+    background-color: var(--surface-muted);
+    color: var(--text);
+  }
 }
 
 .segment[aria-pressed='true'] {

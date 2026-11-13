@@ -101,3 +101,9 @@
     color: var(--text);
   }
 }
+
+@media (hover: none) {
+  .type:active:not(.typeSelected) {
+    color: var(--text);
+  }
+}

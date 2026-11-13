@@ -37,8 +37,16 @@
   padding-block: var(--space-2);
 }
 
-.control:hover {
-  border-color: var(--text-subtle);
+@media (hover: hover) {
+  .control:hover {
+    border-color: var(--text-subtle);
+  }
+}
+
+@media (hover: none) {
+  .control:active {
+    border-color: var(--text-subtle);
+  }
 }
 
 .control:focus-within {

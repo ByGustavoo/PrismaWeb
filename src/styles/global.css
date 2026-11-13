@@ -12,6 +12,18 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+a,
+button,
+label,
+summary,
+[role='button'],
+[role='option'],
+[role='switch'],
+[role='tab'] {
+  touch-action: manipulation;
 }
 
 body {
@@ -180,6 +192,13 @@ table {
   }
 }
 
+@media (hover: none) {
+  .botao-fechar:active:not(:disabled) {
+    color: var(--negative);
+    background-color: var(--negative-soft);
+  }
+}
+
 .card-hover-accent {
   transition:
     border-color var(--duration-fast) var(--ease-out),
@@ -194,6 +213,14 @@ table {
 
 @media (hover: hover) {
   .card-hover-accent:hover {
+    border-color: var(--accent);
+    box-shadow: var(--shadow-accent);
+    transform: translateY(-1px);
+  }
+}
+
+@media (hover: none) {
+  .card-hover-accent:active {
     border-color: var(--accent);
     box-shadow: var(--shadow-accent);
     transform: translateY(-1px);

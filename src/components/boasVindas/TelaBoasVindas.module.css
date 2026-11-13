@@ -193,6 +193,21 @@
   }
 }
 
+@media (hover: none) {
+  .recurso:active {
+    translate: 0 -4px;
+    border-color: var(--accent);
+    background-color: color-mix(in srgb, var(--accent-soft) 45%, var(--surface));
+    box-shadow: 0 14px 30px -18px color-mix(in srgb, var(--accent) 70%, transparent);
+  }
+
+  .recurso:active .iconeRecurso {
+    background-color: var(--accent);
+    color: var(--accent-contrast);
+    scale: 1.06;
+  }
+}
+
 .textosRecurso {
   display: flex;
   flex-direction: column;

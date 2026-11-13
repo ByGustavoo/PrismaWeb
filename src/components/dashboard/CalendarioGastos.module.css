@@ -71,9 +71,18 @@
     box-shadow var(--duration-fast) var(--ease-out);
 }
 
-.day:hover {
-  transform: scale(1.14);
-  box-shadow: 0 0 0 1px var(--text-subtle);
+@media (hover: hover) {
+  .day:hover {
+    transform: scale(1.14);
+    box-shadow: 0 0 0 1px var(--text-subtle);
+  }
+}
+
+@media (hover: none) {
+  .day:active {
+    transform: scale(1.14);
+    box-shadow: 0 0 0 1px var(--text-subtle);
+  }
 }
 
 .level0 {

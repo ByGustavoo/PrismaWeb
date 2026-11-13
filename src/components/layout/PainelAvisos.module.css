@@ -293,6 +293,41 @@
   }
 }
 
+@media (hover: none) {
+  .row:active {
+    background-color: var(--surface-muted);
+  }
+
+  .row:active .actions {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .row:active .meta {
+    opacity: 0;
+  }
+
+  .action:active:not(:disabled) {
+    color: var(--accent);
+    border-color: var(--accent);
+    background-color: var(--accent-soft);
+  }
+
+  .markAll:active:not(:disabled) {
+    background-color: var(--accent-soft);
+  }
+
+  .readToggle:active {
+    color: var(--text);
+  }
+
+  .snoozeOption:active {
+    color: var(--accent);
+    border-color: var(--accent);
+    background-color: var(--accent-soft);
+  }
+}
+
 .snooze {
   display: flex;
   flex-wrap: wrap;

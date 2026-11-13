@@ -33,9 +33,18 @@
   transition: background-color var(--duration-fast) var(--ease-out);
 }
 
-.interactive:hover {
-  background-color: var(--surface-muted);
-  cursor: pointer;
+@media (hover: hover) {
+  .interactive:hover {
+    background-color: var(--surface-muted);
+    cursor: pointer;
+  }
+}
+
+@media (hover: none) {
+  .interactive:active {
+    background-color: var(--surface-muted);
+    cursor: pointer;
+  }
 }
 
 .td {

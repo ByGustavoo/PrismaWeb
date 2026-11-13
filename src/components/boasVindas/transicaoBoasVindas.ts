@@ -6,6 +6,7 @@ const CLASSE_MARCA_EM_VOO = 'marca-em-voo';
 const DURACAO_CHEGADA_MS = 1500;
 const ESPERA_MAXIMA_PAGINA_MS = 600;
 const INTERVALO_VERIFICACAO_MS = 16;
+const ESPERA_MAXIMA_ROLAGEM_MS = 700;
 
 interface TransicaoDeVisao {
   ready: Promise<void>;
@@ -28,11 +29,31 @@ function esperarPaginaPronta(): Promise<void> {
   });
 }
 
+export function rolarAteOTopo(suave: boolean): Promise<void> {
+  if (window.scrollY <= 1) return Promise.resolve();
+
+  return new Promise((resolver) => {
+    const inicio = performance.now();
+    window.scrollTo({ top: 0, behavior: suave ? 'smooth' : 'auto' });
+    const verificar = () => {
+      if (window.scrollY <= 1 || performance.now() - inicio > ESPERA_MAXIMA_ROLAGEM_MS) resolver();
+      else window.requestAnimationFrame(verificar);
+    };
+    window.requestAnimationFrame(verificar);
+  });
+}
+
+function entrarNoTopo(aoComecar: () => void): void {
+  aoComecar();
+  window.scrollTo(0, 0);
+}
+
 export function transicionarParaAplicacao(aoComecar: () => void): void {
   const documento = document as unknown as DocumentoComTransicao;
 
   if (!documento.startViewTransition || document.visibilityState !== 'visible') {
-    aoComecar();
+    flushSync(() => entrarNoTopo(aoComecar));
+    window.scrollTo(0, 0);
     return;
   }
 
@@ -43,7 +64,9 @@ export function transicionarParaAplicacao(aoComecar: () => void): void {
 
   const transicao = documento.startViewTransition(async () => {
     flushSync(aoComecar);
+    window.scrollTo(0, 0);
     await esperarPaginaPronta();
+    window.scrollTo(0, 0);
   });
   transicao.ready.then(
     () => {

@@ -9,10 +9,23 @@
     box-shadow var(--duration-base) var(--ease-out);
 }
 
-.card:hover,
-.card:focus-within {
+.card:has(:focus-visible) {
   border-color: var(--accent);
   box-shadow: var(--shadow-accent);
+}
+
+@media (hover: hover) {
+  .card:hover {
+    border-color: var(--accent);
+    box-shadow: var(--shadow-accent);
+  }
+}
+
+@media (hover: none) {
+  .card:active {
+    border-color: var(--accent);
+    box-shadow: var(--shadow-accent);
+  }
 }
 
 .archived {
@@ -172,12 +185,30 @@
     color var(--duration-fast) var(--ease-out);
 }
 
-.action:hover {
-  background-color: var(--surface-muted);
-  color: var(--text);
+@media (hover: hover) {
+  .action:hover {
+    background-color: var(--surface-muted);
+    color: var(--text);
+  }
 }
 
-.delete:hover {
-  background-color: var(--negative-soft);
-  color: var(--negative);
+@media (hover: none) {
+  .action:active {
+    background-color: var(--surface-muted);
+    color: var(--text);
+  }
+}
+
+@media (hover: hover) {
+  .delete:hover {
+    background-color: var(--negative-soft);
+    color: var(--negative);
+  }
+}
+
+@media (hover: none) {
+  .delete:active {
+    background-color: var(--negative-soft);
+    color: var(--negative);
+  }
 }
