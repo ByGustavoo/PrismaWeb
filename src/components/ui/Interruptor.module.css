@@ -37,13 +37,32 @@
   transition: border-color var(--duration-base) var(--ease-out);
 }
 
-.control:hover:not(:disabled) .track {
-  border-color: var(--text-subtle);
+@media (hover: hover) {
+  .control:hover:not(:disabled) .track {
+    border-color: var(--text-subtle);
+  }
 }
 
-.trackOn,
-.control:hover:not(:disabled) .trackOn {
+@media (hover: none) {
+  .control:active:not(:disabled) .track {
+    border-color: var(--text-subtle);
+  }
+}
+
+.trackOn {
   border-color: var(--accent);
+}
+
+@media (hover: hover) {
+  .control:hover:not(:disabled) .trackOn {
+    border-color: var(--accent);
+  }
+}
+
+@media (hover: none) {
+  .control:active:not(:disabled) .trackOn {
+    border-color: var(--accent);
+  }
 }
 
 .fill {
@@ -140,6 +159,13 @@
 
 @media (hover: hover) {
   .more:hover {
+    color: var(--accent);
+    text-decoration-style: solid;
+  }
+}
+
+@media (hover: none) {
+  .more:active {
     color: var(--accent);
     text-decoration-style: solid;
   }

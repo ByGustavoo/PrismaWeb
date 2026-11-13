@@ -102,6 +102,12 @@
   }
 }
 
+@media (hover: none) {
+  .more:active {
+    text-decoration: underline;
+  }
+}
+
 @media (max-width: 479px) {
   .balance {
     display: none;

@@ -44,6 +44,12 @@ export function ProvedorTema({ children }: { children: ReactNode }) {
     document.documentElement.dataset.theme = theme;
   }
 
+  useEffect(() => {
+    const barra = window.getComputedStyle(document.documentElement).getPropertyValue('--canvas').trim();
+    if (!barra) return;
+    document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => meta.setAttribute('content', barra));
+  }, [theme]);
+
   const setMode = useCallback((next: ModoTema) => {
     setModeState(next);
     try {

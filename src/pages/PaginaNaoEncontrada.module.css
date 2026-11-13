@@ -347,10 +347,20 @@
     color var(--duration-fast) var(--ease-out);
 }
 
-.link:hover {
-  border-color: var(--accent);
-  background-color: var(--accent-soft);
-  color: var(--accent);
+@media (hover: hover) {
+  .link:hover {
+    border-color: var(--accent);
+    background-color: var(--accent-soft);
+    color: var(--accent);
+  }
+}
+
+@media (hover: none) {
+  .link:active {
+    border-color: var(--accent);
+    background-color: var(--accent-soft);
+    color: var(--accent);
+  }
 }
 
 .link:focus-visible {

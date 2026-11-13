@@ -50,8 +50,16 @@
   margin-top: calc(var(--space-1) * -1);
 }
 
-.delete:hover {
-  color: var(--negative);
+@media (hover: hover) {
+  .delete:hover {
+    color: var(--negative);
+  }
+}
+
+@media (hover: none) {
+  .delete:active {
+    color: var(--negative);
+  }
 }
 
 .limit {

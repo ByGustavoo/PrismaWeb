@@ -317,11 +317,7 @@ export function ModalFormularioRecorrente({
         <CampoSelecao
           required={form.lancarAutomaticamente}
           rotulo="Categoria"
-          placeholder={
-            form.lancarAutomaticamente
-              ? `Escolha a categoria da ${nome}`
-              : `Opcional: ajuda a classificar a ${nome}`
-          }
+          placeholder={form.lancarAutomaticamente ? 'Escolha a categoria' : 'Opcional'}
           opcoes={categoryOptions}
           value={form.idCategoria}
           onChange={(categoryId) => set('idCategoria', categoryId)}

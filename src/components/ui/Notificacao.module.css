@@ -151,6 +151,13 @@
   }
 }
 
+@media (hover: none) {
+  .close:active {
+    color: var(--text);
+    background-color: var(--surface-muted);
+  }
+}
+
 .progress {
   position: absolute;
   right: 0;

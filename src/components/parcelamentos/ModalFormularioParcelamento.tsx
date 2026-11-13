@@ -256,7 +256,7 @@ export function ModalFormularioParcelamento({
 
         <CampoSelecao
           rotulo="Categoria"
-          placeholder="Opcional: ajuda a classificar o gasto"
+          placeholder="Opcional"
           opcoes={expenseCategoryOptions}
           value={form.idCategoria}
           onChange={(categoryId) => set('idCategoria', categoryId)}

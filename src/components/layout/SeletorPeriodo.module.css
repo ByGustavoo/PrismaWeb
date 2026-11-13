@@ -30,9 +30,18 @@
   transition: background-color var(--duration-fast) var(--ease-out);
 }
 
-.arrow:hover:not([aria-disabled='true']) {
-  background-color: var(--surface-muted);
-  color: var(--text);
+@media (hover: hover) {
+  .arrow:hover:not([aria-disabled='true']) {
+    background-color: var(--surface-muted);
+    color: var(--text);
+  }
+}
+
+@media (hover: none) {
+  .arrow:active:not([aria-disabled='true']) {
+    background-color: var(--surface-muted);
+    color: var(--text);
+  }
 }
 
 .arrow[aria-disabled='true'] {
@@ -54,8 +63,16 @@
   transition: background-color var(--duration-fast) var(--ease-out);
 }
 
-.label:hover {
-  background-color: var(--surface-muted);
+@media (hover: hover) {
+  .label:hover {
+    background-color: var(--surface-muted);
+  }
+}
+
+@media (hover: none) {
+  .label:active {
+    background-color: var(--surface-muted);
+  }
 }
 
 .labelOpen {
@@ -114,8 +131,16 @@
   transition: background-color var(--duration-fast) var(--ease-out);
 }
 
-.preset:hover {
-  background-color: var(--surface-muted);
+@media (hover: hover) {
+  .preset:hover {
+    background-color: var(--surface-muted);
+  }
+}
+
+@media (hover: none) {
+  .preset:active {
+    background-color: var(--surface-muted);
+  }
 }
 
 .presetSelected {

@@ -21,9 +21,18 @@
     color var(--duration-fast) var(--ease-out);
 }
 
-.arrow:hover:not(:disabled) {
-  background-color: var(--surface-muted);
-  color: var(--text);
+@media (hover: hover) {
+  .arrow:hover:not(:disabled) {
+    background-color: var(--surface-muted);
+    color: var(--text);
+  }
+}
+
+@media (hover: none) {
+  .arrow:active:not(:disabled) {
+    background-color: var(--surface-muted);
+    color: var(--text);
+  }
 }
 
 .arrow:disabled {

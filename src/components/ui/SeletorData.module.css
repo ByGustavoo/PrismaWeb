@@ -44,9 +44,18 @@
   font-size: var(--fs-sm);
 }
 
-.trigger:hover:not(:disabled) {
-  border-color: var(--text-subtle);
-  background-color: var(--surface-muted);
+@media (hover: hover) {
+  .trigger:hover:not(:disabled) {
+    border-color: var(--text-subtle);
+    background-color: var(--surface-muted);
+  }
+}
+
+@media (hover: none) {
+  .trigger:active:not(:disabled) {
+    border-color: var(--text-subtle);
+    background-color: var(--surface-muted);
+  }
 }
 
 .trigger:focus-visible {
@@ -55,11 +64,26 @@
   box-shadow: var(--focus-ring);
 }
 
-.triggerOpen,
-.triggerOpen:hover:not(:disabled) {
+.triggerOpen {
   border-color: var(--accent);
   background-color: var(--surface);
   box-shadow: var(--focus-ring);
+}
+
+@media (hover: hover) {
+  .triggerOpen:hover:not(:disabled) {
+    border-color: var(--accent);
+    background-color: var(--surface);
+    box-shadow: var(--focus-ring);
+  }
+}
+
+@media (hover: none) {
+  .triggerOpen:active:not(:disabled) {
+    border-color: var(--accent);
+    background-color: var(--surface);
+    box-shadow: var(--focus-ring);
+  }
 }
 
 .triggerError {
@@ -128,9 +152,18 @@
     color var(--duration-fast) var(--ease-out);
 }
 
-.nav:hover {
-  background-color: var(--surface-muted);
-  color: var(--text);
+@media (hover: hover) {
+  .nav:hover {
+    background-color: var(--surface-muted);
+    color: var(--text);
+  }
+}
+
+@media (hover: none) {
+  .nav:active {
+    background-color: var(--surface-muted);
+    color: var(--text);
+  }
 }
 
 .grid {
@@ -215,8 +248,16 @@
   transition: background-color var(--duration-fast) var(--ease-out);
 }
 
-.action:hover:not(:disabled) {
-  background-color: var(--accent-soft);
+@media (hover: hover) {
+  .action:hover:not(:disabled) {
+    background-color: var(--accent-soft);
+  }
+}
+
+@media (hover: none) {
+  .action:active:not(:disabled) {
+    background-color: var(--accent-soft);
+  }
 }
 
 .action:disabled {

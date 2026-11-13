@@ -41,8 +41,16 @@
   transition: color var(--duration-fast) var(--ease-out);
 }
 
-.option:hover:not(.selected) {
-  color: var(--text);
+@media (hover: hover) {
+  .option:hover:not(.selected) {
+    color: var(--text);
+  }
+}
+
+@media (hover: none) {
+  .option:active:not(.selected) {
+    color: var(--text);
+  }
 }
 
 .option:focus-visible {

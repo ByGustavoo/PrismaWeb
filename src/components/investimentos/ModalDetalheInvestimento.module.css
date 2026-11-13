@@ -152,6 +152,13 @@
   }
 }
 
+@media (hover: none) {
+  .segment:not(.segmentActive):active {
+    color: var(--text);
+    background-color: var(--surface-muted);
+  }
+}
+
 .registerFields {
   display: grid;
   grid-template-columns: minmax(130px, 1fr) minmax(140px, 1fr) minmax(0, 1.4fr) auto;
@@ -383,5 +390,11 @@
     min-height: var(--tap-size);
     padding: 0 var(--space-2);
     white-space: nowrap;
+  }
+}
+
+@media (max-width: 479px) {
+  .registerFields {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

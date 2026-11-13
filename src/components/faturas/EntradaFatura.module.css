@@ -87,9 +87,18 @@
     border-color var(--duration-fast) var(--ease-out);
 }
 
-.row:hover {
-  background-color: var(--surface-muted);
-  border-color: var(--border);
+@media (hover: hover) {
+  .row:hover {
+    background-color: var(--surface-muted);
+    border-color: var(--border);
+  }
+}
+
+@media (hover: none) {
+  .row:active {
+    background-color: var(--surface-muted);
+    border-color: var(--border);
+  }
 }
 
 .rowIdentity {

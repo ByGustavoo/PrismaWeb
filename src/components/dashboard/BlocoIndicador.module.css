@@ -15,6 +15,13 @@
   }
 }
 
+@media (hover: none) {
+  .tile:active .iconBox {
+    background-color: var(--accent-soft);
+    color: var(--accent);
+  }
+}
+
 .header {
   display: flex;
   align-items: center;

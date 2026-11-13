@@ -14,17 +14,36 @@
   transition: color var(--duration-fast) var(--ease-out);
 }
 
-.sortButton:hover {
-  color: var(--text);
+@media (hover: hover) {
+  .sortButton:hover {
+    color: var(--text);
+  }
+}
+
+@media (hover: none) {
+  .sortButton:active {
+    color: var(--text);
+  }
 }
 
 .sortButton svg {
   opacity: 0.45;
 }
 
-.sortActive,
-.sortActive:hover {
+.sortActive {
   color: var(--accent);
+}
+
+@media (hover: hover) {
+  .sortActive:hover {
+    color: var(--accent);
+  }
+}
+
+@media (hover: none) {
+  .sortActive:active {
+    color: var(--accent);
+  }
 }
 
 .sortActive svg {
@@ -122,6 +141,14 @@
   gap: var(--space-1);
 }
 
-.delete:hover {
-  color: var(--negative);
+@media (hover: hover) {
+  .delete:hover {
+    color: var(--negative);
+  }
+}
+
+@media (hover: none) {
+  .delete:active {
+    color: var(--negative);
+  }
 }

@@ -154,8 +154,16 @@
   border-radius: var(--radius-xs);
 }
 
-.collapse:hover {
-  color: var(--text);
+@media (hover: hover) {
+  .collapse:hover {
+    color: var(--text);
+  }
+}
+
+@media (hover: none) {
+  .collapse:active {
+    color: var(--text);
+  }
 }
 
 @media (max-width: 900px) {

@@ -1564,6 +1564,27 @@ segundo numero nao se aplica — nao ha titulo visivel para separar do conteudo.
   carteira sobe para cima da legenda abaixo de 900px: lado a lado, nessa faixa, sobrariam duas
   colunas estreitas demais para nome da classe e valor na mesma linha.
 - `prefers-reduced-motion` e respeitado globalmente — nao adicione animacao sem cobrir esse caso.
+- **Hover so existe com mouse, e o toque tem o seu retorno** (PRM-55). No iPhone um `:hover` "gruda"
+  depois do toque: o cartao ficava com a borda azul e o botao com o fundo de hover ate tocar em outro
+  lugar. Todo efeito de `:hover` vai dentro de `@media (hover: hover)`, e logo depois dele vem um
+  `@media (hover: none)` com as mesmas regras em `:active`, que aparecem so enquanto o dedo pressiona.
+  O destaque de cartao por foco usa `:has(:focus-visible)`, e nao `:focus-within`, para acender no Tab
+  e nao depois de um toque. Regra nova de hover segue o mesmo par.
+- **Toque sem realce nem atraso.** `-webkit-tap-highlight-color: transparent` no `html` tira o retangulo
+  cinza que o Safari pinta em cada toque (os estados `:active` ja respondem), e `touch-action:
+  manipulation` em links, botoes e papeis de controle tira a espera do toque duplo.
+- **A barra do Safari segue o tema do app.** O script do `index.html` e o `ProvedorTema` gravam a cor
+  de `--canvas` nas `meta[name="theme-color"]`; so com o `media` delas, a barra seguia o tema do
+  sistema, e o app escuro num iPhone claro abria com a barra clara.
+- **No celular o modal e uma folha que sobe de baixo** (`subirFolha`, `--duration-slow`), presa a base
+  com o respiro da area segura, em vez do "rise" de 8px do desktop.
+- **Abaixo de 480px o registro dos detalhes de investimento e de meta vira uma coluna so**: em duas,
+  com os alvos de 44px do toque, a data "12/11/2026" ja saia cortada.
+- **A tela de boas-vindas sobe ao topo antes de se despedir** (`rolarAteOTopo`). No celular ela e mais
+  alta que a tela, e o "Começar" fica embaixo: a despedida acontecia fora da vista, e como as boas-vindas
+  e o app sao o mesmo documento, o dashboard abria rolado pela mesma distancia, com o titulo escondido.
+  Agora a pagina rola ate o topo, so entao o logo recolhe o nome, e a troca forca `scrollTo(0, 0)` antes e
+  depois de a pagina nova renderizar, tambem no caminho sem View Transitions.
 
 ## Validacao de formulario
 

@@ -67,8 +67,16 @@
   margin-top: calc(var(--space-1) * -1);
 }
 
-.delete:hover {
-  color: var(--negative);
+@media (hover: hover) {
+  .delete:hover {
+    color: var(--negative);
+  }
+}
+
+@media (hover: none) {
+  .delete:active {
+    color: var(--negative);
+  }
 }
 
 .headline {
@@ -186,8 +194,16 @@
   border-radius: var(--radius-xs);
 }
 
-.toggle:hover {
-  text-decoration: underline;
+@media (hover: hover) {
+  .toggle:hover {
+    text-decoration: underline;
+  }
+}
+
+@media (hover: none) {
+  .toggle:active {
+    text-decoration: underline;
+  }
 }
 
 .chevron {
@@ -196,6 +212,12 @@
 
 @media (hover: hover) {
   .toggle:hover .chevron {
+    transform: translateX(2px);
+  }
+}
+
+@media (hover: none) {
+  .toggle:active .chevron {
     transform: translateX(2px);
   }
 }

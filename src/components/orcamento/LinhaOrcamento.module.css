@@ -9,10 +9,23 @@
     box-shadow var(--duration-base) var(--ease-out);
 }
 
-.row:hover,
-.row:focus-within {
+.row:has(:focus-visible) {
   border-color: var(--accent);
   box-shadow: var(--shadow-accent);
+}
+
+@media (hover: hover) {
+  .row:hover {
+    border-color: var(--accent);
+    box-shadow: var(--shadow-accent);
+  }
+}
+
+@media (hover: none) {
+  .row:active {
+    border-color: var(--accent);
+    box-shadow: var(--shadow-accent);
+  }
 }
 
 .open {
@@ -78,9 +91,18 @@
     color var(--duration-fast) var(--ease-out);
 }
 
-.delete:hover {
-  background-color: var(--negative-soft);
-  color: var(--negative);
+@media (hover: hover) {
+  .delete:hover {
+    background-color: var(--negative-soft);
+    color: var(--negative);
+  }
+}
+
+@media (hover: none) {
+  .delete:active {
+    background-color: var(--negative-soft);
+    color: var(--negative);
+  }
 }
 
 .figures {

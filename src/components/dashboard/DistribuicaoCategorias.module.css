@@ -184,6 +184,12 @@
   }
 }
 
+@media (hover: none) {
+  .toggle:active {
+    text-decoration: underline;
+  }
+}
+
 .chevron {
   transition: transform var(--duration-fast) var(--ease-out);
 }
