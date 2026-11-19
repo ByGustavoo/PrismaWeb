@@ -137,6 +137,65 @@
   }
 }
 
+.bell {
+  overflow: visible;
+  transform-origin: 50% 2px;
+}
+
+.bellButton[data-pending='true'] .bell {
+  animation: balancarSino 6s var(--ease-out) infinite;
+}
+
+.bellButton[data-pending='true'] .bell path:last-child {
+  animation: badaloSino 6s var(--ease-out) infinite;
+}
+
+@keyframes balancarSino {
+  0%,
+  16%,
+  100% {
+    rotate: 0deg;
+  }
+  2% {
+    rotate: 16deg;
+  }
+  4.5% {
+    rotate: -14deg;
+  }
+  7% {
+    rotate: 10deg;
+  }
+  9.5% {
+    rotate: -7deg;
+  }
+  12% {
+    rotate: 4deg;
+  }
+  14% {
+    rotate: -2deg;
+  }
+}
+
+@keyframes badaloSino {
+  0%,
+  16%,
+  100% {
+    translate: 0;
+  }
+  2.5% {
+    translate: -1.5px;
+  }
+  5% {
+    translate: 1.5px;
+  }
+  7.5% {
+    translate: -1px;
+  }
+  10% {
+    translate: 1px;
+  }
+}
+
 @keyframes entradaContador {
   from {
     opacity: 0;

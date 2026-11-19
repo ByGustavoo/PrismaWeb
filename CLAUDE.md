@@ -1403,6 +1403,16 @@ direita do sino (`left` + `translate`), para "9", "12" e "99+" crescerem para os
 cobrirem o icone ou o botao vizinho. A entrada usa `scale`, e nao `transform`, e o `key` pela
 quantidade a repete quando o numero muda.
 
+**O sino balanca enquanto ha aviso novo.** Pedido do usuario, copiando o sino do Quorum: com
+`data-pending="true"` no botao, o icone gira a cada 6s preso pelo topo (`transform-origin: 50% 2px`,
+16deg, -14deg, 10deg, -7deg, 4deg e repouso nos primeiros 16% do ciclo, `balancarSino`) e o badalo,
+que e o ultimo `path` do `Bell` do lucide, anda de lado no mesmo ritmo (`badaloSino`). O resto do
+ciclo e parado, para o sino chamar atencao sem virar ruido. Quando a quantidade sobe, o
+`Cabecalho` troca o `key` do icone (`bellRing`) e o balanco recomeca na hora, em vez de esperar o
+proximo ciclo; descer, ao marcar como lido, nao toca. O contador fica fora do icone e nao gira junto.
+O movimento reduzido para o balanco pela regra global do `global.css`. Os percentuais dos dois
+keyframes formam uma linha do tempo so: mudou um, confira o outro.
+
 **O contador tem par de cor proprio: `--counter` e `--counter-contrast`.** O numero e sempre branco,
 nos dois temas, e por isso o fundo nao e o `--negative`: no escuro ele e claro (`#fa5252`, feito
 para ser texto sobre superficie escura) e branco sobre ele da 3,28:1. O `--negative-contrast` do

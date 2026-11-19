@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Bell, Menu, Moon, Plus, Search, Sun } from 'lucide-react';
@@ -39,8 +39,16 @@ export function Cabecalho({ aoAbrirMenu }: CabecalhoProps) {
   const location = useLocation();
   const [alertsOpen, setAlertsOpen] = useState(false);
   const [alertCount, setAlertCount] = useState(0);
+  const [bellRing, setBellRing] = useState(0);
+  const previousAlertCount = useRef(0);
   const [searchOpen, setSearchOpen] = useState(false);
   const isMobile = useEhMobile();
+
+  const updateAlertCount = useCallback((count: number) => {
+    if (count > previousAlertCount.current) setBellRing((ring) => ring + 1);
+    previousAlertCount.current = count;
+    setAlertCount(count);
+  }, []);
 
   const closeAlerts = useCallback(() => setAlertsOpen(false), []);
   const closeSearch = useCallback(() => setSearchOpen(false), []);
@@ -96,13 +104,14 @@ export function Cabecalho({ aoAbrirMenu }: CabecalhoProps) {
             <button
               type="button"
               data-notifications-trigger
-              className={styles.iconButton}
+              className={`${styles.iconButton} ${styles.bellButton}`}
+              data-pending={alertCount > 0}
               onClick={() => setAlertsOpen((value) => !value)}
               aria-label={rotuloAvisos(alertCount)}
               aria-expanded={alertsOpen}
               aria-haspopup="dialog"
             >
-              <Bell size={18} strokeWidth={2} />
+              <Bell key={bellRing} className={styles.bell} size={18} strokeWidth={2} aria-hidden="true" />
               {alertCount > 0 ? (
                 <span
                   key={alertCount}
@@ -116,7 +125,7 @@ export function Cabecalho({ aoAbrirMenu }: CabecalhoProps) {
               ) : null}
             </button>
 
-            <PainelAvisos aberto={alertsOpen} aoFechar={closeAlerts} aoMudarQuantidade={setAlertCount} />
+            <PainelAvisos aberto={alertsOpen} aoFechar={closeAlerts} aoMudarQuantidade={updateAlertCount} />
           </div>
 
           {pageOwnsControls || transactionsHidden ? null : (
