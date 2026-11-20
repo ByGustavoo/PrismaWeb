@@ -1,5 +1,13 @@
 .table {
-  min-width: 1000px;
+  min-width: 760px;
+}
+
+.date {
+  white-space: nowrap;
+}
+
+.table :is(th, td) {
+  padding-inline: var(--space-3);
 }
 
 .sortButton {
@@ -67,10 +75,7 @@
 .notes {
   display: block;
   margin-top: 2px;
-  max-width: 34ch;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  max-width: 30ch;
   font-size: var(--fs-xs);
   color: var(--text-subtle);
 }
@@ -87,7 +92,6 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  white-space: nowrap;
 }
 
 .categoryDot {
@@ -99,9 +103,9 @@
 
 .route {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2);
-  white-space: nowrap;
+  gap: 2px var(--space-2);
 }
 
 .route svg {

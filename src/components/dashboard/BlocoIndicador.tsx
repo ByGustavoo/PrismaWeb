@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { ValorMonetario, IndicadorVariacao } from '@/components/comum';
+import { ValorMonetario, IndicadorVariacao, tomDaVariacao } from '@/components/comum';
 import type { Tendencia, VariacaoDTO } from '@/types';
 import styles from './BlocoIndicador.module.css';
 
@@ -11,8 +11,11 @@ interface BlocoIndicadorProps {
   variacao?: VariacaoDTO;
   legendaVariacao?: string;
   sentidoFavoravel?: Exclude<Tendencia, 'ESTAVEL'>;
+  iconeSegueVariacao?: boolean;
   notaRodape?: ReactNode;
 }
+
+const TOM_ICONE = { good: 'positive', bad: 'negative', flat: 'accent' } as const;
 
 export function BlocoIndicador({
   rotulo,
@@ -21,13 +24,16 @@ export function BlocoIndicador({
   variacao,
   legendaVariacao,
   sentidoFavoravel,
+  iconeSegueVariacao = false,
   notaRodape,
 }: BlocoIndicadorProps) {
+  const tomIcone = iconeSegueVariacao && variacao ? TOM_ICONE[tomDaVariacao(variacao, sentidoFavoravel)] : 'accent';
+
   return (
     <article className={`${styles.tile} card-hover-accent`}>
       <header className={styles.header}>
         <span className={styles.label}>{rotulo}</span>
-        <span className={styles.iconBox} aria-hidden="true">
+        <span className={styles.iconBox} data-tom={tomIcone} aria-hidden="true">
           <Icon size={16} strokeWidth={2} />
         </span>
       </header>

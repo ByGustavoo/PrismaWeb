@@ -17,6 +17,12 @@
   transition: fill-opacity var(--duration-fast) var(--ease-out);
 }
 
+.chart :global(.recharts-sector):focus,
+.chart :global(.recharts-surface):focus,
+.chart :global(.recharts-wrapper):focus {
+  outline: none;
+}
+
 .center {
   position: absolute;
   top: 50%;

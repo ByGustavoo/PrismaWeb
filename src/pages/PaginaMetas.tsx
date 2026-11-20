@@ -18,6 +18,7 @@ import { CabecalhoPagina } from '@/components/layout';
 import { Botao, Painel, DialogoConfirmacao, EstadoVazio, BlocoCarregando } from '@/components/ui';
 import { notificacaoSituacaoMeta } from '@/constants/metas';
 import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
+import { useFiltrosEmpilhados } from '@/hooks/useConsultaMidia';
 import { useAvisos } from '@/providers/ProvedorAvisos';
 import { useNotificacoes } from '@/providers/ProvedorNotificacoes';
 import { PARAMETRO_META } from '@/routes/caminhos';
@@ -34,6 +35,12 @@ function tendenciaTotal(change: number, base: number): Tendencia {
 export function PaginaMetas() {
   const [query, setQuery] = useState<ConsultaMeta>(consultaMetaVazia);
   const [creating, setCreating] = useState(false);
+  const filtrosEmpilhados = useFiltrosEmpilhados();
+  const newGoalButton = (
+    <Botao tamanho="sm" icone={Plus} onClick={() => setCreating(true)}>
+      Nova meta
+    </Botao>
+  );
   const [editing, setEditing] = useState<MetaDTO | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [focusPriceForm, setFocusPriceForm] = useState(false);
@@ -168,6 +175,7 @@ export function PaginaMetas() {
         descricao="O que você pretende comprar, por quanto viu da primeira vez e para onde o preço está indo"
         acoes={
           <>
+            {filtrosEmpilhados ? newGoalButton : null}
             {items.length > 0 ? (
               <FiltrosMetas
                 consulta={query}
@@ -175,9 +183,7 @@ export function PaginaMetas() {
                 refBusca={searchRef}
               />
             ) : null}
-            <Botao tamanho="sm" icone={Plus} onClick={() => setCreating(true)}>
-              Nova meta
-            </Botao>
+            {filtrosEmpilhados ? null : newGoalButton}
           </>
         }
       />

@@ -9,6 +9,12 @@
   inset: 0;
 }
 
+@media (max-width: 767px) {
+  .chart {
+    margin-left: calc(var(--space-4) * -1);
+  }
+}
+
 .empty {
   display: grid;
   place-items: center;

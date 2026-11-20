@@ -86,6 +86,10 @@
   min-width: 0;
 }
 
+.chart :global(.recharts-surface) {
+  overflow: visible;
+}
+
 @media (max-width: 1099px) {
   .panel {
     grid-template-columns: minmax(0, 1fr);

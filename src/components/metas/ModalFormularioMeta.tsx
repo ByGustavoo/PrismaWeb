@@ -162,7 +162,7 @@ export function ModalFormularioMeta({ aberto, meta, salvando, aoEnviar, aoFechar
           className={styles.full}
           required
           rotulo="Produto"
-          placeholder="Tênis Nike Pegasus 41, cadeira ergonômica..."
+          placeholder="Tênis de corrida, cadeira..."
           value={form.nome}
           onChange={(event) => set('nome', event.target.value)}
           onBlur={() => tocar('nome')}

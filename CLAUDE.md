@@ -9,12 +9,9 @@ planejamento). O nome do produto e **Prisma**, usado de forma consistente no rep
 `package.json`, em `NOME_APLICACAO` (`src/constants/aplicacao.ts`), no `<title>` do `index.html` e nos
 prefixos de `localStorage` (`prisma:*`). Ao renomear um deles, renomeie todos.
 
-O estado atual vai ate a **Etapa 6**: fundacao do frontend, dashboard, as telas de lancamentos
-(listagem com filtros, cadastro, edicao e exclusao de receitas, despesas e transferencias), o
-bloco de contas e cartoes — cadastro de contas, cadastro dos quatro tipos de cartao, faturas com
-detalhe de compras e compras parceladas — e o bloco de patrimonio e analise: carteira de
-investimentos, orcamento mensal por categoria, receitas e despesas recorrentes, previsao financeira, metas e
-desejos com historico de precos, e relatorios. O backend e o PrismaAPI (Java / Spring Boot /
+O estado atual vai ate a **Etapa 6**: dashboard, lancamentos, contas e cartoes (com faturas e compras
+parceladas), investimentos, planejamento (orcamento, recorrentes, previsao, metas) e relatorios — cada
+bloco tem a sua secao abaixo. O backend e o PrismaAPI (Java / Spring Boot /
 PostgreSQL), e o frontend **nao tem camada de mocks**: todo dado vem do PrismaAPI. Sem o backend
 rodando, as telas abrem no estado de erro, com o botao "Tentar de novo".
 
@@ -106,7 +103,9 @@ Estas sao as invariantes do projeto. Quebra-las e o erro mais caro que se pode c
    nao tem tela propria: ela redireciona para `caminhos.dashboard` (`/dashboard`), para que toda tela
    do app tenha um endereco com nome. O mesmo arquivo guarda os nomes dos query params (`busca`,
    `categoria`, `conta`, `cartao`, `compra`, `fatura`, `investimento`, `meta`, `novo`, `editar`) — eles sao contrato entre telas e nao devem
-   ser escritos a mao em outro lugar. Todos sao transitorios: a tela os le e limpa a URL.
+   ser escritos a mao em outro lugar. Todos sao transitorios: a tela os le e limpa a URL
+   (`setSearchParams({}, { replace: true })`), para que voltar no historico nao reabra um formulario
+   nem refiltre a lista.
 
 6. **Contratos de dominio em `src/types/financas.ts`.** Sao o contrato do backend (PrismaAPI);
    mudar um tipo la e uma decisao de API, nao um detalhe de tela.
@@ -217,7 +216,7 @@ src/
 │                  orcamento, recorrentes, metas, previsao, relatorios, validacao, notificacoes, cores, telas
 ├── hooks/         useDadosAssincronos, useConsultaMidia, useArmazenamentoLocal, useTravarRolagem,
 │                  usePaletaGrafico, useContagem, useValidacaoFormulario, usePagamentoParcela,
-│                  useIndicadoresRolagem
+│                  useIndicadoresRolagem, useTabelaCabe, useLarguraEixoMoeda
 ├── layouts/       LayoutAplicacao (sidebar + header + conteudo)
 ├── pages/         PaginaDashboard, PaginaLancamentos, PaginaContas, PaginaCartoes, PaginaFaturas,
 │                  PaginaParcelamentos, PaginaInvestimentos, PaginaOrcamento, PaginaRecorrentes,
@@ -288,19 +287,14 @@ Cada pasta de componentes tem um `index.ts` de barril — ao criar um componente
   um span `.tabular` com a familia de numeros. Escrever `{formatarMoeda(x)}` direto no JSX faz o
   cifrao herdar o tracking negativo da familia de numeros e desalinhar em relacao ao resto do app.
   **O sinal nao fica dentro do "R$"**: ele vai num span proprio, na familia dos algarismos, com
-  0,8em e 0,12em de respiro ate o "R$", e o negativo e o `−` tipografico (U+2212), nao o hifen. No
-  tamanho cheio dos algarismos o usuario achou o sinal grande demais. O `+` leva peso 700 (`.plus`)
-  e o `−` herda o peso do valor: nos mesmos 0,8em, o `+` de traco fino sumia ao lado do "R$" em
-  "Entradas do mes" e "Resultado", e o usuario pediu so ele mais visivel. Engrossar, e nao crescer. Dentro do simbolo reduzido
-  (0,68em) e com o hifen, que no Archivo tem metade da largura do `+`, o "-R$ 480,00" de "Saidas do
-  mes" mal se via, e o usuario pediu os dois sinais mais visiveis. `formatarPercentualComSinal` usa o
-  mesmo `−`, para "+8,4%" e "−68,9%" terem sinais do mesmo tamanho, e o `IndicadorVariacao` separa o
-  sinal do numero (`formatarPartesPercentualComSinal`) com o mesmo respiro de 0,12em. O sinal fica
-  na posicao do desenho da fonte, sem deslocamento. No Archivo o `+` e o `−` sao centrados na altura
-  do "x" (3,33px acima da base no corpo de 13px, contra 4,45px do centro do "8"), e subir o sinal ate
-  o meio dos algarismos foi testado e recusado: com DPR 1 o texto e desenhado em pixel inteiro, entao
-  so existem duas posicoes, a original e 1px acima (0,04em arredonda para 0, e 0,0865em para 1px), e
-  o usuario achou a de cima alta demais. Nao volte a deslocar o sinal.
+  0,8em e 0,12em de respiro ate o "R$", e o negativo e o `−` tipografico (U+2212), nao o hifen — dentro
+  do simbolo reduzido e com o hifen, o "-R$ 480,00" mal se via; no tamanho cheio, o sinal ficava grande
+  demais. O `+` leva peso 700 (`.plus`) e o `−` herda o do valor: o `+` de traco fino sumia ao lado do
+  "R$", e o usuario pediu engrossar, nao crescer. `formatarPercentualComSinal` usa o mesmo `−`, e o
+  `IndicadorVariacao` separa o sinal do numero (`formatarPartesPercentualComSinal`) com o mesmo respiro.
+  O sinal fica na posicao do desenho da fonte: subi-lo ate o meio dos algarismos foi testado e
+  recusado (com DPR 1 so existem a posicao original e 1px acima, e a de cima ficou alta demais). Nao
+  volte a deslocar o sinal.
 - **Cor de variacao segue a noticia, e a palavra explica a cor.** No `IndicadorVariacao` a seta
   sempre aponta a direcao do numero, e a cor diz se ela e boa: `sentidoFavoravel` (padrao `ALTA`)
   e o sentido que pinta de verde. Saldo, receitas e rentabilidade sobem verde; despesa e
@@ -314,6 +308,19 @@ Cada pasta de componentes tem um `index.ts` de barril — ao criar um componente
   do dashboard tem o par `legendaVariacaoReceita` ("Recebeu mais" ou "Recebeu menos"; as duas legendas do dashboard comecam em maiuscula a pedido do usuario): era o unico
   dos tres blocos com variacao sem frase ao lado, e o usuario apontou a falta. Indicador novo de
   algo em que menos e melhor passa `sentidoFavoravel="BAIXA"` e uma legenda com a palavra.
+- **O icone do canto dos blocos do dashboard leva a cor da noticia em Receitas e Despesas.** Com
+  `iconeSegueVariacao`, o `BlocoIndicador` pinta o icone pelo mesmo `tomDaVariacao` do
+  `IndicadorVariacao`: verde quando a variacao e boa, vermelho quando e ruim e azul (`--accent`) quando
+  esta estavel. Investimentos e Fatura nao passam a prop e ficam sempre azuis. No toque
+  (`hover: none`) a cor fica fixa, porque o celular nao tem hover e o icone ficava cinza para sempre; no
+  mouse ela aparece no hover, como antes. O usuario pediu a regra so para os dois blocos de fluxo.
+- **No painel de saldo a linha termina onde os numeros terminam.** O `AreaChart` nao tem margem
+  lateral, e o primeiro e o ultimo mes do eixo saem ancorados pela borda (`RotuloMesNaBorda`): com 20px
+  de margem de cada lado, no celular a linha parava antes do valor do "Resultado" logo acima, e o
+  usuario apontou o vao. A superficie do grafico tem `overflow: visible`, senao o ponto ativo no ultimo
+  mes sairia cortado ao meio.
+- **No celular o eixo de reais de "Entradas e saidas" avanca 16px sobre o respiro do cartao**, para
+  sobrar largura para as barras, a pedido do usuario.
 - **No `IndicadorVariacao` o percentual e a legenda dividem a linha de base; so o icone e centrado.**
   O percentual sai na familia de numeros (Archivo) e a legenda na de interface (Instrument Sans), e
   as duas tem alturas de ascendente diferentes: com `align-items: center` cada uma era centrada pela
@@ -385,7 +392,7 @@ Cada pasta de componentes tem um `index.ts` de barril — ao criar um componente
   `Modal`, o "Fechar menu" do drawer, o "Fechar busca" do header no celular e o fechar da notificacao.
   O usuario pediu para o X dizer que fecha: `--negative` sobre `--negative-soft`, o mesmo par dos selos,
   que ja passa no contraste nos dois temas. A classe e global, e nao de cada modulo, para todo X novo
-  entrar com o mesmo retorno; o hover fica em `@media (hover: hover)`. Um X que nao fecha nada, como o
+  entrar com o mesmo retorno. Um X que nao fecha nada, como o
   "Limpar filtros", nao leva a classe.
 - Os tokens `--brand-*` sao a excecao a regra de tema: um logotipo nao muda de cor com o tema,
   entao eles ficam no bloco `:root` e valem para claro e escuro.
@@ -497,7 +504,8 @@ parcelamentos sao leitura calculada, exceto o cadastro da compra parcelada.
   "Ver as N parcelas" ficam ancorados na base (`margin-top: auto` em `.facts`). O cartao quitado
   tambem tem as duas linhas de progresso do cartao em andamento — "8 de 8 parcelas pagas" e, abaixo,
   "Quitada em Mar/2026": com a data ao lado, numa linha so, ele ficava 30px mais baixo que o vizinho,
-  e o usuario pediu todos iguais.
+  e o usuario pediu todos iguais. Com uma coluna so (container query na `.section`, abaixo de 856px)
+  a altura volta a ser a de cada cartao: sem vizinho, igualar so abria vaos.
 - **Quem rola e a lista de parcelas, nao o modal.** A lista tem altura maxima (`min(19.5rem, 42dvh)`,
   cinco linhas e um pedaco) e rolagem propria; o resumo e o "Fechar" ficam sempre a vista. Com doze
   parcelas o modal ocupava a tela inteira, e o usuario pediu para melhorar. Ao abrir, a lista ja vem
@@ -558,8 +566,7 @@ parcelamentos sao leitura calculada, exceto o cadastro da compra parcelada.
 - **`total` e o tamanho da fatura; `valorRestante` e o que se deve.** Destaque, linha e modal mostram o
   total e, quando ha parcela paga, "ja pago" e "falta" ao lado. Somas que respondem "quanto vou
   pagar" usam `valorRestante`: "A pagar agora", "Ciclo em aberto" e "Ja comprometido" em Faturas,
-  "Faturas atuais" e "Fatura atual" em Cartoes e o tile de fatura do dashboard. A fatura ja fechada
-  sem nada a pagar sai do servidor como `PAGA` e vai para "Faturas anteriores".
+  "Faturas atuais" e "Fatura atual" em Cartoes e o tile de fatura do dashboard.
 - **A comparacao com a fatura anterior segue a regra da despesa.** No destaque, "R$ 190,00 — Abaixo da
   fatura anterior" leva a seta verde (`--positive`) quando a fatura caiu e vermelha (`--negative`)
   quando subiu, e a frase comeca em maiuscula depois do travessao. O valor continua em `muted`: a
@@ -598,13 +605,19 @@ parcelamentos sao leitura calculada, exceto o cadastro da compra parcelada.
   ordenacao so aparecem quando ha compra no cartao, e o recorte e feito em memoria
   (`components/parcelamentos/consulta.ts`). A ordenacao por parcelas restantes sempre deixa
   as quitadas no fim — "menos restantes" com as quitadas no topo mostraria zero parcelas primeiro.
+- **Abaixo de 600px "Nova compra" vem antes da busca e dos filtros**, e o mesmo vale para "Nova meta".
+  Nessa faixa cada filtro ocupa a linha inteira, e o botao, por ultimo, ficava embaixo de quatro campos
+  empilhados; o usuario apontou que ali nao era o lugar dele. No celular a acao principal fica logo
+  abaixo da descricao, como "Nova conta" e os botoes de Lancamentos. A troca e feita no JSX
+  (`useFiltrosEmpilhados`), e nao com `order` no CSS, para a ordem do Tab seguir a da tela. Acima de
+  600px o botao continua no fim da linha de acoes.
 - **Faturas em quatro blocos.** "A pagar" (ciclo fechado), "Fatura atual" (ciclo em andamento),
   "Proximas faturas" e "Faturas anteriores". A fechada e a aberta sao coisas diferentes — uma exige
   pagamento numa data, a outra ainda acumula compras — e junta-las colocava duas faturas do mesmo
   cartao lado a lado sem explicar por que eram duas. Fatura `VENCIDA` fica em "A pagar" so dentro da
   janela dos avisos (`DIAS_HORIZONTE_AVISOS`, em `constants/avisos.ts`, 15 dias) e depois passa para
   "Faturas anteriores": sem registro de pagamento a vencida e tratada como paga, e sem o corte uma
-  fatura de janeiro somava em "A pagar agora" para sempre. A API emite `VENCIDA` — foi por isso que o erro so apareceu contra o backend. Fora da janela, a vencida usa selo
+  fatura de janeiro somava em "A pagar agora" para sempre. Fora da janela, a vencida usa selo
   neutro em toda tela de fatura (`tomDaFatura`, em `components/cartoes/aparencia.ts`): o vermelho
   pedia uma acao que o produto ja considera resolvida.
 - **Fechamento vem antes de vencimento, em toda tela.** O destaque da fatura, a linha das faturas
@@ -612,15 +625,14 @@ parcelamentos sao leitura calculada, exceto o cadastro da compra parcelada.
   e a de vencimento depois, na ordem em que as duas acontecem: o ciclo fecha e so depois a fatura
   vence. As quatro telas seguem a mesma ordem — inverter uma delas e deixar as outras cria duas
   leituras para o mesmo par de datas. As linhas de "Proximas faturas" e "Faturas anteriores" escrevem
-  as datas por extenso (`formatarDataCompleta`, "03 de Dezembro de 2026" — o mes sai com maiuscula, como no "03 de Dez" de
-  `formatarDataCurta`, a pedido do usuario; `formatarInstanteCompleto`, das datas de versao em
-  Configuracoes, passa pela mesma `formatarDataPorExtenso`), como o destaque, a pedido do
-  usuario: antes eram "03 de Dez". Abaixo de 600px "Fecha" e "Vence" passam a ocupar duas linhas.
-- **O vencimento cai no mes seguinte quando o dia de vencimento e menor ou igual ao de fechamento**
-  (`FaturaService.vencimento`, no PrismaAPI). Um cartao que fecha dia 13 e vence dia 5 tem a fatura
-  de outubro fechando em 13/10 e vencendo em 05/11 — 05/10 seria antes do proprio fechamento. Pelo
-  mesmo motivo a fatura leva o nome do mes em que **fecha**: depois do dia 13 de setembro, a compra
-  ja entra na fatura de outubro, que e a que aparece como "Fatura atual" enquanto ainda e setembro.
+  as datas por extenso, como o destaque (`formatarDataCompleta`, "03 de Dezembro de 2026", com o mes
+  em maiuscula; `formatarInstanteCompleto`, de Configuracoes, passa pela mesma
+  `formatarDataPorExtenso`). Abaixo de 900px o valor sobe para o lado do mes e o selo fica ao lado das
+  datas; abaixo de 600px "Fecha" e "Vence" passam a ocupar duas linhas.
+- **A fatura leva o nome do mes em que fecha** (o vencimento no mes seguinte e a regra de
+  `FaturaService.vencimento`, descrita em "Fatura nao e cadastro"): num cartao que fecha dia 13 e
+  vence dia 5, depois de 13 de setembro a compra ja entra na fatura de outubro, que e a "Fatura
+  atual" enquanto ainda e setembro.
 
 - **A barra de limite usa as faixas de `constants/cartoes.ts`** (ambar a partir de 70%, vermelha a
   partir de 90%), que sao tambem o padrao do aviso do sino. Desde que o percentual do aviso passou a
@@ -631,8 +643,8 @@ parcelamentos sao leitura calculada, exceto o cadastro da compra parcelada.
   O seletor de cartao de Faturas, e a busca e os seletores de Compras parceladas e de Metas, valem
   para a tela inteira e dividem a linha com a acao principal —
   para isso o `CampoSelecao` e o `CampoTexto` tem `tamanho="sm"`, que iguala a altura ao
-  `Botao tamanho="sm"`. No `CampoTexto` o corpo so cai para `--fs-sm` em `pointer: fine`: no toque ele
-  continua em 16px, senao o Safari aplica zoom ao focar. Sozinho numa faixa entre o resumo e a lista,
+  `Botao tamanho="sm"`. No `CampoTexto` o corpo so cai para `--fs-sm` em `pointer: fine` (o toque
+  fica nos 16px de "Alvos de toque e campos"). Sozinho numa faixa entre o resumo e a lista,
   um campo estreito virava uma terceira listra vazia entre dois blocos largos. **A linha de acoes
   quebra em qualquer largura** (`flex-wrap` em `.actions`): antes ela so quebrava abaixo de 768px, e
   entre 768 e 1100px os controles eram espremidos — "Todas a…", "Mais recent…" e o "+" do botao
@@ -679,17 +691,12 @@ evolucao saem do calculo.
 - **Editar nao mexe em valor** (`AtualizarInvestimentoDTO`), pelo mesmo motivo da meta: sobrescrever
   o aportado apagaria a historia. O cadastro pede aplicacao inicial e saldo de hoje e grava as duas
   movimentacoes; dali em diante, valor so muda pelo detalhe.
-- **O formulario de investimento e horizontal a partir de 1100px**, a pedido do usuario: em
-  `tamanho="lg"` e duas colunas, o cadastro de uma acao rolava. Ele usa o `Modal` em `lgPlus` (1080px)
-  e uma grade de quatro colunas (`FormularioInvestimento.module.css`): o nome ocupa duas, e os valores,
-  a data e a conta dividem as outras linhas. A primeira versao usava o `xl` (1400px) do detalhe, e o
-  usuario achou o formulario grande demais; em 1080px a quarta coluna leva `1.25fr`, senao o seletor de
-  conta cortava "Nenhuma — Já estava investido", e as dicas da acao sao curtas para caber numa linha. A reserva comeca sempre a linha na primeira coluna (`.rowStart`), e a
-  Observacao ocupa as duas colunas da direita por duas linhas (`.note`), para a previa caber embaixo do
-  interruptor, no espaco que sobrava vazio: em largura total ela somava 50px de altura. Com a acao e a
-  previa completa o modal tem 783px; cabe sem rolagem em 1920x935, e em telas de 768px ou menos de
-  altura ainda rola alguns pixels.
-  Abaixo de 1100px volta a duas colunas, e abaixo de 600px a uma.
+- **O formulario de investimento e horizontal a partir de 1100px**, a pedido do usuario: em duas
+  colunas o cadastro de uma acao rolava. `Modal` em `lgPlus` (1080px; o `xl` foi achado grande demais)
+  e grade de quatro colunas: o nome ocupa duas, a quarta leva `1.25fr` para o seletor de conta nao
+  cortar "Nenhuma — Já estava investido", a reserva comeca a linha (`.rowStart`) e a Observacao ocupa
+  as duas colunas da direita por duas linhas (`.note`), com a previa embaixo do interruptor. Assim o
+  cadastro de acao cabe sem rolagem em 1920x935. Abaixo de 1100px, duas colunas; abaixo de 600px, uma.
 - **O detalhe e onde o investimento vive** (`ModalDetalheInvestimento`). Clicar no cartao abre com
   "Atualizar saldo"; o botao "Aporte" do cartao abre com "Aportar" e o foco no valor. O registro fica
   embutido, com um seletor de tres estados ("Aportar", "Resgatar", "Atualizar saldo"), e nao em outro
@@ -697,17 +704,13 @@ evolucao saem do calculo.
   seletor quebrava em duas linhas a 390px. Com conta, os campos vao em tres colunas (valor, data,
   conta) e a descricao desce para a segunda linha com o botao. A previa diz para quanto o saldo e o
   aportado vao, ou quanto rendeu desde a ultima atualizacao.
-- **O detalhe e horizontal a partir de 1100px.** Ele usa o `Modal` em `tamanho="xl"` (1400px, que
-  o detalhe da meta tambem usa), e o usuario pediu a troca: na coluna de 760px o historico ficava abaixo do registro e o modal
-  rolava inteiro. Depois pediu mais largura que os 1200px da primeira versao, para os dados
-  respirarem. Saldo, rendimento e os quatro numeros dividem uma faixa no topo; abaixo, o grafico e o
-  registro ficam a esquerda e o historico a direita, em `minmax(340px, 0.48fr)`. A coluna e
-  proporcional de proposito: com 440px fixos, em 1100px a esquerda encolhia e o seletor de conta do
-  aporte cortava "Nenhuma — Fora do Prisma". O historico leva
-  `contain: size`, entao nao empurra a altura da linha: ela e a da coluna esquerda, e a lista rola
-  dentro dela, com o esmaecimento e a parada de Tab do cronograma de parcelas. A medida da rolagem
-  (`data-acima`, `data-abaixo` e se vale `tabIndex`) e o `useIndicadoresRolagem`, o mesmo do detalhe da
-  meta. Abaixo de 1100px tudo volta a empilhar e o historico deixa de rolar sozinho.
+- **O detalhe e horizontal a partir de 1100px**, a pedido do usuario: em coluna o historico ficava
+  abaixo do registro e o modal rolava inteiro. `Modal` em `xl` (1400px, como o detalhe da meta); saldo,
+  rendimento e os quatro numeros numa faixa no topo; abaixo, grafico e registro a esquerda e historico
+  a direita em `minmax(340px, 0.48fr)` — proporcional, porque com 440px fixos o seletor de conta cortava
+  em 1100px. O historico leva `contain: size` e rola dentro da altura da coluna esquerda, com o
+  esmaecimento e a parada de Tab medidos pelo `useIndicadoresRolagem`, o mesmo do detalhe da meta.
+  Abaixo de 1100px tudo empilha e o historico deixa de rolar sozinho.
 - **A data minima do registro e a ultima atualizacao.** Um aporte anterior ao ultimo saldo informado
   seria engolido por ele. Na mesma data, vale a ordem de gravacao (`ordem`), e por isso "saldo de
   R$ 20 mil, depois aporte de R$ 2 mil" termina em R$ 22 mil.
@@ -736,10 +739,14 @@ evolucao saem do calculo.
   celular, onde nao ha hover, nem para quem navega por teclado. A previa (mouse ou foco) tem
   precedencia sobre a fixada, entao passar o mouse sobre outra classe mostra essa outra sem desfazer
   a escolha. Em `pointer: coarse` o item cresce ate `--tap-size`.
+- **A fatia tocada nao ganha contorno de foco.** O Recharts da `tabindex="-1"` a cada fatia, e o clique
+  a focava: o navegador desenhava o contorno padrao, branco e retangular, em volta da caixa da fatia,
+  e o usuario apontou que ele nao acompanhava a forma. O `GraficoAlocacao.module.css` tira o `outline`
+  da fatia, da superficie e do wrapper do grafico. A fatia nao e parada de Tab (`rootTabIndex={-1}`):
+  o teclado e o leitor de tela usam os botoes da legenda, que mantem o anel de foco proprio.
 - **A troca do miolo passa por uma entrada curta** (`entradaMiolo`, `--duration-fast`): o conteudo
   recebe `key` pela classe ativa, entao o React o remonta e a animacao reexecuta. As keyframes ficam
-  no proprio `.module.css` de propósito — o CSS Modules reescreve o nome da animacao e o da keyframe
-  com o mesmo hash, e so casam quando os dois moram no mesmo arquivo.
+  no proprio `.module.css`, pela regra de hash do CSS Modules descrita em `.list-item-in` (Tema).
 - **A rosca guarda o total no centro** e a legenda e uma lista ao lado, que quebra o nome em duas
   linhas em vez de cortar "Previdência privada".
 - **`GraficoEvolucao` (`components/graficos`) e o grafico de valor contra aportado** da carteira e do
@@ -977,17 +984,12 @@ que se pretende comprar — planejamento, nao vitrine.
 - **O eixo de valores usa marcas redondas** (`eixoRedondo` em `GraficoHistoricoPreco`). Deixar o Recharts
   dividir o intervalo cru produzia "R$ 989,9" num eixo de precos — um numero que ninguem escreveria,
   e que faz conferir a casa decimal em vez de olhar a curva.
-- **Busca, situacao e ordenacao sao aplicadas em memoria** (`components/metas/consulta.ts`), como em
-  Lancamentos. Os mesmos parametros existem em `FiltroMeta` do service porque sao os que a API vai
-  receber como query string quando a lista crescer. A busca ignora acento (`normalizarBusca`, em
-  `utils/formatacao.ts`, compartilhado com a busca global).
-- **Busca, situacao e ordenacao ficam na linha de acoes do `CabecalhoPagina`, antes de "Nova meta"**,
-  como em Compras parceladas: `FiltrosMetas` devolve os tres controles, todos com `tamanho="sm"` e
-  os prefixos "Situação:" e "Ordenar:". O usuario pediu a mudanca: antes eles dividiam uma faixa
-  entre o resumo e os cartoes. So aparecem quando ha meta cadastrada.
-- **O campo de busca da tela e estreito de proposito (220px) e diz "Buscar nas metas"**, e nao uma
-  barra larga: assim nao compete com a busca global do header, que procura outra coisa. Metas nao
-  entra em `pageOwnsControls`.
+- **Busca, situacao e ordenacao seguem o arranjo de Compras parceladas**: aplicadas em memoria
+  (`components/metas/consulta.ts`; `FiltroMeta` do service guarda os mesmos parametros para a API),
+  busca sem acento (`normalizarBusca`) e os tres controles (`FiltrosMetas`, `tamanho="sm"`, prefixos
+  "Situação:" e "Ordenar:") na linha de acoes antes de "Nova meta", so com meta cadastrada. A busca
+  tem 220px e diz "Buscar nas metas", para nao competir com a busca global; Metas nao entra em
+  `pageOwnsControls`.
 - **A contagem e o "Limpar filtros" moram em `ResultadoFiltros` (`components/comum`, o mesmo de
   Compras parceladas), acima dos cartoes, e so com filtro ativo e resultado.** Sem resultado, o `EstadoVazio` ja diz "Nenhuma meta encontrada" e tem o
   proprio botao — a faixa repetia as duas coisas logo acima dele. A contagem tambem vai para um
@@ -1015,11 +1017,13 @@ Uma tela em `/relatorios`, com o recorte escolhido em `SeletorPeriodoRelatorio`.
 - **A evolucao do patrimonio e empilhada em conta e investimento.** O topo continua sendo o total,
   mas a divisao mostra dinheiro migrando de um lado para o outro — que e o que um aporte faz todo
   mes, e o que um total estavel esconderia.
-- **Gasto por origem usa uma cor so, e ela e neutra** (`--text-subtle`, 4,79:1 no claro e 4,66:1 no
-  escuro sobre o trilho). Ali a comparacao e de tamanho, nao de identidade: dar uma cor a cada conta
-  faria a barra competir com o codigo de cores das categorias, que e o unico do produto. A barra era
-  `--chart-1`, o mesmo valor do `--accent`, e empilhada logo abaixo de "Receitas por categoria" ela
-  parecia mais uma cor de identidade. O cinza diz que aquilo mede tamanho.
+- **Cada origem de "Gastos por conta e cartao" tem uma cor** (barra e icone). O cartao era todo
+  `--text-subtle`, para nao competir com as cores das categorias, e o usuario pediu cada uma de uma
+  cor. `GastoOrigemDTO` nao tem `tokenCor`, entao `coresDasOrigens` (`constants/relatorios.ts`) tira o
+  token de `TOKENS_COR_ORIGEM` — oito matizes bem separados da paleta, sem o vermelho, lido como
+  perda, nem os cinzas — por um hash de grupo e id: a mesma conta tem a mesma cor em todo recorte, e
+  uma colisao passa para o proximo token livre. A chave e grupo mais id porque conta e cartao vem de
+  tabelas diferentes.
 - **Os blocos se agrupam por pergunta, e cada linha junta o que tem a mesma forma.** Depois do
   resumo vem "Receitas e despesas" em largura total (o ritmo do periodo); depois a composicao, com
   "Gastos por categoria" a esquerda e, a direita, uma coluna com "Receitas por categoria" e "Gastos
@@ -1030,21 +1034,22 @@ Uma tela em `/relatorios`, com o recorte escolhido em `SeletorPeriodoRelatorio`.
   porque `DistribuicaoCategorias` e `DistribuicaoOrigens` trazem `align-self: start` do proprio
   modulo — num flex em coluna isso encolhe o cartao ate o conteudo, e os dois saiam com larguras
   diferentes.
-- **A coluna da direita termina junto com "Gastos por categoria".** Com sete receitas, "Receitas por
-  categoria" e "Gastos por conta e cartao" somavam 648px contra 440px do cartao de gastos, e o
-  usuario apontou o vao embaixo dele. Por isso a `.column` estica ate a altura da linha e
-  "Receitas por categoria" recebe `preencherAltura`: o cartao ocupa o que sobra na coluna, lista
-  todas as categorias, sem "Ver mais" (num cartao que ja rola, o botao seria um segundo mecanismo
-  para a mesma coisa, e roubaria a altura de uma categoria), e rola por dentro. A moldura da lista
-  leva `contain: size`, entao a lista nao empurra a altura da linha, e `min-height: 8rem` — duas
-  categorias e meia, o que sobra com os dados de hoje, e o piso para o cartao nao sumir quando
-  "Gastos por categoria" tiver poucas linhas; abaixo dele, a linha cresce. A barra de rolagem fica
-  no respiro do cartao, como nas outras listas que rolam. Abaixo de 1100px, com os cartoes
-  empilhados, a lista volta a mostrar tudo sem rolagem.
+- **Os dois lados da composicao terminam na mesma linha.** O usuario apontou duas vezes o vao: primeiro
+  embaixo da coluna da direita, depois embaixo de "Gastos por categoria", quando tres origens deixaram
+  a coluna mais alta. Por isso a `.split` estica as duas celulas e as duas listas de categoria recebem
+  `preencherAltura`: o cartao ocupa a altura que sobra, lista todas as categorias sem "Ver mais" (num
+  cartao que ja rola, o botao seria um segundo mecanismo) e rola por dentro. A moldura da lista leva
+  `contain: size`, entao a lista nao empurra a altura da linha, e um piso: 8rem em "Receitas por
+  categoria" e, em "Gastos por categoria", a altura medida das seis primeiras linhas
+  (`linhasMinimas`, `--altura-minima-lista`). A linha fica com o maior dos pisos, e o outro lado
+  preenche com mais categorias, em vez de sobrar um buraco. Abaixo de 1100px, com os cartoes
+  empilhados, "Receitas" mostra tudo e "Gastos" volta ao "Ver mais".
 - **A variacao fica dentro da `BarraResumo`, no bloco a que ela pertence.** O item de resumo aceita
   um `variacao` opcional, renderizado entre o valor e a dica — as variacoes de receitas e despesas
-  viviam numa faixa solta entre a barra e o primeiro grafico, longe dos numeros que explicavam. Como
-  o campo e opcional, as outras nove telas que usam a `BarraResumo` nao mudaram.
+  viviam numa faixa solta entre a barra e o primeiro grafico, longe dos numeros que explicavam. Com
+  variacao, a barra fica em duas colunas entre 768 e 1099px, e o item ocupa a linha toda abaixo de
+  600px; o `IndicadorVariacao` quebra a frase inteira para baixo (`flex-wrap`), em vez de espremer
+  "em relação ao período anterior" numa palavra por linha.
 - **A tela reusa `GraficoFluxoCaixa` e `DistribuicaoCategorias` do dashboard**, com titulo e descricao por
   prop. Duplicar o desenho para trocar um rotulo criaria um segundo grafico para o mesmo problema —
   e e assim que dois blocos iguais comecam a divergir.
@@ -1211,8 +1216,11 @@ O `SeletorPeriodo` e a busca global sao os dois pontos em que o header conversa 
   antes da borda direita e a emenda apareceria. Abaixo dela, o centro do primeiro item do menu
   coincide com o centro do titulo da tela: o `padding-top` do `.nav` sai de
   `--content-padding-top`, `--page-title-line` e `--nav-item-height`, e nao de um numero ajustado a
-  olho. O item usa o proprio `--nav-item-height` como altura minima, senao no menu recolhido, sem
-  rotulo, ele encolhe e o icone sobe dois pixels.
+  olho, e o respiro do topo do conteudo tambem le `--content-padding-top`: ao mudar a altura do
+  header, o tamanho do titulo, o respiro do conteudo ou a altura do item, a conta se refaz sozinha —
+  um valor solto em qualquer desses pontos desalinha as duas colunas em todas as telas. O item usa
+  `--nav-item-height` como altura minima, senao no menu recolhido, sem rotulo, ele encolhe e o icone
+  sobe dois pixels; o `max()` do token existe porque em `pointer: coarse` o `--tap-size` passa a mandar.
 - **O hover do menu lateral e uma pilula, nao uma troca de cor.** O fundo do item vive num
   `::before` que entra crescendo de 96% a 100% com `--ease-spring`, enquanto icone e rotulo deslizam
   2px; recolhido, o icone cresce 10% em vez de deslizar, que o tiraria do centro. O subitem desliza
@@ -1220,12 +1228,7 @@ O `SeletorPeriodo` e a busca global sao os dois pontos em que o header conversa 
   O item ativo usa a mesma pilula ja cheia em `--accent-soft`, entao passar o mouse sobre ele nao o
   pinta de cinza. O botao de recolher o menu, no rodape, divide os mesmos seletores da pilula e
   cresce o icone como o item recolhido: um controle da mesma coluna com outro retorno pareceria de
-  outro produto. O hover fica dentro de `@media (hover: hover)`, para um toque no celular nao deixar
-  a pilula presa, e sob `prefers-reduced-motion` todo deslocamento e cancelado — so a cor muda. Por isso o respiro do topo do conteudo tambem le
-  `--content-padding-top`. Ao mudar a altura do header, o tamanho do titulo, o respiro do conteudo ou
-  a altura do item do menu, a conta se refaz sozinha — um valor solto em qualquer um desses pontos
-  desalinha as duas colunas em todas as telas de uma vez. O `max()` do `--nav-item-height` existe
-  porque em `pointer: coarse` o `--tap-size` passa a mandar na altura do item.
+  outro produto. Sob `prefers-reduced-motion` todo deslocamento e cancelado — so a cor muda.
 
 - **Periodo.** O caso comum — um mes de cada vez — fica nas setas; o painel do seletor guarda os
   atalhos ("Ultimos 3 meses", "Este ano") e o intervalo proprio, montado com dois `CampoSelecao` de mes.
@@ -1288,9 +1291,6 @@ O `SeletorPeriodo` e a busca global sao os dois pontos em que o header conversa 
   `?busca=` a cada termo, com 250 ms de espera entre teclas. Baixar a tabela inteira de lancamentos a
   cada abertura nao escala com historico real. Chegar pela busca **reseta** os filtros da tela antes de aplicar o que veio na URL: um
   filtro esquecido da navegacao anterior zeraria o resultado que o usuario acabou de escolher.
-- **Os parametros da busca saem da URL assim que sao lidos**
-  (`setSearchParams({}, { replace: true })`), para que voltar no historico nao reabra um
-  formulario nem refiltre a lista. Sao os unicos query params do app, e todos transitorios.
 
 ## Telas ocultas
 
@@ -1381,9 +1381,7 @@ nao pagas que vencem dentro da antecedencia escolhida (15 dias por padrao) ou ve
 despesas pendentes, agendamentos, receitas a receber e recorrentes sem lancamento no mes dentro da
 mesma antecedencia, cartoes a partir do percentual escolhido do limite (70% por padrao), orcamentos do
 mes a partir de 80% do limite, o primeiro mes em que a previsao fica negativa, e investimentos e metas
-sem atualizacao ha mais tempo que o lembrete escolhido (30 dias por padrao). A recorrente usava 7 dias
-fixos; passou a seguir a mesma antecedencia, porque "avisar com N dias de antecedencia" em
-Configuracoes nao pode valer para quase tudo.
+sem atualizacao ha mais tempo que o lembrete escolhido (30 dias por padrao).
 
 **Cada tipo tem o seu texto.** Receita nao "vence" — ela e "a receber"; transferencia agendada diz
 para qual conta vai; a fatura aberta diz ate quando recebe compras. O aviso de limite nao tem
@@ -1423,28 +1421,18 @@ embacado, e o usuario pediu para melhorar a leitura do numero. `--counter` e `#c
 duas contas.
 
 **O contador e menor que o sino, de proposito**: 14px de altura com corpo de 11px em peso 700
-(`--fs-2xs`, o unico uso do token) e subido para cobrir so o canto do sino. A primeira versao tinha
-16px com corpo de 12px, e o
-usuario mandou diminuir: o numero chamava mais atencao que o proprio sino. A segunda, com 13px e
-corpo de 10px em peso 600, ficou dificil de ler. Quem manda na leitura e o icone; o numero e um
-complemento dele, mas precisa ser lido de relance. Nao leve `--fs-2xs` para texto corrido: 11px so
-serve a um ou dois algarismos em negrito.
+(`--fs-2xs`, o unico uso do token), cobrindo so o canto do sino. Com 16px/12px ele chamava mais
+atencao que o sino, e com 13px/10px em peso 600 ficou dificil de ler — o usuario recusou os dois. Nao
+leve `--fs-2xs` para texto corrido.
 
-**O numero e centrado pela tinta, e nao pela casa do algarismo.** No Archivo todo algarismo ocupa a
-mesma largura (6,56px no corpo de 11px, e a fonte carregada nao tem variante proporcional), e
-dentro dessa casa o "1" tem 1,05px livres a esquerda e 0,41px a direita: centrado pela casa, ele
-ficava 0,3px a direita do meio, com 6 pixels vermelhos de um lado da haste e 5 do outro, e o
-usuario viu o "1" fora do centro. Por isso o `Cabecalho` marca o contador com `data-nudge`:
-`left` quando o texto comeca com "1" (1 e 10 a 19) e `right` no "99+", cujo "+" tem folga do outro
-lado. Cada um desloca o texto 0,3px por um `padding` de `0.055em` do lado oposto — o `padding` e o
-dobro do deslocamento porque o texto e centrado no que sobra. A largura tambem deixou de ser a do
-texto: sai de `--badge-chars` (14px, 20px ou 26px para um, dois ou tres caracteres), sempre par,
-para o `translate: -50%` cair em pixel inteiro. Com a largura fracionaria de antes (19,1px) a
-pilula era encaixada no pixel de um jeito e o texto de outro. Medido nos pixels da tela, em 23
-numeros de 1 a 99 mais o "99+", o desvio entre o centro da tinta e o centro da pilula ficou em ate
-0,16px, e em 0,23px no pior caso, o "19"; o "1" sozinho ficou em 0,05px, contra 0,32px antes. Ao
-trocar a fonte, o corpo ou o peso do contador, refaca a medida: a compensacao e do desenho do "1"
-do Archivo, nao uma regra geral.
+**O numero e centrado pela tinta, e nao pela casa do algarismo.** No Archivo todo algarismo tem a
+mesma largura, e dentro dela o "1" tem 1,05px livres a esquerda e 0,41px a direita: centrado pela
+casa, ele ficava 0,3px a direita do meio, e o usuario viu. Por isso o `Cabecalho` marca o contador com
+`data-nudge` — `left` quando o texto comeca com "1" e `right` no "99+" —, que desloca o texto 0,3px por
+um `padding` de `0.055em` do lado oposto (o dobro, porque o texto e centrado no que sobra). A largura
+sai de `--badge-chars` (14, 20 ou 26px), sempre par, para o `translate: -50%` cair em pixel inteiro.
+Medido de 1 a 99 e no "99+", o desvio ficou em ate 0,23px. Ao trocar fonte, corpo ou peso do
+contador, refaca a medida: a compensacao e do desenho do "1" do Archivo.
 
 - **Ler e adiar marcam a situacao, e nao o aviso.** `AvisoDTO.estado` e `NOVO`, `LIDO` ou `ADIADO`
   (com `adiadoAte`). O servidor grava a marca em `leituras_avisos` com uma assinatura da situacao —
@@ -1504,10 +1492,14 @@ do Archivo, nao uma regra geral.
   excluir um limite: sem isso o usuario fazia exatamente o que o lembrete pedia e o contador do sino continuava
   com o numero antigo ate recarregar a pagina. As outras telas ainda nao chamam; ao mexer nelas, e o mesmo hook. Configuracoes chama a cada
   preferencia gravada.
-- **Abaixo de 560px o painel se ancora no header, e nao no sino.** Nessa faixa o sino deixa de ser o
-  ultimo botao da linha, e um painel de 400px preso a direita dele saia 34px para fora da tela, cortando
-  icone e titulo. O `.notifications` vira `position: static` e o painel ocupa a largura com
-  `--space-4` de cada lado.
+- **O sino vem antes do botao de tema** no header (busca, sino, tema e "Novo lancamento"), a pedido do
+  usuario.
+- **Abaixo de 680px o painel se ancora no header, e nao no sino.** Nessa faixa o sino fica longe da
+  borda direita (tema e "Novo lancamento" vem depois dele), e um painel de 400px preso a direita dele
+  saia ate 71px para fora da tela, cortando icone e titulo. O `.notifications` vira `position: static` e
+  o painel ocupa a largura com `--space-4` de cada lado. O corte e 680, e nao 560: com o sino antes do
+  tema, o painel ancorado nele so cabe com folga a partir dai. Ao mexer na ordem ou na largura dos botoes
+  do header, meca de novo.
 
 ## Ritmo vertical
 
@@ -1549,27 +1541,34 @@ segundo numero nao se aplica — nao ha titulo visivel para separar do conteudo.
   lateral no modal. `--scrollbar-size` e a mesma largura do
   `::-webkit-scrollbar` do `global.css` — ao mudar uma, a outra muda junto. Abaixo de
   1200px, com os cartoes empilhados, a lista volta a crescer — sem vizinho, nao ha o que desalinhar.
-  Em Relatorios, "Gastos por categoria" tambem recebe a prop, a pedido do usuario: sem ela o cartao
-  crescia ao expandir e empurrava as duas evolucoes para baixo. "Receitas por categoria" usa outra,
-  `preencherAltura` (veja em Relatorios).
-- **Abaixo de 900px a listagem de lancamentos troca a tabela por cartoes** (`ListaLancamentos`,
-  escolhido por `useEhCompacto`). A tabela tem `min-width: 1000px`: rolar de lado ate o valor, que
-  e o dado mais importante da linha, nao e leitura. O cartao traz um controle proprio de
-  ordenacao, para que o celular nao perca o que o cabecalho da tabela oferece.
+  Em Relatorios as duas listas de categoria usam `preencherAltura` a partir de 1100px (veja la).
+- **Tabela so quando cabe; senao, cartoes** (`useTabelaCabe`, em Lancamentos e Previsao). Rolar de
+  lado ate o valor, o dado mais importante da linha, nao e leitura, e a tabela de 1216px rolava ate em
+  1440px. O hook mede quanto a tabela transborda da area e mostra os cartoes enquanto a area for menor;
+  a medida, e nao a largura da janela, porque o menu recolhido muda o espaco e a largura minima depende
+  dos dados. Abaixo de 900px sao sempre cartoes. A tabela de lancamentos quebra observacao, rota e
+  categoria e trava so a data, e cabe a partir de 1280px. "Ultimos lancamentos" do dashboard vira lista
+  abaixo de 900px pelo mesmo motivo. O cartao traz controle proprio de ordenacao.
 - **Contas, cartoes e parcelamentos usam `auto-fill` com largura minima**, nao um numero fixo de
   colunas: o conteudo de cada cartao e que define quando vale quebrar. As faturas futuras e antigas
   sao linhas que viram duas abaixo de 900px, em vez de uma tabela que rola de lado ate o valor.
 - **A troca de tabela por cartoes tambem e escolha, nao so largura.** No desktop o `AlternadorVisualizacao` da
-  linha de resumo guarda a preferencia em `prisma:transactions-view`; abaixo de 900px a largura tem
+  linha de resumo guarda a preferencia em `prisma:transactions-view`; quando a tabela nao cabe, a largura tem
   a ultima palavra (cartoes) e o seletor sai da tela, porque um seletor com uma opcao viavel so e
   um botao que nao faz nada.
 - **Nada de esconder acao sem substituto.** Na mesma faixa o campo de busca do header vira um
   botao que abre a busca sobre o header, e "Novo lancamento" perde o rotulo mas continua la como
   botao de icone. Antes os dois sumiam com `display: none`.
-- **A previsao troca a tabela de sete colunas por cartoes abaixo de 900px** (`ListaPrevisao`), pelo
-  mesmo motivo da listagem de lancamentos: rolar de lado ate o saldo previsto, que e o dado mais
-  importante da linha, nao e leitura. O mesmo limite decide se o filtro de relatorios e uma fileira
-  de botoes ou um `CampoSelecao`.
+- **O eixo Y em reais tem a largura do maior rotulo** (`useLarguraEixoMoeda`, minimo de 78px), medido
+  em canvas com a fonte do app: com 78px fixos, "R$ 60,3 mil" perdia o "R" na borda.
+- **No celular os botoes da linha de acoes de Lancamentos preenchem a linha**: os tres cabem juntos a
+  partir de 390px, e abaixo disso "Transferencia" ocupa a segunda linha inteira, em vez de sobrar sozinho.
+- **No celular a `BarraResumo` com numero impar de itens abre com o primeiro na linha inteira.** Abaixo
+  de 768px a faixa vira grade de duas colunas, e com tres itens o ultimo sobrava sozinho ao lado de uma
+  celula vazia — o usuario apontou em Contas. O primeiro item, que e sempre o numero principal ("Saldo
+  total", "Limite disponivel", "A pagar agora", "Total investido"), ocupa a linha e e separado dos outros
+  por uma borda; o resto segue em pares. Vale para Contas, Cartoes, Faturas e Investimentos. A barra com
+  variacao (Relatorios) fica de fora, porque abaixo de 600px cada item ja ocupa a linha toda.
 - **Investimentos, orcamento e recorrentes usam `auto-fill` com largura minima.** A rosca da
   carteira sobe para cima da legenda abaixo de 900px: lado a lado, nessa faixa, sobrariam duas
   colunas estreitas demais para nome da classe e valor na mesma linha.
@@ -1590,6 +1589,11 @@ segundo numero nao se aplica — nao ha titulo visivel para separar do conteudo.
   com o respiro da area segura, em vez do "rise" de 8px do desktop.
 - **Abaixo de 480px o registro dos detalhes de investimento e de meta vira uma coluna so**: em duas,
   com os alvos de 44px do toque, a data "12/11/2026" ja saia cortada.
+- **Quando o botao do registro desce para uma linha propria (abaixo de 700px), ele leva `--space-2` de
+  margem**, alem dos 12px do `gap`: so com o `gap`, "Atualizar" ficava a mesma distancia da Descricao
+  que um campo do outro, e o usuario o viu colado no ultimo campo. Vale para todos os modos do detalhe
+  do investimento (aportar, resgatar, atualizar saldo, comprar, vender, atualizar cotacao) e para o
+  "Registrar" da meta, que repete o arranjo.
 - **A tela de boas-vindas sobe ao topo antes de se despedir** (`rolarAteOTopo`). No celular ela e mais
   alta que a tela, e o "Começar" fica embaixo: a despedida acontecia fora da vista, e como as boas-vindas
   e o app sao o mesmo documento, o dashboard abria rolado pela mesma distancia, com o titulo escondido.
@@ -1763,13 +1767,9 @@ codigo e `errors` como detalhe. Cancelamento pelo `AbortSignal` de quem chamou s
 
 Autenticacao, ESLint/Prettier, testes de componente e de tela e code-splitting por rota ainda nao
 existem. Por isso a sidebar
-nao mostra usuario: o bloco com nome e e-mail ficticios saiu, e volta quando houver login. Nao ha pagamento de fatura nem registro de quitacao — a fatura vencida e tratada como
-paga, e o pagamento que existe e uma marca manual, na parcela ou na fatura inteira, sem debito em
-conta —, nem historico de cotacao por ativo: a evolucao do patrimonio e reconstruida a partir do
-valor atual e da idade da posicao. Exportacao de relatorio (PDF, CSV) tambem ficou de fora. Nao
-invente configuracao dessas sem o usuario pedir.
+nao mostra usuario: o bloco com nome e e-mail ficticios saiu, e volta quando houver login.
+Exportacao de relatorio (PDF, CSV) tambem ficou de fora. Nao invente configuracao dessas sem o
+usuario pedir.
 
-`components/common/UnderConstruction` e o tipo `Page<T>` de `types/comum.ts` foram removidos na
-revisao da Etapa 6: os dois estavam sem consumidor. O `Page<T>` era o mais arriscado, e nao por
-ocupar espaco — um tipo de paginacao exposto no contrato sugere ao backend que a listagem e
-paginada, e nenhuma e.
+Nao reintroduza um tipo de paginacao (o antigo `Page<T>`) no contrato: ele sugere ao backend que a
+listagem e paginada, e nenhuma e.

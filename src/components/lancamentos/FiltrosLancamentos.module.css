@@ -16,6 +16,10 @@
   min-width: 0;
 }
 
+.searchRow .search {
+  flex-basis: 120px;
+}
+
 .clear,
 .toggle {
   flex-shrink: 0;

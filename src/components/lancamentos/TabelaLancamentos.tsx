@@ -96,7 +96,7 @@ export function TabelaLancamentos({
 
             return (
               <LinhaTabela key={transaction.id} interativo onClick={() => aoEditar(transaction)}>
-                <Celula className={`${styles.muted} tabular`}>{formatarDataCurta(transaction.data)}</Celula>
+                <Celula className={`${styles.muted} ${styles.date} tabular`}>{formatarDataCurta(transaction.data)}</Celula>
 
                 <Celula onClick={(event) => event.stopPropagation()}>
                   <button

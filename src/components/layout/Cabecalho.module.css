@@ -259,11 +259,13 @@
   }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 679px) {
   .notifications {
     position: static;
   }
+}
 
+@media (max-width: 560px) {
   .newLabel {
     display: none;
   }

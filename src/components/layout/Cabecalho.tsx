@@ -90,16 +90,6 @@ export function Cabecalho({ aoAbrirMenu }: CabecalhoProps) {
             </button>
           )}
 
-          <button
-            type="button"
-            className={styles.iconButton}
-            onClick={alternarTema}
-            aria-label={tema === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'}
-            title={tema === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'}
-          >
-            {tema === 'dark' ? <Sun size={18} strokeWidth={2} /> : <Moon size={18} strokeWidth={2} />}
-          </button>
-
           <div className={styles.notifications}>
             <button
               type="button"
@@ -127,6 +117,16 @@ export function Cabecalho({ aoAbrirMenu }: CabecalhoProps) {
 
             <PainelAvisos aberto={alertsOpen} aoFechar={closeAlerts} aoMudarQuantidade={updateAlertCount} />
           </div>
+
+          <button
+            type="button"
+            className={styles.iconButton}
+            onClick={alternarTema}
+            aria-label={tema === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'}
+            title={tema === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'}
+          >
+            {tema === 'dark' ? <Sun size={18} strokeWidth={2} /> : <Moon size={18} strokeWidth={2} />}
+          </button>
 
           {pageOwnsControls || transactionsHidden ? null : (
             <Botao
