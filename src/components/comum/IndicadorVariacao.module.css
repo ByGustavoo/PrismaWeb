@@ -1,7 +1,8 @@
 .delta {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: baseline;
-  gap: var(--space-1);
+  gap: 2px var(--space-1);
   font-size: var(--fs-sm);
   font-weight: 500;
 }

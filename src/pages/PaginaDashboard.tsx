@@ -105,6 +105,7 @@ export function PaginaDashboard() {
               icone={TrendingUp}
               variacao={dados.variacaoReceitas}
               legendaVariacao={legendaVariacaoReceita(dados.variacaoReceitas.tendencia)}
+              iconeSegueVariacao
             />
             <BlocoIndicador
               rotulo={`Despesas do ${periodNoun}`}
@@ -113,6 +114,7 @@ export function PaginaDashboard() {
               variacao={dados.variacaoDespesas}
               legendaVariacao={legendaVariacaoGasto(dados.variacaoDespesas.tendencia)}
               sentidoFavoravel="BAIXA"
+              iconeSegueVariacao
             />
             <BlocoIndicador
               rotulo="Investimentos"

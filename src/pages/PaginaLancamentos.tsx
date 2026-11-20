@@ -24,6 +24,7 @@ import { rotuloFrequencia } from '@/constants/recorrentes';
 import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
 import { useArmazenamentoLocal } from '@/hooks/useArmazenamentoLocal';
 import { useEhCompacto } from '@/hooks/useConsultaMidia';
+import { useTabelaCabe } from '@/hooks/useTabelaCabe';
 import { useNotificacoes } from '@/providers/ProvedorNotificacoes';
 import { useTelas } from '@/providers/ProvedorTelas';
 import {
@@ -66,7 +67,6 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
     CHAVE_VISUALIZACAO_LANCAMENTOS,
     'table',
   );
-  const view = isCompact ? 'cards' : preferredView;
 
   useEffect(() => {
     const requestedForm = searchParams.get(PARAMETRO_NOVO_LANCAMENTO);
@@ -152,6 +152,8 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
 
   const source = useMemo(() => dados ?? [], [dados]);
   const transactions = useMemo(() => aplicarConsulta(source, query), [source, query]);
+  const { areaRef: toolbarRef, tabelaRef: tableRef, cabe: tableFits } = useTabelaCabe(transactions);
+  const view = isCompact || !tableFits ? 'cards' : preferredView;
   const total = totalLiquido(transactions);
   const filtered = temFiltrosAtivos(query);
 
@@ -230,7 +232,7 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
               Nova {rotuloTipoLancamento[tipo].toLowerCase()}
             </Botao>
           ) : (
-            <>
+            <div className={styles.newButtons}>
               <Botao variante="secondary" tamanho="sm" icone={Plus} onClick={() => openCreate('RECEITA')}>
                 Receita
               </Botao>
@@ -240,13 +242,13 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
               <Botao tamanho="sm" icone={Plus} onClick={() => openCreate('TRANSFERENCIA')}>
                 Transferência
               </Botao>
-            </>
+            </div>
           )
         }
       />
 
       <Painel espacamento="sm">
-        <div className={styles.toolbar}>
+        <div className={styles.toolbar} ref={toolbarRef}>
           <FiltrosLancamentos
             consulta={query}
             aoAlterar={patchQuery}
@@ -262,7 +264,9 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
                 {transactions.length} {transactions.length === 1 ? 'lançamento' : 'lançamentos'}
               </span>
 
-              {isCompact ? null : <AlternadorVisualizacao valor={preferredView} aoAlterar={setPreferredView} />}
+              {isCompact || !tableFits ? null : (
+                <AlternadorVisualizacao valor={preferredView} aoAlterar={setPreferredView} />
+              )}
             </div>
             {tipo === 'TRANSFERENCIA' ? (
               <span className={styles.summaryLabel}>Transferências não entram no resultado do período</span>
@@ -319,15 +323,17 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
             aoExcluir={setRemoving}
           />
         ) : (
-          <TabelaLancamentos
-            lancamentos={transactions}
-            campoOrdenacao={query.campoOrdenacao}
-            direcaoOrdenacao={query.direcaoOrdenacao}
-            aoOrdenar={handleSort}
-            mostrarCategoria={tipo !== 'TRANSFERENCIA'}
-            aoEditar={openEdit}
-            aoExcluir={setRemoving}
-          />
+          <div ref={tableRef}>
+            <TabelaLancamentos
+              lancamentos={transactions}
+              campoOrdenacao={query.campoOrdenacao}
+              direcaoOrdenacao={query.direcaoOrdenacao}
+              aoOrdenar={handleSort}
+              mostrarCategoria={tipo !== 'TRANSFERENCIA'}
+              aoEditar={openEdit}
+              aoExcluir={setRemoving}
+            />
+          </div>
         )}
       </Painel>
 

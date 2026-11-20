@@ -8,17 +8,32 @@
   border-radius: var(--radius-md);
 }
 
+.iconBox[data-tom='accent'] {
+  --tom-icone: var(--accent);
+  --tom-icone-fundo: var(--accent-soft);
+}
+
+.iconBox[data-tom='positive'] {
+  --tom-icone: var(--positive);
+  --tom-icone-fundo: var(--positive-soft);
+}
+
+.iconBox[data-tom='negative'] {
+  --tom-icone: var(--negative);
+  --tom-icone-fundo: var(--negative-soft);
+}
+
 @media (hover: hover) {
   .tile:hover .iconBox {
-    background-color: var(--accent-soft);
-    color: var(--accent);
+    background-color: var(--tom-icone-fundo);
+    color: var(--tom-icone);
   }
 }
 
 @media (hover: none) {
-  .tile:active .iconBox {
-    background-color: var(--accent-soft);
-    color: var(--accent);
+  .tile .iconBox {
+    background-color: var(--tom-icone-fundo);
+    color: var(--tom-icone);
   }
 }
 

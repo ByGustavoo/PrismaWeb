@@ -5,6 +5,25 @@ import { ValorMonetario, IndicadorVariacao } from '@/components/comum';
 import type { SaldoDTO, VariacaoDTO } from '@/types';
 import styles from './PainelSaldo.module.css';
 
+interface RotuloMesNaBordaProps {
+  cor: string;
+  total: number;
+  x?: number;
+  y?: number;
+  index?: number;
+  payload?: { value: string };
+}
+
+function RotuloMesNaBorda({ cor, total, x = 0, y = 0, index = 0, payload }: RotuloMesNaBordaProps) {
+  const ancora = index === 0 ? 'start' : index === total - 1 ? 'end' : 'middle';
+
+  return (
+    <text x={x} y={y} dy={6} fill={cor} fontSize={12} textAnchor={ancora} dominantBaseline="hanging">
+      {payload?.value}
+    </text>
+  );
+}
+
 interface PainelSaldoProps {
   rotulo: string;
   saldo: number;
@@ -87,7 +106,7 @@ export function PainelSaldo({
 
       <div className={styles.chart}>
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={historico} margin={{ top: 16, right: 20, bottom: 0, left: 20 }}>
+          <AreaChart data={historico} margin={{ top: 16, right: 0, bottom: 0, left: 0 }}>
             <defs>
               <linearGradient id="balanceFill" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor={lineColor} stopOpacity={0.28} />
@@ -98,7 +117,7 @@ export function PainelSaldo({
               dataKey="rotulo"
               axisLine={false}
               tickLine={false}
-              tick={{ fill: palette.textoEixo, fontSize: 12 }}
+              tick={<RotuloMesNaBorda cor={palette.textoEixo} total={historico.length} />}
               interval={0}
               dy={6}
             />

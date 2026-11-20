@@ -6,6 +6,7 @@ import { CabecalhoPagina } from '@/components/layout';
 import { Botao, Painel, EstadoVazio, BlocoCarregando } from '@/components/ui';
 import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
 import { useEhCompacto } from '@/hooks/useConsultaMidia';
+import { useTabelaCabe } from '@/hooks/useTabelaCabe';
 import { previsaoService } from '@/services';
 import { capitalizar, formatarRotuloMes } from '@/utils/formatacao';
 import styles from './PaginaPrevisao.module.css';
@@ -32,6 +33,7 @@ export function PaginaPrevisao() {
   const { dados, carregando, erro, recarregar } = useDadosAssincronos(fetchData);
 
   const lastMonth = dados?.meses[dados.meses.length - 1];
+  const { areaRef, tabelaRef, cabe: tableFits } = useTabelaCabe(dados);
 
   return (
     <>
@@ -132,11 +134,15 @@ export function PaginaPrevisao() {
 
           <GraficoPrevisao dados={dados.meses} />
 
-          {compact ? (
-            <ListaPrevisao restante={dados.restanteMesAtual} meses={dados.meses} mesMaisBaixo={dados.menorSaldo.mes} />
-          ) : (
-            <TabelaPrevisao restante={dados.restanteMesAtual} meses={dados.meses} mesMaisBaixo={dados.menorSaldo.mes} />
-          )}
+          <div ref={areaRef}>
+            {compact || !tableFits ? (
+              <ListaPrevisao restante={dados.restanteMesAtual} meses={dados.meses} mesMaisBaixo={dados.menorSaldo.mes} />
+            ) : (
+              <div ref={tabelaRef}>
+                <TabelaPrevisao restante={dados.restanteMesAtual} meses={dados.meses} mesMaisBaixo={dados.menorSaldo.mes} />
+              </div>
+            )}
+          </div>
 
           <section className={styles.method} aria-labelledby="titulo-metodo">
             <h2 id="titulo-metodo" className={styles.methodTitle}>
