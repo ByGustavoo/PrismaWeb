@@ -484,6 +484,11 @@ tecla. Virgula, ponto e letra sao ignorados; teclado `inputMode="numeric"`, exce
 
 ## Dashboard
 
+- **O card de fatura passa para a seguinte quando a do mes ja esta paga.** No mes corrente, com a
+  fatura que fecha no mes `PAGA`, o servidor devolve a do mes seguinte (`FaturaDTO.mes`), e o rotulo
+  vira "Fatura de Dezembro de 2026" em vez de "Fatura do mês". Mes passado e fatura aberta quitada
+  ("Paga até agora") continuam no proprio mes. Pedido do usuario depois de ver "R$ 0,00 — Vence em 5
+  de Dezembro" com a fatura de novembro paga.
 - **A janela dos graficos nao e sempre o periodo**: mes unico desenha os cinco anteriores como contexto;
   periodo de varios meses e a propria janela. Vale tambem para o `CalendarioGastos`.
 - **O patrimonio fica no painel de saldo, abaixo da variacao** (`DashboardDTO.patrimonio`, saldo do
