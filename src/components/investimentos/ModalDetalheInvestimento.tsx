@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { ArrowDownToLine, ArrowUpFromLine, Hash, Pencil, Trash2, TrendingDown, TrendingUp } from 'lucide-react';
-import { HistoricoMovimentacoes, ValorMonetario } from '@/components/comum';
-import type { ItemMovimentacao } from '@/components/comum';
+import { HistoricoMovimentacoes, NumeroRolante, ValorMonetario } from '@/components/comum';
+import type { ChegadaMovimentacao, ItemMovimentacao } from '@/components/comum';
 import { GraficoEvolucao } from '@/components/graficos';
 import { BlocoCarregando, Botao, CampoSelecao, CampoTexto, CampoValor, EstadoVazio, Modal, SeletorData } from '@/components/ui';
 import {
@@ -33,7 +33,13 @@ import type {
   SalvarSaldoInvestimentoDTO,
 } from '@/types';
 import { hojeISO } from '@/utils/data';
-import { formatarDataNumerica, formatarMoeda, formatarPercentualComSinal, interpretarEntradaValor } from '@/utils/formatacao';
+import {
+  formatarDataNumerica,
+  formatarInteiro,
+  formatarMoeda,
+  formatarPercentualComSinal,
+  interpretarEntradaValor,
+} from '@/utils/formatacao';
 import { juntarClasses } from '@/utils/juntarClasses';
 import { apenasDigitos } from '@/utils/mascaraValor';
 import { erroQuantidadeInteira, erroTexto, erroValor } from '@/utils/validacao';
@@ -221,6 +227,26 @@ function validarRegistro(
   return errors;
 }
 
+const ESPACO_CHEGADA_HISTORICO_PX = 176;
+
+function rolagemDe(element: HTMLElement): HTMLElement | null {
+  let node = element.parentElement;
+  while (node) {
+    const overflow = getComputedStyle(node).overflowY;
+    if (overflow === 'auto' || overflow === 'scroll') return node;
+    node = node.parentElement;
+  }
+  return null;
+}
+
+function revelarChegada(history: HTMLElement, behavior: ScrollBehavior) {
+  const scroller = rolagemDe(history);
+  if (!scroller) return;
+  const limit = scroller.getBoundingClientRect().bottom - ESPACO_CHEGADA_HISTORICO_PX;
+  const top = history.getBoundingClientRect().top;
+  if (top > limit) scroller.scrollBy({ top: top - limit, behavior });
+}
+
 function juntarDetalhes(parts: ReactNode[]): ReactNode {
   const present = parts.filter((part) => part !== undefined && part !== null && part !== '');
   if (present.length === 0) return undefined;
@@ -321,7 +347,11 @@ export function ModalDetalheInvestimento({
 }: ModalDetalheInvestimentoProps) {
   const [action, setAction] = useState<AcaoRegistroInvestimento>(acaoInicial);
   const [form, setForm] = useState<FormularioRegistro>(formularioVazio);
+  const [waitingArrival, setWaitingArrival] = useState(false);
+  const [arrival, setArrival] = useState<ChegadaMovimentacao | null>(null);
+  const pendingArrivalRef = useRef<{ ids: Set<string>; extrato: ExtratoInvestimentoDTO } | null>(null);
   const firstFieldRef = useRef<HTMLInputElement>(null);
+  const registerButtonRef = useRef<HTMLButtonElement>(null);
 
   const fetchStatement = useCallback(
     (signal: AbortSignal) =>
@@ -347,6 +377,9 @@ export function ModalDetalheInvestimento({
     setAction(acaoInicial);
     setForm(formularioVazio());
     reiniciar();
+    pendingArrivalRef.current = null;
+    setWaitingArrival(false);
+    setArrival(null);
   }, [investimentoId, acaoInicial, reiniciar]);
 
   useEffect(() => {
@@ -355,6 +388,32 @@ export function ModalDetalheInvestimento({
   }, [investimentoId, statement === null]);
 
   const historyScroll = useIndicadoresRolagem<HTMLDivElement>([investimentoId, statement !== null]);
+
+  useLayoutEffect(() => {
+    const pending = pendingArrivalRef.current;
+    if (!pending) return;
+    if (!erro && (!statement || statement === pending.extrato)) return;
+
+    pendingArrivalRef.current = null;
+    setWaitingArrival(false);
+    setForm(formularioVazio());
+    reiniciar();
+    if (erro || !statement) return;
+
+    const ids = new Set(statement.movimentacoes.map((movement) => movement.id).filter((id) => !pending.ids.has(id)));
+    if (ids.size === 0) return;
+
+    const history = historyScroll.ref.current;
+    const button = registerButtonRef.current;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const behavior: ScrollBehavior = reduceMotion ? 'auto' : 'smooth';
+    const origin = history && button ? button.getBoundingClientRect() : null;
+    if (history) {
+      if (history.scrollTop > 0) history.scrollTo({ top: 0, behavior });
+      revelarChegada(history, behavior);
+    }
+    setArrival((current) => ({ chave: (current?.chave ?? 0) + 1, ids, origem: origin }));
+  }, [statement, erro, historyScroll.ref, reiniciar]);
 
   const items = useMemo(() => (statement ? statement.movimentacoes.map(paraItem) : []), [statement]);
 
@@ -406,8 +465,13 @@ export function ModalDetalheInvestimento({
     reiniciar();
   };
 
+  const busy = salvando || waitingArrival;
+
   const handleRegister = async () => {
-    if (!investment || !enviar()) return;
+    if (!investment || !statement || busy || !enviar()) return;
+
+    pendingArrivalRef.current = { ids: new Set(statement.movimentacoes.map((movement) => movement.id)), extrato: statement };
+    setWaitingArrival(true);
 
     const amount = interpretarEntradaValor(form.valor) ?? 0;
     const description = form.descricao.trim();
@@ -445,9 +509,9 @@ export function ModalDetalheInvestimento({
               });
     }
 
-    if (ok) {
-      setForm(formularioVazio());
-      reiniciar();
+    if (!ok) {
+      pendingArrivalRef.current = null;
+      setWaitingArrival(false);
     }
   };
 
@@ -512,7 +576,7 @@ export function ModalDetalheInvestimento({
           }
         />
       ) : (
-        <div className={juntarClasses(styles.body, 'refreshing')} aria-busy={carregando}>
+        <div className={styles.body} aria-busy={carregando}>
           <div className={styles.overview}>
             <header className={styles.head}>
               {Icon ? (
@@ -542,20 +606,24 @@ export function ModalDetalheInvestimento({
               <dl className={styles.facts}>
                 <div>
                   <dt>Quantidade</dt>
-                  <dd className="tabular">{rotuloQuantidadeAcoes(share.quantidade)}</dd>
+                  <dd>
+                    <NumeroRolante texto={formatarInteiro(share.quantidade)} /> {share.quantidade === 1 ? 'ação' : 'ações'}
+                  </dd>
                 </div>
                 <div>
                   <dt>Preço médio</dt>
-                  <dd>{share.precoMedio !== undefined ? <ValorMonetario valor={share.precoMedio} tamanho="sm" /> : '—'}</dd>
+                  <dd>
+                    {share.precoMedio !== undefined ? <ValorMonetario valor={share.precoMedio} tamanho="sm" animar /> : '—'}
+                  </dd>
                 </div>
                 <div>
                   <dt>Cotação atual</dt>
-                  <dd>{share.cotacao !== undefined ? <ValorMonetario valor={share.cotacao} tamanho="sm" /> : '—'}</dd>
+                  <dd>{share.cotacao !== undefined ? <ValorMonetario valor={share.cotacao} tamanho="sm" animar /> : '—'}</dd>
                 </div>
                 <div>
                   <dt>Total investido</dt>
                   <dd>
-                    <ValorMonetario valor={share.aportado} tamanho="sm" />
+                    <ValorMonetario valor={share.aportado} tamanho="sm" animar />
                   </dd>
                 </div>
               </dl>
@@ -564,18 +632,19 @@ export function ModalDetalheInvestimento({
                 <div>
                   <dt>Total aportado</dt>
                   <dd>
-                    <ValorMonetario valor={investment.aportado} tamanho="sm" />
+                    <ValorMonetario valor={investment.aportado} tamanho="sm" animar />
                   </dd>
                 </div>
                 <div>
                   <dt>Aportes</dt>
-                  <dd className="tabular">
-                    {statement.quantidadeAportes} {statement.quantidadeAportes === 1 ? 'registro' : 'registros'}
+                  <dd>
+                    <NumeroRolante texto={formatarInteiro(statement.quantidadeAportes)} />{' '}
+                    {statement.quantidadeAportes === 1 ? 'registro' : 'registros'}
                   </dd>
                 </div>
                 <div>
                   <dt>Último aporte</dt>
-                  <dd className="tabular">{statement.ultimoAporte ? formatarDataNumerica(statement.ultimoAporte) : '—'}</dd>
+                  <dd>{statement.ultimoAporte ? <NumeroRolante texto={formatarDataNumerica(statement.ultimoAporte)} /> : '—'}</dd>
                 </div>
                 <div>
                   <dt>Aplicado desde</dt>
@@ -592,7 +661,7 @@ export function ModalDetalheInvestimento({
             <p className={styles.sectionHint}>
               A distância entre a área e a linha tracejada é o rendimento: o tracejado soma só o dinheiro que você colocou.
             </p>
-            <GraficoEvolucao dados={statement.evolucao} altura={220} rotuloValor="Saldo" />
+            <GraficoEvolucao dados={statement.evolucao} altura={220} rotuloValor="Saldo" pulsoNoUltimo={arrival?.chave} />
           </section>
 
           <section className={styles.register} aria-labelledby="investment-register-title">
@@ -710,7 +779,14 @@ export function ModalDetalheInvestimento({
                 erro={erros.descricao}
               />
 
-              <Botao type="submit" className={styles.registerButton} carregando={salvando}>
+              <Botao
+                ref={registerButtonRef}
+                type="submit"
+                className={styles.registerButton}
+                carregando={busy}
+                disabled={false}
+                aria-disabled={busy}
+              >
                 {texts[action].botao}
               </Botao>
             </form>
@@ -787,7 +863,7 @@ export function ModalDetalheInvestimento({
                 onScroll={historyScroll.medir}
                 {...(historyScroll.rolavel ? { tabIndex: 0 } : {})}
               >
-                <HistoricoMovimentacoes itens={items} quantidadeInicial={QUANTIDADE_INICIAL_MOVIMENTACOES} />
+                <HistoricoMovimentacoes itens={items} quantidadeInicial={QUANTIDADE_INICIAL_MOVIMENTACOES} chegada={arrival} />
               </div>
             </div>
           </section>

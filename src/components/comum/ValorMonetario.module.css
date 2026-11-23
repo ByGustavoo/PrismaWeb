@@ -32,6 +32,12 @@
   font-weight: inherit;
 }
 
+.number {
+  display: inline-flex;
+  align-items: baseline;
+  white-space: nowrap;
+}
+
 .default {
   color: var(--text);
 }

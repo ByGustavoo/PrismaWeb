@@ -146,7 +146,7 @@ src/
 ├── components/
 │   ├── ui/        Botao, Painel, CampoTexto, CampoValor, AreaTexto, CampoSelecao, SeletorData, Interruptor, Modal,
 │   │              DialogoConfirmacao, Selo, Tabela, BarraProgresso, Carregamento, EstadoVazio, Notificacao
-│   ├── comum/     ValorMonetario, MarcaPrisma, IndicadorVariacao, BarraResumo, HistoricoMovimentacoes,
+│   ├── comum/     ValorMonetario, MarcaPrisma, IndicadorVariacao, BarraResumo, HistoricoMovimentacoes, VooMovimentacao,
 │   │              ResultadoFiltros
 │   ├── boasVindas/ TelaBoasVindas, LinhaDoSaldo (fundo), transicaoBoasVindas (saida por View Transitions)
 │   ├── configuracoes/ PainelPreferenciasAvisos, PainelTelas
@@ -242,8 +242,11 @@ de altura reserva a maior (`alturaCartaoRetrato`), senao o titulo centrado com e
   os digitos sao texto e as rodas assumem so no fim, no valor final (a roda assenta por transicao de
   CSS, que precisa de alvo parado). Os dois valem so para os indicadores-titulo: no dashboard, saldo,
   patrimonio, as tres linhas de fluxo e os quatro tiles; em Contas, Cartoes, Faturas e Parcelamentos,
-  a `BarraResumo` do topo. Cartoes de lista nao contam. A trava de "ja contou" fecha na **chegada**,
-  nunca na partida: o `StrictMode` monta duas vezes no dev.
+  a `BarraResumo` do topo. Cartoes de lista nao contam. Excecao do `animar` (pedido do usuario): o
+  cabecalho e a faixa de numeros do detalhe de investimento rolam ao registrar — reais pelo
+  `ValorMonetario`, contagem, quantidade de acoes e data pelo `NumeroRolante` (a mesma roda, sem "R$";
+  separadores ficam parados). A trava de "ja contou" fecha na **chegada**, nunca na partida: o
+  `StrictMode` monta duas vezes no dev.
 - **O passo da roda e inteiro em pixels**: `--roll-step: round(1.12em, 4px)` em
   `ValorMonetario.module.css`. Com 1,12em cru cada algarismo parava numa fracao de pixel diferente e o
   navegador encaixava a linha de base no pixel mais proximo — o 9 e o 3 de "1.930,00" ficavam 1px
@@ -429,6 +432,13 @@ tecla. Virgula, ponto e letra sao ignorados; teclado `inputMode="numeric"`, exce
   `NUMERIC(14,2)`), e a tecla excedente e recusada. Colar com o campo vazio ou todo selecionado cola o
   valor ("R$ 1.500,50", "1500.50", "1,500.50"; `centavosDoValorColado`); no meio, so os digitos.
 - Inteiro (dia, ultimos digitos) passa por `apenasDigitos`.
+- **Sugestao recente do navegador pinta a moldura inteira.** O Chrome pinta `:autofill` so no
+  `<input>`, e a moldura `.control` tem respiro lateral, entao o campo ficava azul so no meio.
+  `Campo.module.css` segura o fundo do `<input>` transparente (transicao de 600000s, porque o
+  navegador aplica a cor com `!important`) e pinta a `.control` de `--accent-soft` por `:has()`, com
+  as regras de `:-webkit-autofill` e `:autofill` separadas (seletor desconhecido derruba a lista). Vale
+  para `CampoTexto`, `CampoValor` e `AreaTexto`. Campo com lista propria (`BuscaGlobal`) leva
+  `autoComplete="off"`, senao abria um segundo menu por cima do nosso.
 
 **Validacao: `useValidacaoFormulario`**, com as regras de `utils/validacao.ts` (`erroTexto`,
 `erroValor`) e os limites de `constants/validacao.ts`.
@@ -681,6 +691,16 @@ calculada.
   colunas e a descricao na segunda linha com o botao. A previa diz para quanto vao saldo e aportado.
   Layout horizontal (padrao compartilhado): saldo, rendimento e os quatro numeros numa faixa no topo;
   grafico e registro a esquerda, historico a direita em `minmax(340px, 0.48fr)`.
+- **Registrar no detalhe nao pisca: o registro voa ate o historico.** O corpo do modal nao usa
+  `.refreshing` (o recuo a 55% era lido como o modal fechando e abrindo). O botao segura o carregamento
+  ate o extrato novo chegar, sem `disabled` (o foco nao cai no `body`), e o formulario so limpa nessa
+  hora. Na chegada, as movimentacoes de id novo viram `ChegadaMovimentacao` do `HistoricoMovimentacoes`:
+  a linha abre espaco (`grid-template-rows`), uma replica dela (`VooMovimentacao`, portal com
+  `requestAnimationFrame`, que segue a linha a cada quadro) sai do botao em arco e pousa exatamente
+  sobre ela em `DURACAO_VOO_MOVIMENTACAO_MS`, e a linha aparece com destaque em `--accent-soft` que se
+  apaga. O historico rola ao topo e, empilhado, o modal rola ate ele. O `GraficoEvolucao` transiciona
+  em 800 ms e pulsa o ultimo ponto (`pulsoNoUltimo`), com a superficie em `overflow: visible`. Sob
+  movimento reduzido nao ha voo nem pulso.
 - **Onze classes de ativo** (`ClasseAtivo`), cada uma com token fixo em `corClasseAtivo`. `RDB` cobre
   caixinhas; `PREVIDENCIA`, PGBL e VGBL; `POUPANCA` usa `--palette-12` e o icone `HandCoins` (o 6 e
   vermelho, lido como perda). As tres tem dica propria (`dicaClasseAtivo`).

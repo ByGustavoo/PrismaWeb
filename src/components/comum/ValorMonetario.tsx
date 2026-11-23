@@ -55,6 +55,19 @@ export function ValorMonetario({
   );
 }
 
+export interface NumeroRolanteProps {
+  texto: string;
+  className?: string;
+}
+
+export function NumeroRolante({ texto, className }: NumeroRolanteProps) {
+  return (
+    <span className={juntarClasses(styles.number, className)}>
+      <AlgarismosRolantes digits={texto} />
+    </span>
+  );
+}
+
 const RODA = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
 const ATRASO_MAXIMO = 5;

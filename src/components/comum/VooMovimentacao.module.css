@@ -1,0 +1,16 @@
+.ghost {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: var(--z-popover);
+  padding: 0 var(--space-2);
+  pointer-events: none;
+  opacity: 0;
+  color: var(--text);
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-popover), var(--shadow-accent);
+  transform-origin: center;
+  will-change: transform, opacity;
+}

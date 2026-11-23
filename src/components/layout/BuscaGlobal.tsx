@@ -269,6 +269,7 @@ export function BuscaGlobal({ expandido = false, aoRecolher }: BuscaGlobalProps)
           ref={inputRef}
           type="search"
           role="combobox"
+          autoComplete="off"
           value={term}
           onChange={(event) => setTerm(event.target.value)}
           onFocus={() => setFocused(true)}

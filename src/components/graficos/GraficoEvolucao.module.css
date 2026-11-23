@@ -2,6 +2,59 @@
   margin-inline: calc(var(--space-2) * -1);
 }
 
+.chart :global(.recharts-surface) {
+  overflow: visible;
+}
+
+.pulse {
+  pointer-events: none;
+}
+
+.pulseDot,
+.pulseHalo {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.pulseDot {
+  animation: pontoPulso 2000ms var(--ease-out) var(--atraso-pulso, 0ms) both;
+}
+
+.pulseHalo {
+  opacity: 0;
+  animation: haloPulso 1000ms var(--ease-out) var(--atraso-pulso, 0ms) 2 forwards;
+}
+
+@keyframes pontoPulso {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+
+  12%,
+  78% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+@keyframes haloPulso {
+  from {
+    opacity: 0.5;
+    transform: scale(0.8);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(3.2);
+  }
+}
+
 .legendLabel {
   color: var(--text-muted);
   font-size: var(--fs-sm);
