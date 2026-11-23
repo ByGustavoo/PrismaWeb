@@ -2,6 +2,7 @@ import { Area, AreaChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, X
 import { DicaGrafico } from '@/components/graficos';
 import { Painel, CorpoPainel, CabecalhoPainel } from '@/components/ui';
 import { usePaletaGrafico } from '@/hooks/usePaletaGrafico';
+import { useLarguraEixoMoeda } from '@/hooks/useLarguraEixoMoeda';
 import type { PatrimonioDTO } from '@/types';
 import { formatarMoedaCompacta } from '@/utils/formatacao';
 import styles from './GraficoRelatorio.module.css';
@@ -12,6 +13,7 @@ interface GraficoPatrimonioProps {
 
 export function GraficoPatrimonio({ dados }: GraficoPatrimonioProps) {
   const palette = usePaletaGrafico();
+  const larguraEixo = useLarguraEixoMoeda(dados.map((ponto) => ponto.total));
 
   return (
     <Painel className="card-hover-accent">
@@ -46,7 +48,7 @@ export function GraficoPatrimonio({ dados }: GraficoPatrimonioProps) {
               tickLine={false}
               tick={{ fill: palette.textoEixo, fontSize: 12 }}
               tickFormatter={formatarMoedaCompacta}
-              width={78}
+              width={larguraEixo}
             />
             <Tooltip cursor={{ stroke: palette.borda }} content={<DicaGrafico />} />
             <Legend

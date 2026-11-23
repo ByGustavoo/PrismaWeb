@@ -319,7 +319,7 @@ export function ModalFormularioInvestimento({ aberto, investimento, contas, salv
           className={styles.wide}
           required
           rotulo={isShare ? 'Nome da empresa' : 'Nome'}
-          placeholder={isShare ? 'Petrobras, Itaú Unibanco, Vale...' : 'CDB Liquidez Diária, Caixinha da viagem, PGBL...'}
+          placeholder={isShare ? 'Petrobras, Itaú Unibanco, Vale...' : 'CDB Liquidez Diária, PGBL...'}
           value={form.nome}
           onChange={(event) => set('nome', event.target.value)}
           onBlur={() => tocar('nome')}

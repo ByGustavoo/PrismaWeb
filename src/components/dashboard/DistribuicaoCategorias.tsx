@@ -19,6 +19,7 @@ interface DistribuicaoCategoriasProps {
   rotuloVazio?: string;
   manterAlturaAoExpandir?: boolean;
   preencherAltura?: boolean;
+  linhasMinimas?: number;
   className?: string;
 }
 
@@ -30,11 +31,13 @@ export function DistribuicaoCategorias({
   rotuloVazio = 'Nenhuma despesa com categoria neste período.',
   manterAlturaAoExpandir = false,
   preencherAltura = false,
+  linhasMinimas,
   className,
 }: DistribuicaoCategoriasProps) {
   const [expanded, setExpanded] = useState(false);
   const [collapsedHeight, setCollapsedHeight] = useState<number | null>(null);
   const [scroll, setScroll] = useState({ possible: false, above: false, below: false });
+  const [minimumHeight, setMinimumHeight] = useState<number | null>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const revealRequested = useRef(false);
   const listId = useId();
@@ -46,12 +49,16 @@ export function DistribuicaoCategorias({
   const measureScroll = useCallback(() => {
     const list = listRef.current;
     if (!list) return;
+    if (preencherAltura && linhasMinimas) {
+      const lastRequired = list.children[Math.min(linhasMinimas, list.children.length) - 1];
+      setMinimumHeight(lastRequired instanceof HTMLElement ? lastRequired.offsetTop + lastRequired.offsetHeight : null);
+    }
     setScroll({
       possible: list.scrollHeight > list.clientHeight + 1,
       above: list.scrollTop > 1,
       below: list.scrollTop + list.clientHeight < list.scrollHeight - 1,
     });
-  }, []);
+  }, [preencherAltura, linhasMinimas]);
 
   const toggle = () => {
     if (!expanded && manterAlturaAoExpandir && listRef.current) {
@@ -95,6 +102,11 @@ export function DistribuicaoCategorias({
           <>
             <div
               className={juntarClasses(styles.frame, preencherAltura && styles.fillFrame)}
+              style={
+                preencherAltura && minimumHeight !== null
+                  ? ({ '--altura-minima-lista': `${minimumHeight}px` } as CSSProperties)
+                  : undefined
+              }
               {...(scroll.above ? { 'data-acima': '' } : {})}
               {...(scroll.below ? { 'data-abaixo': '' } : {})}
             >

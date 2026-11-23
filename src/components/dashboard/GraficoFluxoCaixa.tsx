@@ -2,6 +2,7 @@ import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAx
 import { ArrowLeftRight } from 'lucide-react';
 import { DicaGrafico } from '@/components/graficos';
 import { usePaletaGrafico } from '@/hooks/usePaletaGrafico';
+import { useLarguraEixoMoeda } from '@/hooks/useLarguraEixoMoeda';
 import { Painel, CorpoPainel, CabecalhoPainel, EstadoVazio } from '@/components/ui';
 import type { FluxoDTO } from '@/types';
 import { formatarMoedaCompacta } from '@/utils/formatacao';
@@ -23,6 +24,7 @@ export function GraficoFluxoCaixa({
   className,
 }: GraficoFluxoCaixaProps) {
   const palette = usePaletaGrafico();
+  const larguraEixo = useLarguraEixoMoeda(dados.flatMap((ponto) => [ponto.receitas, ponto.despesas]));
   const semMovimento = dados.every((item) => item.receitas === 0 && item.despesas === 0);
 
   return (
@@ -59,7 +61,7 @@ export function GraficoFluxoCaixa({
                   tickLine={false}
                   tick={{ fill: palette.textoEixo, fontSize: 12 }}
                   tickFormatter={formatarMoedaCompacta}
-                  width={78}
+                  width={larguraEixo}
                 />
                 <Tooltip
                   cursor={{ fill: palette.superficieSuave }}

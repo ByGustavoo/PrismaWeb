@@ -8,6 +8,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  container-type: inline-size;
 }
 
 .list {
@@ -40,5 +41,11 @@
 @media (max-width: 599px) {
   .list {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container (max-width: 855px) {
+  .list {
+    grid-auto-rows: auto;
   }
 }

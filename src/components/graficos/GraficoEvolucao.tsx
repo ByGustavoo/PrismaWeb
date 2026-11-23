@@ -1,6 +1,7 @@
 import { useId } from 'react';
 import { Area, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { usePaletaGrafico } from '@/hooks/usePaletaGrafico';
+import { useLarguraEixoMoeda } from '@/hooks/useLarguraEixoMoeda';
 import type { PontoEvolucaoDTO } from '@/types';
 import { formatarMoedaCompacta } from '@/utils/formatacao';
 import { DicaGrafico } from './DicaGrafico';
@@ -20,6 +21,7 @@ export function GraficoEvolucao({
   rotuloAportado = 'Total aportado',
 }: GraficoEvolucaoProps) {
   const palette = usePaletaGrafico();
+  const larguraEixo = useLarguraEixoMoeda(dados.flatMap((ponto) => [ponto.valor, ponto.aportado]));
   const gradientId = `prisma-evolucao-${useId().replace(/:/g, '')}`;
 
   return (
@@ -48,7 +50,7 @@ export function GraficoEvolucao({
             tickLine={false}
             tick={{ fill: palette.textoEixo, fontSize: 12 }}
             tickFormatter={formatarMoedaCompacta}
-            width={78}
+            width={larguraEixo}
             domain={['auto', 'auto']}
           />
           <Tooltip cursor={{ stroke: palette.borda }} content={<DicaGrafico />} />

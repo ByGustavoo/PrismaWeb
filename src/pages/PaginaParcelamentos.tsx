@@ -18,6 +18,7 @@ import { Botao, Painel, DialogoConfirmacao, EstadoVazio, BlocoCarregando } from 
 import { ehCartaoCredito, rotuloQuantidadeParcelas } from '@/constants/cartoes';
 import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
 import { usePagamentoParcela } from '@/hooks/usePagamentoParcela';
+import { useFiltrosEmpilhados } from '@/hooks/useConsultaMidia';
 import { useNotificacoes } from '@/providers/ProvedorNotificacoes';
 import { PARAMETRO_CARTAO, PARAMETRO_COMPRA } from '@/routes/caminhos';
 import { cartoesService, categoriasService } from '@/services';
@@ -36,6 +37,7 @@ export function PaginaParcelamentos() {
   const [scheduleId, setScheduleId] = useState<ID | null>(null);
   const [saving, setSaving] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+  const filtrosEmpilhados = useFiltrosEmpilhados();
   const toast = useNotificacoes();
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -170,6 +172,11 @@ export function PaginaParcelamentos() {
     });
 
   const noCreditCard = !carregando && !erro && creditCards.length === 0;
+  const newPurchaseButton = (
+    <Botao tamanho="sm" icone={Plus} disabled={noCreditCard} onClick={() => setCreating(true)}>
+      Nova compra
+    </Botao>
+  );
 
   return (
     <>
@@ -178,6 +185,7 @@ export function PaginaParcelamentos() {
         descricao="Quanto já foi pago, quanto falta e em quais faturas as parcelas caem"
         acoes={
           <>
+            {filtrosEmpilhados ? newPurchaseButton : null}
             <FiltrosParcelamentos
               consulta={query}
               aoAlterar={(patch) => setQuery((current) => ({ ...current, ...patch }))}
@@ -185,9 +193,7 @@ export function PaginaParcelamentos() {
               mostrarConsulta={plans.length > 0}
               refBusca={searchRef}
             />
-            <Botao tamanho="sm" icone={Plus} disabled={noCreditCard} onClick={() => setCreating(true)}>
-              Nova compra
-            </Botao>
+            {filtrosEmpilhados ? null : newPurchaseButton}
           </>
         }
       />

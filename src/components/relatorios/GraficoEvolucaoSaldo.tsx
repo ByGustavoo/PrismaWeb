@@ -2,6 +2,7 @@ import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YA
 import { DicaGrafico } from '@/components/graficos';
 import { Painel, CorpoPainel, CabecalhoPainel } from '@/components/ui';
 import { usePaletaGrafico } from '@/hooks/usePaletaGrafico';
+import { useLarguraEixoMoeda } from '@/hooks/useLarguraEixoMoeda';
 import type { SaldoDTO } from '@/types';
 import { formatarMoedaCompacta } from '@/utils/formatacao';
 import styles from './GraficoRelatorio.module.css';
@@ -12,6 +13,7 @@ interface GraficoEvolucaoSaldoProps {
 
 export function GraficoEvolucaoSaldo({ dados }: GraficoEvolucaoSaldoProps) {
   const palette = usePaletaGrafico();
+  const larguraEixo = useLarguraEixoMoeda(dados.map((ponto) => ponto.saldo));
 
   return (
     <Painel className="card-hover-accent">
@@ -40,7 +42,7 @@ export function GraficoEvolucaoSaldo({ dados }: GraficoEvolucaoSaldoProps) {
               tick={{ fill: palette.textoEixo, fontSize: 12 }}
               tickFormatter={formatarMoedaCompacta}
               domain={['auto', 'auto']}
-              width={78}
+              width={larguraEixo}
             />
             <Tooltip cursor={{ stroke: palette.borda }} content={<DicaGrafico />} />
             <Area

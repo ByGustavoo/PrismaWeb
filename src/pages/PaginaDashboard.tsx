@@ -54,6 +54,13 @@ export function PaginaDashboard() {
   const isCurrentMonth = shownFrom === thisMonth && shownTo === thisMonth;
   const shownLabel = formatarRotuloPeriodo(shownFrom, shownTo);
   const periodNoun = shownFrom === shownTo ? 'mês' : 'período';
+  const invoiceMonth = dados?.faturaAtual?.mes;
+  const rotuloFatura =
+    invoiceMonth && invoiceMonth !== shownTo
+      ? `Fatura de ${capitalizar(formatarRotuloMes(invoiceMonth))}`
+      : shownFrom === shownTo
+        ? 'Fatura do mês'
+        : `Fatura de ${capitalizar(formatarRotuloMes(shownTo))}`;
 
   return (
     <>
@@ -105,6 +112,7 @@ export function PaginaDashboard() {
               icone={TrendingUp}
               variacao={dados.variacaoReceitas}
               legendaVariacao={legendaVariacaoReceita(dados.variacaoReceitas.tendencia)}
+              iconeSegueVariacao
             />
             <BlocoIndicador
               rotulo={`Despesas do ${periodNoun}`}
@@ -113,6 +121,7 @@ export function PaginaDashboard() {
               variacao={dados.variacaoDespesas}
               legendaVariacao={legendaVariacaoGasto(dados.variacaoDespesas.tendencia)}
               sentidoFavoravel="BAIXA"
+              iconeSegueVariacao
             />
             <BlocoIndicador
               rotulo="Investimentos"
@@ -122,7 +131,7 @@ export function PaginaDashboard() {
               notaRodape="Rentabilidade acumulada"
             />
             <BlocoIndicador
-              rotulo={shownFrom === shownTo ? 'Fatura do mês' : `Fatura de ${capitalizar(formatarRotuloMes(shownTo))}`}
+              rotulo={rotuloFatura}
               valor={dados.faturaAtual?.valorRestante ?? 0}
               icone={CreditCard}
               notaRodape={

@@ -18,7 +18,7 @@ export function BarraResumo({ itens, className }: BarraResumoProps) {
   return (
     <dl className={juntarClasses(styles.bar, className)}>
       {itens.map((item) => (
-        <div key={item.rotulo} className={styles.item}>
+        <div key={item.rotulo} className={juntarClasses(styles.item, item.variacao ? styles.itemWithDelta : undefined)}>
           <dt className={styles.label}>{item.rotulo}</dt>
           <dd className={styles.value}>{item.valor}</dd>
           {item.variacao ? <dd className={styles.delta}>{item.variacao}</dd> : null}

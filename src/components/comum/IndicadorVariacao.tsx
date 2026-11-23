@@ -11,10 +11,16 @@ export interface IndicadorVariacaoProps {
   sentidoFavoravel?: Exclude<Tendencia, 'ESTAVEL'>;
 }
 
+export type TomVariacao = 'good' | 'bad' | 'flat';
+
+export function tomDaVariacao(variacao: VariacaoDTO, sentidoFavoravel: Exclude<Tendencia, 'ESTAVEL'> = 'ALTA'): TomVariacao {
+  if (variacao.tendencia === 'ESTAVEL') return 'flat';
+  return variacao.tendencia === sentidoFavoravel ? 'good' : 'bad';
+}
+
 export function IndicadorVariacao({ variacao, legenda, sentidoFavoravel = 'ALTA' }: IndicadorVariacaoProps) {
   const Icon = variacao.tendencia === 'ALTA' ? ArrowUpRight : variacao.tendencia === 'BAIXA' ? ArrowDownRight : Minus;
-  const tone =
-    variacao.tendencia === 'ESTAVEL' ? 'flat' : variacao.tendencia === sentidoFavoravel ? 'good' : 'bad';
+  const tone = tomDaVariacao(variacao, sentidoFavoravel);
 
   return (
     <span className={juntarClasses(styles.delta, styles[tone])}>

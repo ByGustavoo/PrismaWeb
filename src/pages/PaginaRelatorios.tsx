@@ -9,16 +9,20 @@ import { legendaVariacaoGasto } from '@/constants/lancamentos';
 import { periodoRelatorioDe } from '@/constants/relatorios';
 import type { ChavePeriodoRelatorio } from '@/constants/relatorios';
 import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
+import { useEhTablet } from '@/hooks/useConsultaMidia';
 import { relatoriosService } from '@/services';
 import type { PeriodoRelatorio } from '@/types';
 import { formatarDataNumerica } from '@/utils/formatacao';
 import styles from './PaginaRelatorios.module.css';
+
+const LINHAS_MINIMAS_GASTOS = 6;
 
 const CHAVE_INICIAL = 'month' satisfies Exclude<ChavePeriodoRelatorio, 'custom'>;
 
 export function PaginaRelatorios() {
   const [rangeKey, setRangeKey] = useState<ChavePeriodoRelatorio>(CHAVE_INICIAL);
   const [range, setRange] = useState<PeriodoRelatorio>(() => periodoRelatorioDe(CHAVE_INICIAL));
+  const empilhado = useEhTablet();
 
   const handleSelect = (key: ChavePeriodoRelatorio) => {
     setRangeKey(key);
@@ -143,7 +147,8 @@ export function PaginaRelatorios() {
             <DistribuicaoCategorias
               dados={dados.despesasPorCategoria}
               substantivoPeriodo="período"
-              manterAlturaAoExpandir
+              preencherAltura={!empilhado}
+              linhasMinimas={LINHAS_MINIMAS_GASTOS}
               className="card-hover-accent"
             />
             <div className={styles.column}>

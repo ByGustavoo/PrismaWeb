@@ -90,7 +90,7 @@ export function FiltrosLancamentos({
     <CampoTexto
       className={styles.search}
       icone={Search}
-      placeholder="Buscar nos lançamentos"
+      placeholder={isCompact ? 'Buscar' : 'Buscar nos lançamentos'}
       value={consulta.busca}
       onChange={(event) => aoAlterar({ busca: event.target.value })}
       aria-label="Buscar lançamentos"

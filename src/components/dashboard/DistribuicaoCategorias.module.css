@@ -74,7 +74,7 @@
 
 .fillFrame {
   flex: 1;
-  min-height: 8rem;
+  min-height: var(--altura-minima-lista, 8rem);
   contain: size;
 }
 

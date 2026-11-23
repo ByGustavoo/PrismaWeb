@@ -128,7 +128,7 @@ export function ModalFormularioConta({ aberto, conta, salvando, aoEnviar, aoFech
           className={styles.full}
           required
           rotulo="Nome da conta"
-          placeholder="Conta corrente, Reserva de emergência..."
+          placeholder="Conta corrente, Carteira..."
           value={form.nome}
           onChange={(event) => set('nome', event.target.value)}
           onBlur={() => tocar('nome')}

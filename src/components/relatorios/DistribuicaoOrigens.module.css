@@ -37,7 +37,6 @@
   height: 22px;
   border-radius: var(--radius-xs);
   background-color: var(--surface-muted);
-  color: var(--text-muted);
 }
 
 .name {
@@ -66,5 +65,5 @@
 .bar {
   height: 100%;
   border-radius: var(--radius-pill);
-  background-color: var(--text-subtle);
+  opacity: 0.9;
 }

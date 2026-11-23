@@ -434,7 +434,7 @@
   }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 679px) {
   .panel {
     left: var(--space-4);
     right: var(--space-4);

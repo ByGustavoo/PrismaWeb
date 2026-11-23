@@ -22,3 +22,5 @@ export const useEhMobile = () => useConsultaMidia('(max-width: 767px)');
 export const useEhTablet = () => useConsultaMidia('(max-width: 1099px)');
 
 export const useEhCompacto = () => useConsultaMidia('(max-width: 899px)');
+
+export const useFiltrosEmpilhados = () => useConsultaMidia('(max-width: 599px)');
