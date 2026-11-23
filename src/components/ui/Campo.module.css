@@ -85,6 +85,24 @@
   color: var(--text-subtle);
 }
 
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text);
+  caret-color: var(--text);
+  transition:
+    background-color 0s 600000s,
+    color 0s 600000s;
+}
+
+.control:has(.input:-webkit-autofill) {
+  background-color: var(--accent-soft);
+}
+
+.control:has(.input:autofill) {
+  background-color: var(--accent-soft);
+}
+
 .textarea {
   height: auto;
   padding: 0;
