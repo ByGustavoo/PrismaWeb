@@ -23,7 +23,8 @@ import { useNotificacoes } from '@/providers/ProvedorNotificacoes';
 import { PARAMETRO_CARTAO, PARAMETRO_COMPRA } from '@/routes/caminhos';
 import { cartoesService, categoriasService } from '@/services';
 import type { CompraParceladaDTO, ID, Opcao, ParcelaDTO, PlanoCompraParceladaDTO, SalvarCompraParceladaDTO } from '@/types';
-import { formatarMesCurto } from '@/utils/formatacao';
+import { hojeISO } from '@/utils/data';
+import { capitalizar, formatarMesCurto, formatarRotuloMes } from '@/utils/formatacao';
 import styles from './PaginaParcelamentos.module.css';
 
 const TODOS_CARTOES = 'all';
@@ -101,15 +102,23 @@ export function PaginaParcelamentos() {
       .filter(Boolean)
       .sort()
       .at(-1);
-    const installmentPlans = active.filter((plan) => plan.compra.parcelas > 1);
-    const monthly = installmentPlans.reduce((sum, plan) => sum + (plan.parcelaAtual?.valor ?? 0), 0);
+    const unpaidInstallments = active.flatMap((plan) =>
+      plan.cronograma.filter((installment) => installment.situacao !== 'PAGA'),
+    );
+    const nextInvoiceMonth = unpaidInstallments
+      .map((installment) => installment.mes)
+      .sort()
+      .at(0);
+    const nextInvoiceInstallments = unpaidInstallments.filter((installment) => installment.mes === nextInvoiceMonth);
+    const nextInvoiceTotal = nextInvoiceInstallments.reduce((sum, installment) => sum + installment.valor, 0);
 
     return {
       remaining: active.reduce((sum, plan) => sum + plan.valorRestante, 0),
-      monthly: Math.round(monthly * 100) / 100,
+      nextInvoiceTotal: Math.round(nextInvoiceTotal * 100) / 100,
+      nextInvoiceMonth,
+      nextInvoiceCount: nextInvoiceInstallments.length,
       paid: plans.reduce((sum, plan) => sum + plan.valorPago, 0),
       activeCount: active.length,
-      installmentCount: installmentPlans.length,
       lastMonth,
     };
   }, [plans]);
@@ -252,12 +261,20 @@ export function PaginaParcelamentos() {
                   : 'Nenhuma parcela em aberto',
               },
               {
-                rotulo: 'Total mensal em parcelas',
-                valor: <ValorMonetario valor={summary.monthly} tamanho="lg" contarAoAparecer />,
+                rotulo: summary.nextInvoiceMonth
+                  ? `Fatura de ${capitalizar(
+                      summary.nextInvoiceMonth.startsWith(hojeISO().slice(0, 4))
+                        ? formatarRotuloMes(summary.nextInvoiceMonth).replace(/ de \d{4}$/, '')
+                        : formatarRotuloMes(summary.nextInvoiceMonth),
+                    )}`
+                  : 'Próxima fatura',
+                valor: <ValorMonetario valor={summary.nextInvoiceTotal} tamanho="lg" contarAoAparecer />,
                 dica:
-                  summary.installmentCount > 0
-                    ? `O que ${summary.installmentCount === 1 ? 'a compra parcelada em aberto soma' : `as ${summary.installmentCount} compras parceladas em aberto somam`} por mês nas faturas`
-                    : 'Nenhuma compra parcelada em aberto',
+                  summary.nextInvoiceCount > 0
+                    ? summary.nextInvoiceCount === 1
+                      ? 'Só uma compra cai nela'
+                      : `As ${summary.nextInvoiceCount} compras que caem nela, parceladas ou à vista`
+                    : 'Nenhuma compra em aberto',
               },
               {
                 rotulo: 'Já pago',

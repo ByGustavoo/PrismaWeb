@@ -606,10 +606,15 @@ cartoes sao cadastro; faturas e parcelamentos sao leitura calculada, exceto o ca
 - **Parcelas nao sao lancamentos**: vivem em `comprasParceladas` e entram nas faturas pelo calculo. As
   primeiras levam o valor arredondado para baixo e a ultima absorve a sobra.
 - **Uma parcela e compra a vista** (`PARCELAS_MINIMAS`): o formulario comeca em "À vista (1x)", o
-  cartao e o mesmo com o selo "À vista" e textos no singular. Fica fora do "Total mensal em parcelas",
-  mas em "Falta pagar".
-- **"Falta pagar"** soma todas as parcelas por vencer; **"Total mensal em parcelas"**, a parcela atual
-  de cada compra em aberto. Ficam lado a lado, com dica.
+  cartao e o mesmo com o selo "À vista" e textos no singular. Entra em "Falta pagar" e na fatura.
+- **"Falta pagar"** soma todas as parcelas por vencer; **"Fatura de Dezembro"** soma, de todas as
+  compras (a vista ou parceladas), as parcelas nao pagas do mes mais antigo que ainda tem parcela em
+  aberto. Ficam lado a lado, com dica. O rotulo so leva o ano fora do ano corrente: "Fatura de Novembro
+  de 2026" quebrava em duas linhas a 390px e descia o valor abaixo do de "Falta pagar". O mes segue o
+  card de fatura do dashboard: paga a fatura (ou vencidas as parcelas), passa sozinho para a seguinte,
+  e o numero so difere do card por despesa lancada direto no cartao. Nao volte ao "Total mensal em parcelas" pela `parcelaAtual` de cada compra:
+  deixava a compra a vista de fora (R$ 223,71 a menos que a fatura, apontado pelo usuario) e, entre
+  fechamento e vencimento, misturava parcelas de dois meses.
 - **Hierarquia do progresso**: "Parcela 3 de 10" em destaque, "8 restantes" num selo de acento e
   "2 pagas — Última parcela em Abr/2027" menor.
 - **Todo cartao de compra tem a mesma altura**: `grid-auto-rows: 1fr` sem `align-items: start`, valores
