@@ -887,6 +887,10 @@ Telas sob "Planejamento": `/planejamento/orcamento`, `/planejamento/recorrentes`
   despesa em outra cor.
 - **A tela diz como foi feita**: a nota de metodo mostra as medias da base (`PrevisaoDTO.base`).
 - Tabela e lista mobile saem de `linhasPrevisao`; zero aparece como traco.
+- **A faixa do mes de menor saldo segue o canto do card**: o `Painel` nao corta o conteudo, entao,
+  quando esse mes e a ultima linha, a primeira celula (e o item da lista) leva
+  `calc(var(--radius-lg) - 1px)` no canto inferior esquerdo, o raio interno da borda. Sem isso a faixa
+  de 3px descia reta e passava por fora da curva.
 
 ## Metas e desejos
 
