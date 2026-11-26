@@ -57,12 +57,11 @@ export function ValorMonetario({
 
 export interface NumeroRolanteProps {
   texto: string;
-  className?: string;
 }
 
-export function NumeroRolante({ texto, className }: NumeroRolanteProps) {
+export function NumeroRolante({ texto }: NumeroRolanteProps) {
   return (
-    <span className={juntarClasses(styles.number, className)}>
+    <span className={styles.number}>
       <AlgarismosRolantes digits={texto} />
     </span>
   );

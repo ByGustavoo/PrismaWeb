@@ -67,11 +67,12 @@ async function requisitar<T>(method: string, path: string, body?: unknown, optio
     controller.abort();
   }, TEMPO_LIMITE_PADRAO_MS);
   const token = obterTokenAutenticacao();
+  const cancelar = () => controller.abort();
 
   if (options.signal?.aborted) {
     controller.abort();
-  } else if (options.signal) {
-    options.signal.addEventListener('abort', () => controller.abort(), { once: true });
+  } else {
+    options.signal?.addEventListener('abort', cancelar, { once: true });
   }
 
   try {
@@ -105,6 +106,7 @@ async function requisitar<T>(method: string, path: string, body?: unknown, optio
     throw new ErroApi('Não foi possível falar com o servidor!', 0, 'network_error', error);
   } finally {
     clearTimeout(timeout);
+    options.signal?.removeEventListener('abort', cancelar);
   }
 }
 

@@ -7,13 +7,20 @@ interface IndicadoresRolagem {
   abaixo: boolean;
 }
 
-export function useIndicadoresRolagem<T extends HTMLElement>(dependencias: DependencyList) {
+export function useIndicadoresRolagem<T extends HTMLElement>(
+  dependencias: DependencyList,
+  aoMedir?: (elemento: T) => void,
+) {
   const ref = useRef<T>(null);
+  const aoMedirRef = useRef(aoMedir);
+  aoMedirRef.current = aoMedir;
   const [indicadores, setIndicadores] = useState<IndicadoresRolagem>({ rolavel: false, acima: false, abaixo: false });
 
   const medir = useCallback(() => {
     const element = ref.current;
     if (!element) return;
+
+    aoMedirRef.current?.(element);
 
     const next = {
       rolavel: element.scrollHeight > element.clientHeight + 1,

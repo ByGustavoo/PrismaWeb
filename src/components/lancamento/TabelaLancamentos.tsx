@@ -1,0 +1,211 @@
+import { ArrowRight, ArrowUpDown, ChevronDown, ChevronUp, Layers, Pencil, Trash2, TrendingUp } from 'lucide-react';
+import { ValorMonetario } from '@/components/comum';
+import { Selo, Botao, CorpoTabela, CabecaTabela, Tabela, ContainerTabela, Celula, CelulaCabecalho, LinhaTabela } from '@/components/ui';
+import { corDaPaleta } from '@/constants/cores';
+import { notaLancamentoGerado, rotuloTipoLancamento, rotuloSituacaoLancamento } from '@/constants/lancamento/lancamento';
+import type { DirecaoOrdenacao, LancamentoDTO, OrdenacaoLancamento } from '@/types';
+import { formatarDataCurta } from '@/utils/formatacao';
+import { classePorTipo, iconePorTipo, sinalPorTipo, tomPorTipo, tomPorSituacao } from './aparencia';
+import styles from './TabelaLancamentos.module.css';
+
+interface TabelaLancamentosProps {
+  lancamentos: LancamentoDTO[];
+  campoOrdenacao: OrdenacaoLancamento;
+  direcaoOrdenacao: DirecaoOrdenacao;
+  aoOrdenar: (field: OrdenacaoLancamento) => void;
+  mostrarCategoria: boolean;
+  aoEditar: (transaction: LancamentoDTO) => void;
+  aoExcluir: (transaction: LancamentoDTO) => void;
+}
+
+interface CabecalhoOrdenavelProps {
+  campo: OrdenacaoLancamento;
+  rotulo: string;
+  numerico?: boolean;
+  ativo: boolean;
+  direcao: DirecaoOrdenacao;
+  aoOrdenar: (field: OrdenacaoLancamento) => void;
+}
+
+function CabecalhoOrdenavel({ campo, rotulo, numerico = false, ativo, direcao, aoOrdenar }: CabecalhoOrdenavelProps) {
+  const Icon = !ativo ? ArrowUpDown : direcao === 'ASC' ? ChevronUp : ChevronDown;
+
+  return (
+    <CelulaCabecalho numerico={numerico} aria-sort={ativo ? (direcao === 'ASC' ? 'ascending' : 'descending') : 'none'}>
+      <button
+        type="button"
+        className={`${styles.sortButton} ${ativo ? styles.sortActive : ''}`}
+        onClick={() => aoOrdenar(campo)}
+      >
+        {rotulo}
+        <Icon size={13} strokeWidth={2.5} aria-hidden="true" />
+      </button>
+    </CelulaCabecalho>
+  );
+}
+
+export function TabelaLancamentos({
+  lancamentos,
+  campoOrdenacao,
+  direcaoOrdenacao,
+  aoOrdenar,
+  aoEditar,
+  aoExcluir,
+  mostrarCategoria,
+}: TabelaLancamentosProps) {
+  return (
+    <ContainerTabela>
+      <Tabela className={styles.table}>
+        <CabecaTabela>
+          <LinhaTabela>
+            <CabecalhoOrdenavel
+              campo="DATA"
+              rotulo="Data"
+              ativo={campoOrdenacao === 'DATA'}
+              direcao={direcaoOrdenacao}
+              aoOrdenar={aoOrdenar}
+            />
+            <CabecalhoOrdenavel
+              campo="DESCRICAO"
+              rotulo="Descrição"
+              ativo={campoOrdenacao === 'DESCRICAO'}
+              direcao={direcaoOrdenacao}
+              aoOrdenar={aoOrdenar}
+            />
+            {mostrarCategoria ? <CelulaCabecalho>Categoria</CelulaCabecalho> : null}
+            <CelulaCabecalho>Conta/cartão</CelulaCabecalho>
+            <CelulaCabecalho>Tipo</CelulaCabecalho>
+            <CabecalhoOrdenavel
+              campo="VALOR"
+              rotulo="Valor"
+              numerico
+              ativo={campoOrdenacao === 'VALOR'}
+              direcao={direcaoOrdenacao}
+              aoOrdenar={aoOrdenar}
+            />
+            <CelulaCabecalho>Situação</CelulaCabecalho>
+            <CelulaCabecalho numerico>Ações</CelulaCabecalho>
+          </LinhaTabela>
+        </CabecaTabela>
+
+        <CorpoTabela>
+          {lancamentos.map((transaction) => {
+            const generatedNote = notaLancamentoGerado(transaction);
+            const Icon = iconePorTipo[transaction.tipo];
+
+            return (
+              <LinhaTabela key={transaction.id} interativo onClick={() => aoEditar(transaction)}>
+                <Celula className={`${styles.muted} ${styles.date} tabular`}>{formatarDataCurta(transaction.data)}</Celula>
+
+                <Celula onClick={(event) => event.stopPropagation()}>
+                  <button
+                    type="button"
+                    className={styles.descriptionButton}
+                    onClick={() => aoEditar(transaction)}
+                  >
+                    <span className={styles.description}>{transaction.descricao}</span>
+                    {generatedNote ? <span className={styles.notes}>{generatedNote}</span> : null}
+                    {transaction.observacoes ? <span className={styles.notes}>{transaction.observacoes}</span> : null}
+                  </button>
+                </Celula>
+
+                {mostrarCategoria ? (
+                  <Celula>
+                    {transaction.categoria ? (
+                      <span className={styles.category}>
+                        <span
+                          className={styles.categoryDot}
+                          style={{ backgroundColor: corDaPaleta(transaction.categoria.tokenCor) }}
+                          aria-hidden="true"
+                        />
+                        {transaction.categoria.nome}
+                      </span>
+                    ) : (
+                      <span className={styles.empty}>—</span>
+                    )}
+                  </Celula>
+                ) : null}
+
+                <Celula className={styles.muted}>
+                  {transaction.nomeContaDestino ? (
+                    <span className={styles.route}>
+                      {transaction.nomeOrigem}
+                      <ArrowRight size={13} strokeWidth={2} aria-hidden="true" />
+                      {transaction.nomeContaDestino}
+                    </span>
+                  ) : (
+                    transaction.nomeOrigem
+                  )}
+                </Celula>
+
+                <Celula>
+                  <span className={`${styles.kind} ${styles[classePorTipo[transaction.tipo]]}`}>
+                    <Icon size={14} strokeWidth={2} aria-hidden="true" />
+                    {rotuloTipoLancamento[transaction.tipo]}
+                  </span>
+                </Celula>
+
+                <Celula numerico>
+                  <ValorMonetario
+                    valor={transaction.valor}
+                    tom={tomPorTipo[transaction.tipo]}
+                    tamanho="sm"
+                    sinal={sinalPorTipo[transaction.tipo]}
+                  />
+                </Celula>
+
+                <Celula>
+                  <Selo tom={tomPorSituacao[transaction.situacao]} ponto>
+                    {rotuloSituacaoLancamento[transaction.situacao]}
+                  </Selo>
+                </Celula>
+
+                <Celula numerico onClick={(event) => event.stopPropagation()}>
+                  <div className={styles.actions}>
+                    {transaction.parcela ? (
+                      <Botao
+                        variante="ghost"
+                        tamanho="sm"
+                        icone={Layers}
+                        aria-label={`Ver as parcelas de ${transaction.descricao}`}
+                        title="Ver as parcelas da compra"
+                        onClick={() => aoEditar(transaction)}
+                      />
+                    ) : transaction.investimento ? (
+                      <Botao
+                        variante="ghost"
+                        tamanho="sm"
+                        icone={TrendingUp}
+                        aria-label={`Ver o investimento de ${transaction.descricao}`}
+                        title="Ver o investimento"
+                        onClick={() => aoEditar(transaction)}
+                      />
+                    ) : (
+                      <>
+                        <Botao
+                          variante="ghost"
+                          tamanho="sm"
+                          icone={Pencil}
+                          aria-label={`Editar ${transaction.descricao}`}
+                          onClick={() => aoEditar(transaction)}
+                        />
+                        <Botao
+                          variante="ghost"
+                          tamanho="sm"
+                          icone={Trash2}
+                          className={styles.delete}
+                          aria-label={`Excluir ${transaction.descricao}`}
+                          onClick={() => aoExcluir(transaction)}
+                        />
+                      </>
+                    )}
+                  </div>
+                </Celula>
+              </LinhaTabela>
+            );
+          })}
+        </CorpoTabela>
+      </Tabela>
+    </ContainerTabela>
+  );
+}

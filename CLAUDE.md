@@ -20,8 +20,9 @@ ele pedir. Calculo de saldo, fatura, previsao, avisos e evolucao e trabalho do b
 **O `API_CONTRACT.md` da raiz so existe enquanto ha pendencia.** Ele lista apenas o que o PrismaAPI
 ainda precisa implementar para acompanhar o frontend (endpoints novos, contratos alterados, migracoes,
 regras de calculo), conferido contra o codigo do backend. O que ja existe nao entra, e quando a ultima
-pendencia sai o arquivo sai junto — **hoje ele nao existe**. Ao mudar um tipo em
-`src/types/financas.ts`, uma rota em `src/api/rotasApi.ts` ou uma regra que o backend aplica, recrie-o
+pendencia sai o arquivo sai junto — **hoje ele traz a publicacao da paginacao de lancamentos (pronta no
+PrismaAPI, fora da `main`) e o recorte por mes do `GET /faturas`**. Ao mudar um tipo em
+`src/types/dto/`, uma rota em `src/api/rotasApi.ts` ou uma regra que o backend aplica, recrie-o
 com a pendencia no mesmo trabalho. O `README.md` documenta instalacao e variaveis. Tres documentos que
 divergem valem menos que um so.
 
@@ -45,9 +46,12 @@ npm run estudio --prefix video   # Remotion Studio
 Nao ha linter nem formatter. **Antes de dar uma tarefa por concluida: `npm run typecheck`** depois de
 mexer em `.ts`/`.tsx`, **e `npm test`** quando a mudanca toca regra coberta por teste. Os testes sao
 Vitest, ao lado do arquivo testado (`utils/mascaraValor.test.ts`), e rodam sobre o `vite.config.ts`,
-entao o alias `@/` vale neles. Hoje so a mascara de valor tem teste — ela concentra a edicao em funcoes
-puras justamente para digitacao, cursor e exclusao serem testaveis sem DOM. A CI ainda nao roda
-`npm test`.
+entao o alias `@/` vale neles. Hoje tem teste a mascara de valor — ela concentra a edicao em funcoes
+puras justamente para digitacao, cursor e exclusao serem testaveis sem DOM —, o filtro que Lancamentos
+manda ao servidor (`components/lancamento/consulta.test.ts`), a regra dos numeros da paginacao
+(`utils/paginacao.test.ts`), a leitura da falha geral (`utils/falhaDeTela.test.ts`) e o recorte de
+meses que Cartoes e Faturas mandam ao servidor (`constants/fatura/fatura.test.ts`). A CI ainda nao
+roda `npm test`.
 
 O script usa `tsc -b`, e nao `tsc --noEmit`: o `tsconfig.json` da raiz e uma solucao com `references` e
 `files: []`, entao `--noEmit` nao checa arquivo nenhum e passa sempre. Como `tsconfig.app.json` ja tem
@@ -100,15 +104,19 @@ Invariantes do projeto. Quebra-las e o erro mais caro que se pode cometer aqui.
    (`setSearchParams({}, { replace: true })`), para voltar no historico nao reabrir formulario nem
    refiltrar. Estado de filtro e de visualizacao nunca vai para a query string.
 
-6. **Contratos de dominio em `src/types/financas.ts`** — sao o contrato do PrismaAPI, e mudar um tipo e
-   decisao de API. **Todo campo e em portugues**, como os DTOs do backend: query param e campo JSON em
+6. **Contratos de dominio em `src/types/`** — sao o contrato do PrismaAPI, e mudar um tipo e
+   decisao de API. Um arquivo por DTO em `dto/<pacote>/` (com os mesmos subpacotes do backend, como
+   `dto/dashboard/gasto/categoria/`), um por enum em `enums/`, `ErrorResponseDTO` em `dto/erro/` e o que
+   so o frontend usa (`ID`, `TokenCor`, `Opcao`) em `comum/`. Todos sao reexportados por `@/types`, que e
+   de onde se importa; DTO novo entra no barril. **Todo campo e em portugues**, como os DTOs do backend: query param e campo JSON em
    camelCase sem acento (`dataInicial`, `idCartao`, `saldoAtual`, `limiteComprometido`), enum em
    MAIUSCULAS (`RECEITA`, `CARTAO_CREDITO`), inicio e fim de recorte sempre `dataInicial`/`dataFinal`,
    rotas em kebab-case sem acento (`/contas/origens`, `/metas/{id}/precos`) e tipos com o nome do DTO
    (`ContaDTO`, `SalvarContaDTO`, `TipoConta`, `Situacao`). O banco e snake_case e a traducao acontece
    so no mapeamento JPA. Ao renomear campo, lembre que `dataKey` do Recharts e chaves de `query` nos
-   services sao string e nao passam pelo compilador. Nao reintroduza tipo de paginacao (`Page<T>`):
-   nenhuma listagem e paginada.
+   services sao string e nao passam pelo compilador. So Lancamentos e paginado, com DTO proprio
+   (`PaginaLancamentosDTO`, ver "Lancamentos e saldo"); nao introduza `Page<T>` generico nem pagine
+   outra listagem sem o usuario pedir.
 
 7. **Nada de `<select>` nem `<input type="date">` nativos** — o navegador os desenha com as cores do
    sistema, ignorando os tokens, e no tema escuro ficavam ilegiveis. Escolha usa
@@ -145,54 +153,80 @@ src/
 ├── api/           clienteHttp, ErroApi, rotasApi
 ├── components/
 │   ├── ui/        Botao, Painel, CampoTexto, CampoValor, AreaTexto, CampoSelecao, SeletorData, Interruptor, Modal,
-│   │              DialogoConfirmacao, Selo, Tabela, BarraProgresso, Carregamento, EstadoVazio, Notificacao
+│   │              DialogoConfirmacao, Selo, Tabela, BarraProgresso, Carregamento, EstadoVazio, Notificacao,
+│   │              Paginacao
 │   ├── comum/     ValorMonetario, MarcaPrisma, IndicadorVariacao, BarraResumo, HistoricoMovimentacoes, VooMovimentacao,
 │   │              ResultadoFiltros
+│   ├── graficos/  DicaGrafico, GraficoEvolucao (valor x aportado)
+│   ├── layout/    MenuLateral, Cabecalho, EspacoCabecalho, CabecalhoPagina, BuscaGlobal, SeletorPeriodo
 │   ├── boasVindas/ TelaBoasVindas, LinhaDoSaldo (fundo), transicaoBoasVindas (saida por View Transitions)
-│   ├── configuracoes/ PainelPreferenciasAvisos, PainelTelas
-│   ├── layout/    MenuLateral, Cabecalho, EspacoCabecalho, CabecalhoPagina, PainelAvisos,
-│   │              BuscaGlobal, SeletorPeriodo, TelaOculta
+│   ├── erro/      MolduraDeErro, SerieInterrompida (cena), LimiteDeErro, TelaDeFalha, FalhaNaTela
+│   ├── aviso/     PainelAvisos (sino), PainelPreferenciasAvisos
+│   ├── tela/      PainelTelas, TelaOculta
 │   ├── dashboard/ PainelSaldo, BlocoIndicador, GraficoFluxoCaixa, DistribuicaoCategorias,
 │   │              CalendarioGastos, UltimosLancamentos
-│   ├── lancamentos/ FiltrosLancamentos, TabelaLancamentos, ListaLancamentos (cartoes),
+│   ├── lancamento/ FiltrosLancamentos, TabelaLancamentos, ListaLancamentos (cartoes),
 │   │              AlternadorVisualizacao, formularios, aparencia (icone/cor por tipo e situacao),
 │   │              consulta (filtro, periodo e ordenacao)
-│   ├── contas/    CartaoConta, ModalFormularioConta, aparencia
-│   ├── cartoes/   BlocoCartao, ModalFormularioCartao, aparencia (icone, tom de limite, tom de fatura)
-│   ├── faturas/   EntradaFatura (destaque e linha), ModalDetalheFatura
-│   ├── parcelamentos/ CartaoParcelamento, ModalParcelasCompra (cronograma), ModalFormularioParcelamento,
-│   │              ControlePagamentoParcela, FiltrosParcelamentos, consulta
-│   ├── investimentos/ GraficoAlocacao (rosca), GraficoCarteira, CartaoInvestimento,
+│   ├── conta/     CartaoConta, ModalFormularioConta, aparencia
+│   ├── cartao/    BlocoCartao, ModalFormularioCartao, aparencia (icone, tom de limite)
+│   ├── fatura/    EntradaFatura (destaque e linha), ModalDetalheFatura, aparencia (rotulo e tom da fatura)
+│   ├── compraparcelada/ CartaoParcelamento, ModalParcelasCompra (cronograma), ModalFormularioParcelamento,
+│   │              ControlePagamentoParcela, FiltrosParcelamentos, consulta, aparencia (tom da parcela)
+│   ├── investimento/ GraficoAlocacao (rosca), GraficoCarteira, CartaoInvestimento,
 │   │              ModalFormularioInvestimento, ModalDetalheInvestimento, aparencia,
 │   │              contaMovimentacao (opcoes de conta do aporte e do resgate), calculoAcoes (previas)
 │   ├── orcamento/ NavegadorMes, LinhaOrcamento, ModalFormularioOrcamento
-│   ├── recorrentes/ CartaoRecorrente, ModalFormularioRecorrente, lancamentoAutomatico (dica e explicacao,
+│   ├── recorrente/ CartaoRecorrente, ModalFormularioRecorrente, lancamentoAutomatico (dica e explicacao,
 │   │              usadas tambem no formulario de lancamento)
-│   ├── metas/     CartaoMeta, ModalFormularioMeta, ModalDetalheMeta, FiltrosMetas, VariacaoPreco,
+│   ├── meta/      CartaoMeta, ModalFormularioMeta, ModalDetalheMeta, FiltrosMetas, VariacaoPreco,
 │   │              MiniCurvaPreco, GraficoHistoricoPreco, aparencia, consulta
 │   ├── previsao/  GraficoPrevisao, TabelaPrevisao, ListaPrevisao (versao compacta)
-│   ├── relatorios/ SeletorPeriodoRelatorio, DistribuicaoOrigens, GraficoEvolucaoSaldo, GraficoPatrimonio
-│   └── graficos/  DicaGrafico, GraficoEvolucao (valor x aportado), MiniCurva
-├── constants/     ambiente, aplicacao, navegacao, avisos, lancamentos, contas, cartoes, investimentos,
-│                  orcamento, recorrentes, metas, previsao, relatorios, validacao, notificacoes, cores, telas
-├── hooks/         useDadosAssincronos, useConsultaMidia, useArmazenamentoLocal, useTravarRolagem,
-│                  usePaletaGrafico, useContagem, useValidacaoFormulario, usePagamentoParcela,
-│                  useIndicadoresRolagem, useTabelaCabe, useLarguraEixoMoeda
+│   └── relatorio/ SeletorPeriodoRelatorio, DistribuicaoOrigens, GraficoEvolucaoSaldo, GraficoPatrimonio
+├── constants/     ambiente, aplicacao, navegacao, validacao, notificacoes, cores (gerais, na raiz) e
+│                  <pacote>/<pacote>.ts: aviso, cartao, compraparcelada, conta, fatura, investimento,
+│                  lancamento, meta, orcamento, previsao, recorrente, relatorio, tela
+├── hooks/         gerais na raiz (useDadosAssincronos, useConsultaMidia, useArmazenamentoLocal,
+│                  useTravarRolagem, usePaletaGrafico, useContagem, useValidacaoFormulario,
+│                  useIndicadoresRolagem, useTabelaCabe, useLarguraEixoMoeda, useValorComAtraso,
+│                  useCatalogo, useCliqueFora, useReposicionarPopover) e de pacote:
+│                  fatura/usePagamentoFatura, compraparcelada/usePagamentoParcela, conta/useVersaoOrigens
 ├── layouts/       LayoutAplicacao (sidebar + header + conteudo)
-├── pages/         PaginaDashboard, PaginaLancamentos, PaginaContas, PaginaCartoes, PaginaFaturas,
-│                  PaginaParcelamentos, PaginaInvestimentos, PaginaOrcamento, PaginaRecorrentes,
-│                  PaginaPrevisao, PaginaMetas, PaginaRelatorios, PaginaConfiguracoes, PaginaNaoEncontrada
+├── pages/         <pacote>/Pagina*: dashboard, lancamento, conta, cartao, fatura, compraparcelada,
+│                  investimento, orcamento, recorrente, previsao, meta, relatorio, configuracao, erro (404)
 ├── providers/     ProvedorTema, ProvedorNotificacoes, ProvedorTelas, ProvedorAvisos, ProvedorPeriodo,
 │                  ProvedoresAplicacao
-├── routes/        RotasAplicacao, caminhos
-├── services/      dashboard, lancamentos, categorias, contas, cartoes, investimentos, orcamento,
-│                  recorrentes, metas, previsao, relatorios, avisos, telas, sistema
+├── routes/        RotasAplicacao, caminhos, carregarTela
+├── services/      <pacote>/<pacote>.service.ts: aviso, cartao, categoria, compraparcelada, conta (e
+│                  origensAlteradas), dashboard, fatura, investimento, lancamento, meta, orcamento, previsao,
+│                  recorrente, relatorio, sistema, tela
 ├── styles/        tokens.css, global.css
-├── types/         comum, financas
-└── utils/         juntarClasses, data, formatacao, validacao, foco, mascaraValor
+├── types/         comum/ (ID, TokenCor, Opcao), dto/<pacote>/<Nome>DTO.ts, enums/<Nome>.ts, index.ts
+└── utils/         juntarClasses, data, formatacao, validacao, foco, mascaraValor, falhaDeTela, paginacao
 ```
 
-Cada pasta de componentes tem um `index.ts` de barril — componente novo e exportado la.
+**Organizacao por pacote, como no PrismaAPI.** Cada camada (`components`, `pages`, `services`, `types/dto`,
+`constants`, hooks de dominio) se divide pelos pacotes do backend, com o mesmo nome no singular e sem
+separador: `conta`, `cartao`, `fatura`, `compraparcelada`, `lancamento`, `investimento`, `recorrente`,
+`meta`, `relatorio`, `aviso`, `tela`... O que nao e de um dominio (ui, comum, graficos, layout,
+boasVindas, erro, providers, utils, hooks gerais) fica pela funcao. Pacote novo no backend ganha a mesma
+pasta em cada camada que o usar. Excecoes: `metapreco` so existe em `types/dto` (como no backend), e
+`configuracao` so em `pages`, porque a tela junta aviso, tela e sistema.
+
+- **Um service por controller do backend**: `cartaoService` (cartoes), `faturaService` (faturas e
+  pagamento da fatura) e `compraParceladaService` (compras e pagamento de parcela) sao tres, como
+  `CartaoController`, `FaturaController` e `CompraParceladaController`. O objeto leva o nome do pacote
+  no singular (`contaService`, `lancamentoService`), e todos saem do barril `@/services`.
+- **Cada nome mora no pacote do dominio dele**: rotulo e tom de fatura em `constants/fatura` e
+  `components/fatura/aparencia`, parcela em `constants/compraparcelada` e
+  `components/compraparcelada/aparencia`; cartao fica so com tipo, situacao, limite e `TODOS_CARTOES`.
+- Cada pasta de componentes tem um `index.ts` de barril — componente novo e exportado la. `pages/` nao
+  tem barril: cada tela e carregada sob demanda (ver "Carregamento por tela").
+- **O shell importa pelo arquivo, nao pelo barril**: `Cabecalho` importa
+  `@/components/aviso/PainelAvisos` e `LayoutAplicacao`, `@/components/tela/TelaOculta`. Pelo barril, o
+  CSS de `PainelPreferenciasAvisos` e `PainelTelas` (que so Configuracoes usa) ia para o pacote inicial,
+  porque import de CSS e efeito colateral e nao sai no tree-shaking: foram 4,5 kB a mais. O mesmo vale
+  para qualquer componente que o layout ou o `Aplicacao` importem.
 
 **`video/`** tem `package.json` proprio e fica fora do build, da CI e do Docker; uma cena por tela do
 app. `src/linhaDoTempo.ts` guarda cues e valores em passos de 1/30 s; o render e a 60 fps e cada quadro
@@ -257,7 +291,7 @@ de altura reserva a maior (`alturaCartaoRetrato`), senao o titulo centrado com e
   mostraria zero).
 - **No `IndicadorVariacao` a seta segue o numero e a cor segue a noticia.** `sentidoFavoravel`
   (padrao `ALTA`) e o sentido verde: saldo, receita e rentabilidade sobem verde; despesa e `BAIXA`.
-  Cor invertida nunca aparece sem a palavra: `legendaVariacaoGasto` (`constants/lancamentos.ts`) escreve
+  Cor invertida nunca aparece sem a palavra: `legendaVariacaoGasto` (`constants/lancamento/lancamento.ts`) escreve
   "Gastou mais"/"Gastou menos" no dashboard e "a mais"/"a menos que no período anterior" em Relatorios;
   `legendaVariacaoReceita` escreve "Recebeu mais"/"Recebeu menos" no bloco de receitas (as duas
   legendas do dashboard comecam em maiuscula). Indicador novo em que menos e melhor passa `BAIXA` e uma
@@ -354,11 +388,12 @@ de altura reserva a maior (`alturaCartaoRetrato`), senao o titulo centrado com e
 - **Ritmo vertical**: `--space-5` (20px) entre os blocos de uma tela (`.stack`/`.grid` de topo) e
   `--space-4` (16px) entre o titulo de uma secao e o conteudo (`.section`), em todas as telas. Com `h2`
   escondido (Compras parceladas) o segundo nao se aplica.
-- **Esqueleto so na primeira carga** (`carregando && !dados`) — dashboard, Contas, Cartoes, Faturas,
-  Parcelamentos. Trocar periodo, cadastrar, editar ou excluir mantem os numeros na tela (com
+- **Esqueleto so na primeira carga** (`carregando && !dados`) — dashboard, Lancamentos, Contas, Cartoes,
+  Faturas, Parcelamentos. Trocar periodo, cadastrar, editar ou excluir mantem os numeros na tela (com
   `.refreshing`), para os valores rolarem e a contagem nao recomecar. Por isso **rotulos de conteudo
   seguem `data.dataInicial`/`data.dataFinal`, e nao o periodo selecionado**; so o titulo da pagina
-  acompanha a selecao na hora.
+  acompanha a selecao na hora. Excecao pedida pelo usuario: em Lancamentos, trocar de pagina mostra o
+  esqueleto (o conteudo e outro), na altura que a lista tinha.
 - **Filtro de tela vai na linha de acoes do `CabecalhoPagina`; filtro de bloco, no cabecalho do
   bloco.** Seletor de cartao em Faturas e busca + seletores de Compras parceladas e de Metas dividem a
   linha com a acao principal, com `tamanho="sm"` no `CampoSelecao` e no `CampoTexto` (iguala a altura
@@ -391,7 +426,15 @@ de altura reserva a maior (`alturaCartaoRetrato`), senao o titulo centrado com e
   `--space-3` em `padding` (com menos, a barra encostava nos numeros). Os tres modais levam
   `scrollbar-gutter: stable`, para a coluna de valores nao mudar de lugar conforme o numero de itens. A
   folga cabe no respiro de quem contem: abaixo de 600px o cronograma cai para `--space-1`.
-  `--scrollbar-size` e a largura do `::-webkit-scrollbar` do `global.css` — mudam juntas.
+  `--scrollbar-size` e a largura do `::-webkit-scrollbar` do `global.css` — mudam juntas. As quatro
+  medem pelo `useIndicadoresRolagem`; quem precisa de outra medida na mesma passada (a altura minima do
+  `DistribuicaoCategorias`) a passa como segundo argumento. Nao volte a medir a mao.
+- **Popover e painel que fecham ao clicar fora usam `useCliqueFora`** (`CampoSelecao`, `SeletorData`,
+  `SeletorPeriodo`, `PainelAvisos`, `BuscaGlobal`): recebe as areas que contam como dentro, por ref ou
+  por seletor (`'[role="listbox"]'`, porque a lista do `CampoSelecao` vai para um portal). O Escape
+  continua em cada componente, porque cada um devolve o foco a um lugar. Lista em portal com posicao
+  fixa acompanha o gatilho por `useReposicionarPopover` (rolagem em captura e resize); o calculo da
+  posicao fica no componente, porque menu e calendario viram para cima por regras diferentes.
 
 ## Acessibilidade
 
@@ -488,9 +531,17 @@ tecla. Virgula, ponto e letra sao ignorados; teclado `inputMode="numeric"`, exce
   (o estado continua da tela). Abaixo de 900px o campo volta para a tela. Ceder so vale com substituto.
 - **Busca global** (`BuscaGlobal`): procura em lancamentos, categorias e contas; lancamento abre
   `?editar=<id>`, categoria `?categoria=<id>`, conta `?conta=<id>`, e a ultima linha `?busca=<termo>`,
-  todos em `/lancamentos`. Ignora acento (`normalizarBusca`). Categorias e origens carregam uma vez ao
-  focar; lancamentos vao ao servidor com `?busca=`, com 250 ms entre teclas. Chegar pela busca reseta
-  os filtros da tela antes de aplicar o da URL.
+  todos em `/lancamentos`. Ignora acento (`normalizarBusca`). Categorias e origens vem do `useCatalogo`
+  (ver abaixo), ativado no primeiro foco. Lancamentos vao ao servidor com `?busca=` e `tamanho` igual ao
+  limite de sugestoes (5), com `ESPERA_ENTRE_TECLAS_MS` (250 ms, `constants/aplicacao.ts`) entre teclas.
+  Chegar pela busca reseta os filtros da tela antes de aplicar o da URL.
+- **Catalogo em cache** (`hooks/useCatalogo.ts`): categorias e origens (contas e cartoes) ficam em
+  memoria para a sessao, divididas por Lancamentos, Recorrentes, Compras parceladas, Orcamento
+  (`useCategoriasDoTipo('DESPESA')`) e busca global. Categorias carregam uma vez, porque o app nao as
+  edita; origens recarregam quando a versao de `origensAlteradas` muda — `contaService` e
+  `cartaoService` chamam `origensAlteradas.marcar` ao criar, editar e excluir. Gravacao nova que mude
+  `/contas/origens` passa pelo mesmo `marcar`. Pedido que falha sai do cache, para a proxima tela tentar
+  de novo.
 
 ## Dashboard
 
@@ -538,9 +589,33 @@ Regras aplicadas pelo PrismaAPI; o frontend apresenta.
 - **Na receita, "Situação" divide a linha com Valor e Data** (grade de seis colunas, `.trio`, em
   tercos), porque sobrava sozinha. A despesa no cartao nao usa o arranjo: la Situação so aparece depois
   de escolher o cartao, e subir o campo reorganizaria o formulario sob quem preenche.
-- A tela busca so pelo `tipo` da rota; busca, periodo, categoria, conta, situacao e ordenacao sao em
-  memoria (`components/lancamentos/consulta.ts`). `FiltroLancamentoDTO` guarda os mesmos parametros para
-  a API.
+- **A tela pede ao servidor uma pagina de 25 por vez** (`TAMANHO_PAGINA_LANCAMENTOS`), nas quatro rotas
+  de lancamento, pedido do usuario: quase ninguem passa da primeira pagina, mais gente filtra. `GET
+  /lancamentos` recebe `pagina` (a partir de 0), `tamanho` (1 a 100), `ordenacao` (`DATA`, `DESCRICAO`,
+  `VALOR`) e `direcao` (`ASC`, `DESC`), alem dos filtros, e devolve `PaginaLancamentosDTO`: `itens`,
+  `pagina`, `tamanho`, `quantidadeTotal`, `quantidadePaginas` e `resultado` (receitas menos despesas do
+  filtro inteiro). O contador "279 lançamentos" e o "Resultado do período" saem dai, e nao da pagina.
+- **Busca, periodo, tipo, categoria, conta, situacao e ordenacao vao para o servidor.**
+  `paraFiltroDoServidor` (`components/lancamento/consulta.ts`, testada) traduz o estado da tela: o tipo
+  da rota vale mais que o filtro de tipo, o atalho de periodo vira datas e o vazio nao vai. A busca
+  espera `ESPERA_ENTRE_TECLAS_MS` entre teclas, mas limpar vale na hora; o servidor procura em
+  descricao, observacao, categoria e contas, sem acento. A ordenacao da tabela e dos cartoes usa os
+  enums da API (`OrdenacaoLancamento`, `DirecaoOrdenacao`).
+- **Mudar filtro, busca ou ordenacao volta para a pagina 1**: a pagina e guardada junto da chave do
+  filtro, e chave diferente le pagina 0. Salvar ou excluir recarrega a mesma pagina; se ela ficar vazia
+  (excluiu o ultimo item da ultima), volta para a ultima que existe.
+- **Paginas numeradas** (`components/ui/Paginacao`, escolha do usuario): "1–25 de 279" e, a direita,
+  anterior, numeros com reticencias (`paginasVisiveis`, `utils/paginacao.ts`: primeira, ultima e as
+  vizinhas da atual, sempre com a mesma quantidade de itens) e proxima; abaixo de 600px os numeros dao
+  lugar a "Página 2 de 12". Setas nas pontas com `aria-disabled`, pagina atual com `aria-current`,
+  resumo em `aria-live`. Trocar de pagina mostra o esqueleto na altura da lista anterior, rola ate o topo
+  da lista (`scroll-margin-top` abaixo do header) e leva o foco a ela. Filtrar so esmaece
+  (`.refreshing`).
+- **Filtros de categoria e conta saem do catalogo** (`useCatalogo`), e nao dos lancamentos carregados:
+  com 25 na tela, a lista de opcoes ficaria incompleta. Categorias seguem o tipo da tela. Origem
+  inativa nao aparece no filtro (o catalogo so traz as ativas).
+- **`?editar=<id>` busca pelo id** (`GET /lancamentos/{id}`, `lancamentoService.buscar`) quando o
+  lancamento nao esta na pagina carregada.
 - **Lancamento gerado nao se edita nem exclui** (`ehLancamentoGerado`; `PUT`/`DELETE` respondem `409`):
   - despesa de pagamento de parcela traz `LancamentoDTO.parcela` (`idCompra`, `numero`, `total`), nota
     "Gerada pelo pagamento da parcela" (`NOTA_PAGAMENTO_PARCELA`) e leva a
@@ -565,14 +640,14 @@ cartoes sao cadastro; faturas e parcelamentos sao leitura calculada, exceto o ca
   investimento (ver Investimentos).
 - **Um cadastro so para os quatro tipos de cartao.** `CartaoDTO` tem campos especificos opcionais:
   credito tem limite e datas de fatura, debito aponta a conta, vales tem saldo proprio. Campos de
-  credito passam por `ehCartaoCredito` (`constants/cartoes.ts`), que estreita o tipo — nunca
+  credito passam por `ehCartaoCredito` (`constants/cartao/cartao.ts`), que estreita o tipo — nunca
   `card.limiteCredito!`. O formulario so envia os campos do tipo escolhido.
 - **Excluir nao apaga historico.** Conta ou cartao com lancamentos, recorrentes ou compra parcelada
   devolve `409` sugerindo inativar; conta vinculada a cartao de debito tambem. Inativo sai do saldo
   total e dos seletores, mas o passado continua legivel: `listarOrigens()` filtra por `situacao`, e
   `buscarOrigem(id)` busca em tudo. `listarOrigens()` e funcao, para conta nova aparecer sem recarregar;
   o cartao de debito fica fora dela (a conta ja esta la).
-- **A barra de limite usa as faixas de `constants/cartoes.ts`** (ambar a partir de 70%, vermelha a
+- **A barra de limite usa as faixas de `constants/cartao/cartao.ts`** (ambar a partir de 70%, vermelha a
   partir de 90%), independentes do percentual do aviso escolhido em Configuracoes — a barra descreve o
   cartao; o aviso, o que o usuario quer ser interrompido para saber.
 - **`limiteComprometido` nao e gravado**: e a soma das faturas nao pagas, inclusive futuras.
@@ -585,10 +660,10 @@ cartoes sao cadastro; faturas e parcelamentos sao leitura calculada, exceto o ca
   dia 13, depois de 13 de setembro a compra entra na fatura de outubro, que e a "Fatura atual".
 - **Quatro blocos**: "A pagar" (ciclo fechado), "Fatura atual" (em andamento), "Próximas faturas" e
   "Faturas anteriores". `VENCIDA` fica em "A pagar" so dentro de `DIAS_HORIZONTE_AVISOS` (15 dias,
-  `constants/avisos.ts`) e depois passa para anteriores com selo neutro (`tomDaFatura`): sem registro de
+  `constants/aviso/aviso.ts`) e depois passa para anteriores com selo neutro (`tomDaFatura`): sem registro de
   pagamento, e tratada como paga.
 - **Fatura aberta quitada diz "Paga até agora" e nao sai de "Fatura atual"** — ainda recebe compras. O
-  selo sai de `rotuloDaFatura`/`tomDaFatura` (`components/cartoes/aparencia.ts`), tambem para a futura
+  selo sai de `rotuloDaFatura`/`tomDaFatura` (`components/fatura/aparencia.ts`), tambem para a futura
   quitada; a situacao do contrato continua `ABERTA`. So depois do fechamento vira `PAGA` e muda de bloco.
 - **`total` e o tamanho; `valorRestante` e o que se deve.** Destaque, linha e modal mostram o total e,
   com parcela paga, "já pago" e "falta". Somas de "quanto vou pagar" usam `valorRestante`: "A pagar
@@ -600,6 +675,13 @@ cartoes sao cadastro; faturas e parcelamentos sao leitura calculada, exceto o ca
 - As janelas de meses de "Próximas faturas" e "Faturas anteriores" ficam no cabecalho de cada bloco, e
   o total ao lado do titulo soma o que esta a vista. Faturas futuras e antigas sao linhas, que viram
   duas abaixo de 900px.
+- **O servidor recebe so o recorte do passado** (`filtroFaturasDesde`, `constants/fatura`): trocar a
+  janela de "Faturas anteriores" pede `GET /faturas?dataInicial=` de novo, com `.refreshing`; o futuro
+  vem sempre inteiro, porque "Já comprometido" soma todas as futuras. Cartoes pede so a fatura atual
+  (`filtroFaturasAtuais`: do mes passado ao seguinte, onde sempre caem a `ABERTA` e a `FECHADA`). As duas
+  telas pedem cartoes e contas em separado das faturas, para gravar um cartao ou trocar a janela nao
+  repetir o que nao mudou. O corte em memoria continua: enquanto o PrismaAPI ignora os parametros (ver
+  `API_CONTRACT.md`), as telas funcionam igual. O seletor de cartao so some na primeira carga.
 
 **Compras parceladas**
 
@@ -752,7 +834,7 @@ Telas sob "Planejamento": `/planejamento/orcamento`, `/planejamento/recorrentes`
   orcadas.
 - **"Gasto fora do orçamento"** existe para a soma dos limites nao ser lida como o gasto do mes.
 - **A projecao de ritmo tem piso** (`DIAS_MINIMOS_PROJECAO_ORCAMENTO`, dez dias); antes disso nao
-  projeta. As faixas da barra e do selo ficam juntas em `constants/orcamento.ts`.
+  projeta. As faixas da barra e do selo ficam juntas em `constants/orcamento/orcamento.ts`.
 - **Navega por mes com setas** (`NavegadorMes`), com rotulo de largura fixa.
 
 **Recorrentes**
@@ -808,7 +890,7 @@ vitrine.
   situacao e observacao, nunca em preco.
 - **A analise e do servidor; a frase e da interface**: `AnaliseMetaDTO.leitura` e um `LeituraMeta`
   (`PRIMEIRO`, `MENOR`, `ABAIXO_DA_MEDIA`, `ACIMA_DA_MEDIA`, `MAIOR`, `ESTAVEL`), com os textos em
-  `constants/metas.ts`. O insight olha primeiro a posicao na faixa (`TOLERANCIA_EXTREMOS_META`) e so
+  `constants/meta/meta.ts`. O insight olha primeiro a posicao na faixa (`TOLERANCIA_EXTREMOS_META`) e so
   depois a media. Um registro so e "Primeiro registro", nunca "Preço estável"; no lugar da curva entra o
   convite a registrar de novo.
 - **Os totais olham so o que esta em acompanhamento**; comprada e cancelada ficam no cadastro pelo
@@ -850,7 +932,7 @@ Tela `/relatorios`, recorte em `SeletorPeriodoRelatorio`.
 - **Relatorio se pede por dia** (`PeriodoRelatorio`, duas datas ISO), e todo atalho termina hoje.
 - **Os seis recortes ficam a vista como botoes**; abaixo de 900px viram `CampoSelecao`. As datas
   proprias so aparecem com "Personalizado".
-- **O agrupamento segue a duracao** (`constants/relatorios.ts`): por dia ate dez dias, por semana ate
+- **O agrupamento segue a duracao** (`constants/relatorio/relatorio.ts`): por dia ate dez dias, por semana ate
   quarenta e cinco, por mes acima.
 - **A evolucao do patrimonio e empilhada em conta e investimento.**
 - **Cada origem de "Gastos por conta e cartão" tem uma cor** (barra e icone), por `coresDasOrigens`: um
@@ -879,14 +961,20 @@ Dashboard e Configuracoes nao). A escolha mora no PrismaAPI (`GET`/`PUT /telas/o
 `TelasOcultasDTO`, enum `Tela`). Interruptor ligado e tela no menu.
 
 - **`ProvedorTelas`/`useTelas`** carrega uma vez, grava cada mudanca em fila e desfaz com toast se o
-  `PUT` falhar. `estaOculto(destino)` aceita qualquer destino (com ou sem query) e o traduz por
-  `telaDoDestino` (`constants/telas.ts`) — todo atalho novo passa por ele.
+  `PUT` falhar.
+- **A ultima lista fica no `localStorage`** (`CHAVE_TELAS_OCULTAS`, `prisma:hidden-screens`) e vale ja no
+  primeiro render: ao recarregar uma tela ocultavel, ela nao espera o `GET /telas/ocultas` para pedir os
+  proprios dados. O `GET` continua saindo, em paralelo, e corrige a lista (a escolha mora no servidor, e
+  outro navegador pode ter mudado). Cada gravacao atualiza a copia na hora, e o desfazer a devolve. Lista
+  guardada com valor fora do enum `Tela` e ignorada. `estaOculto(destino)` aceita qualquer destino (com ou sem query) e o traduz por
+  `telaDoDestino` (`constants/tela/tela.ts`) — todo atalho novo passa por ele.
 - O grupo do menu some com todas as telas ocultas (`navegacaoVisivel`), a secao some sem itens, e o
   grupo cujo destino padrao sumiu abre na primeira tela restante. Os grupos do card saem da propria
   `navegacao`.
 - **Endereco de tela oculta explica, nao redireciona**: o `LayoutAplicacao` troca o `Outlet` por
-  `TelaOculta` ("Esta tela está oculta", "Mostrar de novo", "Ir para o Dashboard"). Enquanto a lista
-  carrega, tela ocultavel nao renderiza nada; se a lista falhar, tudo aparece e o card mostra o erro.
+  `TelaOculta` ("Esta tela está oculta", "Mostrar de novo", "Ir para o Dashboard"). So na primeira
+  visita, sem lista guardada, a tela ocultavel espera a lista sem renderizar nada; se o `GET` falhar,
+  vale a lista guardada (ou tudo aparece, sem ela) e o card mostra o erro.
 - **O que leva a uma tela oculta some junto**: avisos com `rota` nela (filtro do frontend), "Ver todos"
   de Últimos lançamentos, "Ver faturas" do cartao, atalhos da 404, os links dos lancamentos gerados, e,
   com "Todas" de Lancamentos oculta, a busca global e "Novo lançamento". Os numeros do dashboard
@@ -925,7 +1013,7 @@ Toda confirmacao ou falha passa por `useNotificacoes()` (`ProvedorNotificacoes`)
 
 ## Avisos
 
-O sino abre o `PainelAvisos` (`avisosService`). O servidor deriva os avisos dos mesmos dados das telas:
+O sino abre o `PainelAvisos` (`avisoService`). O servidor deriva os avisos dos mesmos dados das telas:
 faturas nao pagas que vencem dentro da antecedencia escolhida (15 dias por padrao) ou venceram ha ate
 15 dias, despesas pendentes, agendamentos, receitas a receber e recorrentes sem lancamento no mes na
 mesma antecedencia, cartoes a partir do percentual escolhido (70%), orcamentos a partir de 80%, o
@@ -953,10 +1041,20 @@ dias).
 - **`INVESTIMENTO_DESATUALIZADO`** aparece quando `dataAtualizacao` tem 30 dias ou mais e fica ate o
   usuario registrar aporte ou saldo — dali a contagem recomeca, sem tarefa agendada. Sempre `ATENCAO`; a
   data ao lado e a da ultima atualizacao.
-- **Quem muda o que um aviso le chama `useAvisos().atualizarAvisos()`** (`ProvedorAvisos`), que recarrega
-  sem esqueleto: Investimentos (cadastrar, aportar, atualizar saldo, excluir), Metas (preco, situacao,
+- **A lista de avisos mora no `ProvedorAvisos`** (`useAvisos().avisos`), e nao no sino: o sino e o
+  `PainelPreferenciasAvisos` leem a mesma lista, entao `/avisos` e pedido uma vez, inclusive em
+  Configuracoes, onde antes eram dois `GET` iguais.
+- **Quem muda o que um aviso le chama `useAvisos().atualizarAvisos()`**, que recarrega sem esqueleto: Investimentos (cadastrar, aportar, atualizar saldo, excluir), Metas (preco, situacao,
   excluir), Orcamento (gravar, excluir) e Configuracoes (cada preferencia). As outras telas ainda nao
   chamam; ao mexer nelas, use o mesmo hook.
+- **O sino nao recarrega a lista**: "Lido", "Adiar", "Devolver" e "Marcar todos como lidos" poem a
+  resposta do `POST` na lista do provedor (`substituirAviso`, `substituirAvisos`), e a contagem de lidos e
+  adiados de Configuracoes acompanha sem requisicao. Antes cada clique fazia o `POST` e mais um `GET
+  /avisos`, recalculado do zero porque o `POST` limpa o cache do Redis.
+- **Os avisos nao ficam guardados no navegador.** `/avisos` sai uma vez por abertura do app, em paralelo
+  com a tela, e o PrismaAPI ja o guarda no Redis (15 min, chave com a data, limpa a cada gravacao). Uma
+  copia no `localStorage` mostraria no sino um contador de outra hora — fatura que ja foi paga, aviso
+  que ja venceu.
 - **Preferencias em Configuracoes** (`PainelPreferenciasAvisos`, `GET`/`PUT /avisos/preferencias`): um
   interruptor por tipo em tres grupos (`gruposTiposAviso`); a antecedencia no cabecalho de "Pagamentos e
   agenda", o percentual ao lado de "Limite do cartão" e os lembretes ao lado do tipo — o seletor desliga
@@ -1065,6 +1163,31 @@ levam as telas de entrada.
 - **"Voltar" so aparece com historico** (`location.key !== 'default'`).
 - E o unico cartao com sombra, porque flutua sozinho. A tela troca o `document.title` e o devolve ao
   sair.
+- **Moldura e cena sao compartilhadas** (`components/erro`): `MolduraDeErro` desenha tela, marca,
+  cartao, palco e conteudo, e `SerieInterrompida` e a cena. A 404 passa o `CodigoDeErro` ("404") e o
+  rodape de atalhos; o resto da pagina mora em `pages/erro`. A cor da serie e `--cor-serie`: `--accent`
+  por padrao e `--chart-3` (o par grafico do vermelho) com `data-tom="erro"`.
+
+## Falha geral
+
+Erro de renderizacao ou pacote de tela que nao chegou. Mesma moldura e mesma cena da 404, contando o
+proprio erro em tom vermelho. A regra e `utils/falhaDeTela.ts` (testada): `ChunkLoadError` e as mensagens
+de import dinamico do Chrome, do Firefox e do Safari sao **"Falha de carregamento" — "O Prisma nao
+carregou"**; o resto e **"Erro inesperado" — "O Prisma parou de funcionar"**.
+
+- **Dois limites** (`LimiteDeErro`, componente de classe):
+  - um em volta do app inteiro, no `Aplicacao`, **fora do roteador e dos provedores**. Mostra a
+    `TelaDeFalha`, que por isso nao usa hook de roteador, tema nem telas: a marca e um `<a href="/">`, o
+    tema vem do script do `index.html` e o `main` leva `role="alert"`;
+  - outro em volta de cada tela, no `LayoutAplicacao`, com `key` pelo caminho. Mostra a `FalhaNaTela`
+    ("Esta tela parou de funcionar") dentro do shell, com menu e header funcionando, e a proxima tela
+    comeca limpa.
+- **Nunca mostra o texto do erro**, e a unica acao e "Recarregar a página": um "Tentar novamente" nao
+  funciona depois que um `lazy()` falhou. A falha geral diz "Nada foi alterado nos seus dados."
+- **Pacote que nao chegou passa primeiro pela recarga automatica** de `carregarTela`; so se falhar de
+  novo a `FalhaNaTela` aparece.
+- A `TelaDeFalha` e o CSS da moldura vao no pacote inicial (2,8 kB comprimidos): a tela que avisa que um
+  pacote nao chegou nao pode depender de outro pacote.
 
 ## Docker e publicacao
 
@@ -1100,13 +1223,43 @@ no Docker Hub ao mergear). Nomes e arranjo seguem os do PrismaAPI.
 
 `VITE_API_URL` aponta para `http://localhost:9017/PrismaAPI/v1` no perfil `dev`. O `clienteHttp` tem
 timeout de 15 s, um ponto unico (`obterTokenAutenticacao`) para o token quando entrar o Spring Security
-e normalizacao de erros em `ErroApi`: o corpo de erro e o `ErrorResponseDTO` (`types/comum.ts`), e
+e normalizacao de erros em `ErroApi`: o corpo de erro e o `ErrorResponseDTO` (`types/dto/erro/ErrorResponseDTO.ts`), e
 `interpretarErro` usa `errors` (validacao) ou `detail` como mensagem, `type` como codigo e `errors` como
 detalhe. Cancelamento pelo `AbortSignal` sai como o proprio `AbortError`; so o estouro dos 15 s vira
 `ErroApi` de `timeout`.
 
+## Carregamento por tela
+
+Cada pagina, menos o dashboard, e um pacote proprio, carregado ao abrir a tela (`carregarTela` em
+`routes/`, sobre `React.lazy`), pedido do usuario para a primeira tela abrir mais rapido. O pacote inicial
+leva React, roteador, provedores, layout, boas-vindas, a tela de falha e o dashboard; o Recharts
+(`manualChunks.charts`) e pre-carregado em paralelo pelo `index.html`.
+
+- **O dashboard fica no pacote inicial**, importado direto no `RotasAplicacao`: e a tela de entrada (`/`
+  redireciona para ele). Sob demanda, ele virava uma fila (pacote inicial, depois o do dashboard, depois
+  o Recharts) e abria 0,6 s mais devagar que antes da divisao num celular com 4G lento e CPU 4x mais
+  lenta. Estatico, o `index.html` pre-carrega o Recharts em paralelo e ele abre 0,3 s mais rapido.
+- **Qualquer outra tela do endereco ja e pedida quando o app inicia** (`precarregarTelas`, no
+  carregamento do `RotasAplicacao`), em paralelo com `/telas/ocultas`; sem isso o pacote so era pedido
+  depois de o layout receber a lista de telas ocultas. `telaPorCaminho` liga cada caminho a sua tela;
+  caminho novo entra la.
+- **As outras telas baixam depois, ociosas**: so depois que a tela atual chegou, do evento `load` e de
+  mais `ESPERA_ANTES_DE_PRECARREGAR_MS` (2 s), num `requestIdleCallback` (com `setTimeout` onde ele nao
+  existe). Antes da espera, o pre-carregamento disputava CPU e rede com a tela abrindo. Medido: navegar
+  depois de 4 s na tela custa o mesmo que antes da divisao; nos primeiros 2 s, a primeira visita a uma
+  tela ainda espera o pacote.
+- **Dois `Suspense` com fallback vazio**: um no `LayoutAplicacao`, em volta do `Outlet`, para menu e
+  header ficarem na tela, e outro no `RotasAplicacao`, para a 404. Com `v7_startTransition`, trocar de
+  tela segura a anterior ate o pacote novo chegar, sem piscar.
+- **Pacote que sumiu recarrega a pagina uma vez**: depois de um deploy, uma aba antiga pede arquivos com
+  hash que ja nao existem. `carregarTela` recarrega e marca `CHAVE_RECARGA_TELA` (`prisma:screen-reload`)
+  no `sessionStorage`, para nao entrar em laco; a marca sai no proximo carregamento que der certo. Se
+  falhar de novo, o erro sobe para o limite da tela (ver "Falha geral").
+- Pagina nova entra no `RotasAplicacao` por `carregarTela(() => import('@/pages/<pacote>/X').then((m) => m.X))`.
+  Importar uma pagina de forma estatica em outro arquivo a puxa de volta para o pacote inicial.
+
 ## Fora de escopo hoje
 
-Autenticacao (por isso a sidebar nao mostra usuario), ESLint/Prettier, testes de componente e de tela,
-code-splitting por rota e exportacao de relatorio (PDF, CSV). Nao invente configuracao disso sem o
+Autenticacao (por isso a sidebar nao mostra usuario), ESLint/Prettier, testes de componente e de tela e
+exportacao de relatorio (PDF, CSV). Nao invente configuracao disso sem o
 usuario pedir.

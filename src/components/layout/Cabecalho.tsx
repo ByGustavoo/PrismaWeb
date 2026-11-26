@@ -3,14 +3,14 @@ import type { CSSProperties } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Bell, Menu, Moon, Plus, Search, Sun } from 'lucide-react';
 import { Botao } from '@/components/ui';
-import { AVISOS_MAXIMO_NO_CONTADOR } from '@/constants/avisos';
+import { AVISOS_MAXIMO_NO_CONTADOR } from '@/constants/aviso/aviso';
 import { useEhMobile } from '@/hooks/useConsultaMidia';
 import { useTelas } from '@/providers/ProvedorTelas';
 import { useTema } from '@/providers/ProvedorTema';
 import { PARAMETRO_NOVO_LANCAMENTO, caminhos } from '@/routes/caminhos';
 import { BuscaGlobal } from './BuscaGlobal';
 import { ID_ESPACO_CABECALHO } from './EspacoCabecalho';
-import { PainelAvisos } from './PainelAvisos';
+import { PainelAvisos } from '@/components/aviso/PainelAvisos';
 import { SeletorPeriodo } from './SeletorPeriodo';
 import styles from './Cabecalho.module.css';
 

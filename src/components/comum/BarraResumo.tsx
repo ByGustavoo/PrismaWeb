@@ -11,12 +11,11 @@ export interface ItemResumo {
 
 export interface BarraResumoProps {
   itens: ItemResumo[];
-  className?: string;
 }
 
-export function BarraResumo({ itens, className }: BarraResumoProps) {
+export function BarraResumo({ itens }: BarraResumoProps) {
   return (
-    <dl className={juntarClasses(styles.bar, className)}>
+    <dl className={styles.bar}>
       {itens.map((item) => (
         <div key={item.rotulo} className={juntarClasses(styles.item, item.variacao ? styles.itemWithDelta : undefined)}>
           <dt className={styles.label}>{item.rotulo}</dt>

@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { CalendarRange, Check, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CampoSelecao } from '@/components/ui';
+import { useCliqueFora } from '@/hooks/useCliqueFora';
 import { usePeriodo } from '@/providers/ProvedorPeriodo';
-import type { PeriodoDashboard } from '@/services';
+import type { PeriodoDashboard } from '@/types';
 import type { Opcao } from '@/types';
 import { juntarClasses } from '@/utils/juntarClasses';
 import { chaveMesPorDeslocamento, deslocarChaveMes, mesesEntre } from '@/utils/data';
@@ -74,27 +75,19 @@ export function SeletorPeriodo() {
     setEditingCustom(false);
   };
 
+  useCliqueFora(open, [rootRef, '[role="listbox"]'], close);
+
   useEffect(() => {
     if (!open) return;
 
-    const handlePointerDown = (event: PointerEvent) => {
-      const target = event.target as Node;
-      if (rootRef.current?.contains(target)) return;
-      if ((target as HTMLElement).closest?.('[role="listbox"]')) return;
-      close();
-    };
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
       close();
       triggerRef.current?.focus();
     };
 
-    document.addEventListener('pointerdown', handlePointerDown);
     document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('pointerdown', handlePointerDown);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [open]);
 
   return (

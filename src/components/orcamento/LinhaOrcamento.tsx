@@ -2,7 +2,7 @@ import { Trash2 } from 'lucide-react';
 import { ValorMonetario } from '@/components/comum';
 import { Selo, BarraProgresso } from '@/components/ui';
 import { corDaPaleta } from '@/constants/cores';
-import { tomProgressoOrcamento, rotuloSituacaoOrcamento, tomSituacaoOrcamento } from '@/constants/orcamento';
+import { tomProgressoOrcamento, rotuloSituacaoOrcamento, tomSituacaoOrcamento } from '@/constants/orcamento/orcamento';
 import type { ConsumoOrcamentoDTO } from '@/types';
 import { formatarPercentual } from '@/utils/formatacao';
 import styles from './LinhaOrcamento.module.css';

@@ -21,7 +21,7 @@ export interface ColagemMonetaria {
   permitirNegativo?: boolean;
 }
 
-export const DIGITOS_MAXIMOS_ENTRADA_VALOR = DIGITOS_INTEIROS_MAXIMOS_VALOR + CASAS_DECIMAIS_MAXIMAS_VALOR;
+const DIGITOS_MAXIMOS_ENTRADA_VALOR = DIGITOS_INTEIROS_MAXIMOS_VALOR + CASAS_DECIMAIS_MAXIMAS_VALOR;
 
 const SEPARADOR_MILHAR = '.';
 const SEPARADOR_DECIMAL = ',';
@@ -105,7 +105,7 @@ export function editarEntradaMonetaria({
   return { texto, cursor: posicaoComDigitosADireita(texto, right.length) };
 }
 
-export function normalizarColagemMonetaria(text: string): string {
+function normalizarColagemMonetaria(text: string): string {
   const cleaned = text.replace(/[^\d,.-]/g, '');
   const negative = cleaned.startsWith('-');
   const unsigned = cleaned.replace(/-/g, '');

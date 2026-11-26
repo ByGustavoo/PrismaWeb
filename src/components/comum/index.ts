@@ -1,11 +1,8 @@
 export { ValorMonetario, NumeroRolante } from './ValorMonetario';
 export { MarcaPrisma } from './MarcaPrisma';
-export type { MarcaPrismaProps } from './MarcaPrisma';
-export type { ValorMonetarioProps, NumeroRolanteProps, TomValorMonetario, TamanhoValorMonetario } from './ValorMonetario';
+export type { TomValorMonetario } from './ValorMonetario';
 export { IndicadorVariacao, tomDaVariacao } from './IndicadorVariacao';
 export { BarraResumo } from './BarraResumo';
 export { ResultadoFiltros } from './ResultadoFiltros';
-export type { BarraResumoProps, ItemResumo } from './BarraResumo';
 export { HistoricoMovimentacoes } from './HistoricoMovimentacoes';
-export type { ChegadaMovimentacao, ItemMovimentacao, TomMovimentacao } from './HistoricoMovimentacoes';
-export { VooMovimentacao, DURACAO_VOO_MOVIMENTACAO_MS } from './VooMovimentacao';
+export type { ChegadaMovimentacao, ItemMovimentacao } from './HistoricoMovimentacoes';

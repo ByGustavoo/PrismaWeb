@@ -1,0 +1,165 @@
+.screen {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: var(--space-6);
+  min-height: 100dvh;
+  padding: var(--space-10) var(--space-4);
+  background-color: var(--canvas);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--text);
+}
+
+.brandName {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-figure);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.15;
+}
+
+.brandName small {
+  color: var(--text-subtle);
+  font-family: var(--font-ui);
+  font-size: var(--fs-xs);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.card {
+  width: 100%;
+  max-width: 620px;
+  overflow: hidden;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-popover);
+}
+
+.hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: var(--space-10);
+  background-color: var(--surface-muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -52%;
+  left: 50%;
+  width: 440px;
+  aspect-ratio: 1;
+  transform: translateX(-50%);
+  background: radial-gradient(circle, var(--accent-soft), transparent 62%);
+  pointer-events: none;
+}
+
+.hero > * {
+  position: relative;
+}
+
+.code {
+  font-family: var(--font-figure);
+  font-size: clamp(3.75rem, 14vw, 5.75rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: var(--tracking-figure);
+  font-variant-numeric: tabular-nums;
+}
+
+.zero {
+  color: var(--accent);
+}
+
+
+.card[data-tom='erro'] .hero {
+  overflow: hidden;
+}
+
+.card[data-tom='erro'] .hero::before {
+  background: radial-gradient(circle, var(--negative-soft), transparent 62%);
+}
+
+.sobretitulo {
+  color: var(--accent);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.card[data-tom='erro'] .sobretitulo {
+  color: var(--negative);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-8);
+  text-align: center;
+}
+
+.title {
+  font-size: var(--fs-xl);
+}
+
+.description {
+  max-width: 46ch;
+  color: var(--text-muted);
+  font-size: var(--fs-md);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.rodape {
+  width: 100%;
+}
+
+.brand:focus-visible {
+  border-radius: var(--radius-sm);
+  outline-offset: 4px;
+}
+
+@media (max-width: 599px) {
+  .screen {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .hero {
+    padding-top: var(--space-8);
+  }
+
+  .content {
+    padding: var(--space-6) var(--space-5) var(--space-8);
+  }
+}
+
+@media (max-width: 479px) {
+  .actions {
+    align-self: stretch;
+    flex-direction: column;
+  }
+
+  .actions > * {
+    width: 100%;
+  }
+}

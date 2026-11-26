@@ -31,7 +31,6 @@ export interface ChegadaMovimentacao {
 interface HistoricoMovimentacoesProps {
   itens: ItemMovimentacao[];
   quantidadeInicial?: number;
-  rotuloSaldo?: string;
   chegada?: ChegadaMovimentacao | null;
 }
 
@@ -46,7 +45,7 @@ function movimentoReduzido(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-function conteudoLinha(item: ItemMovimentacao, rotuloSaldo: string): ReactNode {
+function conteudoLinha(item: ItemMovimentacao): ReactNode {
   const Icon = item.icone;
   return (
     <>
@@ -72,7 +71,7 @@ function conteudoLinha(item: ItemMovimentacao, rotuloSaldo: string): ReactNode {
       <span className={styles.figures}>
         <ValorMonetario valor={item.valor} tamanho="sm" sinal={item.sinal} tom={tomValor[item.tom]} />
         <span className={styles.balance}>
-          {rotuloSaldo} <ValorMonetario valor={item.saldoApos} tamanho="sm" tom="muted" />
+          Saldo <ValorMonetario valor={item.saldoApos} tamanho="sm" tom="muted" />
         </span>
       </span>
     </>
@@ -82,7 +81,6 @@ function conteudoLinha(item: ItemMovimentacao, rotuloSaldo: string): ReactNode {
 export function HistoricoMovimentacoes({
   itens,
   quantidadeInicial = 8,
-  rotuloSaldo = 'Saldo',
   chegada = null,
 }: HistoricoMovimentacoesProps) {
   const [expanded, setExpanded] = useState(false);
@@ -120,7 +118,7 @@ export function HistoricoMovimentacoes({
               }
             >
               <div ref={item === arrivingItem ? arrivingRowRef : undefined} className={styles.row}>
-                {conteudoLinha(item, rotuloSaldo)}
+                {conteudoLinha(item)}
               </div>
             </li>
           );
@@ -140,7 +138,7 @@ export function HistoricoMovimentacoes({
           destino={findArrivingRow}
           aoPousar={() => setLandedKey(flight.chave)}
         >
-          <div className={styles.row}>{conteudoLinha(flight.item, rotuloSaldo)}</div>
+          <div className={styles.row}>{conteudoLinha(flight.item)}</div>
         </VooMovimentacao>
       ) : null}
     </>

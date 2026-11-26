@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { CSSProperties, KeyboardEvent } from 'react';
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useCliqueFora } from '@/hooks/useCliqueFora';
+import { useReposicionarPopover } from '@/hooks/useReposicionarPopover';
 import { juntarClasses } from '@/utils/juntarClasses';
 import { somarDias, somarMeses, deDataISO, deChaveMes, paraDataISO, hojeISO } from '@/utils/data';
 import { capitalizar, formatarDataCompleta, formatarRotuloMes, formatarDataNumerica } from '@/utils/formatacao';
@@ -136,34 +138,8 @@ export function SeletorData({
     });
   }, []);
 
-  useLayoutEffect(() => {
-    if (open) position();
-  }, [open, position]);
-
-  useEffect(() => {
-    if (!open) return;
-
-    const handleReposition = () => position();
-    window.addEventListener('scroll', handleReposition, true);
-    window.addEventListener('resize', handleReposition);
-    return () => {
-      window.removeEventListener('scroll', handleReposition, true);
-      window.removeEventListener('resize', handleReposition);
-    };
-  }, [open, position]);
-
-  useEffect(() => {
-    if (!open) return;
-
-    const handlePointerDown = (event: PointerEvent) => {
-      const target = event.target as Node;
-      if (rootRef.current?.contains(target) || panelRef.current?.contains(target)) return;
-      setOpen(false);
-    };
-
-    document.addEventListener('pointerdown', handlePointerDown);
-    return () => document.removeEventListener('pointerdown', handlePointerDown);
-  }, [open]);
+  useReposicionarPopover(open, position);
+  useCliqueFora(open, [rootRef, panelRef], () => setOpen(false));
 
   const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
     if (disabled) return;
