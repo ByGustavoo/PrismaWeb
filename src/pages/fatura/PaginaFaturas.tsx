@@ -7,12 +7,12 @@ import { ModalDetalheFatura, DestaqueFatura, LinhaFatura } from '@/components/fa
 import { CabecalhoPagina } from '@/components/layout';
 import { Botao, Painel, EstadoVazio, BlocoCarregando, CampoSelecao } from '@/components/ui';
 import { ehCartaoCredito, TODOS_CARTOES } from '@/constants/cartao/cartao';
-import { filtroFaturasDesde } from '@/constants/fatura/fatura';
+import { dentroDosProximosMeses, dentroDosUltimosMeses, filtroFaturasDesde } from '@/constants/fatura/fatura';
 import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
 import { PARAMETRO_CARTAO, PARAMETRO_FATURA } from '@/routes/caminhos';
 import { cartaoService, faturaService } from '@/services';
 import type { FaturaCartaoDTO, Opcao } from '@/types';
-import { chaveMesPorDeslocamento, hojeISO, mesesEntre } from '@/utils/data';
+import { chaveMesPorDeslocamento, hojeISO } from '@/utils/data';
 import { capitalizar, formatarRotuloVencimento } from '@/utils/formatacao';
 import styles from './PaginaFaturas.module.css';
 
@@ -30,9 +30,8 @@ const opcoesJanelaAnteriores: Opcao[] = [
   { valor: TODOS_MESES, rotulo: 'Todas as anteriores' },
 ];
 
-function dentroDaJanela(month: string, thisMonth: string, range: string): boolean {
-  if (range === TODOS_MESES) return true;
-  return Math.abs(mesesEntre(thisMonth, month) - 1) <= Number(range);
+function quantidadeDeMeses(range: string): number | null {
+  return range === TODOS_MESES ? null : Number(range);
 }
 
 function rotuloQuantidade(count: number): string {
@@ -59,7 +58,7 @@ export function PaginaFaturas() {
 
   const fetchInvoices = useCallback(
     (signal: AbortSignal) =>
-      faturaService.listar(filtroFaturasDesde(pastRange === TODOS_MESES ? null : Number(pastRange)), signal),
+      faturaService.listar(filtroFaturasDesde(quantidadeDeMeses(pastRange)), signal),
     [pastRange],
   );
   const fetchCards = useCallback((signal: AbortSignal) => cartaoService.listar(signal), []);
@@ -131,12 +130,12 @@ export function PaginaFaturas() {
   const thisMonth = chaveMesPorDeslocamento(0);
 
   const visibleUpcoming = useMemo(
-    () => groups.upcoming.filter((invoice) => dentroDaJanela(invoice.mes, thisMonth, upcomingRange)),
+    () => groups.upcoming.filter((invoice) => dentroDosProximosMeses(invoice.mes, thisMonth, quantidadeDeMeses(upcomingRange))),
     [groups.upcoming, thisMonth, upcomingRange],
   );
 
   const visiblePast = useMemo(
-    () => groups.past.filter((invoice) => dentroDaJanela(invoice.mes, thisMonth, pastRange)),
+    () => groups.past.filter((invoice) => dentroDosUltimosMeses(invoice.mes, thisMonth, quantidadeDeMeses(pastRange))),
     [groups.past, thisMonth, pastRange],
   );
 

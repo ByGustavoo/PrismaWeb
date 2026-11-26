@@ -84,13 +84,14 @@ export function ModalDetalheMeta({
   );
 
   const goalId = acompanhamento?.meta.id ?? null;
+  const goalStatus = acompanhamento?.meta.situacao ?? null;
   const historyScroll = useIndicadoresRolagem<HTMLDivElement>([goalId]);
 
   useEffect(() => {
     if (!goalId) return;
     setForm(formularioPrecoVazio());
     reiniciar();
-  }, [goalId, reiniciar]);
+  }, [goalId, goalStatus, reiniciar]);
 
   useEffect(() => {
     if (!goalId || !focarFormularioPreco) return;

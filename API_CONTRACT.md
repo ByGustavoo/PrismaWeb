@@ -61,7 +61,7 @@ GET /faturas?dataInicial=2026-10&dataFinal=2026-12
 | Tela | Recorte enviado | Por quê |
 | --- | --- | --- |
 | Cartões | `dataInicial` = mês passado, `dataFinal` = mês que vem | A "Fatura atual" de cada cartão é a `ABERTA` ou `FECHADA` de vencimento mais próximo, e as duas sempre fecham entre o mês passado e o seguinte |
-| Faturas | `dataInicial` = mês atual menos a janela de "Faturas anteriores" (3 ou 6 meses); sem `dataInicial` em "Todas as anteriores"; nunca `dataFinal` | "Já comprometido" soma todas as faturas futuras, sem janela |
+| Faturas | `dataInicial` = primeiro mês da janela de "Faturas anteriores" (os últimos 3 ou 6 meses, contando o atual: em novembro de 2026, "Últimos 3 meses" manda `2026-09`); sem `dataInicial` em "Todas as anteriores"; nunca `dataFinal` | "Já comprometido" soma todas as faturas futuras, sem janela |
 
 Enquanto o backend não implementar, ele ignora os dois parâmetros e devolve tudo, e o frontend
 continua cortando em memória: as duas telas funcionam igual, só sem a economia de dados.

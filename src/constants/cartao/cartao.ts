@@ -47,3 +47,13 @@ export const TODOS_CARTOES = 'all';
 
 export const PROPORCAO_ALERTA_LIMITE_CARTAO = 0.7;
 export const PROPORCAO_CRITICA_LIMITE_CARTAO = 0.9;
+
+export function limiteComprometido(cartoes: CartaoCredito[]): number {
+  return cartoes.reduce((soma, cartao) => soma + (cartao.limiteComprometido ?? 0), 0);
+}
+
+export function limiteDisponivel(cartoes: CartaoCredito[]): number {
+  const ativos = cartoes.filter((cartao) => cartao.situacao === 'ATIVO');
+  const limite = ativos.reduce((soma, cartao) => soma + cartao.limiteCredito, 0);
+  return Math.max(limite - limiteComprometido(ativos), 0);
+}

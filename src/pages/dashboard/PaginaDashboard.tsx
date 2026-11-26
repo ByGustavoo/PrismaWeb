@@ -14,10 +14,11 @@ import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
 import { useEhMobile } from '@/hooks/useConsultaMidia';
 import { usePeriodo } from '@/providers/ProvedorPeriodo';
 import { useNotificacoes } from '@/providers/ProvedorNotificacoes';
+import { notaDaFatura, valorEmDestaqueDaFatura } from '@/constants/fatura/fatura';
 import { legendaVariacaoGasto, legendaVariacaoReceita } from '@/constants/lancamento/lancamento';
 import { dashboardService } from '@/services';
 import { chaveMesPorDeslocamento } from '@/utils/data';
-import { capitalizar, formatarDataCompleta, formatarRotuloMes, formatarRotuloPeriodo, formatarHora } from '@/utils/formatacao';
+import { capitalizar, formatarRotuloMes, formatarRotuloPeriodo, formatarHora } from '@/utils/formatacao';
 import styles from './PaginaDashboard.module.css';
 
 export function PaginaDashboard() {
@@ -61,6 +62,7 @@ export function PaginaDashboard() {
       : shownFrom === shownTo
         ? 'Fatura do mês'
         : `Fatura de ${capitalizar(formatarRotuloMes(shownTo))}`;
+  const fatura = dados?.faturaAtual ?? null;
 
   return (
     <>
@@ -132,13 +134,9 @@ export function PaginaDashboard() {
             />
             <BlocoIndicador
               rotulo={rotuloFatura}
-              valor={dados.faturaAtual?.valorRestante ?? 0}
+              valor={valorEmDestaqueDaFatura(fatura)}
               icone={CreditCard}
-              notaRodape={
-                dados.faturaAtual
-                  ? `${dados.faturaAtual.nomeCartao} — Vence em ${formatarDataCompleta(dados.faturaAtual.dataVencimento)}`
-                  : 'Sem compras no cartão de crédito'
-              }
+              notaRodape={notaDaFatura(fatura)}
             />
           </div>
 

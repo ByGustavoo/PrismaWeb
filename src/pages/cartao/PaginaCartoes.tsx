@@ -5,7 +5,7 @@ import { ModalFormularioCartao, BlocoCartao } from '@/components/cartao';
 import { ValorMonetario, BarraResumo } from '@/components/comum';
 import { CabecalhoPagina } from '@/components/layout';
 import { Botao, Painel, DialogoConfirmacao, EstadoVazio, BlocoCarregando } from '@/components/ui';
-import { rotuloTipoCartao, ehCartaoCredito } from '@/constants/cartao/cartao';
+import { rotuloTipoCartao, ehCartaoCredito, limiteComprometido, limiteDisponivel } from '@/constants/cartao/cartao';
 import { filtroFaturasAtuais } from '@/constants/fatura/fatura';
 import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
 import { useNotificacoes } from '@/providers/ProvedorNotificacoes';
@@ -62,10 +62,8 @@ export function PaginaCartoes() {
   const otherCards = useMemo(() => cards.filter((card) => card.tipo !== 'CREDITO'), [cards]);
 
   const summary = useMemo(() => {
-    const limit = creditCards.reduce((sum, card) => sum + card.limiteCredito, 0);
-    const used = creditCards.reduce((sum, card) => sum + (card.limiteComprometido ?? 0), 0);
     const openTotal = [...currentInvoices.values()].reduce((sum, invoice) => sum + invoice.valorRestante, 0);
-    return { limit, used, available: Math.max(limit - used, 0), openTotal };
+    return { used: limiteComprometido(creditCards), available: limiteDisponivel(creditCards), openTotal };
   }, [creditCards, currentInvoices]);
 
   const formOpen = creating || editing !== null;
@@ -182,7 +180,7 @@ export function PaginaCartoes() {
                 {
                   rotulo: 'Limite disponível',
                   valor: <ValorMonetario valor={summary.available} tamanho="lg" contarAoAparecer />,
-                  dica: 'Somando todos os cartões de crédito',
+                  dica: 'Somando os cartões de crédito ativos',
                 },
                 {
                   rotulo: 'Limite comprometido',
