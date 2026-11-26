@@ -20,9 +20,9 @@ ele pedir. Calculo de saldo, fatura, previsao, avisos e evolucao e trabalho do b
 **O `API_CONTRACT.md` da raiz so existe enquanto ha pendencia.** Ele lista apenas o que o PrismaAPI
 ainda precisa implementar para acompanhar o frontend (endpoints novos, contratos alterados, migracoes,
 regras de calculo), conferido contra o codigo do backend. O que ja existe nao entra, e quando a ultima
-pendencia sai o arquivo sai junto — **hoje ele nao existe: a paginacao de lancamentos, o
-`GET /lancamentos/{id}` e o recorte por mes do `GET /faturas` estao no PR #18 do PrismaAPI (PRM-59 a PRM-61),
-que precisa ser publicado antes deste front, ou a tela de Lancamentos quebra**. Ao mudar um tipo em
+pendencia sai o arquivo sai junto — **hoje ele nao existe**: a paginacao de lancamentos, o
+`GET /lancamentos/{id}` e o recorte por mes do `GET /faturas` (PRM-59 a PRM-61) estao publicados no
+PrismaAPI desde a `v1.0.14`; uma API anterior a ela quebra a tela de Lancamentos. Ao mudar um tipo em
 `src/types/dto/`, uma rota em `src/api/rotasApi.ts` ou uma regra que o backend aplica, recrie-o
 com a pendencia no mesmo trabalho. O `README.md` documenta instalacao e variaveis. Tres documentos que
 divergem valem menos que um so.
@@ -50,8 +50,9 @@ Vitest, ao lado do arquivo testado (`utils/mascaraValor.test.ts`), e rodam sobre
 entao o alias `@/` vale neles. Hoje tem teste a mascara de valor — ela concentra a edicao em funcoes
 puras justamente para digitacao, cursor e exclusao serem testaveis sem DOM —, o filtro que Lancamentos
 manda ao servidor (`components/lancamento/consulta.test.ts`), a regra dos numeros da paginacao
-(`utils/paginacao.test.ts`), a leitura da falha geral (`utils/falhaDeTela.test.ts`) e o recorte de
-meses que Cartoes e Faturas mandam ao servidor (`constants/fatura/fatura.test.ts`). A CI ainda nao
+(`utils/paginacao.test.ts`), a leitura da falha geral (`utils/falhaDeTela.test.ts`), o recorte de
+meses que Cartoes e Faturas mandam ao servidor (`constants/fatura/fatura.test.ts`) e o limite
+comprometido e disponivel dos cartoes (`constants/cartao/cartao.test.ts`). A CI ainda nao
 roda `npm test`.
 
 O script usa `tsc -b`, e nao `tsc --noEmit`: o `tsconfig.json` da raiz e uma solucao com `references` e
@@ -185,8 +186,8 @@ src/
 │   ├── previsao/  GraficoPrevisao, TabelaPrevisao, ListaPrevisao (versao compacta)
 │   └── relatorio/ SeletorPeriodoRelatorio, DistribuicaoOrigens, GraficoEvolucaoSaldo, GraficoPatrimonio
 ├── constants/     ambiente, aplicacao, navegacao, validacao, notificacoes, cores (gerais, na raiz) e
-│                  <pacote>/<pacote>.ts: aviso, cartao, compraparcelada, conta, fatura, investimento,
-│                  lancamento, meta, orcamento, previsao, recorrente, relatorio, tela
+│                  <pacote>/<pacote>.ts: aviso, cartao, compraparcelada (compraParcelada.ts), conta,
+│                  fatura, investimento, lancamento, meta, orcamento, previsao, recorrente, relatorio, tela
 ├── hooks/         gerais na raiz (useDadosAssincronos, useConsultaMidia, useArmazenamentoLocal,
 │                  useTravarRolagem, usePaletaGrafico, useContagem, useValidacaoFormulario,
 │                  useIndicadoresRolagem, useTabelaCabe, useLarguraEixoMoeda, useValorComAtraso,
@@ -571,18 +572,21 @@ tecla. Virgula, ponto e letra sao ignorados; teclado `inputMode="numeric"`, exce
 Regras aplicadas pelo PrismaAPI; o frontend apresenta.
 
 - **O saldo total so conta o que e do total.** Receita e despesa em conta fora de `incluirNoTotal` nao
-  mexem nele, nem despesa em vale; despesa no cartao de credito pesa; transferencia so pesa quando cruza
-  a fronteira do total. **Parcelas saem do saldo no vencimento da fatura.** Dashboard, relatorios e
-  previsao contam igual.
+  mexem nele, nem despesa em vale; transferencia so pesa quando cruza a fronteira do total. **Compra e
+  parcela no cartao de credito so saem da conta quando sao pagas**: ate hoje o saldo so muda pelo
+  pagamento da fatura ou da parcela, que debita a conta de pagamento do cartao; depois de hoje a
+  projecao desconta a compra na data dela e a parcela no vencimento. Dashboard, relatorios e previsao
+  contam igual.
 - **Gravar um lancamento mexe no saldo da conta**: `ContaDTO.saldo` e o de hoje, e o servidor aplica,
-  desfaz e reaplica o efeito de todo lancamento com data ate hoje ao criar, editar e excluir.
+  desfaz e reaplica o efeito de todo lancamento `PAGO` ao criar, editar e excluir. `PENDENTE` e
+  `AGENDADO` nao mexem.
 - **Variacao e saldo passado**: o resumo compara com a janela anterior de mesmo tamanho, e o saldo de
   um mes passado e reconstruido a partir do de hoje.
 - O contrato de escrita e `SalvarLancamentoDTO`: o cliente manda ids (`idOrigem`, `idCategoria`,
   `idContaDestino`) e o servidor resolve nomes. Erro de regra chega como `ErroApi`, com a mensagem do
   servidor no toast.
-- **Transferencia nao e receita nem despesa**: `categoria: null`, `idContaDestino`, fora de
-  `totalLiquido` e de `gastoPorCategoria`. A tela de Transferencias esconde coluna e filtro de categoria.
+- **Transferencia nao e receita nem despesa**: `categoria: null`, `idContaDestino`, fora do
+  `resultado` da `PaginaLancamentosDTO` e de `gastoPorCategoria`. A tela de Transferencias esconde coluna e filtro de categoria.
 - **A forma de pagamento sai da origem**: origem em cartao esconde "Forma de pagamento" e envia
   `CARTAO_CREDITO`; origem em conta nao oferece cartao. O PrismaAPI recusa com `422` essa combinacao,
   categoria do lado errado, origem em cartao de debito e `PAGO` com data futura. Data futura com
@@ -688,7 +692,8 @@ cartoes sao cadastro; faturas e parcelamentos sao leitura calculada, exceto o ca
 
 - **Parcelas nao sao lancamentos**: vivem em `comprasParceladas` e entram nas faturas pelo calculo. As
   primeiras levam o valor arredondado para baixo e a ultima absorve a sobra.
-- **Uma parcela e compra a vista** (`PARCELAS_MINIMAS`): o formulario comeca em "À vista (1x)", o
+- **Uma parcela e compra a vista** (`quantidadesParcelas` comeca em 1, e `rotuloQuantidadeParcelas`
+  escreve "À vista (1x)", em `constants/compraparcelada`): o formulario comeca em "À vista (1x)", o
   cartao e o mesmo com o selo "À vista" e textos no singular. Entra em "Falta pagar" e na fatura.
 - **"Falta pagar"** soma todas as parcelas por vencer; **"Fatura de Dezembro"** soma, de todas as
   compras (a vista ou parceladas), as parcelas nao pagas do mes mais antigo que ainda tem parcela em
@@ -847,8 +852,10 @@ Telas sob "Planejamento": `/planejamento/orcamento`, `/planejamento/recorrentes`
   formulario novo, seletor Despesa/Receita no topo (`radiogroup`); ao editar, o tipo vai no titulo.
   Receita so entra em conta ou vale; o servidor recusa o lado errado com `422`. O cartao da receita
   mostra o valor em `positive` e "Chega em N dias" (`formatarRotuloRecebimento`).
-- **Recorrencia normaliza para o mes** (`ocorrenciasMensais`: anual / 12, semanal x 4,3452); a previsao
-  usa `ocorrenciasEm(item, mes)` e, para tras, `ocorrenciasEntre`.
+- **Recorrencia normaliza para o mes** (`ocorrenciasMensais`: anual / 12, semanal x 4,3452), so para o
+  equivalente mensal que o formulario mostra. As ocorrencias da previsao, do aviso e do lancador sao
+  contadas no servidor (`Frequencia` do PrismaAPI), e a recorrente mensal guarda o dia de referencia: a
+  do dia 31 cai em 28/02 e volta a 31/03.
 - **"Lançar automaticamente"** (`lancarAutomaticamente`) faz o servidor gravar em cada data uma receita
   ou despesa `PAGO` real na origem. No cartao de credito ela entra na fatura como qualquer compra, com a
   marca "Recorrente" (`ItemFaturaDTO.idRecorrente`), e nao vai para Compras parceladas. Todo lancamento
@@ -887,12 +894,12 @@ Tela `/planejamento/metas`, "Metas" na sidebar e "Metas e desejos" no titulo —
 vitrine.
 
 - **O historico e a tela; o preco atual e so a ultima linha.** Registrar preco nunca sobrescreve
-  (`adicionarPrecoMeta`, `POST /metas/{id}/precos`); `AtualizarMetaDTO` mexe em nome, link, imagem,
+  (`metaService.adicionarPreco`, `POST /metas/{id}/precos`); `AtualizarMetaDTO` mexe em nome, link, imagem,
   situacao e observacao, nunca em preco.
 - **A analise e do servidor; a frase e da interface**: `AnaliseMetaDTO.leitura` e um `LeituraMeta`
   (`PRIMEIRO`, `MENOR`, `ABAIXO_DA_MEDIA`, `ACIMA_DA_MEDIA`, `MAIOR`, `ESTAVEL`), com os textos em
-  `constants/meta/meta.ts`. O insight olha primeiro a posicao na faixa (`TOLERANCIA_EXTREMOS_META`) e so
-  depois a media. Um registro so e "Primeiro registro", nunca "Preço estável"; no lugar da curva entra o
+  `constants/meta/meta.ts`. O servidor olha primeiro a posicao na faixa (5% de folga nos extremos,
+  `FOLGA_DOS_EXTREMOS` do `MetaService`) e so depois a media. Um registro so e "Primeiro registro", nunca "Preço estável"; no lugar da curva entra o
   convite a registrar de novo.
 - **Os totais olham so o que esta em acompanhamento**; comprada e cancelada ficam no cadastro pelo
   historico.
@@ -1038,7 +1045,11 @@ dias).
   linha na hora. "Marcar todos como lidos" so com aviso novo.
 - **Destinos**: fatura vai a `/faturas?fatura=<id>` (abre o `ModalDetalheFatura`); meta a
   `/planejamento/metas?meta=<id>` (detalhe com foco no preco); investimento a
-  `/investimentos?investimento=<id>` (detalhe em "Atualizar saldo", foco no valor).
+  `/investimentos?investimento=<id>` (detalhe em "Atualizar saldo", foco no valor); conta vencendo,
+  agendamento e receita a receber a `/lancamentos?editar=<id>` (abre o formulario, pelo
+  `GET /lancamentos/{id}` quando o lancamento nao esta na pagina). Limite do cartao, orcamento, previsao
+  negativa e recorrente levam a tela (`/cartoes`, `/planejamento/orcamento`, `/planejamento/previsao`,
+  `/planejamento/recorrentes`).
 - **`INVESTIMENTO_DESATUALIZADO`** aparece quando `dataAtualizacao` tem 30 dias ou mais e fica ate o
   usuario registrar aporte ou saldo — dali a contagem recomeca, sem tarefa agendada. Sempre `ATENCAO`; a
   data ao lado e a da ultima atualizacao.
