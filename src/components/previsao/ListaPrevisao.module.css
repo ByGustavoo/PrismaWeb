@@ -16,6 +16,10 @@
   box-shadow: inset 3px 0 0 var(--warning-graphic);
 }
 
+.lowest:last-child {
+  border-bottom-left-radius: calc(var(--radius-lg) - 1px);
+}
+
 .item {
   display: flex;
   flex-direction: column;
