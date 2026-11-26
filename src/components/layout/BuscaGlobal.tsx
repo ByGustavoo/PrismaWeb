@@ -4,10 +4,13 @@ import type { KeyboardEvent } from 'react';
 import { CornerDownLeft, CreditCard, Search, Tag, Wallet, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { ValorMonetario } from '@/components/comum';
-import { iconePorTipo, sinalPorTipo, tomPorTipo } from '@/components/lancamentos';
+import { iconePorTipo, sinalPorTipo, tomPorTipo } from '@/components/lancamento';
 import { IndicadorGiratorio } from '@/components/ui';
-import { rotuloPluralTipoLancamento } from '@/constants/lancamentos';
-import { contasService, categoriasService, lancamentosService } from '@/services';
+import { ESPERA_ENTRE_TECLAS_MS } from '@/constants/aplicacao';
+import { rotuloPluralTipoLancamento } from '@/constants/lancamento/lancamento';
+import { useCatalogo } from '@/hooks/useCatalogo';
+import { useCliqueFora } from '@/hooks/useCliqueFora';
+import { lancamentoService } from '@/services';
 import { PARAMETRO_CONTA, PARAMETRO_CATEGORIA, PARAMETRO_EDITAR_LANCAMENTO, PARAMETRO_BUSCA, caminhos } from '@/routes/caminhos';
 import type { CategoriaDTO, LancamentoDTO, OrigemDTO } from '@/types';
 import { juntarClasses } from '@/utils/juntarClasses';
@@ -16,7 +19,6 @@ import styles from './BuscaGlobal.module.css';
 
 const LIMITES = { transaction: 5, category: 3, account: 4 };
 
-const ESPERA_ENTRE_TECLAS_MS = 250;
 
 type GrupoResultado = 'transaction' | 'category' | 'account' | 'all';
 
@@ -36,12 +38,6 @@ interface Catalogo {
   origens: OrigemDTO[];
 }
 
-interface CatalogoFixo {
-  categorias: CategoriaDTO[];
-  origens: OrigemDTO[];
-}
-
-const catalogoVazio: CatalogoFixo = { categorias: [], origens: [] };
 
 const rotuloGrupo: Record<GrupoResultado, string> = {
   transaction: 'Lançamentos',
@@ -111,31 +107,12 @@ export function BuscaGlobal({ expandido = false, aoRecolher }: BuscaGlobalProps)
 
   const [term, setTerm] = useState('');
   const [focused, setFocused] = useState(false);
-  const [fixedCatalog, setFixedCatalog] = useState<CatalogoFixo>(catalogoVazio);
   const [transactions, setTransactions] = useState<LancamentoDTO[]>([]);
-  const [loadingCatalog, setLoadingCatalog] = useState(false);
   const [searching, setSearching] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const catalogo = useCatalogo(focused);
 
   const trimmed = term.trim();
-
-  useEffect(() => {
-    if (!focused) return;
-
-    const controller = new AbortController();
-    setLoadingCatalog(true);
-
-    Promise.all([categoriasService.listar(undefined, controller.signal), contasService.listarOrigens(controller.signal)])
-      .then(([categorias, origens]) => {
-        if (!controller.signal.aborted) setFixedCatalog({ categorias, origens });
-      })
-      .catch(() => undefined)
-      .finally(() => {
-        if (!controller.signal.aborted) setLoadingCatalog(false);
-      });
-
-    return () => controller.abort();
-  }, [focused]);
 
   useEffect(() => {
     if (!focused || !trimmed) {
@@ -148,10 +125,10 @@ export function BuscaGlobal({ expandido = false, aoRecolher }: BuscaGlobalProps)
     setSearching(true);
 
     const timer = setTimeout(() => {
-      lancamentosService
-        .listar({ busca: trimmed }, controller.signal)
-        .then((found) => {
-          if (!controller.signal.aborted) setTransactions(found);
+      lancamentoService
+        .listar({ busca: trimmed, tamanho: LIMITES.transaction }, controller.signal)
+        .then((pagina) => {
+          if (!controller.signal.aborted) setTransactions(pagina.itens);
         })
         .catch(() => undefined)
         .finally(() => {
@@ -169,11 +146,14 @@ export function BuscaGlobal({ expandido = false, aoRecolher }: BuscaGlobalProps)
     if (expandido) inputRef.current?.focus();
   }, [expandido]);
 
-  const loading = loadingCatalog || searching;
+  const loading = (focused && !catalogo.carregado) || searching;
 
   const results = useMemo(
-    () => (trimmed ? montarResultados({ ...fixedCatalog, lancamentos: transactions }, trimmed) : []),
-    [fixedCatalog, transactions, trimmed],
+    () =>
+      trimmed
+        ? montarResultados({ categorias: catalogo.categorias, origens: catalogo.origens, lancamentos: transactions }, trimmed)
+        : [],
+    [catalogo, transactions, trimmed],
   );
 
   const seeAll = useMemo<ResultadoBusca>(
@@ -211,18 +191,10 @@ export function BuscaGlobal({ expandido = false, aoRecolher }: BuscaGlobalProps)
     [navigate, aoRecolher],
   );
 
-  useEffect(() => {
-    if (!open && !expandido) return;
-
-    const handlePointerDown = (event: PointerEvent) => {
-      if (rootRef.current?.contains(event.target as Node)) return;
-      setFocused(false);
-      if (expandido) aoRecolher?.();
-    };
-
-    document.addEventListener('pointerdown', handlePointerDown);
-    return () => document.removeEventListener('pointerdown', handlePointerDown);
-  }, [open, expandido, aoRecolher]);
+  useCliqueFora(open || expandido, [rootRef], () => {
+    setFocused(false);
+    if (expandido) aoRecolher?.();
+  });
 
   useEffect(() => {
     if (!open) return;

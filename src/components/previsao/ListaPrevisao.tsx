@@ -1,6 +1,6 @@
 import { ValorMonetario } from '@/components/comum';
 import { Painel, CorpoPainel, CabecalhoPainel, Selo } from '@/components/ui';
-import { linhasPrevisao } from '@/constants/previsao';
+import { linhasPrevisao } from '@/constants/previsao/previsao';
 import type { MesPrevisaoDTO } from '@/types';
 import { juntarClasses } from '@/utils/juntarClasses';
 import { capitalizar, formatarRotuloMes } from '@/utils/formatacao';

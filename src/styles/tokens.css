@@ -28,7 +28,6 @@
   --space-8: 2rem;
   --space-10: 2.5rem;
   --space-12: 3rem;
-  --space-16: 4rem;
 
   --radius-xs: 4px;
   --radius-sm: 8px;
@@ -66,7 +65,6 @@
 
   --z-header: 30;
   --z-sidebar: 40;
-  --z-overlay: 50;
   --z-modal: 60;
   --z-popover: 65;
   --z-toast: 70;
@@ -100,7 +98,6 @@
   --text-inverted: #f5f6f8;
 
   --accent: #2b4ee6;
-  --accent-hover: #1f3dc4;
   --accent-soft: #e5eaff;
   --accent-contrast: #ffffff;
 
@@ -174,7 +171,6 @@
   --text-inverted: #0e0e10;
 
   --accent: #7c9aff;
-  --accent-hover: #97aeff;
   --accent-soft: #1e2540;
   --accent-contrast: #0b1020;
 

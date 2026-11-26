@@ -1,0 +1,1 @@
+export { PainelTelas } from './PainelTelas';

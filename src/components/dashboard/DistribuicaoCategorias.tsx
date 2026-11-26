@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { useId, useLayoutEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Painel, CorpoPainel, CabecalhoPainel } from '@/components/ui';
 import { ValorMonetario } from '@/components/comum';
 import { corDaPaleta } from '@/constants/cores';
+import { useIndicadoresRolagem } from '@/hooks/useIndicadoresRolagem';
 import type { GastoCategoriaDTO } from '@/types';
 import { formatarPercentual } from '@/utils/formatacao';
 import { juntarClasses } from '@/utils/juntarClasses';
@@ -36,9 +37,7 @@ export function DistribuicaoCategorias({
 }: DistribuicaoCategoriasProps) {
   const [expanded, setExpanded] = useState(false);
   const [collapsedHeight, setCollapsedHeight] = useState<number | null>(null);
-  const [scroll, setScroll] = useState({ possible: false, above: false, below: false });
   const [minimumHeight, setMinimumHeight] = useState<number | null>(null);
-  const listRef = useRef<HTMLUListElement>(null);
   const revealRequested = useRef(false);
   const listId = useId();
   const largest = dados[0]?.participacao ?? 1;
@@ -46,19 +45,17 @@ export function DistribuicaoCategorias({
   const visible = expanded || preencherAltura ? dados : dados.slice(0, CATEGORIAS_VISIVEIS);
   const scrollsWhenExpanded = manterAlturaAoExpandir && expanded && collapsedHeight !== null;
 
-  const measureScroll = useCallback(() => {
-    const list = listRef.current;
-    if (!list) return;
-    if (preencherAltura && linhasMinimas) {
-      const lastRequired = list.children[Math.min(linhasMinimas, list.children.length) - 1];
-      setMinimumHeight(lastRequired instanceof HTMLElement ? lastRequired.offsetTop + lastRequired.offsetHeight : null);
-    }
-    setScroll({
-      possible: list.scrollHeight > list.clientHeight + 1,
-      above: list.scrollTop > 1,
-      below: list.scrollTop + list.clientHeight < list.scrollHeight - 1,
-    });
-  }, [preencherAltura, linhasMinimas]);
+  const measureMinimumHeight = (list: HTMLUListElement) => {
+    if (!preencherAltura || !linhasMinimas) return;
+    const lastRequired = list.children[Math.min(linhasMinimas, list.children.length) - 1];
+    setMinimumHeight(lastRequired instanceof HTMLElement ? lastRequired.offsetTop + lastRequired.offsetHeight : null);
+  };
+
+  const scroll = useIndicadoresRolagem<HTMLUListElement>(
+    [visible.length, preencherAltura, linhasMinimas],
+    measureMinimumHeight,
+  );
+  const { ref: listRef, medir: measureScroll } = scroll;
 
   const toggle = () => {
     if (!expanded && manterAlturaAoExpandir && listRef.current) {
@@ -79,15 +76,7 @@ export function DistribuicaoCategorias({
     if (!(firstRevealed instanceof HTMLElement)) return;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     list.scrollTo({ top: firstRevealed.offsetTop, behavior: reduceMotion ? 'auto' : 'smooth' });
-  }, [expanded, measureScroll]);
-
-  useEffect(() => {
-    const list = listRef.current;
-    if (!list) return;
-    const observer = new ResizeObserver(measureScroll);
-    observer.observe(list);
-    return () => observer.disconnect();
-  }, [measureScroll, dados.length]);
+  }, [expanded, listRef, measureScroll]);
 
   return (
     <Painel className={juntarClasses(preencherAltura && styles.fill, className)}>
@@ -107,8 +96,8 @@ export function DistribuicaoCategorias({
                   ? ({ '--altura-minima-lista': `${minimumHeight}px` } as CSSProperties)
                   : undefined
               }
-              {...(scroll.above ? { 'data-acima': '' } : {})}
-              {...(scroll.below ? { 'data-abaixo': '' } : {})}
+              {...(scroll.acima ? { 'data-acima': '' } : {})}
+              {...(scroll.abaixo ? { 'data-abaixo': '' } : {})}
             >
               <ul
                 ref={listRef}
@@ -122,7 +111,7 @@ export function DistribuicaoCategorias({
                   scrollsWhenExpanded ? ({ '--altura-recolhida': `${collapsedHeight}px` } as CSSProperties) : undefined
                 }
                 onScroll={measureScroll}
-                {...(scroll.possible ? { tabIndex: 0, 'aria-label': titulo } : {})}
+                {...(scroll.rolavel ? { tabIndex: 0, 'aria-label': titulo } : {})}
               >
                 {visible.map((entry) => (
                   <li key={entry.categoria.id} className={styles.row}>

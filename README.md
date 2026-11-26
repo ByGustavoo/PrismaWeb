@@ -76,10 +76,10 @@ O frontend está **completo e integrado ao PrismaAPI**. Todas as telas existem e
 do backend — não há mocks nem dados fictícios no projeto. Sem a API rodando, as telas mostram o
 estado de erro com a opção de tentar de novo.
 
-O contrato está fechado: o PrismaAPI implementa todos os endpoints e regras de cálculo que as telas
-consomem, e por isso o `API_CONTRACT.md` — que listava só as pendências do backend — não existe mais
-na raiz. Ele volta a ser criado quando uma mudança no frontend passar à frente da API, e é apagado
-de novo assim que ela alcançar.
+Não há pendência no PrismaAPI. A paginação de `GET /lancamentos`, o `GET /lancamentos/{id}` e o recorte
+por mês do `GET /faturas` estão implementados lá, e a versão com eles precisa estar publicada antes
+deste frontend, ou a tela de Lançamentos quebra. Quando o frontend voltar a depender de algo que a API
+ainda não tem, a pendência vai para um `API_CONTRACT.md` na raiz, que sai assim que ela for implementada.
 
 A imagem já é publicada no Docker Hub pela esteira, com versão e data visíveis em
 **Configurações → Versões**.
@@ -102,7 +102,7 @@ A imagem já é publicada no Docker Hub pela esteira, com versão e data visíve
 
 🔹 **Lançamentos**
 * Listagem única para receitas, despesas e transferências, com rota própria por tipo.
-* Busca, filtro por período, categoria, conta e situação, e ordenação — tudo aplicado em memória, respondendo a cada tecla.
+* Lista paginada de 25 em 25, com páginas numeradas; busca (inclusive na observação, sem acento), filtro por período, categoria, conta e situação, e ordenação feitos pelo servidor.
 * Cadastro, edição e exclusão, com formulário específico por tipo.
 * Alternância entre tabela e cartões, com a preferência guardada no navegador.
 
@@ -323,6 +323,10 @@ Os rótulos `release:minor` e `release:major` precisam ser criados em *Issues �
 
 ## 📂 Estrutura do Projeto
 
+O código é organizado por pacote, como o PrismaAPI: cada camada se divide pelos mesmos pacotes do
+backend (`conta`, `cartao`, `fatura`, `compraparcelada`, `lancamento`, `investimento`, `meta`…), e o que
+não é de um domínio fica pela função.
+
 <br>
 
 ```bash
@@ -331,47 +335,46 @@ src/
 ├── components/
 │   ├── ui/        Botao, Painel, CampoTexto, CampoValor, AreaTexto, CampoSelecao, SeletorData,
 │   │              Interruptor, Modal, DialogoConfirmacao, Selo, Tabela, BarraProgresso,
-│   │              Carregamento, EstadoVazio, Notificacao
-│   ├── comum/     ValorMonetario, MarcaPrisma, IndicadorVariacao, BarraResumo,
-│   │              HistoricoMovimentacoes
+│   │              Carregamento, EstadoVazio, Notificacao, Paginacao
+│   ├── comum/     ValorMonetario, MarcaPrisma, IndicadorVariacao, BarraResumo, HistoricoMovimentacoes
+│   ├── graficos/  DicaGrafico, GraficoEvolucao
+│   ├── layout/    MenuLateral, Cabecalho, EspacoCabecalho, CabecalhoPagina, BuscaGlobal, SeletorPeriodo
 │   ├── boasVindas/ TelaBoasVindas e a transição de saída
-│   ├── layout/    MenuLateral, Cabecalho, EspacoCabecalho, CabecalhoPagina, PainelAvisos,
-│   │              BuscaGlobal, SeletorPeriodo
+│   ├── erro/      MolduraDeErro, SerieInterrompida, LimiteDeErro, TelaDeFalha, FalhaNaTela
+│   ├── aviso/     PainelAvisos (sino), PainelPreferenciasAvisos
+│   ├── tela/      PainelTelas, TelaOculta
 │   ├── dashboard/ PainelSaldo, BlocoIndicador, GraficoFluxoCaixa, DistribuicaoCategorias,
 │   │              CalendarioGastos, UltimosLancamentos
-│   ├── lancamentos/ FiltrosLancamentos, TabelaLancamentos, ListaLancamentos,
-│   │              AlternadorVisualizacao, formulários, aparencia e consulta em memória
-│   ├── contas/    CartaoConta, ModalFormularioConta
-│   ├── cartoes/   BlocoCartao, ModalFormularioCartao
-│   ├── faturas/   EntradaFatura, ModalDetalheFatura
-│   ├── parcelamentos/ CartaoParcelamento, ModalFormularioParcelamento, consulta
-│   ├── investimentos/ GraficoAlocacao, GraficoCarteira, CartaoInvestimento,
+│   ├── lancamento/ FiltrosLancamentos, TabelaLancamentos, ListaLancamentos, AlternadorVisualizacao,
+│   │              formulários, aparencia e consulta (filtro enviado ao servidor)
+│   ├── conta/     CartaoConta, ModalFormularioConta
+│   ├── cartao/    BlocoCartao, ModalFormularioCartao
+│   ├── fatura/    EntradaFatura, ModalDetalheFatura
+│   ├── compraparcelada/ CartaoParcelamento, ModalFormularioParcelamento, ModalParcelasCompra, consulta
+│   ├── investimento/ GraficoAlocacao, GraficoCarteira, CartaoInvestimento,
 │   │              ModalFormularioInvestimento, ModalDetalheInvestimento
 │   ├── orcamento/ NavegadorMes, LinhaOrcamento, ModalFormularioOrcamento
-│   ├── recorrentes/ CartaoRecorrente, ModalFormularioRecorrente
-│   ├── metas/     CartaoMeta, ModalFormularioMeta, ModalDetalheMeta, FiltrosMetas,
+│   ├── recorrente/ CartaoRecorrente, ModalFormularioRecorrente
+│   ├── meta/      CartaoMeta, ModalFormularioMeta, ModalDetalheMeta, FiltrosMetas,
 │   │              VariacaoPreco, MiniCurvaPreco, GraficoHistoricoPreco
 │   ├── previsao/  GraficoPrevisao, TabelaPrevisao, ListaPrevisao
-│   ├── relatorios/ SeletorPeriodoRelatorio, DistribuicaoOrigens, GraficoEvolucaoSaldo,
-│   │              GraficoPatrimonio
-│   └── graficos/  DicaGrafico, GraficoEvolucao, MiniCurva
-├── constants/     ambiente, aplicacao, navegacao, avisos, lancamentos, contas, cartoes,
-│                  investimentos, orcamento, recorrentes, metas, previsao, relatorios,
-│                  validacao, notificacoes, cores
-├── hooks/         useDadosAssincronos, useConsultaMidia, useArmazenamentoLocal,
-│                  useTravarRolagem, usePaletaGrafico, useContagem, useValidacaoFormulario
+│   └── relatorio/ SeletorPeriodoRelatorio, DistribuicaoOrigens, GraficoEvolucaoSaldo, GraficoPatrimonio
+├── constants/     gerais na raiz (ambiente, aplicacao, navegacao, validacao, notificacoes, cores)
+│                  e uma pasta por pacote (conta/conta.ts, fatura/fatura.ts…)
+├── hooks/         gerais na raiz (useDadosAssincronos, useConsultaMidia, useArmazenamentoLocal…)
+│                  e os de domínio por pacote (fatura/, compraparcelada/, conta/)
 ├── layouts/       LayoutAplicacao (shell: sidebar + header + conteúdo)
-├── pages/         PaginaDashboard, PaginaLancamentos, PaginaContas, PaginaCartoes,
-│                  PaginaFaturas, PaginaParcelamentos, PaginaInvestimentos, PaginaOrcamento,
-│                  PaginaRecorrentes, PaginaPrevisao, PaginaMetas, PaginaRelatorios,
-│                  PaginaConfiguracoes, PaginaNaoEncontrada
-├── providers/     ProvedorTema, ProvedorNotificacoes, ProvedorAvisos, ProvedorPeriodo, ProvedoresAplicacao
-├── routes/        RotasAplicacao, caminhos (única fonte de rotas)
-├── services/      dashboard, lancamentos, categorias, contas, cartoes, investimentos,
-│                  orcamento, recorrentes, metas, previsao, relatorios, avisos, sistema
+├── pages/         uma pasta por pacote: dashboard/, lancamento/, conta/, cartao/, fatura/,
+│                  compraparcelada/, investimento/, orcamento/, recorrente/, previsao/, meta/,
+│                  relatorio/, configuracao/, erro/ (404)
+├── providers/     ProvedorTema, ProvedorNotificacoes, ProvedorTelas, ProvedorAvisos, ProvedorPeriodo
+├── routes/        RotasAplicacao, caminhos (única fonte de rotas), carregarTela (uma tela por pacote)
+├── services/      um service por controller do backend: aviso/, cartao/, categoria/, compraparcelada/,
+│                  conta/, dashboard/, fatura/, investimento/, lancamento/, meta/, orcamento/,
+│                  previsao/, recorrente/, relatorio/, sistema/, tela/
 ├── styles/        tokens.css (design tokens), global.css
-├── types/         comum, financas (contratos de domínio)
-└── utils/         juntarClasses, data, formatacao, validacao, foco, mascaraValor
+├── types/         dto/<pacote>/<Nome>DTO.ts (um arquivo por DTO), enums/, comum/
+└── utils/         juntarClasses, data, formatacao, validacao, foco, mascaraValor, falhaDeTela
 ```
 
 
@@ -410,7 +413,7 @@ export const dashboardService = {
 
 ## 🔌 Integração com a API
 
-Basta apontar `VITE_API_URL` para o PrismaAPI. Os tipos de `src/types/financas.ts` são os mesmos
+Basta apontar `VITE_API_URL` para o PrismaAPI. Os tipos de `src/types/dto/` são os mesmos
 DTOs do backend, e o contrato inteiro é escrito em português: rota em kebab-case sem acento
 (`/contas/origens`, `/recorrentes`), campo e query param em camelCase sem acento
 (`saldoAtual`, `dataInicial`) e valor de enum em maiúsculas (`RECEITA`, `CARTAO_CREDITO`).

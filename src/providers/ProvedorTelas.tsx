@@ -1,7 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { rotuloTela, telaDoDestino } from '@/constants/telas';
-import { telasService } from '@/services';
+import { CHAVE_TELAS_OCULTAS } from '@/constants/aplicacao';
+import { rotuloTela, telaDoDestino } from '@/constants/tela/tela';
+import { telaService } from '@/services';
 import type { Tela } from '@/types';
 import { useNotificacoes } from './ProvedorNotificacoes';
 
@@ -20,24 +21,49 @@ interface ValorContextoTelas {
 
 const ContextoTelas = createContext<ValorContextoTelas | null>(null);
 
+function ehTela(valor: unknown): valor is Tela {
+  return typeof valor === 'string' && valor in rotuloTela;
+}
+
+function lerTelasGuardadas(): Tela[] | null {
+  try {
+    const guardado = window.localStorage.getItem(CHAVE_TELAS_OCULTAS);
+    if (guardado === null) return null;
+    const telas: unknown = JSON.parse(guardado);
+    return Array.isArray(telas) && telas.every(ehTela) ? telas : null;
+  } catch {
+    return null;
+  }
+}
+
+function guardarTelas(telas: Tela[]): void {
+  try {
+    window.localStorage.setItem(CHAVE_TELAS_OCULTAS, JSON.stringify(telas));
+  } catch {
+    return;
+  }
+}
+
 export function ProvedorTelas({ children }: { children: ReactNode }) {
   const toast = useNotificacoes();
-  const [telasOcultas, setTelasOcultas] = useState<Tela[]>([]);
-  const [carregado, setCarregado] = useState(false);
+  const [guardadas] = useState(lerTelasGuardadas);
+  const [telasOcultas, setTelasOcultas] = useState<Tela[]>(guardadas ?? []);
+  const [carregado, setCarregado] = useState(guardadas !== null);
   const [erro, setErro] = useState<Error | null>(null);
   const [estadoGravacao, setEstadoGravacao] = useState<EstadoGravacaoTelas>('parado');
   const [versao, setVersao] = useState(0);
-  const atuais = useRef<Tela[]>([]);
+  const atuais = useRef<Tela[]>(guardadas ?? []);
   const fila = useRef<Promise<unknown>>(Promise.resolve());
   const pendentes = useRef(0);
 
   useEffect(() => {
     const controle = new AbortController();
 
-    telasService
+    telaService
       .buscarOcultas(controle.signal)
       .then((resposta) => {
         atuais.current = resposta.telas;
+        guardarTelas(resposta.telas);
         setTelasOcultas(resposta.telas);
         setErro(null);
         setCarregado(true);
@@ -66,14 +92,16 @@ export function ProvedorTelas({ children }: { children: ReactNode }) {
       const anteriores = atuais.current;
 
       atuais.current = proximas;
+      guardarTelas(proximas);
       setTelasOcultas(proximas);
       setEstadoGravacao('salvando');
       pendentes.current += 1;
 
       fila.current = fila.current
-        .then(() => telasService.atualizarOcultas({ telas: proximas }))
+        .then(() => telaService.atualizarOcultas({ telas: proximas }))
         .catch((causa: unknown) => {
           atuais.current = anteriores;
+          guardarTelas(anteriores);
           setTelasOcultas(anteriores);
           toast.erro(mensagemErro, causa);
         })

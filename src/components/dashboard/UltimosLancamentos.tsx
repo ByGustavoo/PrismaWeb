@@ -2,10 +2,10 @@ import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { Receipt } from 'lucide-react';
 import { ValorMonetario } from '@/components/comum';
-import { classePorTipo, iconePorTipo, sinalPorTipo, tomPorTipo, tomPorSituacao } from '@/components/lancamentos/aparencia';
+import { classePorTipo, iconePorTipo, sinalPorTipo, tomPorTipo, tomPorSituacao } from '@/components/lancamento/aparencia';
 import { Selo, Painel, CorpoPainel, CabecalhoPainel, CorpoTabela, CabecaTabela, Tabela, ContainerTabela, Celula, CelulaCabecalho, LinhaTabela, EstadoVazio } from '@/components/ui';
 import { corDaPaleta } from '@/constants/cores';
-import { rotuloSituacaoLancamento } from '@/constants/lancamentos';
+import { rotuloSituacaoLancamento } from '@/constants/lancamento/lancamento';
 import { useEhCompacto } from '@/hooks/useConsultaMidia';
 import { useTelas } from '@/providers/ProvedorTelas';
 import { caminhos } from '@/routes/caminhos';
@@ -125,7 +125,7 @@ interface LinhaLancamentoProps {
   indice?: number;
 }
 
-export function LinhaLancamento({ lancamento, indice = 0 }: LinhaLancamentoProps) {
+function LinhaLancamento({ lancamento, indice = 0 }: LinhaLancamentoProps) {
   const Icon = iconePorTipo[lancamento.tipo];
 
   return (

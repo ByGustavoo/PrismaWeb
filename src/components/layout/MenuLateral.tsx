@@ -3,7 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { ChevronDown, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react';
 import { NOME_APLICACAO, SLOGAN_APLICACAO } from '@/constants/aplicacao';
 import { navegacao } from '@/constants/navegacao';
-import { navegacaoVisivel } from '@/constants/telas';
+import { navegacaoVisivel } from '@/constants/tela/tela';
 import { MarcaPrisma } from '@/components/comum';
 import type { ItemNavegacao } from '@/constants/navegacao';
 import { useTelas } from '@/providers/ProvedorTelas';

@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { PeriodoDashboard } from '@/services';
+import type { PeriodoDashboard } from '@/types';
 import { chaveMesPorDeslocamento } from '@/utils/data';
 
 interface ValorContextoPeriodo {

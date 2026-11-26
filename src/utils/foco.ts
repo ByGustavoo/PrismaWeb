@@ -3,7 +3,7 @@ const SELETOR_FOCAVEIS =
 
 const ESPERA_MAXIMA_RETORNO_FOCO_MS = 20_000;
 
-export function focaveisVisiveis(container: HTMLElement): HTMLElement[] {
+function focaveisVisiveis(container: HTMLElement): HTMLElement[] {
   return [...container.querySelectorAll<HTMLElement>(SELETOR_FOCAVEIS)].filter(
     (element) => element.offsetParent !== null || element === document.activeElement,
   );

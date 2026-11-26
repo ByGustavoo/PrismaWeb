@@ -25,7 +25,6 @@ interface GraficoEvolucaoProps {
   dados: PontoEvolucaoDTO[];
   altura?: number;
   rotuloValor?: string;
-  rotuloAportado?: string;
   pulsoNoUltimo?: number;
 }
 
@@ -38,7 +37,6 @@ export function GraficoEvolucao({
   dados,
   altura = 260,
   rotuloValor = 'Patrimônio',
-  rotuloAportado = 'Total aportado',
   pulsoNoUltimo,
 }: GraficoEvolucaoProps) {
   const palette = usePaletaGrafico();
@@ -98,7 +96,7 @@ export function GraficoEvolucao({
           <Line
             type="monotone"
             dataKey="aportado"
-            name={rotuloAportado}
+            name="Total aportado"
             stroke={palette.series[3]}
             strokeWidth={1.5}
             strokeDasharray="4 4"

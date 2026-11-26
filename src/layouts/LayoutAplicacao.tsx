@@ -1,8 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { Cabecalho, MenuLateral, TelaOculta } from '@/components/layout';
+import { Cabecalho, MenuLateral } from '@/components/layout';
+import { FalhaNaTela } from '@/components/erro/FalhaNaTela';
+import { LimiteDeErro } from '@/components/erro/LimiteDeErro';
+import { TelaOculta } from '@/components/tela/TelaOculta';
 import { CHAVE_MENU_LATERAL } from '@/constants/aplicacao';
-import { telaDoDestino } from '@/constants/telas';
+import { telaDoDestino } from '@/constants/tela/tela';
 import { useArmazenamentoLocal } from '@/hooks/useArmazenamentoLocal';
 import { useEhTablet } from '@/hooks/useConsultaMidia';
 import { useTravarRolagem } from '@/hooks/useTravarRolagem';
@@ -58,7 +61,13 @@ export function LayoutAplicacao() {
         <Cabecalho aoAbrirMenu={() => setMobileOpen(true)} />
         <main className={styles.content} id={ID_CONTEUDO} tabIndex={-1}>
           <div className={styles.container}>
-            {tela && !carregado ? null : tela && telasOcultas.includes(tela) ? <TelaOculta tela={tela} /> : <Outlet />}
+            {tela && !carregado ? null : tela && telasOcultas.includes(tela) ? <TelaOculta tela={tela} /> : (
+              <LimiteDeErro key={location.pathname} alternativa={(erro) => <FalhaNaTela erro={erro} />}>
+                <Suspense fallback={null}>
+                  <Outlet />
+                </Suspense>
+              </LimiteDeErro>
+            )}
           </div>
         </main>
       </div>
