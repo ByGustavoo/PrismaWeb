@@ -20,8 +20,9 @@ ele pedir. Calculo de saldo, fatura, previsao, avisos e evolucao e trabalho do b
 **O `API_CONTRACT.md` da raiz so existe enquanto ha pendencia.** Ele lista apenas o que o PrismaAPI
 ainda precisa implementar para acompanhar o frontend (endpoints novos, contratos alterados, migracoes,
 regras de calculo), conferido contra o codigo do backend. O que ja existe nao entra, e quando a ultima
-pendencia sai o arquivo sai junto — **hoje ele traz a publicacao da paginacao de lancamentos (pronta no
-PrismaAPI, fora da `main`) e o recorte por mes do `GET /faturas`**. Ao mudar um tipo em
+pendencia sai o arquivo sai junto — **hoje ele nao existe: a paginacao de lancamentos, o
+`GET /lancamentos/{id}` e o recorte por mes do `GET /faturas` estao no PR #18 do PrismaAPI (PRM-59 a PRM-61),
+que precisa ser publicado antes deste front, ou a tela de Lancamentos quebra**. Ao mudar um tipo em
 `src/types/dto/`, uma rota em `src/api/rotasApi.ts` ou uma regra que o backend aplica, recrie-o
 com a pendencia no mesmo trabalho. O `README.md` documenta instalacao e variaveis. Tres documentos que
 divergem valem menos que um so.
@@ -680,8 +681,8 @@ cartoes sao cadastro; faturas e parcelamentos sao leitura calculada, exceto o ca
   vem sempre inteiro, porque "Já comprometido" soma todas as futuras. Cartoes pede so a fatura atual
   (`filtroFaturasAtuais`: do mes passado ao seguinte, onde sempre caem a `ABERTA` e a `FECHADA`). As duas
   telas pedem cartoes e contas em separado das faturas, para gravar um cartao ou trocar a janela nao
-  repetir o que nao mudou. O corte em memoria continua: enquanto o PrismaAPI ignora os parametros (ver
-  `API_CONTRACT.md`), as telas funcionam igual. O seletor de cartao so some na primeira carga.
+  repetir o que nao mudou. O corte em memoria continua: uma API sem o recorte ignora os parametros, e as
+  telas funcionam igual. O seletor de cartao so some na primeira carga.
 
 **Compras parceladas**
 

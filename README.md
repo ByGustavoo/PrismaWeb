@@ -76,12 +76,10 @@ O frontend está **completo e integrado ao PrismaAPI**. Todas as telas existem e
 do backend — não há mocks nem dados fictícios no projeto. Sem a API rodando, as telas mostram o
 estado de erro com a opção de tentar de novo.
 
-O `API_CONTRACT.md` da raiz lista só o que o PrismaAPI ainda precisa implementar para acompanhar o
-frontend. Hoje traz duas pendências. A paginação de `GET /lancamentos` e o `GET /lancamentos/{id}`
-precisam estar publicados no PrismaAPI antes deste frontend, ou a tela de Lançamentos quebra. Já o
-recorte por mês do `GET /faturas` não bloqueia: Cartões e Faturas já enviam os parâmetros, e enquanto a
-API os ignora as duas telas funcionam igual. O arquivo é apagado assim que a última pendência for
-implementada.
+Não há pendência no PrismaAPI. A paginação de `GET /lancamentos`, o `GET /lancamentos/{id}` e o recorte
+por mês do `GET /faturas` estão implementados lá, e a versão com eles precisa estar publicada antes
+deste frontend, ou a tela de Lançamentos quebra. Quando o frontend voltar a depender de algo que a API
+ainda não tem, a pendência vai para um `API_CONTRACT.md` na raiz, que sai assim que ela for implementada.
 
 A imagem já é publicada no Docker Hub pela esteira, com versão e data visíveis em
 **Configurações → Versões**.
