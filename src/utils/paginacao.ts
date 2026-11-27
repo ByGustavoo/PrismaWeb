@@ -1,7 +1,7 @@
 export type ItemPaginacao = number | 'reticencias-inicio' | 'reticencias-fim';
 
 const VIZINHAS = 1;
-const LIMITE_SEM_RETICENCIAS = 7;
+const LIMITE_SEM_RETICENCIAS = 6;
 
 export function paginasVisiveis(atual: number, quantidade: number): ItemPaginacao[] {
   if (quantidade <= LIMITE_SEM_RETICENCIAS) return Array.from({ length: quantidade }, (_, indice) => indice);

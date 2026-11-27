@@ -49,6 +49,20 @@
   min-width: 0;
 }
 
+@media (min-width: 1280px) {
+  .controls {
+    flex-wrap: nowrap;
+  }
+}
+
+.controlsJustos {
+  --posicao-medida-selecao: absolute;
+}
+
+.controlsSemIcone {
+  --exibicao-icone-selecao: none;
+}
+
 .controlsHidden {
   display: none;
 }

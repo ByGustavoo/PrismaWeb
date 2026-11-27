@@ -70,13 +70,18 @@
 .description {
   display: block;
   font-weight: 500;
+  line-height: var(--lh-snug);
 }
 
 .notes {
-  display: block;
-  margin-top: 2px;
+  display: -webkit-box;
   max-width: 30ch;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
   font-size: var(--fs-xs);
+  line-height: var(--lh-snug);
   color: var(--text-subtle);
 }
 
@@ -92,6 +97,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
+  max-width: 100%;
 }
 
 .categoryDot {
@@ -101,16 +107,23 @@
   flex-shrink: 0;
 }
 
-.route {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 2px var(--space-2);
+.umaLinha {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+
+.category .umaLinha {
+  min-width: 0;
 }
 
 .route svg {
+  display: inline;
+  margin-inline: var(--space-1);
+  vertical-align: -2px;
   color: var(--text-subtle);
-  flex-shrink: 0;
 }
 
 .kind {

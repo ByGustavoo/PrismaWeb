@@ -104,9 +104,9 @@ A imagem é publicada no Docker Hub pela esteira, com versão e data visíveis e
 
 🔹 **Lançamentos**
 * Listagem única para receitas, despesas e transferências, com rota própria por tipo.
-* Lista paginada de 25 em 25, com páginas numeradas; busca (inclusive na observação, sem acento), filtro por período, categoria, conta e situação, e ordenação feitos pelo servidor.
+* Lista paginada do tamanho da tela (8 por página na tabela, 4 nos cartões), com páginas numeradas alinhadas ao rodapé do menu; busca (inclusive na observação, sem acento), filtro por período, categoria, conta e situação, e ordenação feitos pelo servidor.
 * Cadastro, edição e exclusão, com formulário específico por tipo e o interruptor "Repetir", que transforma o lançamento no primeiro de uma recorrente.
-* Alternância entre tabela e cartões, com a preferência guardada no navegador.
+* Alternância animada entre tabela e cartões, com a preferência guardada no navegador.
 
 🔹 **Contas e cartões**
 * Cadastro das contas do dia a dia (corrente, salário e outras), com a participação de cada uma no saldo total.

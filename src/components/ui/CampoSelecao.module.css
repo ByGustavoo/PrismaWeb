@@ -96,6 +96,7 @@
 }
 
 .icon {
+  display: var(--exibicao-icone-selecao, block);
   flex-shrink: 0;
   color: var(--text-subtle);
 }
@@ -113,9 +114,11 @@
 }
 
 .valueFit {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, auto);
   min-width: 0;
+  overflow: hidden;
 }
 
 .valueFit > * {
@@ -124,6 +127,8 @@
 }
 
 .valueSizer {
+  position: var(--posicao-medida-selecao, static);
+  width: max-content;
   visibility: hidden;
   white-space: nowrap;
   font-weight: 500;

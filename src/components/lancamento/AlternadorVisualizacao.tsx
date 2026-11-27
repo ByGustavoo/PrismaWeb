@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useState } from 'react';
 import { juntarClasses } from '@/utils/juntarClasses';
 import styles from './AlternadorVisualizacao.module.css';
 
@@ -14,9 +15,33 @@ const opcoes: Array<{ valor: VisualizacaoLancamentos; rotulo: string; descricao:
 ];
 
 export function AlternadorVisualizacao({ valor, aoAlterar }: AlternadorVisualizacaoProps) {
+  const grupoRef = useRef<HTMLDivElement>(null);
+  const [indicador, setIndicador] = useState<{ x: number; largura: number } | null>(null);
+
+  useLayoutEffect(() => {
+    const grupo = grupoRef.current;
+    if (!grupo) return;
+
+    const medir = () => {
+      const escolhida = grupo.querySelector<HTMLElement>('[aria-checked="true"]');
+      if (escolhida) setIndicador({ x: escolhida.offsetLeft, largura: escolhida.offsetWidth });
+    };
+
+    medir();
+    const observer = new ResizeObserver(medir);
+    observer.observe(grupo);
+    return () => observer.disconnect();
+  }, [valor]);
+
   return (
-    <div className={styles.group} role="radiogroup" aria-label="Modo de exibição">
-      <span className={styles.indicator} data-view={valor} aria-hidden="true" />
+    <div ref={grupoRef} className={styles.group} role="radiogroup" aria-label="Modo de exibição">
+      {indicador ? (
+        <span
+          className={styles.indicator}
+          style={{ width: indicador.largura, transform: `translateX(${indicador.x}px)` }}
+          aria-hidden="true"
+        />
+      ) : null}
 
       {opcoes.map((option) => (
         <button

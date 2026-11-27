@@ -63,3 +63,110 @@
 .lista {
   scroll-margin-top: calc(var(--header-height) + var(--space-4));
 }
+
+.ordenacaoCompacta {
+  margin-bottom: var(--space-3);
+}
+
+.tabela > div {
+  overflow-y: hidden;
+}
+
+.saidaVisao > ul > li,
+.saidaVisao tbody > tr,
+.saidaVisao thead {
+  animation: saidaItem var(--duration-fast) var(--ease-in) forwards;
+}
+
+.trocaVisao > ul > li {
+  animation: entradaCartao var(--duration-slow) var(--ease-spring) backwards;
+  animation-delay: calc(var(--i, 0) * var(--stagger-step) * 1.5);
+}
+
+.trocaVisao tbody > tr {
+  animation: entradaLinha var(--duration-slow) var(--ease-out) backwards;
+  animation-delay: calc(var(--duration-fast) / 2 + var(--i, 0) * var(--stagger-step));
+}
+
+.trocaVisao thead {
+  animation: aparecer var(--duration-base) var(--ease-out) backwards;
+}
+
+@keyframes saidaItem {
+  to {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.99);
+  }
+}
+
+@keyframes entradaCartao {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+}
+
+@keyframes entradaLinha {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .saidaVisao > ul > li,
+  .saidaVisao tbody > tr,
+  .saidaVisao thead,
+  .trocaVisao > ul > li,
+  .trocaVisao tbody > tr,
+  .trocaVisao thead {
+    animation: none;
+  }
+}
+
+@media (min-width: 1100px) {
+  .tela {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100dvh - var(--header-height) - 1px - var(--content-padding-top) - var(--space-4));
+    margin-bottom: calc(var(--space-4) - var(--space-12));
+  }
+
+  .painel {
+    flex: 1;
+  }
+
+  .preencher,
+  .preencher .tabela,
+  .preencher .tabela > * {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+  }
+
+  .preencher table {
+    flex: 1;
+  }
+
+  .preencherCartoes,
+  .preencherCartoes > ul,
+  .preencherCartoes > ul > li {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+  }
+
+  .preencherCartoes > ul > li {
+    justify-content: center;
+  }
+
+  .paginacao {
+    min-height: calc(var(--space-4) + var(--tap-size));
+  }
+}
