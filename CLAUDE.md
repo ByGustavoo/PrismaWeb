@@ -168,6 +168,7 @@ src/
 │   ├── dashboard/ PainelSaldo, BlocoIndicador, GraficoFluxoCaixa, DistribuicaoCategorias,
 │   │              CalendarioGastos, UltimosLancamentos
 │   ├── lancamento/ FiltrosLancamentos, TabelaLancamentos, ListaLancamentos (cartoes),
+│   │              OrdenacaoLancamentos (ordenar dos cartoes),
 │   │              AlternadorVisualizacao, formularios, aparencia (icone/cor por tipo e situacao),
 │   │              consulta (filtro, periodo e ordenacao)
 │   ├── conta/     CartaoConta, ModalFormularioConta, aparencia
@@ -369,8 +370,11 @@ de altura reserva a maior (`alturaCartaoRetrato`), senao o titulo centrado com e
   quanto a tabela transborda da area — e nao a largura da janela, porque menu recolhido e dados mudam a
   conta. Abaixo de 900px sao sempre cartoes. A tabela de lancamentos quebra observacao, rota e categoria,
   trava so a data e cabe a partir de 1280px. No desktop o `AlternadorVisualizacao` guarda a escolha em
-  `prisma:transactions-view`; quando a tabela nao cabe, o seletor sai. Os cartoes trazem ordenacao
-  propria. "Últimos lançamentos" do dashboard vira lista abaixo de 900px.
+  `prisma:transactions-view`; quando a tabela nao cabe, o seletor sai. Os cartoes nao tem cabecalho de
+  coluna, entao ganham o "Ordenar por:" (`OrdenacaoLancamentos`, campo e botao de direcao) na linha
+  dos filtros, logo depois de "Todas as situações"; abaixo de 900px, com os filtros recolhidos em
+  "Filtros", ele fica acima dos cartoes para nao sumir. "Últimos lançamentos" do dashboard vira lista
+  abaixo de 900px.
 - **Grades de cartoes usam `auto-fill` com largura minima** (contas, cartoes, parcelamentos,
   investimentos, orcamento, recorrentes): o conteudo decide quando quebrar. Dashboard: 4 → 2 → 1.
 - **`BarraResumo` com numero impar de itens, abaixo de 768px**, abre com o primeiro item (o numero
@@ -395,7 +399,8 @@ de altura reserva a maior (`alturaCartaoRetrato`), senao o titulo centrado com e
   `.refreshing`), para os valores rolarem e a contagem nao recomecar. Por isso **rotulos de conteudo
   seguem `data.dataInicial`/`data.dataFinal`, e nao o periodo selecionado**; so o titulo da pagina
   acompanha a selecao na hora. Excecao pedida pelo usuario: em Lancamentos, trocar de pagina mostra o
-  esqueleto (o conteudo e outro), na altura que a lista tinha.
+  esqueleto (o conteudo e outro), na altura que a lista tinha. Trocar entre tabela e cartoes nao mostra
+  esqueleto: tem animacao propria (ver "Lancamentos e saldo").
 - **Filtro de tela vai na linha de acoes do `CabecalhoPagina`; filtro de bloco, no cabecalho do
   bloco.** Seletor de cartao em Faturas e busca + seletores de Compras parceladas e de Metas dividem a
   linha com a acao principal, com `tamanho="sm"` no `CampoSelecao` e no `CampoTexto` (iguala a altura
@@ -594,8 +599,11 @@ Regras aplicadas pelo PrismaAPI; o frontend apresenta.
 - **Na receita, "Situação" divide a linha com Valor e Data** (grade de seis colunas, `.trio`, em
   tercos), porque sobrava sozinha. A despesa no cartao nao usa o arranjo: la Situação so aparece depois
   de escolher o cartao, e subir o campo reorganizaria o formulario sob quem preenche.
-- **A tela pede ao servidor uma pagina de 25 por vez** (`TAMANHO_PAGINA_LANCAMENTOS`), nas quatro rotas
-  de lancamento, pedido do usuario: quase ninguem passa da primeira pagina, mais gente filtra. `GET
+- **A pagina tem o tamanho da tela, e nao rola** (pedido do usuario, ajustado na janela dele, 1920 de
+  largura): 8 lancamentos na tabela (`TAMANHO_PAGINA_LANCAMENTOS`) e 4 nos cartoes
+  (`TAMANHO_PAGINA_LANCAMENTOS_CARTOES`), nas quatro rotas. Os 4 valem so a partir de 1100px, quando os
+  cartoes sao a escolha do alternador; abaixo disso a lista rola e a pagina e de 8. Por isso o numero de
+  paginas muda ao trocar de visualizacao (Receitas: 4 na tabela, 7 nos cartoes). `GET
   /lancamentos` recebe `pagina` (a partir de 0), `tamanho` (1 a 100), `ordenacao` (`DATA`, `DESCRICAO`,
   `VALOR`) e `direcao` (`ASC`, `DESC`), alem dos filtros, e devolve `PaginaLancamentosDTO`: `itens`,
   `pagina`, `tamanho`, `quantidadeTotal`, `quantidadePaginas` e `resultado` (receitas menos despesas do
@@ -606,18 +614,51 @@ Regras aplicadas pelo PrismaAPI; o frontend apresenta.
   espera `ESPERA_ENTRE_TECLAS_MS` entre teclas, mas limpar vale na hora; o servidor procura em
   descricao, observacao, categoria e contas, sem acento. A ordenacao da tabela e dos cartoes usa os
   enums da API (`OrdenacaoLancamento`, `DirecaoOrdenacao`).
-- **Mudar filtro, busca ou ordenacao volta para a pagina 1**: a pagina e guardada junto da chave do
-  filtro, e chave diferente le pagina 0. Salvar ou excluir recarrega a mesma pagina; se ela ficar vazia
-  (excluiu o ultimo item da ultima), volta para a ultima que existe.
-- **Paginas numeradas** (`components/ui/Paginacao`, escolha do usuario): "1–25 de 279" e, a direita,
+- **Mudar filtro, busca ou ordenacao volta para a pagina 1**: a posicao e guardada como o primeiro
+  registro da pagina (`inicio`), junto da chave do filtro, e chave diferente volta a 0. A pagina sai de
+  `inicio / tamanho`, entao trocar de visualizacao mantem o mesmo lancamento no topo (pagina 2 da
+  tabela, 9–16, vira a pagina 3 dos cartoes, 9–12). Salvar ou excluir recarrega a mesma pagina; se ela
+  ficar vazia (excluiu o ultimo item da ultima), volta para a ultima que existe.
+- **Paginas numeradas** (`components/ui/Paginacao`, escolha do usuario): "1–8 de 279" e, a direita,
   anterior, numeros com reticencias (`paginasVisiveis`, `utils/paginacao.ts`: primeira, ultima e as
   vizinhas da atual, sempre com a mesma quantidade de itens) e proxima; abaixo de 600px os numeros dao
-  lugar a "Página 2 de 12". Setas nas pontas com `aria-disabled`, pagina atual com `aria-current`,
-  resumo em `aria-live`. Trocar de pagina mostra o esqueleto na altura da lista anterior, rola ate o topo
-  da lista (`scroll-margin-top` abaixo do header) e leva o foco a ela. Filtrar so esmaece
-  (`.refreshing`).
+  lugar a "Página 2 de 12". As reticencias entram a partir de 7 paginas (`LIMITE_SEM_RETICENCIAS` 6):
+  com 7 todos os numeros apareciam e Receitas em cartoes destoava das outras telas ("1 2 3 4 … 7").
+  Setas nas pontas com `aria-disabled`, pagina atual com `aria-current`, resumo em `aria-live`. Trocar
+  de pagina mostra o esqueleto na altura da lista anterior, rola ate o topo da lista
+  (`scroll-margin-top` abaixo do header) e leva o foco a ela. Filtrar so esmaece (`.refreshing`).
+- **A partir de 1100px a tela ocupa a janela e a linha da lista encontra a do menu.** A `.tela` de
+  `PaginaLancamentos` tem a altura da janela menos header e respiros (e come 32px do respiro de baixo
+  do conteudo), o cartao estica (`flex: 1`) e a borda de baixo dele cai na mesma altura do `border-top`
+  do rodape do `MenuLateral`. A `Paginacao` fica **fora do cartao**, sem borda, na faixa do botao de
+  recolher o menu (`min-height` de `--space-4` + `--tap-size`, numeros centrados com o botao). Pagina
+  cheia divide a sobra de altura entre as linhas da tabela (`.preencher`: lista, caixa e `table` em
+  flex) ou entre os cartoes (`.preencherCartoes`, conteudo centrado), para o espaco abaixo do ultimo
+  registro ser sempre o respiro do cartao; a ultima pagina, com menos registros, nao estica. Abaixo
+  de 1100px (menu em drawer) tudo volta ao fluxo normal.
+- **Cada registro tem altura fixa, para nenhuma pagina rolar.** No cartao, nota gerada ("Recorrente —
+  Mensal", "Gerada pelo aporte…") e observacao vao na linha da data e da conta, depois de travessao, em
+  `--text-subtle`, cortadas com reticencias a partir de 900px. Na tabela, nota e observacao dividem uma
+  linha abaixo da descricao (`line-clamp` 1), com descricao e nota em `--lh-snug`: a linha com nota tem
+  60px, contra 57px sem. Antes eram 67px, e tres delas na mesma pagina faziam a tela rolar. Verificado
+  pagina por pagina nas tres telas e nas duas visualizacoes numa janela de 901px de altura.
+- **Trocar entre tabela e cartoes e animado, em duas fases.** O clique move o indicador do alternador
+  na hora e guarda a escolha em `visaoPedida`; o conteudo atual sai (`.saidaVisao`, `--duration-fast`,
+  `DURACAO_SAIDA_VISUALIZACAO_MS`) e so entao a preferencia muda e a pagina do outro tamanho e pedida. A
+  visualizacao exibida segue o tamanho dos dados que chegaram (`visaoDosDados`), entao o conteudo antigo
+  continua escondido ate o novo chegar, sem esqueleto. O novo entra em cascata (`.trocaVisao` por
+  `DURACAO_TROCA_VISUALIZACAO_MS`, `--i` em cada linha e cartao): cartao sobe 18px e cresce de 98%,
+  linha sobe 10px. A caixa da tabela tem `overflow-y: hidden` (`.tabela > div`): sem isso as linhas
+  deslocadas durante a entrada ligavam uma barra vertical de 10px dentro dela e a tabela pulava. O
+  "Ordenar por" e revelado da esquerda para a direita (`clip-path`) com o botao de direcao entrando em
+  giro, e recolhe ao sair, no clique, mantido montado por `DURACAO_SAIDA_ORDENACAO_MS`. Sob movimento
+  reduzido nada disso anima e a troca e direta.
+- **O indicador do alternador tem a largura da opcao escolhida**: medido por `offsetLeft`/`offsetWidth`
+  num `useLayoutEffect` com `ResizeObserver` (as opcoes tem larguras diferentes; a metade fixa deixava
+  sobra em "Cartões"). Fundo `--accent-soft`, borda interna e brilho em `--accent` por `color-mix`, texto
+  da opcao em `--accent`.
 - **Filtros de categoria e conta saem do catalogo** (`useCatalogo`), e nao dos lancamentos carregados:
-  com 25 na tela, a lista de opcoes ficaria incompleta. Categorias seguem o tipo da tela. Origem
+  com 8 na tela, a lista de opcoes ficaria incompleta. Categorias seguem o tipo da tela. Origem
   inativa nao aparece no filtro (o catalogo so traz as ativas).
 - **`?editar=<id>` busca pelo id** (`GET /lancamentos/{id}`, `lancamentoService.buscar`) quando o
   lancamento nao esta na pagina carregada.

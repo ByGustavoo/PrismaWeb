@@ -4,7 +4,13 @@ import { faixaDaPagina, paginasVisiveis } from './paginacao';
 describe('paginasVisiveis', () => {
   it('mostra todas quando cabem sem reticências', () => {
     expect(paginasVisiveis(0, 1)).toEqual([0]);
-    expect(paginasVisiveis(3, 7)).toEqual([0, 1, 2, 3, 4, 5, 6]);
+    expect(paginasVisiveis(2, 6)).toEqual([0, 1, 2, 3, 4, 5]);
+  });
+
+  it('a partir de sete páginas usa reticências, como nas listas longas', () => {
+    expect(paginasVisiveis(0, 7)).toEqual([0, 1, 2, 3, 'reticencias-fim', 6]);
+    expect(paginasVisiveis(3, 7)).toEqual([0, 'reticencias-inicio', 2, 3, 4, 'reticencias-fim', 6]);
+    expect(paginasVisiveis(6, 7)).toEqual([0, 'reticencias-inicio', 3, 4, 5, 6]);
   });
 
   it('no começo mostra as primeiras e a última', () => {

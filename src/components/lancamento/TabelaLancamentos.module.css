@@ -70,13 +70,18 @@
 .description {
   display: block;
   font-weight: 500;
+  line-height: var(--lh-snug);
 }
 
 .notes {
-  display: block;
-  margin-top: 2px;
+  display: -webkit-box;
   max-width: 30ch;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
   font-size: var(--fs-xs);
+  line-height: var(--lh-snug);
   color: var(--text-subtle);
 }
 

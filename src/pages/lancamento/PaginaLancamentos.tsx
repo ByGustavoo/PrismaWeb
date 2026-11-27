@@ -7,6 +7,7 @@ import {
   FiltrosLancamentos,
   ModalFormularioLancamento,
   ListaLancamentos,
+  OrdenacaoLancamentos,
   TabelaLancamentos,
   ModalFormularioTransferencia,
   AlternadorVisualizacao,
@@ -18,12 +19,19 @@ import {
 import type { ConsultaLancamento, VisualizacaoLancamentos } from '@/components/lancamento';
 import { Botao, Painel, DialogoConfirmacao, EstadoVazio, BlocoCarregando, Paginacao } from '@/components/ui';
 import { CHAVE_VISUALIZACAO_LANCAMENTOS, ESPERA_ENTRE_TECLAS_MS } from '@/constants/aplicacao';
-import { TAMANHO_PAGINA_LANCAMENTOS, rotuloTipoLancamento } from '@/constants/lancamento/lancamento';
+import {
+  TAMANHO_PAGINA_LANCAMENTOS,
+  TAMANHO_PAGINA_LANCAMENTOS_CARTOES,
+  DURACAO_TROCA_VISUALIZACAO_MS,
+  DURACAO_SAIDA_VISUALIZACAO_MS,
+  DURACAO_SAIDA_ORDENACAO_MS,
+  rotuloTipoLancamento,
+} from '@/constants/lancamento/lancamento';
 import { rotuloFrequencia } from '@/constants/recorrente/recorrente';
 import { useCatalogo } from '@/hooks/useCatalogo';
 import { useDadosAssincronos } from '@/hooks/useDadosAssincronos';
 import { useArmazenamentoLocal } from '@/hooks/useArmazenamentoLocal';
-import { useConsultaMidia, useEhCompacto } from '@/hooks/useConsultaMidia';
+import { useConsultaMidia, useEhCompacto, useEhTablet } from '@/hooks/useConsultaMidia';
 import { useTabelaCabe } from '@/hooks/useTabelaCabe';
 import { useValorComAtraso } from '@/hooks/useValorComAtraso';
 import { useNotificacoes } from '@/providers/ProvedorNotificacoes';
@@ -42,6 +50,7 @@ import {
 import { lancamentoService } from '@/services';
 import type { LancamentoDTO, OrdenacaoLancamento, SalvarLancamentoDTO, TipoLancamento } from '@/types';
 import { formatarDataCompleta, formatarInteiro } from '@/utils/formatacao';
+import { juntarClasses } from '@/utils/juntarClasses';
 import styles from './PaginaLancamentos.module.css';
 
 interface PaginaLancamentosProps {
@@ -64,7 +73,7 @@ function consultaDaUrl(parametros: URLSearchParams): ConsultaLancamento {
 export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentosProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState<ConsultaLancamento>(() => consultaDaUrl(searchParams));
-  const [paginacao, setPaginacao] = useState({ chave: '', pagina: 0 });
+  const [paginacao, setPaginacao] = useState({ chave: '', inicio: 0 });
   const [alturaReservada, setAlturaReservada] = useState<number | null>(null);
   const listaRef = useRef<HTMLDivElement>(null);
   const [formMode, setFormMode] = useState<ModoFormulario | null>(null);
@@ -82,6 +91,9 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
     CHAVE_VISUALIZACAO_LANCAMENTOS,
     'table',
   );
+  const ehTablet = useEhTablet();
+  const tamanhoPagina =
+    !ehTablet && preferredView === 'cards' ? TAMANHO_PAGINA_LANCAMENTOS_CARTOES : TAMANHO_PAGINA_LANCAMENTOS;
 
   useEffect(() => {
     const requestedForm = searchParams.get(PARAMETRO_NOVO_LANCAMENTO);
@@ -121,17 +133,23 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
   const buscaParaServidor = query.busca.trim() === '' ? '' : buscaComAtraso;
   const consultaServidor = useMemo(() => ({ ...query, busca: buscaParaServidor }), [query, buscaParaServidor]);
   const chaveFiltro = JSON.stringify(paraFiltroDoServidor(consultaServidor, tipo, 0, TAMANHO_PAGINA_LANCAMENTOS));
-  if (paginacao.chave !== chaveFiltro) setPaginacao({ chave: chaveFiltro, pagina: 0 });
-  const pagina = paginacao.chave === chaveFiltro ? paginacao.pagina : 0;
+  if (paginacao.chave !== chaveFiltro) setPaginacao({ chave: chaveFiltro, inicio: 0 });
+  const inicio = paginacao.chave === chaveFiltro ? paginacao.inicio : 0;
+  const pagina = Math.floor(inicio / tamanhoPagina);
 
   const fetchTransactions = useCallback(
     (signal: AbortSignal) =>
-      lancamentoService.listar(paraFiltroDoServidor(consultaServidor, tipo, pagina, TAMANHO_PAGINA_LANCAMENTOS), signal),
-    [consultaServidor, tipo, pagina],
+      lancamentoService.listar(paraFiltroDoServidor(consultaServidor, tipo, pagina, tamanhoPagina), signal),
+    [consultaServidor, tipo, pagina, tamanhoPagina],
   );
 
-  const { dados, carregando, erro, recarregar } = useDadosAssincronos(fetchTransactions, [chaveFiltro, pagina]);
-  const trocandoPagina = carregando && dados !== null && dados.pagina !== pagina;
+  const { dados, carregando, erro, recarregar } = useDadosAssincronos(fetchTransactions, [
+    chaveFiltro,
+    pagina,
+    tamanhoPagina,
+  ]);
+  const trocandoPagina =
+    carregando && dados !== null && dados.tamanho === tamanhoPagina && dados.pagina !== pagina;
 
   useEffect(() => {
     if (!trocandoPagina) setAlturaReservada(null);
@@ -139,12 +157,12 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
 
   useEffect(() => {
     if (!dados || dados.itens.length > 0 || dados.quantidadeTotal === 0 || pagina === 0) return;
-    setPaginacao({ chave: chaveFiltro, pagina: Math.max(0, dados.quantidadePaginas - 1) });
+    setPaginacao({ chave: chaveFiltro, inicio: Math.max(0, dados.quantidadePaginas - 1) * dados.tamanho });
   }, [dados, pagina, chaveFiltro]);
 
   const irParaPagina = (destino: number) => {
     setAlturaReservada(listaRef.current?.offsetHeight ?? null);
-    setPaginacao({ chave: chaveFiltro, pagina: destino });
+    setPaginacao({ chave: chaveFiltro, inicio: destino * tamanhoPagina });
     listaRef.current?.scrollIntoView({ block: 'start', behavior: movimentoReduzido ? 'auto' : 'smooth' });
     listaRef.current?.focus({ preventScroll: true });
   };
@@ -192,8 +210,61 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
   const quantidadeTotal = dados?.quantidadeTotal ?? 0;
   const total = dados?.resultado ?? 0;
   const { areaRef: toolbarRef, tabelaRef: tableRef, cabe: tableFits } = useTabelaCabe(transactions);
-  const view = isCompact || !tableFits ? 'cards' : preferredView;
+  const visaoDosDados: VisualizacaoLancamentos =
+    dados && !ehTablet ? (dados.tamanho === TAMANHO_PAGINA_LANCAMENTOS_CARTOES ? 'cards' : 'table') : preferredView;
+  const view = isCompact || !tableFits ? 'cards' : visaoDosDados;
   const filtered = temFiltrosAtivos(query);
+
+  const [visaoPedida, setVisaoPedida] = useState<VisualizacaoLancamentos | null>(null);
+  const visaoAlvo = visaoPedida ?? preferredView;
+  const emTroca = !isCompact && tableFits && visaoAlvo !== view;
+
+  useEffect(() => {
+    if (!visaoPedida) return;
+    const espera = window.setTimeout(() => {
+      setPreferredView(visaoPedida);
+      setVisaoPedida(null);
+    }, DURACAO_SAIDA_VISUALIZACAO_MS);
+    return () => window.clearTimeout(espera);
+  }, [visaoPedida, setPreferredView]);
+
+  const alterarVisualizacao = (visao: VisualizacaoLancamentos) => {
+    if (visao === preferredView) {
+      setVisaoPedida(null);
+      return;
+    }
+    if (movimentoReduzido) {
+      setPreferredView(visao);
+      return;
+    }
+    setVisaoPedida(visao);
+  };
+
+  const [visaoExibida, setVisaoExibida] = useState(view);
+  const [animandoTroca, setAnimandoTroca] = useState(false);
+  if (visaoExibida !== view) {
+    setVisaoExibida(view);
+    setAnimandoTroca(true);
+  }
+
+  useEffect(() => {
+    if (!animandoTroca) return;
+    const espera = window.setTimeout(() => setAnimandoTroca(false), DURACAO_TROCA_VISUALIZACAO_MS);
+    return () => window.clearTimeout(espera);
+  }, [animandoTroca]);
+
+  const mostrarOrdenacao = view === 'cards' && !isCompact && !emTroca;
+  const [ordenacaoMontada, setOrdenacaoMontada] = useState(mostrarOrdenacao);
+  if (mostrarOrdenacao && !ordenacaoMontada) setOrdenacaoMontada(true);
+
+  useEffect(() => {
+    if (mostrarOrdenacao || !ordenacaoMontada) return;
+    const espera = window.setTimeout(
+      () => setOrdenacaoMontada(false),
+      movimentoReduzido ? 0 : DURACAO_SAIDA_ORDENACAO_MS,
+    );
+    return () => window.clearTimeout(espera);
+  }, [mostrarOrdenacao, ordenacaoMontada, movimentoReduzido]);
 
   const patchQuery = (patch: Partial<ConsultaLancamento>) => setQuery((current) => ({ ...current, ...patch }));
 
@@ -210,6 +281,15 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
         ? { ...current, direcaoOrdenacao: current.direcaoOrdenacao === 'ASC' ? 'DESC' : 'ASC' }
         : { ...current, campoOrdenacao: field, direcaoOrdenacao: direcaoInicialOrdenacao[field] },
     );
+
+  const ordenacao = (saindo = false) => (
+    <OrdenacaoLancamentos
+      campoOrdenacao={query.campoOrdenacao}
+      direcaoOrdenacao={query.direcaoOrdenacao}
+      aoOrdenar={handleSort}
+      saindo={saindo}
+    />
+  );
 
   const closeForm = () => {
     setFormMode(null);
@@ -260,7 +340,7 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
   };
 
   return (
-    <>
+    <div className={styles.tela}>
       <CabecalhoPagina
         titulo={titulo}
         descricao={descricao}
@@ -285,7 +365,7 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
         }
       />
 
-      <Painel espacamento="sm">
+      <Painel espacamento="sm" className={styles.painel}>
         <div className={styles.toolbar} ref={toolbarRef}>
           <FiltrosLancamentos
             consulta={query}
@@ -296,6 +376,7 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
             tipoCategoria={tipo === 'RECEITA' || tipo === 'DESPESA' ? tipo : undefined}
             mostrarFiltroTipo={!tipo}
             mostrarFiltroCategoria={tipo !== 'TRANSFERENCIA'}
+            ordenacao={ordenacaoMontada ? ordenacao(!mostrarOrdenacao) : null}
           />
 
           <div className={styles.summary}>
@@ -305,7 +386,7 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
               </span>
 
               {isCompact || !tableFits ? null : (
-                <AlternadorVisualizacao valor={preferredView} aoAlterar={setPreferredView} />
+                <AlternadorVisualizacao valor={visaoAlvo} aoAlterar={alterarVisualizacao} />
               )}
             </div>
             {tipo === 'TRANSFERENCIA' ? (
@@ -334,7 +415,13 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
         ) : (
           <div
             ref={listaRef}
-            className={`refreshing ${styles.lista}`}
+            className={juntarClasses(
+              'refreshing',
+              styles.lista,
+              transactions.length === dados?.tamanho && (view === 'cards' ? styles.preencherCartoes : styles.preencher),
+              animandoTroca && styles.trocaVisao,
+              emTroca && styles.saidaVisao,
+            )}
             aria-busy={carregando}
             aria-label={`Lançamentos, página ${pagina + 1} de ${Math.max(1, dados?.quantidadePaginas ?? 1)}`}
             tabIndex={-1}
@@ -366,17 +453,17 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
             ) : (
               <>
                 {view === 'cards' ? (
-                  <ListaLancamentos
-                    lancamentos={transactions}
-                    campoOrdenacao={query.campoOrdenacao}
-                    direcaoOrdenacao={query.direcaoOrdenacao}
-                    aoOrdenar={handleSort}
-                    mostrarCategoria={tipo !== 'TRANSFERENCIA'}
-                    aoEditar={openEdit}
-                    aoExcluir={setRemoving}
-                  />
+                  <>
+                    {isCompact ? <div className={styles.ordenacaoCompacta}>{ordenacao()}</div> : null}
+                    <ListaLancamentos
+                      lancamentos={transactions}
+                      mostrarCategoria={tipo !== 'TRANSFERENCIA'}
+                      aoEditar={openEdit}
+                      aoExcluir={setRemoving}
+                    />
+                  </>
                 ) : (
-                  <div ref={tableRef}>
+                  <div ref={tableRef} className={styles.tabela}>
                     <TabelaLancamentos
                       lancamentos={transactions}
                       campoOrdenacao={query.campoOrdenacao}
@@ -392,18 +479,19 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
             )}
           </div>
         )}
-
-        {dados && !erro ? (
-          <Paginacao
-            pagina={pagina}
-            quantidadePaginas={dados.quantidadePaginas}
-            quantidadeTotal={quantidadeTotal}
-            tamanho={TAMANHO_PAGINA_LANCAMENTOS}
-            rotulo="Páginas dos lançamentos"
-            aoMudar={irParaPagina}
-          />
-        ) : null}
       </Painel>
+
+      {dados && !erro ? (
+        <Paginacao
+          pagina={pagina}
+          quantidadePaginas={dados.quantidadePaginas}
+          quantidadeTotal={quantidadeTotal}
+          tamanho={tamanhoPagina}
+          rotulo="Páginas dos lançamentos"
+          aoMudar={irParaPagina}
+          className={styles.paginacao}
+        />
+      ) : null}
 
       <ModalFormularioLancamento
         aberto={formMode === 'RECEITA' || formMode === 'DESPESA'}
@@ -444,6 +532,6 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
           </>
         ) : null}
       </DialogoConfirmacao>
-    </>
+    </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useId, useMemo, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import { ArrowLeftRight, CalendarRange, CircleDot, Search, SlidersHorizontal, Tag, Wallet, X } from 'lucide-react';
 import { EspacoCabecalho } from '@/components/layout';
 import { Botao, SeletorData, CampoTexto, CampoSelecao } from '@/components/ui';
@@ -20,6 +21,7 @@ interface FiltrosLancamentosProps {
   tipoCategoria?: TipoCategoria;
   mostrarFiltroTipo: boolean;
   mostrarFiltroCategoria: boolean;
+  ordenacao?: ReactNode;
 }
 
 const opcoesTipo: Opcao[] = [
@@ -60,6 +62,7 @@ export function FiltrosLancamentos({
   tipoCategoria,
   mostrarFiltroTipo,
   mostrarFiltroCategoria,
+  ordenacao,
 }: FiltrosLancamentosProps) {
   const categoryOptions = useMemo(
     () =>
@@ -189,6 +192,8 @@ export function FiltrosLancamentos({
           onChange={(situacao) => aoAlterar({ situacao })}
           aria-label="Filtrar por situação"
         />
+
+        {ordenacao}
       </div>
 
       {showControls && consulta.periodo === 'custom' ? (

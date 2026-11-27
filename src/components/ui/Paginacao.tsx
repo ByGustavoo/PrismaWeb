@@ -11,9 +11,18 @@ interface PaginacaoProps {
   tamanho: number;
   rotulo: string;
   aoMudar: (pagina: number) => void;
+  className?: string;
 }
 
-export function Paginacao({ pagina, quantidadePaginas, quantidadeTotal, tamanho, rotulo, aoMudar }: PaginacaoProps) {
+export function Paginacao({
+  pagina,
+  quantidadePaginas,
+  quantidadeTotal,
+  tamanho,
+  rotulo,
+  aoMudar,
+  className,
+}: PaginacaoProps) {
   if (quantidadePaginas <= 1) return null;
 
   const { primeiro, ultimo } = faixaDaPagina(pagina, tamanho, quantidadeTotal);
@@ -24,7 +33,7 @@ export function Paginacao({ pagina, quantidadePaginas, quantidadeTotal, tamanho,
   };
 
   return (
-    <nav className={styles.paginacao} aria-label={rotulo}>
+    <nav className={juntarClasses(styles.paginacao, className)} aria-label={rotulo}>
       <p className={styles.resumo} aria-live="polite">
         <span className="tabular">
           {formatarInteiro(primeiro)}–{formatarInteiro(ultimo)}

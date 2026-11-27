@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { ArrowRight, ArrowUpDown, ChevronDown, ChevronUp, Layers, Pencil, Trash2, TrendingUp } from 'lucide-react';
 import { ValorMonetario } from '@/components/comum';
 import { Selo, Botao, CorpoTabela, CabecaTabela, Tabela, ContainerTabela, Celula, CelulaCabecalho, LinhaTabela } from '@/components/ui';
@@ -89,12 +90,17 @@ export function TabelaLancamentos({
         </CabecaTabela>
 
         <CorpoTabela>
-          {lancamentos.map((transaction) => {
-            const generatedNote = notaLancamentoGerado(transaction);
+          {lancamentos.map((transaction, indice) => {
+            const nota = [notaLancamentoGerado(transaction), transaction.observacoes].filter(Boolean).join(' — ');
             const Icon = iconePorTipo[transaction.tipo];
 
             return (
-              <LinhaTabela key={transaction.id} interativo onClick={() => aoEditar(transaction)}>
+              <LinhaTabela
+                key={transaction.id}
+                interativo
+                style={{ '--i': indice } as CSSProperties}
+                onClick={() => aoEditar(transaction)}
+              >
                 <Celula className={`${styles.muted} ${styles.date} tabular`}>{formatarDataCurta(transaction.data)}</Celula>
 
                 <Celula onClick={(event) => event.stopPropagation()}>
@@ -104,8 +110,7 @@ export function TabelaLancamentos({
                     onClick={() => aoEditar(transaction)}
                   >
                     <span className={styles.description}>{transaction.descricao}</span>
-                    {generatedNote ? <span className={styles.notes}>{generatedNote}</span> : null}
-                    {transaction.observacoes ? <span className={styles.notes}>{transaction.observacoes}</span> : null}
+                    {nota ? <span className={styles.notes}>{nota}</span> : null}
                   </button>
                 </Celula>
 

@@ -61,7 +61,15 @@ export const formasLancamento: FormaLancamento[] = ['CONTA', 'PIX', 'CARTAO_CRED
 
 const situacoesLancamento: SituacaoLancamento[] = ['PAGO', 'PENDENTE', 'AGENDADO'];
 
-export const TAMANHO_PAGINA_LANCAMENTOS = 25;
+export const TAMANHO_PAGINA_LANCAMENTOS = 8;
+
+export const TAMANHO_PAGINA_LANCAMENTOS_CARTOES = 4;
+
+export const DURACAO_SAIDA_VISUALIZACAO_MS = 120;
+
+export const DURACAO_TROCA_VISUALIZACAO_MS = 720;
+
+export const DURACAO_SAIDA_ORDENACAO_MS = 200;
 
 export const opcoesSituacaoLancamento: Opcao[] = situacoesLancamento.map((situacao) => ({
   valor: situacao,
