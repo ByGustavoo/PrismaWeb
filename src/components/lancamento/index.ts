@@ -2,6 +2,7 @@ export { FiltrosLancamentos } from './FiltrosLancamentos';
 export { TabelaLancamentos } from './TabelaLancamentos';
 export { ListaLancamentos } from './ListaLancamentos';
 export { OrdenacaoLancamentos } from './OrdenacaoLancamentos';
+export { espacoEntreFiltros, largurasDosFiltros } from './medidaFiltros';
 export { ModalFormularioLancamento } from './ModalFormularioLancamento';
 export { AlternadorVisualizacao } from './AlternadorVisualizacao';
 export type { VisualizacaoLancamentos } from './AlternadorVisualizacao';

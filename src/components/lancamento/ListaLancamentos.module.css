@@ -121,6 +121,12 @@
 }
 
 @media (min-width: 900px) {
+  .description {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
   .meta {
     overflow: hidden;
     white-space: nowrap;

@@ -71,6 +71,8 @@ export const DURACAO_TROCA_VISUALIZACAO_MS = 720;
 
 export const DURACAO_SAIDA_ORDENACAO_MS = 200;
 
+export const FOLGA_ORDENACAO_PEQUENA_PX = 24;
+
 export const opcoesSituacaoLancamento: Opcao[] = situacoesLancamento.map((situacao) => ({
   valor: situacao,
   rotulo: rotuloSituacaoLancamento[situacao],

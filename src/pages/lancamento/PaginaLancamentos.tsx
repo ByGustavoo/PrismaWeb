@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Filter, Plus } from 'lucide-react';
 import { ValorMonetario } from '@/components/comum';
@@ -15,6 +15,8 @@ import {
   paraFiltroDoServidor,
   temFiltrosAtivos,
   direcaoInicialOrdenacao,
+  espacoEntreFiltros,
+  largurasDosFiltros,
 } from '@/components/lancamento';
 import type { ConsultaLancamento, VisualizacaoLancamentos } from '@/components/lancamento';
 import { Botao, Painel, DialogoConfirmacao, EstadoVazio, BlocoCarregando, Paginacao } from '@/components/ui';
@@ -25,6 +27,7 @@ import {
   DURACAO_TROCA_VISUALIZACAO_MS,
   DURACAO_SAIDA_VISUALIZACAO_MS,
   DURACAO_SAIDA_ORDENACAO_MS,
+  FOLGA_ORDENACAO_PEQUENA_PX,
   rotuloTipoLancamento,
 } from '@/constants/lancamento/lancamento';
 import { rotuloFrequencia } from '@/constants/recorrente/recorrente';
@@ -257,6 +260,33 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
   const [ordenacaoMontada, setOrdenacaoMontada] = useState(mostrarOrdenacao);
   if (mostrarOrdenacao && !ordenacaoMontada) setOrdenacaoMontada(true);
 
+  const [ordenacaoNosFiltros, setOrdenacaoNosFiltros] = useState(true);
+  const larguraOrdenacaoRef = useRef<number | null>(null);
+
+  useLayoutEffect(() => {
+    const area = toolbarRef.current;
+    if (!area || !ordenacaoMontada || isCompact) return;
+
+    const medir = () => {
+      const linha = area.querySelector<HTMLElement>('[data-linha-filtros]');
+      const atual = area.querySelector<HTMLElement>('[data-ordenacao]');
+      if (!linha || !atual) return;
+
+      if (linha.contains(atual)) larguraOrdenacaoRef.current = atual.getBoundingClientRect().width;
+      const larguraOrdenacao =
+        larguraOrdenacaoRef.current ?? atual.getBoundingClientRect().width + FOLGA_ORDENACAO_PEQUENA_PX;
+      const necessario = largurasDosFiltros(linha).natural + espacoEntreFiltros(linha) + larguraOrdenacao;
+      setOrdenacaoNosFiltros(necessario <= linha.clientWidth);
+    };
+
+    medir();
+    const observador = new ResizeObserver(medir);
+    observador.observe(area);
+    const linha = area.querySelector('[data-linha-filtros]');
+    if (linha) [...linha.children].forEach((filho) => observador.observe(filho));
+    return () => observador.disconnect();
+  }, [toolbarRef, ordenacaoMontada, ordenacaoNosFiltros, isCompact, categories, sources, tipo]);
+
   useEffect(() => {
     if (mostrarOrdenacao || !ordenacaoMontada) return;
     const espera = window.setTimeout(
@@ -282,12 +312,13 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
         : { ...current, campoOrdenacao: field, direcaoOrdenacao: direcaoInicialOrdenacao[field] },
     );
 
-  const ordenacao = (saindo = false) => (
+  const ordenacao = (saindo = false, tamanho: 'sm' | 'md' = 'md') => (
     <OrdenacaoLancamentos
       campoOrdenacao={query.campoOrdenacao}
       direcaoOrdenacao={query.direcaoOrdenacao}
       aoOrdenar={handleSort}
       saindo={saindo}
+      tamanho={tamanho}
     />
   );
 
@@ -376,7 +407,7 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
             tipoCategoria={tipo === 'RECEITA' || tipo === 'DESPESA' ? tipo : undefined}
             mostrarFiltroTipo={!tipo}
             mostrarFiltroCategoria={tipo !== 'TRANSFERENCIA'}
-            ordenacao={ordenacaoMontada ? ordenacao(!mostrarOrdenacao) : null}
+            ordenacao={ordenacaoMontada && ordenacaoNosFiltros ? ordenacao(!mostrarOrdenacao) : null}
           />
 
           <div className={styles.summary}>
@@ -388,6 +419,8 @@ export function PaginaLancamentos({ tipo, titulo, descricao }: PaginaLancamentos
               {isCompact || !tableFits ? null : (
                 <AlternadorVisualizacao valor={visaoAlvo} aoAlterar={alterarVisualizacao} />
               )}
+
+              {ordenacaoMontada && !ordenacaoNosFiltros ? ordenacao(!mostrarOrdenacao, 'sm') : null}
             </div>
             {tipo === 'TRANSFERENCIA' ? (
               <span className={styles.summaryLabel}>Transferências não entram no resultado do período</span>

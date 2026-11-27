@@ -1,4 +1,4 @@
-import { useId, useMemo, useRef, useState } from 'react';
+import { useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { ArrowLeftRight, CalendarRange, CircleDot, Search, SlidersHorizontal, Tag, Wallet, X } from 'lucide-react';
 import { EspacoCabecalho } from '@/components/layout';
@@ -9,6 +9,7 @@ import { useEhCompacto } from '@/hooks/useConsultaMidia';
 import type { CategoriaDTO, Opcao, OrigemDTO, TipoCategoria } from '@/types';
 import { juntarClasses } from '@/utils/juntarClasses';
 import { TODOS, temFiltrosAtivos, opcoesPeriodo } from './consulta';
+import { largurasDosFiltros } from './medidaFiltros';
 import type { ConsultaLancamento } from './consulta';
 import styles from './FiltrosLancamentos.module.css';
 
@@ -87,6 +88,27 @@ export function FiltrosLancamentos({
 
   const activeCount = contarFiltrosAtivos(consulta);
   const showControls = !isCompact || expanded;
+  const linhaRef = useRef<HTMLDivElement>(null);
+  const [ajuste, setAjuste] = useState<'natural' | 'justo' | 'semIcone'>('natural');
+
+  useLayoutEffect(() => {
+    const linha = linhaRef.current;
+    if (!linha || isCompact) {
+      setAjuste('natural');
+      return;
+    }
+
+    const medir = () => {
+      const larguras = largurasDosFiltros(linha);
+      const disponivel = linha.clientWidth;
+      setAjuste(larguras.natural <= disponivel ? 'natural' : larguras.justa <= disponivel ? 'justo' : 'semIcone');
+    };
+    medir();
+    const observador = new ResizeObserver(medir);
+    observador.observe(linha);
+    [...linha.children].forEach((filho) => observador.observe(filho));
+    return () => observador.disconnect();
+  }, [isCompact, categoryOptions, accountOptions, mostrarFiltroTipo, mostrarFiltroCategoria]);
 
   const search = (
     <CampoTexto
@@ -138,7 +160,18 @@ export function FiltrosLancamentos({
         </EspacoCabecalho>
       )}
 
-      <div className={juntarClasses(styles.controls, !showControls && styles.controlsHidden)} id={panelId} hidden={!showControls}>
+      <div
+        ref={linhaRef}
+        className={juntarClasses(
+          styles.controls,
+          ajuste !== 'natural' && styles.controlsJustos,
+          ajuste === 'semIcone' && styles.controlsSemIcone,
+          !showControls && styles.controlsHidden,
+        )}
+        id={panelId}
+        hidden={!showControls}
+        data-linha-filtros
+      >
         <CampoSelecao
           className={styles.filter}
           larguraPelaMaiorOpcao

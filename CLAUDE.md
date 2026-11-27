@@ -132,7 +132,8 @@ Invariantes do projeto. Quebra-las e o erro mais caro que se pode cometer aqui.
    **Filtro tem a largura da maior opcao.** `CampoSelecao` usado como filtro (fora de formulario)
    recebe `larguraPelaMaiorOpcao` e nao leva `width` no CSS: o gatilho empilha todos os rotulos
    invisiveis na mesma celula de grade e mede o mais longo (com o prefixo, como "Ordenar:") mais 16px
-   antes da seta. Abaixo de 600px os filtros ocupam a linha inteira.
+   antes da seta. Abaixo de 600px os filtros ocupam a linha inteira. Excecao em Lancamentos, quando a
+   linha nao comporta todos (ver "Lancamentos e saldo"): o filtro fica com a largura do valor que mostra.
 
 8. **Excecao ao token de cor: Recharts**, que escreve cor como atributo SVG, onde `var()` nao resolve
    de forma confiavel. Use `usePaletaGrafico`, que le os tokens computados e recalcula na troca de tema.
@@ -168,7 +169,7 @@ src/
 │   ├── dashboard/ PainelSaldo, BlocoIndicador, GraficoFluxoCaixa, DistribuicaoCategorias,
 │   │              CalendarioGastos, UltimosLancamentos
 │   ├── lancamento/ FiltrosLancamentos, TabelaLancamentos, ListaLancamentos (cartoes),
-│   │              OrdenacaoLancamentos (ordenar dos cartoes),
+│   │              OrdenacaoLancamentos (ordenar dos cartoes), medidaFiltros (largura da linha de filtros),
 │   │              AlternadorVisualizacao, formularios, aparencia (icone/cor por tipo e situacao),
 │   │              consulta (filtro, periodo e ordenacao)
 │   ├── conta/     CartaoConta, ModalFormularioConta, aparencia
@@ -372,8 +373,9 @@ de altura reserva a maior (`alturaCartaoRetrato`), senao o titulo centrado com e
   trava so a data e cabe a partir de 1280px. No desktop o `AlternadorVisualizacao` guarda a escolha em
   `prisma:transactions-view`; quando a tabela nao cabe, o seletor sai. Os cartoes nao tem cabecalho de
   coluna, entao ganham o "Ordenar por:" (`OrdenacaoLancamentos`, campo e botao de direcao) na linha
-  dos filtros, logo depois de "Todas as situações"; abaixo de 900px, com os filtros recolhidos em
-  "Filtros", ele fica acima dos cartoes para nao sumir. "Últimos lançamentos" do dashboard vira lista
+  dos filtros, logo depois de "Todas as situações", quando cabe com todos os filtros na largura da
+  maior opcao; senao vai, em `tamanho="sm"`, para a linha do alternador. Abaixo de 900px, com os filtros
+  recolhidos em "Filtros", ele fica acima dos cartoes para nao sumir. "Últimos lançamentos" do dashboard vira lista
   abaixo de 900px.
 - **Grades de cartoes usam `auto-fill` com largura minima** (contas, cartoes, parcelamentos,
   investimentos, orcamento, recorrentes): o conteudo decide quando quebrar. Dashboard: 4 → 2 → 1.
@@ -638,10 +640,24 @@ Regras aplicadas pelo PrismaAPI; o frontend apresenta.
   de 1100px (menu em drawer) tudo volta ao fluxo normal.
 - **Cada registro tem altura fixa, para nenhuma pagina rolar.** No cartao, nota gerada ("Recorrente —
   Mensal", "Gerada pelo aporte…") e observacao vao na linha da data e da conta, depois de travessao, em
-  `--text-subtle`, cortadas com reticencias a partir de 900px. Na tabela, nota e observacao dividem uma
-  linha abaixo da descricao (`line-clamp` 1), com descricao e nota em `--lh-snug`: a linha com nota tem
-  60px, contra 57px sem. Antes eram 67px, e tres delas na mesma pagina faziam a tela rolar. Verificado
-  pagina por pagina nas tres telas e nas duas visualizacoes numa janela de 901px de altura.
+  `--text-subtle`, e a partir de 900px descricao e essa linha ficam numa linha so, com reticencias. Na
+  tabela, nota e observacao dividem uma linha abaixo da descricao, com descricao e nota em `--lh-snug`:
+  a linha com nota tem 60px, contra 57px sem (eram 67px, e tres delas na mesma pagina faziam a tela
+  rolar). Descricao, categoria e conta (ou rota) levam `.umaLinha` (`line-clamp` 1): em larguras
+  menores a tabela estreita e o texto quebrava, levando linhas a 70 e 79px. O `line-clamp` mantem a
+  largura minima de palavra, entao a regra do `useTabelaCabe` nao muda. Verificado pagina por pagina nas
+  quatro telas (Transferencias mostrada so para conferir) e nas duas visualizacoes a 901px de altura, e
+  a 1280, 1366, 1440, 1600 e 1920px de largura.
+- **A linha de filtros nao quebra a partir de 1280px** (`flex-wrap: nowrap`); quebrar descia a lista
+  46px e a tela rolava (Todas tem cinco filtros, 1039px na largura da maior opcao). O
+  `FiltrosLancamentos` mede a linha (`largurasDosFiltros`, `medidaFiltros.ts`) e escolhe entre tres
+  niveis: largura da maior opcao, quando tudo cabe; justa (`.controlsJustos`), cada filtro com a largura
+  do valor que mostra; e sem icone (`.controlsSemIcone`), quando nem isso cabe (Todas a 1280px). Os
+  niveis passam ao `CampoSelecao` por variavel CSS (`--posicao-medida-selecao: absolute` tira do fluxo as
+  medidas das opcoes; `--exibicao-icone-selecao: none` esconde o icone), e a medida le `data-valor-ajustavel`,
+  `data-medida` (com `width: max-content`, senao encolhe com a coluna) e `data-icone`. A
+  `PaginaLancamentos` usa a largura natural para decidir onde fica o "Ordenar por"; a largura dele e a
+  do tamanho normal, guardada quando esteve na linha, para nao alternar entre os dois lugares.
 - **Trocar entre tabela e cartoes e animado, em duas fases.** O clique move o indicador do alternador
   na hora e guarda a escolha em `visaoPedida`; o conteudo atual sai (`.saidaVisao`, `--duration-fast`,
   `DURACAO_SAIDA_VISUALIZACAO_MS`) e so entao a preferencia muda e a pagina do outro tamanho e pedida. A

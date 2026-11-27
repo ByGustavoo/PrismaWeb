@@ -109,7 +109,7 @@ export function TabelaLancamentos({
                     className={styles.descriptionButton}
                     onClick={() => aoEditar(transaction)}
                   >
-                    <span className={styles.description}>{transaction.descricao}</span>
+                    <span className={`${styles.description} ${styles.umaLinha}`}>{transaction.descricao}</span>
                     {nota ? <span className={styles.notes}>{nota}</span> : null}
                   </button>
                 </Celula>
@@ -123,7 +123,7 @@ export function TabelaLancamentos({
                           style={{ backgroundColor: corDaPaleta(transaction.categoria.tokenCor) }}
                           aria-hidden="true"
                         />
-                        {transaction.categoria.nome}
+                        <span className={styles.umaLinha}>{transaction.categoria.nome}</span>
                       </span>
                     ) : (
                       <span className={styles.empty}>—</span>
@@ -133,13 +133,13 @@ export function TabelaLancamentos({
 
                 <Celula className={styles.muted}>
                   {transaction.nomeContaDestino ? (
-                    <span className={styles.route}>
+                    <span className={`${styles.route} ${styles.umaLinha}`}>
                       {transaction.nomeOrigem}
                       <ArrowRight size={13} strokeWidth={2} aria-hidden="true" />
                       {transaction.nomeContaDestino}
                     </span>
                   ) : (
-                    transaction.nomeOrigem
+                    <span className={styles.umaLinha}>{transaction.nomeOrigem}</span>
                   )}
                 </Celula>
 

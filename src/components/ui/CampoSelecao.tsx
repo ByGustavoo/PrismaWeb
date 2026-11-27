@@ -236,14 +236,14 @@ export function CampoSelecao({
         onClick={() => (open ? setOpen(false) : openMenu())}
         onKeyDown={handleKeyDown}
       >
-        {Icon ? <Icon className={styles.icon} size={15} strokeWidth={2} aria-hidden="true" /> : null}
+        {Icon ? <Icon className={styles.icon} size={15} strokeWidth={2} aria-hidden="true" data-icone /> : null}
 
         <span className={juntarClasses(styles.text, larguraPelaMaiorOpcao && styles.textFit)}>
           {prefixo ? <span className={styles.prefix}>{prefixo}</span> : null}
           {larguraPelaMaiorOpcao ? (
-            <span className={styles.valueFit}>
+            <span className={styles.valueFit} data-valor-ajustavel>
               {[...(selected ? [] : [placeholder]), ...opcoes.map((option) => option.rotulo)].map((texto, index) => (
-                <span key={index} className={styles.valueSizer} aria-hidden="true">
+                <span key={index} className={styles.valueSizer} aria-hidden="true" data-medida>
                   {texto}
                 </span>
               ))}

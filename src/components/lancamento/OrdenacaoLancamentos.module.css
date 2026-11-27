@@ -1,6 +1,7 @@
 .ordenacao {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
   gap: var(--space-2);
   min-width: 0;
   animation: revelar var(--duration-slow) var(--ease-out) backwards;
@@ -61,6 +62,11 @@
 .campo {
   flex: 0 1 auto;
   min-width: 0;
+}
+
+.pequena .direcao {
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
 }
 
 .direcao {

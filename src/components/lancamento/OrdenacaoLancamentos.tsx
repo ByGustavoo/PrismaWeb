@@ -9,6 +9,7 @@ interface OrdenacaoLancamentosProps {
   direcaoOrdenacao: DirecaoOrdenacao;
   aoOrdenar: (field: OrdenacaoLancamento) => void;
   saindo?: boolean;
+  tamanho?: 'sm' | 'md';
   className?: string;
 }
 
@@ -23,14 +24,19 @@ export function OrdenacaoLancamentos({
   direcaoOrdenacao,
   aoOrdenar,
   saindo = false,
+  tamanho = 'md',
   className,
 }: OrdenacaoLancamentosProps) {
   const ascending = direcaoOrdenacao === 'ASC';
 
   return (
-    <div className={juntarClasses(styles.ordenacao, saindo && styles.saindo, className)}>
+    <div
+      className={juntarClasses(styles.ordenacao, tamanho === 'sm' && styles.pequena, saindo && styles.saindo, className)}
+      data-ordenacao
+    >
       <CampoSelecao
         className={styles.campo}
+        tamanho={tamanho}
         larguraPelaMaiorOpcao
         prefixo="Ordenar por:"
         opcoes={opcoesOrdenacao}
